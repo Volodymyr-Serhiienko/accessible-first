@@ -1,0 +1,19 @@
+{
+  "name": "accessible-first",
+  "version": "1.0.0",
+  "description": "An accessibility-first UI ecosystem for building modern web applications.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

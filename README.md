@@ -1,2 +1,14 @@
-# accessible-first
-Accessible First is an ecosystem of tools for developing modern websites and web applications, where accessibility, quality, performance, and ease of use are not optional features, but fundamental principles. The project's goal is to make creating high-quality interfaces as simple as possible, and creating poor interfaces difficult or impossible.
+# Accessible First
+
+An accessibility-first UI ecosystem for building modern web applications.
+
+## Principles
+
+- Accessibility First
+- Native HTML First
+- Performance First
+- Simplicity First
+
+## Status
+
+Early stage research and development.
