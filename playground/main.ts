@@ -1,4 +1,13 @@
 import { createId } from "../packages/core/src/id";
 
-console.log("Playground started");
-console.log(createId());
+const app = document.querySelector("#app");
+
+if (app) {
+    app.textContent = `
+Playground started
+
+${createId()}
+${createId()}
+${createId("dialog")}
+`;
+}
