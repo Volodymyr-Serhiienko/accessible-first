@@ -1,4 +1,7 @@
-import { isDisabled, isHidden } from "../dom"
+import {
+    isDisabled,
+    isHidden
+} from "../dom"
 
 /**
  * Returns true if the element can receive focus.

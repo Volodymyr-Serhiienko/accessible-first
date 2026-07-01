@@ -1,4 +1,4 @@
-import { getOwnerDocument } from "./getOwnerDocument";
+import { getOwnerDocument } from "../dom";
 
 /**
  * Returns the owner window of an element.

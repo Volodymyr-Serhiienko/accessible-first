@@ -1,4 +1,4 @@
-import { isFocusable } from "./isFocusable";
+import { isFocusable } from "../focus";
 /**
  * Returns all focusable elements inside a container.
  */

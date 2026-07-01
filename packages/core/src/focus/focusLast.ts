@@ -1,4 +1,7 @@
-import { getFocusableElements, focusElement } from "../focus";
+import {
+    getFocusableElements,
+    focusElement
+} from "../focus";
 
 /**
  * Moves focus to the last focusable element inside a container.

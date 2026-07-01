@@ -1,4 +1,4 @@
-import { getFocusableElements } from "./getFocusableElements";
+import { getFocusableElements } from "../focus";
 
 export function hasFocusableElements(
     container: HTMLElement

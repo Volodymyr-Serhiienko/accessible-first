@@ -1,4 +1,4 @@
-import { isHidden } from "./isHidden";
+import { isHidden } from "../dom";
 
 /**
  * Returns true if the element is visible.
