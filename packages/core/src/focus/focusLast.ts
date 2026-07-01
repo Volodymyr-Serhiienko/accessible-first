@@ -1,4 +1,4 @@
-import { getFocusableElements } from "./getFocusableElements";
+import { getFocusableElements, focusElement } from "../focus";
 
 /**
  * Moves focus to the last focusable element inside a container.
@@ -11,13 +11,7 @@ export function focusLast(
 
     const elements = getFocusableElements(container);
 
-    const last = elements[elements.length - 1];
-
-    if (!last) {
-        return false;
-    }
-
-    last.focus();
-
-    return true;
+    return focusElement(
+        elements[elements.length - 1] ?? null
+    );
 }

@@ -1,3 +1,5 @@
+import { focusElement } from "../focus";
+
 /**
  * Restores focus to an element.
  */
@@ -9,7 +11,5 @@ export function restoreFocus(
         return false;
     }
 
-    element.focus();
-
-    return true;
+    return focusElement(element);
 }

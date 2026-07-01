@@ -1,6 +1,11 @@
-import { focusFirst } from "./focusFirst";
-import { restoreFocus } from "./restoreFocus";
-import { getFocusableElements } from "./getFocusableElements";
+import {
+    focusFirst,
+    focusElement,
+    restoreFocus,
+    getFocusableElements
+ } from "../focus";
+import { isTabKey } from "../keyboard";
+import { isHTMLElement } from "../dom"
 
 export function createFocusTrap(
     container: HTMLElement
@@ -18,7 +23,7 @@ export function createFocusTrap(
             return;
         }
 
-        if (event.key !== "Tab") {
+        if (!isTabKey(event)) {
             return;
         }
 
@@ -42,7 +47,7 @@ export function createFocusTrap(
 
             event.preventDefault();
 
-            last.focus();
+            focusElement(last);
 
             return;
         }
@@ -51,7 +56,7 @@ export function createFocusTrap(
 
             event.preventDefault();
 
-            first.focus();
+            focusElement(first);
         }
     }
 
@@ -63,7 +68,8 @@ export function createFocusTrap(
                 return;
             }
 
-            previousFocus = document.activeElement as HTMLElement | null;
+            const activeElement = document.activeElement;
+            previousFocus = isHTMLElement(activeElement) ? activeElement : null;
 
             active = true;
 

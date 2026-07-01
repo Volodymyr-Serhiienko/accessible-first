@@ -1,12 +1,21 @@
+import {
+    contains,
+    isHTMLElement
+} from "../dom";
+
 export function containsFocus(
     container: HTMLElement
 ): boolean {
 
     const activeElement = document.activeElement;
 
-    if (!(activeElement instanceof HTMLElement)) {
+    if (!isHTMLElement(activeElement)) {
         return false;
     }
 
-    return container.contains(activeElement);
+    return contains(
+        container,
+        activeElement
+    );
+
 }

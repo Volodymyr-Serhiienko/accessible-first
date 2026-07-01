@@ -1,4 +1,4 @@
-import { getFocusableElements } from "./getFocusableElements";
+import { getFocusableElements, focusElement } from "../focus";
 
 /**
  * Moves focus to the first focusable element inside a container.
@@ -9,15 +9,8 @@ export function focusFirst(
     container: HTMLElement
 ): boolean {
 
-    const elements = getFocusableElements(container);
+    const first =
+        getFocusableElements(container)[0];
 
-    const first = elements[0];
-
-    if (!first) {
-        return false;
-    }
-
-    first.focus();
-
-    return true;
+    return focusElement(first ?? null);
 }

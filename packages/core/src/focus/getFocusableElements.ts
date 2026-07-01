@@ -1,3 +1,4 @@
+import { isFocusable } from "./isFocusable";
 /**
  * Returns all focusable elements inside a container.
  */
@@ -16,12 +17,5 @@ export function getFocusableElements(
 
     return Array.from(
         container.querySelectorAll<HTMLElement>(selector)
-    ).filter(element => {
-
-        return (
-            !element.hasAttribute("disabled") &&
-            !element.hasAttribute("hidden")
-        );
-
-    });
+    ).filter(isFocusable);
 }

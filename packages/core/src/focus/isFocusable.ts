@@ -1,3 +1,5 @@
+import { isDisabled, isHidden } from "../dom"
+
 /**
  * Returns true if the element can receive focus.
  */
@@ -5,11 +7,11 @@ export function isFocusable(
     element: HTMLElement
 ): boolean {
 
-    if (element.hasAttribute("disabled")) {
+    if (isDisabled(element)) {
         return false;
     }
 
-    if (element.hasAttribute("hidden")) {
+    if (isHidden(element)) {
         return false;
     }
 
