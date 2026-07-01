@@ -1,13 +1,63 @@
-import { createId } from "../packages/core/src/id";
+import {
+    createFocusTrap,
+    containsFocus,
+    hasFocusableElements
+} from "../packages/core/src/focus";
 
-const app = document.querySelector("#app");
+document.querySelector("#app")!.innerHTML = `
+<button id="open">
+    Open dialog
+</button>
 
-if (app) {
-    app.textContent = `
-Playground started
+<div
+    id="dialog"
+    style="
+        border:1px solid;
+        padding:1rem;
+        width:300px;
+    "
+>
 
-${createId()}
-${createId()}
-${createId("dialog")}
+    <button>
+        Save
+    </button>
+
+    <input>
+
+    <button>
+        Cancel
+    </button>
+
+</div>
 `;
-}
+
+const dialog = document.querySelector(
+    "#dialog"
+) as HTMLElement;
+
+const trap = createFocusTrap(dialog);
+
+console.log(
+    "Has focusable elements:",
+    hasFocusableElements(dialog)
+);
+
+console.log(
+    "Contains focus:",
+    containsFocus(dialog)
+);
+
+document
+    .querySelector("#open")
+    ?.addEventListener(
+        "click",
+        () => {
+
+            trap.activate();
+
+            console.log(
+                "Contains focus:",
+                containsFocus(dialog)
+            );
+        }
+    );
