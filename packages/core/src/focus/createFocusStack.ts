@@ -14,6 +14,8 @@ export interface FocusStack {
 /**
  * Creates a stack used to capture and restore focus
  * across nested interactive components.
+ * 
+ * @returns An object containing methods to manage the focus stack state.
  */
 export function createFocusStack(): FocusStack {
     const stack: Array<HTMLElement | null> = [];

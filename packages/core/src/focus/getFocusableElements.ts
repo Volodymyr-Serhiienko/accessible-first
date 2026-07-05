@@ -2,6 +2,9 @@ import { isFocusable } from "./isFocusable";
 
 /**
  * Returns all focusable elements inside a container.
+ * 
+ * @param container - The parent HTML element to search for focusable descendants.
+ * @returns An array of filtered, focusable HTML elements found within the container.
  */
 const FOCUSABLE_SELECTOR = [
     "a[href]",

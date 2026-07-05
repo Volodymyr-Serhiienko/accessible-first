@@ -29,6 +29,10 @@ function resolveElement(
 
 /**
  * Creates a focus trap inside a container.
+ * 
+ * @param container - The parent HTML element that wraps all focusable elements to be trapped.
+ * @param options - Configuration options for modifying initial, fallback, and restoration focus behaviors.
+ * @returns An object conforming to the `FocusTrap` interface to manage the trap's lifecycle.
  */
 export function createFocusTrap(
     container: HTMLElement,
