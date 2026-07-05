@@ -1,9 +1,8 @@
-import { getFocusableElements } from "../focus";
+import { getFocusableElements } from "./getFocusableElements";
 
-export function hasFocusableElements(
-    container: HTMLElement
-): boolean {
-
+/**
+ * Returns true if the container contains focusable elements.
+ */
+export function hasFocusableElements(container: HTMLElement): boolean {
     return getFocusableElements(container).length > 0;
-
 }

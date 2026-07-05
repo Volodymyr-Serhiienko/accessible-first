@@ -1,5 +1,10 @@
 export { containsFocus } from "./containsFocus";
-export { createFocusTrap } from "./createFocusTrap";
+export { createFocusStack, type FocusStack } from "./createFocusStack";
+export {
+    createFocusTrap,
+    type FocusTrap,
+    type FocusTrapOptions
+} from "./createFocusTrap";
 export { focusElement } from "./focusElement";
 export { focusFirst } from "./focusFirst";
 export { focusLast } from "./focusLast";

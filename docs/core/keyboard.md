@@ -103,6 +103,66 @@ isArrowRightKey(event: KeyboardEvent): boolean
 
 ---
 
+### isHomeKey()
+
+Returns `true` if the pressed key is **Home**.
+
+```ts
+isHomeKey(event: KeyboardEvent): boolean
+```
+
+---
+
+### isEndKey()
+
+Returns `true` if the pressed key is **End**.
+
+```ts
+isEndKey(event: KeyboardEvent): boolean
+```
+
+---
+
+### isPageUpKey()
+
+Returns `true` if the pressed key is **Page Up**.
+
+```ts
+isPageUpKey(event: KeyboardEvent): boolean
+```
+
+---
+
+### isPageDownKey()
+
+Returns `true` if the pressed key is **Page Down**.
+
+```ts
+isPageDownKey(event: KeyboardEvent): boolean
+```
+
+---
+
+### isDeleteKey()
+
+Returns `true` if the pressed key is **Delete**.
+
+```ts
+isDeleteKey(event: KeyboardEvent): boolean
+```
+
+---
+
+### isBackspaceKey()
+
+Returns `true` if the pressed key is **Backspace**.
+
+```ts
+isBackspaceKey(event: KeyboardEvent): boolean
+```
+
+---
+
 ## Typical use cases
 
 The Keyboard module is used internally by:
@@ -122,9 +182,6 @@ The Keyboard module is used internally by:
 
 Planned enhancements include:
 
-* Home and End keys
-* PageUp and PageDown
-* Delete and Backspace
 * Modifier key helpers
 * Keyboard shortcut utilities
 * International keyboard considerations

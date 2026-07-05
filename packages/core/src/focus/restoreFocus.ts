@@ -1,15 +1,8 @@
-import { focusElement } from "../focus";
+import { focusElement } from "./focusElement";
 
 /**
  * Restores focus to an element.
  */
-export function restoreFocus(
-    element: HTMLElement | null
-): boolean {
-
-    if (!element) {
-        return false;
-    }
-
+export function restoreFocus(element: HTMLElement | null): boolean {
     return focusElement(element);
 }

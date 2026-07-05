@@ -15,19 +15,19 @@ The goal is to make accessibility the default, not an afterthought.
 ```text
 Applications
         │
-        ▼
+        v
 Components
 (Dialog, Menu, Tabs, TreeView...)
         │
-        ▼
+        v
 Behavior
 (Focus, Keyboard, ARIA...)
         │
-        ▼
+        v
 Platform
 (DOM, ID, Types, Validation...)
         │
-        ▼
+        v
 Browser APIs
 ```
 

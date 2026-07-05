@@ -1,122 +1,154 @@
-import {
-    focusFirst,
-    focusElement,
-    restoreFocus,
-    getFocusableElements
- } from "../focus";
+import { getActiveElement } from "../dom";
+import { addEventListener, type Cleanup } from "../events";
 import { isTabKey } from "../keyboard";
-import { isHTMLElement } from "../dom"
+import { createFocusStack } from "./createFocusStack";
+import { focusElement } from "./focusElement";
+import { focusFirst } from "./focusFirst";
+import { getFocusableElements } from "./getFocusableElements";
 
+export interface FocusTrapOptions {
+    initialFocus?: HTMLElement | (() => HTMLElement | null) | null;
+    fallbackFocus?: HTMLElement | (() => HTMLElement | null) | null;
+    restoreFocus?: boolean;
+}
+
+export interface FocusTrap {
+    activate(): void;
+    deactivate(): void;
+    pause(): void;
+    resume(): void;
+    isActive(): boolean;
+    isPaused(): boolean;
+}
+
+function resolveElement(
+    value: HTMLElement | (() => HTMLElement | null) | null | undefined
+): HTMLElement | null {
+    return typeof value === "function" ? value() : value ?? null;
+}
+
+/**
+ * Creates a focus trap inside a container.
+ */
 export function createFocusTrap(
-    container: HTMLElement
-) {
+    container: HTMLElement,
+    options: FocusTrapOptions = {}
+): FocusTrap {
+    const focusStack = createFocusStack();
 
     let active = false;
-
     let paused = false;
+    let cleanupKeyDown: Cleanup | null = null;
 
-    let previousFocus: HTMLElement | null = null;
+    function focusInitialElement(): void {
+        const initialFocus = resolveElement(options.initialFocus);
 
-    function handleKeyDown(event: KeyboardEvent): void {
-
-        if (!active || paused) {
+        if (focusElement(initialFocus)) {
             return;
         }
 
-        if (!isTabKey(event)) {
+        if (focusFirst(container)) {
+            return;
+        }
+
+        focusElement(resolveElement(options.fallbackFocus));
+    }
+
+    function handleKeyDown(event: KeyboardEvent): void {
+        if (!active || paused || !isTabKey(event)) {
             return;
         }
 
         const elements = getFocusableElements(container);
 
         if (elements.length === 0) {
+            const fallbackFocus = resolveElement(options.fallbackFocus);
+
+            if (fallbackFocus) {
+                event.preventDefault();
+                focusElement(fallbackFocus);
+            }
+
             return;
         }
 
         const first = elements[0];
-
         const last = elements[elements.length - 1];
 
         if (!first || !last) {
             return;
         }
 
-        const current = document.activeElement;
+        const current = getActiveElement(container);
 
         if (event.shiftKey && current === first) {
-
             event.preventDefault();
-
             focusElement(last);
-
             return;
         }
 
         if (!event.shiftKey && current === last) {
-
             event.preventDefault();
-
             focusElement(first);
         }
     }
 
     return {
-
-        activate() {
-
+        activate(): void {
             if (active) {
                 return;
             }
 
-            const activeElement = document.activeElement;
-            previousFocus = isHTMLElement(activeElement) ? activeElement : null;
+            focusStack.capture(container);
 
             active = true;
+            paused = false;
 
-            container.addEventListener(
+            cleanupKeyDown = addEventListener<KeyboardEvent>(
+                container,
                 "keydown",
                 handleKeyDown
             );
 
-            focusFirst(container);
+            focusInitialElement();
         },
 
-        deactivate() {
-
+        deactivate(): void {
             if (!active) {
                 return;
             }
 
             active = false;
-
             paused = false;
 
-            container.removeEventListener(
-                "keydown",
-                handleKeyDown
-            );
+            cleanupKeyDown?.();
+            cleanupKeyDown = null;
 
-            restoreFocus(previousFocus);
+            if (options.restoreFocus !== false) {
+                focusStack.restore();
+            } else {
+                focusStack.pop();
+            }
         },
 
-        pause() {
-
-            paused = true;
-
+        pause(): void {
+            if (active) {
+                paused = true;
+            }
         },
 
-        resume() {
-
-            paused = false;
-
+        resume(): void {
+            if (active) {
+                paused = false;
+            }
         },
 
-        isActive() {
-
+        isActive(): boolean {
             return active;
+        },
 
+        isPaused(): boolean {
+            return paused;
         }
-
     };
-
 }

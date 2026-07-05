@@ -1,21 +1,24 @@
-import { isFocusable } from "../focus";
+import { isFocusable } from "./isFocusable";
+
 /**
  * Returns all focusable elements inside a container.
  */
-export function getFocusableElements(
-    container: HTMLElement
-): HTMLElement[] {
+const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "button",
+    "input",
+    "select",
+    "textarea",
+    "summary",
+    "iframe",
+    "audio[controls]",
+    "video[controls]",
+    "[contenteditable]:not([contenteditable='false'])",
+    "[tabindex]:not([tabindex='-1'])"
+].join(",");
 
-    const selector = [
-        "a[href]",
-        "button",
-        "input",
-        "select",
-        "textarea",
-        "[tabindex]:not([tabindex='-1'])"
-    ].join(",");
-
+export function getFocusableElements(container: HTMLElement): HTMLElement[] {
     return Array.from(
-        container.querySelectorAll<HTMLElement>(selector)
+        container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
     ).filter(isFocusable);
 }

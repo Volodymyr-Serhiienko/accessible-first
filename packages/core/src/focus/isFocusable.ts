@@ -1,20 +1,18 @@
-import {
-    isDisabled,
-    isHidden
-} from "../dom"
+import { isDisabled, isInert, isVisible } from "../dom";
 
 /**
  * Returns true if the element can receive focus.
  */
-export function isFocusable(
-    element: HTMLElement
-): boolean {
-
+export function isFocusable(element: HTMLElement): boolean {
     if (isDisabled(element)) {
         return false;
     }
 
-    if (isHidden(element)) {
+    if (isInert(element)) {
+        return false;
+    }
+
+    if (!isVisible(element)) {
         return false;
     }
 
@@ -23,5 +21,4 @@ export function isFocusable(
     }
 
     return true;
-
 }

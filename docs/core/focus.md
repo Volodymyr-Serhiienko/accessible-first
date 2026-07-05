@@ -105,6 +105,16 @@ isFocusable(element: HTMLElement): boolean
 
 ---
 
+### createFocusStack()
+
+Creates a stack used to capture and restore focus across nested interactive components.
+
+```ts
+createFocusStack(): FocusStack
+```
+
+---
+
 ### createFocusTrap()
 
 Creates a focus trap inside a container.
@@ -142,8 +152,6 @@ The Focus module is used internally by:
 Planned enhancements include:
 
 * nested focus traps
-* focus stack management
-* support for inert elements
 * support for hidden elements based on computed styles
 * focus-visible utilities
 * autofocus strategies

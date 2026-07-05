@@ -1,12 +1,8 @@
-import { getOwnerDocument } from "../dom";
+import { getOwnerDocument } from "./getOwnerDocument";
 
 /**
- * Returns the owner window of an element.
+ * Returns the window associated with a node.
  */
-export function getOwnerWindow(
-    element: Node
-): Window {
-
-    return getOwnerDocument(element).defaultView ?? window;
-
+export function getOwnerWindow(node: Node): Window {
+    return getOwnerDocument(node).defaultView ?? window;
 }

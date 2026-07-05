@@ -1,7 +1,9 @@
 export { contains } from "./contains";
+export { getActiveElement } from "./getActiveElement";
 export { getOwnerDocument } from "./getOwnerDocument";
 export { getOwnerWindow } from "./getOwnerWindow";
 export { isDisabled } from "./isDisabled";
 export { isHTMLElement } from "./isHTMLElement";
 export { isHidden } from "./isHidden";
+export { isInert } from "./isInert";
 export { isVisible } from "./isVisible";

@@ -1,21 +1,11 @@
-import {
-    contains,
-    isHTMLElement
-} from "../dom";
+import { contains, getActiveElement } from "../dom";
 
-export function containsFocus(
-    container: HTMLElement
-): boolean {
-
-    const activeElement = document.activeElement;
-
-    if (!isHTMLElement(activeElement)) {
-        return false;
-    }
-
+/**
+ * Returns true if the container contains the active element.
+ */
+export function containsFocus(container: HTMLElement): boolean {
     return contains(
         container,
-        activeElement
+        getActiveElement(container)
     );
-
 }

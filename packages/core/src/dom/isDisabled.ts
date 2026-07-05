@@ -1,10 +1,6 @@
 /**
- * Returns true if the element is disabled.
+ * Returns true if the element is natively disabled.
  */
-export function isDisabled(
-    element: HTMLElement
-): boolean {
-
-    return element.hasAttribute("disabled");
-
+export function isDisabled(element: HTMLElement): boolean {
+    return element.matches(":disabled");
 }

@@ -93,6 +93,26 @@ getOwnerWindow(node: Node): Window
 
 ---
 
+### getActiveElement()
+
+Returns the active HTMLElement for the owner document of a node.
+
+```ts
+getActiveElement(node: Node): HTMLElement | null
+```
+
+---
+
+### isInert()
+
+Returns true if the element or one of its ancestors is inert.
+
+```ts
+isInert(element: HTMLElement): boolean
+```
+
+---
+
 ## Typical use cases
 
 The DOM module is used internally by:
@@ -110,7 +130,6 @@ Planned enhancements include:
 
 * Shadow DOM support
 * Computed visibility checks
-* Inert detection
 * Scroll container utilities
 * DOM traversal helpers
 
