@@ -8,7 +8,10 @@ import { createId } from "./createId";
  * @param prefix - Prefix used when generating a new `id`.
  * @returns The element's `id`.
  */
-export function ensureId(element: HTMLElement, prefix = "af"): string {
+export function ensureId(
+    element: HTMLElement,
+    prefix = "af"
+): string {
     if (element.id) {
         return element.id;
     }

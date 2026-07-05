@@ -27,3 +27,13 @@ Creates a unique ID.
 createId(): string
 createId("dialog"): string
 ```
+---
+
+### ensureId()
+
+Ensures that the given element has an `id`.
+Returns the existing `id` or generates and assigns a new one if it's missing.
+
+```ts
+ensureId(element: HTMLElement, prefix = "af"): string
+```

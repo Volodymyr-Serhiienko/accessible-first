@@ -5,7 +5,10 @@
  * @param element - The target element to check for existence inside the container.
  * @returns True if the element is found inside the container, otherwise false.
  */
-export function contains(container: HTMLElement, element: HTMLElement | null): boolean {
+export function contains(
+    container: HTMLElement,
+    element: HTMLElement | null
+): boolean {
     if (!element) {
         return false;
     }
