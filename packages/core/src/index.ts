@@ -6,3 +6,4 @@ export * from "./focus";
 export * from "./id";
 export * from "./keyboard";
 export * from "./roving-focus";
+export * from "./scroll";

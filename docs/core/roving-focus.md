@@ -29,6 +29,7 @@ rovingFocus.deactivate();
 
 ## Principles
 
+* Keeps the focused item visible inside scrollable containers
 * Uses native focus
 * Keeps Tab navigation predictable
 * Supports Arrow keys, Home, and End

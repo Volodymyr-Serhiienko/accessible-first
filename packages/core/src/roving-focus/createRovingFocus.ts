@@ -17,6 +17,7 @@ import {
 } from "../keyboard";
 import { isRovingFocusItemDisabled } from "./isRovingFocusItemDisabled";
 import type { RovingFocus, RovingFocusOptions } from "./types";
+import { scrollIntoViewIfNeeded } from "../scroll";
 
 function resolveItem(
     item: HTMLElement | (() => HTMLElement | null) | null | undefined
@@ -87,6 +88,16 @@ export function createRovingFocus(
         originalTabIndexes.clear();
     }
 
+    function focusItem(item: HTMLElement | null): boolean {
+        if (!item || !focusElement(item)) {
+            return false;
+        }
+
+        scrollIntoViewIfNeeded(item);
+
+        return true;
+    }
+
     function syncTabIndexes(): void {
         const items = getItems();
         const availableCurrent =
@@ -116,7 +127,7 @@ export function createRovingFocus(
             return true;
         }
 
-        return focusElement(item);
+        return focusItem(item);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
@@ -222,7 +233,7 @@ export function createRovingFocus(
             active = true;
 
             if (options.focusOnActivate) {
-                focusElement(currentItem);
+                focusItem(currentItem);
             }
         },
 
