@@ -25,7 +25,7 @@ Behavior
         │
         v
 Platform
-(DOM, ID, Types, Validation...)
+(DOM, Events, ID, ARIA, Types, Validation...)
         │
         v
 Browser APIs
