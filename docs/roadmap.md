@@ -10,10 +10,11 @@ Completed:
 - Keyboard
 - Focus
 - ARIA
+- Collection navigation
 
 In progress:
 
-- Collection navigation
+- Roving focus
 - Scroll utilities
 - Live region and announcer
 
@@ -21,7 +22,6 @@ In progress:
 
 Planned:
 
-- Roving focus
 - Disclosure behavior
 - Dialog behavior
 - Menu navigation
