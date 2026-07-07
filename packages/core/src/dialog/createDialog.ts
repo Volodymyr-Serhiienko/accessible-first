@@ -96,9 +96,9 @@ export function createDialog(
     }
 
     function syncState(): void {
-        element.hidden = !open;
-
         if (open) {
+            element.hidden = false;
+
             if (trapFocus) {
                 focusTrap.activate();
             } else {
@@ -111,6 +111,8 @@ export function createDialog(
         if (focusTrap.isActive()) {
             focusTrap.deactivate();
         }
+
+        element.hidden = true;
     }
 
     function setOpen(nextOpen: boolean): void {
