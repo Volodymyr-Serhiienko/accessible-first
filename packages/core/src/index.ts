@@ -5,5 +5,6 @@ export * from "./events";
 export * from "./focus";
 export * from "./id";
 export * from "./keyboard";
+export * from "./live-region";
 export * from "./roving-focus";
 export * from "./scroll";
