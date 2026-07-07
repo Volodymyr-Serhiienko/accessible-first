@@ -15,15 +15,15 @@ Completed:
 - Roving focus
 - Live region and announcer
 - Disclosure behavior
+- Dialog behavior
 
 In progress:
 
-- Dialog behavior
+- Tabs navigation
 
 Planned:
 
 - Menu navigation
-- Tabs navigation
 - Listbox navigation
 
 ## Later Phases
