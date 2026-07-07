@@ -1,4 +1,12 @@
+/**
+ * Represents any valid WAI-ARIA attribute name starting with the `aria-` prefix.
+ */
 export type AriaAttributeName = `aria-${string}`;
+
+/**
+ * Represents the allowed primitive types that can be assigned as a value to an ARIA attribute.
+ * These values are typically serialized to strings before being applied to DOM nodes.
+ */
 export type AriaAttributeValue = string | number | boolean | null | undefined;
 
 /**

@@ -11,18 +11,16 @@ Completed:
 - Focus
 - ARIA
 - Collection navigation
+- Scroll utilities
+- Roving focus
+- Live region and announcer
 
 In progress:
 
-- Roving focus
-- Scroll utilities
-- Live region and announcer
-
-## Next Phase: Behavior
+- Disclosure behavior
 
 Planned:
 
-- Disclosure behavior
 - Dialog behavior
 - Menu navigation
 - Tabs navigation

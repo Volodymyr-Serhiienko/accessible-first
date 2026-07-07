@@ -1,0 +1,187 @@
+import {
+    setAriaControls,
+    setAriaDisabled,
+    setAriaExpanded,
+    setRole
+} from "../aria";
+import { addEventListener, type Cleanup } from "../events";
+import { isEnterKey, isSpaceKey } from "../keyboard";
+import type { Disclosure, DisclosureOptions } from "./types";
+
+function isButtonElement(element: HTMLElement): element is HTMLButtonElement {
+    return element.localName === "button";
+}
+
+function restoreAttribute(
+    element: HTMLElement,
+    name: string,
+    value: string | null
+): void {
+    if (value === null) {
+        element.removeAttribute(name);
+        return;
+    }
+
+    element.setAttribute(name, value);
+}
+
+/**
+ * Creates and manages a disclosure component (expandable/collapsible content region).
+ * Automatically applies keyboard listeners, updates ARIA attributes (`aria-expanded`, `aria-controls`, 
+ * `aria-disabled`), handles roles for non-button fallback triggers, and restores the pristine DOM state upon destruction.
+ *
+ * @param trigger - The interactive controller element (typically a button).
+ * @param panel - The expandable content region controlled by the trigger.
+ * @param options - Configuration behavior adjustments for initialization states and change callbacks. Defaults to an empty object.
+ * @returns A Disclosure instance exposing API methods to control the open/disabled states and handle teardown.
+ */
+export function createDisclosure(
+    trigger: HTMLElement,
+    panel: HTMLElement,
+    options: DisclosureOptions = {}
+): Disclosure {
+    const nativeButton = isButtonElement(trigger) ? trigger : null;
+
+    const originalAriaControls = trigger.getAttribute("aria-controls");
+    const originalAriaDisabled = trigger.getAttribute("aria-disabled");
+    const originalAriaExpanded = trigger.getAttribute("aria-expanded");
+    const originalRole = trigger.getAttribute("role");
+    const originalTabIndex = trigger.getAttribute("tabindex");
+    const originalType = nativeButton?.getAttribute("type") ?? null;
+    const originalButtonDisabled = nativeButton?.disabled ?? false;
+    const originalPanelHidden = panel.hidden;
+
+    let open = options.defaultOpen ?? !panel.hidden;
+    let disabled = options.disabled ?? false;
+    let destroyed = false;
+
+    function syncState(): void {
+        setAriaExpanded(trigger, open);
+        setAriaDisabled(trigger, disabled ? true : null);
+
+        panel.hidden = !open;
+
+        if (nativeButton) {
+            nativeButton.disabled = disabled;
+        }
+    }
+
+    function setOpen(nextOpen: boolean): void {
+        if (destroyed || open === nextOpen) {
+            return;
+        }
+
+        open = nextOpen;
+        syncState();
+        options.onOpenChange?.(open);
+    }
+
+    function handleClick(event: MouseEvent): void {
+        if (disabled) {
+            event.preventDefault();
+            return;
+        }
+
+        setOpen(!open);
+    }
+
+    function handleKeyDown(event: KeyboardEvent): void {
+        if (disabled) {
+            return;
+        }
+
+        if (!isEnterKey(event) && !isSpaceKey(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        setOpen(!open);
+    }
+
+    const cleanups: Cleanup[] = [
+        addEventListener<MouseEvent>(trigger, "click", handleClick)
+    ];
+
+    setAriaControls(trigger, panel);
+
+    if (nativeButton) {
+        if (!nativeButton.hasAttribute("type")) {
+            nativeButton.setAttribute("type", "button");
+        }
+    } else {
+        if (!trigger.hasAttribute("role")) {
+            setRole(trigger, "button");
+        }
+
+        if (!trigger.hasAttribute("tabindex")) {
+            trigger.tabIndex = 0;
+        }
+
+        cleanups.push(
+            addEventListener<KeyboardEvent>(trigger, "keydown", handleKeyDown)
+        );
+    }
+
+    syncState();
+
+    return {
+        trigger,
+        panel,
+
+        open(): void {
+            setOpen(true);
+        },
+
+        close(): void {
+            setOpen(false);
+        },
+
+        toggle(): void {
+            setOpen(!open);
+        },
+
+        setOpen,
+
+        isOpen(): boolean {
+            return open;
+        },
+
+        setDisabled(nextDisabled: boolean): void {
+            if (destroyed || disabled === nextDisabled) {
+                return;
+            }
+
+            disabled = nextDisabled;
+            syncState();
+        },
+
+        isDisabled(): boolean {
+            return disabled;
+        },
+
+        destroy(): void {
+            if (destroyed) {
+                return;
+            }
+
+            destroyed = true;
+
+            for (const cleanup of cleanups) {
+                cleanup();
+            }
+
+            restoreAttribute(trigger, "aria-controls", originalAriaControls);
+            restoreAttribute(trigger, "aria-disabled", originalAriaDisabled);
+            restoreAttribute(trigger, "aria-expanded", originalAriaExpanded);
+            restoreAttribute(trigger, "role", originalRole);
+            restoreAttribute(trigger, "tabindex", originalTabIndex);
+
+            if (nativeButton) {
+                restoreAttribute(nativeButton, "type", originalType);
+                nativeButton.disabled = originalButtonDisabled;
+            }
+
+            panel.hidden = originalPanelHidden;
+        }
+    };
+}

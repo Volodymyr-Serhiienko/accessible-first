@@ -6,12 +6,20 @@ import { focusElement } from "./focusElement";
 import { focusFirst } from "./focusFirst";
 import { getFocusableElements } from "./getFocusableElements";
 
+/**
+ * Configuration options for initializing a focus trap behavior instance.
+ */
 export interface FocusTrapOptions {
     initialFocus?: HTMLElement | (() => HTMLElement | null) | null;
     fallbackFocus?: HTMLElement | (() => HTMLElement | null) | null;
     restoreFocus?: boolean;
 }
 
+/**
+ * Interface representing a focus trap mechanism.
+ * Constrains keyboard focus navigation within a designated DOM subtree, ensuring that 
+ * hitting Tab or Shift+Tab loops focus through the subtree container elements (crucial for modal accessibility).
+ */
 export interface FocusTrap {
     activate(): void;
     deactivate(): void;

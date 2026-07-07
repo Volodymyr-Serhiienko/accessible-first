@@ -1,7 +1,16 @@
 import { ensureId } from "../id";
 import { setAriaAttribute, type AriaAttributeName } from "./setAriaAttribute";
 
+/**
+ * Represents a reference to another DOM element used in ARIA relationship attributes.
+ * Can be an actual `HTMLElement`, a string representing an element's `id`, or a nullable value.
+ */
 export type AriaReference = HTMLElement | string | null | undefined;
+
+/**
+ * Represents a collection or a single reference to DOM elements for multi-valued ARIA relationship attributes 
+ * (such as `aria-labelledby` or `aria-controls`).
+ */
 export type AriaReferences = AriaReference | AriaReference[];
 
 function resolveReferenceId(reference: AriaReference, prefix: string): string | null {

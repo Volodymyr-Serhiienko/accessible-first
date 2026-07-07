@@ -1,3 +1,7 @@
+/**
+ * A function type intended for executing cleanup side effects.
+ * Commonly used to remove event listeners, clear timers, or release resources.
+ */
 export type Cleanup = () => void;
 
 /**
