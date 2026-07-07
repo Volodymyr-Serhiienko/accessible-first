@@ -14,14 +14,14 @@ Completed:
 - Scroll utilities
 - Roving focus
 - Live region and announcer
+- Disclosure behavior
 
 In progress:
 
-- Disclosure behavior
+- Dialog behavior
 
 Planned:
 
-- Dialog behavior
 - Menu navigation
 - Tabs navigation
 - Listbox navigation
