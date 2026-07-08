@@ -17,15 +17,15 @@ Completed:
 - Disclosure behavior
 - Dialog behavior
 - Tabs navigation
+- Listbox navigation
 
 In progress:
 
-- Listbox navigation
+- Typeahead navigation
 
 Planned:
 
 - Menu navigation
-- Typeahead navigation
 - Selection utilities
 - Popover positioning
 - Dismissable layer
