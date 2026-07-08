@@ -20,14 +20,14 @@ Completed:
 - Listbox navigation
 - Typeahead navigation
 - Selection utilities
+- Menu navigation
 
 In progress:
 
-- Menu navigation
+- Popover positioning
 
 Planned:
 
-- Popover positioning
 - Dismissable layer
 - Overlay stack
 - Form field semantics

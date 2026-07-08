@@ -9,6 +9,7 @@ export * from "./id";
 export * from "./keyboard";
 export * from "./listbox";
 export * from "./live-region";
+export * from "./menu";
 export * from "./roving-focus";
 export * from "./scroll";
 export * from "./selection";
