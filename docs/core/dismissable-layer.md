@@ -34,6 +34,8 @@ layer.destroy();
 * Supports optional focus-outside dismissal
 * Supports branches that count as inside the layer
 * Allows outside events to prevent dismissal
+* Uses the overlay stack by default
+* Dismisses only the topmost active layer by default
 * Can be activated and deactivated
 * Cleans up document listeners on destroy
 

@@ -7,6 +7,10 @@ import type {
     DismissableLayerEvent,
     DismissableLayerOptions
 } from "./types";
+import {
+    defaultOverlayStack,
+    type OverlayStackEntry
+} from "../overlay-stack";
 
 function resolveBranch(branch: DismissableLayerBranch): HTMLElement | null {
     return typeof branch === "function" ? branch() : branch ?? null;
@@ -65,6 +69,9 @@ export function createDismissableLayer(
 ): DismissableLayer {
     const ownerDocument = getOwnerDocument(element);
 
+    const useOverlayStack = options.useOverlayStack ?? true;
+    const overlayStack = options.overlayStack ?? defaultOverlayStack;
+
     const dismissOnEscape = options.dismissOnEscape ?? true;
     const dismissOnPointerDownOutside =
         options.dismissOnPointerDownOutside ?? true;
@@ -73,6 +80,15 @@ export function createDismissableLayer(
     let active = false;
     let destroyed = false;
     let cleanups: Cleanup[] = [];
+    let overlayEntry: OverlayStackEntry | null = null;
+
+    function isTopLayer(): boolean {
+        if (!useOverlayStack || !overlayEntry) {
+            return true;
+        }
+
+        return overlayStack.isTop(overlayEntry);
+    }
 
     function getBranches(): HTMLElement[] {
         return (options.branches ?? [])
@@ -93,7 +109,7 @@ export function createDismissableLayer(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!active || !isEscapeKey(event)) {
+        if (!active || !isTopLayer() || !isEscapeKey(event)) {
             return;
         }
 
@@ -108,7 +124,7 @@ export function createDismissableLayer(
     }
 
     function handlePointerDown(event: PointerEvent): void {
-        if (!active || isEventInside(event)) {
+        if (!active || !isTopLayer() || isEventInside(event)) {
             return;
         }
 
@@ -122,7 +138,7 @@ export function createDismissableLayer(
     }
 
     function handleFocusIn(event: FocusEvent): void {
-        if (!active || isEventInside(event)) {
+        if (!active || !isTopLayer() || isEventInside(event)) {
             return;
         }
 
@@ -141,6 +157,10 @@ export function createDismissableLayer(
         }
 
         active = true;
+
+        if (useOverlayStack) {
+            overlayEntry = overlayStack.add(element);
+        }
 
         cleanups = [
             addEventListener<KeyboardEvent>(
@@ -168,6 +188,11 @@ export function createDismissableLayer(
         }
 
         active = false;
+
+        if (overlayEntry) {
+            overlayStack.remove(overlayEntry);
+            overlayEntry = null;
+        }
 
         for (const cleanup of cleanups) {
             cleanup();

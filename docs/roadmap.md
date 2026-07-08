@@ -23,14 +23,14 @@ Completed:
 - Menu navigation
 - Popover positioning
 - Dismissable layer
+- Overlay stack
 
 In progress:
 
-- Overlay stack
+- Form field semantics
 
 Planned:
 
-- Form field semantics
 - Validation announcements
 
 ---

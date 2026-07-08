@@ -11,6 +11,7 @@ export * from "./keyboard";
 export * from "./listbox";
 export * from "./live-region";
 export * from "./menu";
+export * from "./overlay-stack";
 export * from "./popover-position";
 export * from "./roving-focus";
 export * from "./scroll";

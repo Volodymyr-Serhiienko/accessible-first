@@ -1,3 +1,5 @@
+import type { OverlayStack } from "../overlay-stack";
+
 /**
  * A proxy reference resolving to an external container branch that should be treated 
  * as part of the layer. Interactions within a branch will not trigger dismiss cycles.
@@ -26,6 +28,8 @@ export interface DismissableLayerEvent<TEvent extends Event = Event> {
 export interface DismissableLayerOptions {
     active?: boolean;
     branches?: DismissableLayerBranch[];
+    useOverlayStack?: boolean;
+    overlayStack?: OverlayStack;
     dismissOnEscape?: boolean;
     dismissOnPointerDownOutside?: boolean;
     dismissOnFocusOutside?: boolean;
