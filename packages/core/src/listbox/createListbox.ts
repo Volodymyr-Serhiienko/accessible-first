@@ -11,16 +11,21 @@ import {
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
-import type {
-    Listbox,
-    ListboxOption,
-    ListboxOptions
-} from "./types";
+import {
+    createSelection,
+    type Selection,
+    type SelectionOptions
+} from "../selection";
 import {
     createTypeahead,
     type Typeahead,
     type TypeaheadOptions
 } from "../typeahead";
+import type {
+    Listbox,
+    ListboxOption,
+    ListboxOptions
+} from "./types";
 
 function resolveOption(option: ListboxOption | undefined): HTMLElement | null {
     return typeof option === "function" ? option() : option ?? null;
@@ -43,6 +48,8 @@ function restoreAttribute(
     element.setAttribute(name, value);
 }
 
+
+
 /**
  * Creates and manages an accessible listbox component.
  * Orchestrates a listbox container element (`role="listbox"`) and its child options (`role="option"`), 
@@ -64,10 +71,10 @@ export function createListbox(
 
     const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
 
-    let selectedOptions = new Set<HTMLElement>();
     let currentOption: HTMLElement | null = null;
     let destroyed = false;
     let rovingFocus: RovingFocus;
+    let selection: Selection<HTMLElement>;
     let typeahead: Typeahead<HTMLElement> | null = null;
 
     function rememberAttribute(target: HTMLElement, name: string): void {
@@ -115,50 +122,24 @@ export function createListbox(
         )) ?? null;
     }
 
-    function normalizeSelectedOptions(nextOptions: HTMLElement[]): HTMLElement[] {
-        const availableOptions = nextOptions.filter(isOptionAvailable);
-
-        if (selectionMode === "single") {
-            const first = availableOptions[0];
-
-            return first ? [first] : [];
-        }
-
-        const selectedSet = new Set(availableOptions);
-
-        return getOptions().filter((option) => selectedSet.has(option));
-    }
-
     function getInitialSelectedOptions(): HTMLElement[] {
         if (options.defaultSelectedOptions !== undefined) {
             const list = Array.isArray(options.defaultSelectedOptions)
                 ? options.defaultSelectedOptions
                 : [options.defaultSelectedOptions];
 
-            return normalizeSelectedOptions(
-                list
-                    .map(resolveOption)
-                    .filter((option): option is HTMLElement => option !== null)
-            );
+            return list
+                .map(resolveOption)
+                .filter((option): option is HTMLElement => option !== null);
         }
 
-        return normalizeSelectedOptions(
-            getOptions().filter((option) => (
-                option.getAttribute("aria-selected") === "true"
-            ))
-        );
+        return getOptions().filter((option) => (
+            option.getAttribute("aria-selected") === "true"
+        ));
     }
 
     function getSelectedOptions(): HTMLElement[] {
-        return getOptions().filter((option) => selectedOptions.has(option));
-    }
-
-    function hasSelectionChanged(nextOptions: HTMLElement[]): boolean {
-        if (nextOptions.length !== selectedOptions.size) {
-            return true;
-        }
-
-        return nextOptions.some((option) => !selectedOptions.has(option));
+        return selection.getSelectedItems();
     }
 
     function syncState(): void {
@@ -183,27 +164,21 @@ export function createListbox(
             rememberAttribute(option, "aria-selected");
 
             setRole(option, "option");
-            setAriaAttribute(option, "aria-selected", selectedOptions.has(option));
+            setAriaAttribute(option, "aria-selected", selection.isSelected(option));
         }
     }
 
-    function updateSelectedOptions(
-        nextOptions: HTMLElement[],
-        notify = true
-    ): void {
-        if (destroyed) {
-            return;
-        }
-
-        const normalizedOptions = normalizeSelectedOptions(nextOptions);
-        const changed = hasSelectionChanged(normalizedOptions);
-
-        selectedOptions = new Set(normalizedOptions);
-        syncState();
-
-        if (changed && notify) {
-            options.onSelectionChange?.(getSelectedOptions());
-        }
+    function getSelectionOptions(): SelectionOptions<HTMLElement> {
+        return {
+            getItems: getOptions,
+            mode: selectionMode,
+            defaultSelectedItems: getInitialSelectedOptions(),
+            isItemDisabled: isOptionDisabled,
+            onSelectionChange: (selectedOptions) => {
+                syncState();
+                options.onSelectionChange?.(selectedOptions);
+            }
+        };
     }
 
     function moveToOption(
@@ -221,48 +196,34 @@ export function createListbox(
         });
 
         if (moveOptions.select ?? selectionFollowsFocus) {
-            updateSelectedOptions([option]);
+            selection.setSelectedItems([option]);
         }
 
         return true;
     }
 
     function selectOption(option: HTMLElement): boolean {
-        if (destroyed || !isOptionAvailable(option)) {
+        if (destroyed) {
             return false;
         }
 
-        if (selectionMode === "single") {
-            updateSelectedOptions([option]);
-            return true;
-        }
-
-        updateSelectedOptions([
-            ...getSelectedOptions(),
-            option
-        ]);
-
-        return true;
+        return selection.selectItem(option);
     }
 
     function deselectOption(option: HTMLElement): boolean {
-        if (destroyed || !selectedOptions.has(option)) {
+        if (destroyed) {
             return false;
         }
 
-        updateSelectedOptions(
-            getSelectedOptions().filter((selectedOption) => selectedOption !== option)
-        );
-
-        return true;
+        return selection.deselectItem(option);
     }
 
     function toggleOption(option: HTMLElement): boolean {
-        if (selectedOptions.has(option)) {
-            return deselectOption(option);
+        if (destroyed) {
+            return false;
         }
 
-        return selectOption(option);
+        return selection.toggleItem(option);
     }
 
     function handleClick(event: MouseEvent): void {
@@ -346,7 +307,8 @@ export function createListbox(
         return typeaheadOptions;
     }
 
-    selectedOptions = new Set(getInitialSelectedOptions());
+    selection = createSelection(getSelectionOptions());
+
     currentOption =
         getSelectedOptions()[0] ??
         getFirstItem(getOptions(), { isItemDisabled: isOptionDisabled });
@@ -383,11 +345,11 @@ export function createListbox(
         getSelectedOptions,
 
         setSelectedOptions(nextOptions: HTMLElement[]): void {
-            updateSelectedOptions(nextOptions);
+            selection.setSelectedItems(nextOptions);
         },
 
         isSelected(option: HTMLElement): boolean {
-            return selectedOptions.has(option);
+            return selection.isSelected(option);
         },
 
         selectOption,
@@ -397,7 +359,7 @@ export function createListbox(
         toggleOption,
 
         clearSelection(): void {
-            updateSelectedOptions([]);
+            selection.clearSelection();
         },
 
         refresh(): void {
@@ -405,7 +367,7 @@ export function createListbox(
                 return;
             }
 
-            updateSelectedOptions(getSelectedOptions(), false);
+            selection.refresh({ notify: false });
 
             if (!currentOption || !isOptionAvailable(currentOption)) {
                 currentOption =

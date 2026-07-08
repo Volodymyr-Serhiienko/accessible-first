@@ -73,73 +73,70 @@ export function createSelection<TItem>(
         }
     }
 
+    function selectItem(
+        item: TItem,
+        updateOptions: SelectionUpdateOptions = {}
+    ): boolean {
+        if (!isItemAvailable(item)) {
+            return false;
+        }
+
+        if (mode === "single") {
+            setSelectedItems([item], updateOptions);
+            return true;
+        }
+
+        if (selectedItems.has(item)) {
+            return true;
+        }
+
+        setSelectedItems([...getSelectedItems(), item], updateOptions);
+
+        return true;
+    }
+
+    function deselectItem(
+        item: TItem,
+        updateOptions: SelectionUpdateOptions = {}
+    ): boolean {
+        if (!selectedItems.has(item)) {
+            return false;
+        }
+
+        setSelectedItems(
+            getSelectedItems().filter((selectedItem) => selectedItem !== item),
+            updateOptions
+        );
+
+        return true;
+    }
+
+    function toggleItem(
+        item: TItem,
+        updateOptions: SelectionUpdateOptions = {}
+    ): boolean {
+        if (selectedItems.has(item)) {
+            return deselectItem(item, updateOptions);
+        }
+
+        return selectItem(item, updateOptions);
+    }
+
     selectedItems = new Set(
         normalizeSelectedItems(options.defaultSelectedItems ?? [])
     );
 
     return {
         getSelectedItems,
-
         setSelectedItems,
 
         isSelected(item: TItem): boolean {
             return selectedItems.has(item);
         },
 
-        selectItem(
-            item: TItem,
-            updateOptions: SelectionUpdateOptions = {}
-        ): boolean {
-            if (!isItemAvailable(item)) {
-                return false;
-            }
-
-            if (mode === "single") {
-                setSelectedItems([item], updateOptions);
-                return true;
-            }
-
-            if (selectedItems.has(item)) {
-                return true;
-            }
-
-            setSelectedItems(
-                [
-                    ...getSelectedItems(),
-                    item
-                ],
-                updateOptions
-            );
-
-            return true;
-        },
-
-        deselectItem(
-            item: TItem,
-            updateOptions: SelectionUpdateOptions = {}
-        ): boolean {
-            if (!selectedItems.has(item)) {
-                return false;
-            }
-
-            setSelectedItems(
-                getSelectedItems().filter((selectedItem) => selectedItem !== item),
-                updateOptions
-            );
-
-            return true;
-        },
-
-        toggleItem(
-            item: TItem,
-            updateOptions: SelectionUpdateOptions = {}
-        ): boolean {
-            if (selectedItems.has(item)) {
-                return this.deselectItem(item, updateOptions);
-            }
-
-            return this.selectItem(item, updateOptions);
-        },
+        selectItem,
+        deselectItem,
+        toggleItem,
 
         clearSelection(updateOptions: SelectionUpdateOptions = {}): void {
             setSelectedItems([], updateOptions);
