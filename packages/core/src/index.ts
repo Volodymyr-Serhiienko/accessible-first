@@ -2,6 +2,7 @@ export * from "./aria";
 export * from "./collection";
 export * from "./dialog";
 export * from "./disclosure";
+export * from "./dismissable-layer";
 export * from "./dom";
 export * from "./events";
 export * from "./focus";

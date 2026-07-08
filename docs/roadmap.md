@@ -22,14 +22,14 @@ Completed:
 - Selection utilities
 - Menu navigation
 - Popover positioning
+- Dismissable layer
 
 In progress:
 
-- Dismissable layer
+- Overlay stack
 
 Planned:
 
-- Overlay stack
 - Form field semantics
 - Validation announcements
 
