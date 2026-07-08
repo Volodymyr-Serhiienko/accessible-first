@@ -24,14 +24,15 @@ Completed:
 - Popover positioning
 - Dismissable layer
 - Overlay stack
+- Form field semantics
 
 In progress:
 
-- Form field semantics
+- Validation announcements
 
 Planned:
 
-- Validation announcements
+
 
 ---
 
