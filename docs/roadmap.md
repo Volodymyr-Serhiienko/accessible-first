@@ -19,14 +19,14 @@ Completed:
 - Tabs navigation
 - Listbox navigation
 - Typeahead navigation
+- Selection utilities
 
 In progress:
 
-- Selection utilities
+- Menu navigation
 
 Planned:
 
-- Menu navigation
 - Popover positioning
 - Dismissable layer
 - Overlay stack

@@ -11,5 +11,6 @@ export * from "./listbox";
 export * from "./live-region";
 export * from "./roving-focus";
 export * from "./scroll";
+export * from "./selection";
 export * from "./tabs";
 export * from "./typeahead";
