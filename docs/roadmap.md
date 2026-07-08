@@ -21,14 +21,14 @@ Completed:
 - Typeahead navigation
 - Selection utilities
 - Menu navigation
+- Popover positioning
 
 In progress:
 
-- Popover positioning
+- Dismissable layer
 
 Planned:
 
-- Dismissable layer
 - Overlay stack
 - Form field semantics
 - Validation announcements
