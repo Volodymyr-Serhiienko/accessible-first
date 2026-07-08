@@ -35,6 +35,7 @@ listbox.destroy();
 * Uses roving focus for Arrow, Home, and End navigation
 * Supports click selection
 * Supports Enter and Space selection
+* Supports optional typeahead navigation
 * Preserves and restores original attributes on destroy
 
 ## Principles

@@ -34,6 +34,9 @@ export interface ListboxOptions {
     loop?: boolean;
     selectionMode?: ListboxSelectionMode;
     selectionFollowsFocus?: boolean;
+    typeahead?: boolean;
+    typeaheadTimeout?: number;
+    getOptionText?: (option: HTMLElement) => string;
     defaultSelectedOptions?: ListboxSelectedOptions;
     isOptionDisabled?: (option: HTMLElement) => boolean;
     onSelectionChange?: (selectedOptions: HTMLElement[]) => void;

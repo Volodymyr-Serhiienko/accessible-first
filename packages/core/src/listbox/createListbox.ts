@@ -16,6 +16,11 @@ import type {
     ListboxOption,
     ListboxOptions
 } from "./types";
+import {
+    createTypeahead,
+    type Typeahead,
+    type TypeaheadOptions
+} from "../typeahead";
 
 function resolveOption(option: ListboxOption | undefined): HTMLElement | null {
     return typeof option === "function" ? option() : option ?? null;
@@ -63,6 +68,7 @@ export function createListbox(
     let currentOption: HTMLElement | null = null;
     let destroyed = false;
     let rovingFocus: RovingFocus;
+    let typeahead: Typeahead<HTMLElement> | null = null;
 
     function rememberAttribute(target: HTMLElement, name: string): void {
         let attributes = originalAttributes.get(target);
@@ -282,25 +288,26 @@ export function createListbox(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!isEnterKey(event) && !isSpaceKey(event)) {
+        if (isEnterKey(event) || isSpaceKey(event)) {
+            const option = getOptionFromEventTarget(event.target) ?? currentOption;
+
+            if (!option || !isOptionAvailable(option)) {
+                return;
+            }
+
+            event.preventDefault();
+            moveToOption(option, { select: false });
+
+            if (selectionMode === "multiple") {
+                toggleOption(option);
+                return;
+            }
+
+            selectOption(option);
             return;
         }
 
-        const option = getOptionFromEventTarget(event.target) ?? currentOption;
-
-        if (!option || !isOptionAvailable(option)) {
-            return;
-        }
-
-        event.preventDefault();
-        moveToOption(option, { select: false });
-
-        if (selectionMode === "multiple") {
-            toggleOption(option);
-            return;
-        }
-
-        selectOption(option);
+        typeahead?.handleKey(event, currentOption);
     }
 
     function getRovingFocusOptions(): RovingFocusOptions {
@@ -318,6 +325,27 @@ export function createListbox(
         return rovingFocusOptions;
     }
 
+    function getOptionText(option: HTMLElement): string {
+        return options.getOptionText?.(option) ?? option.textContent ?? "";
+    }
+
+    function getTypeaheadOptions(): TypeaheadOptions<HTMLElement> {
+        const typeaheadOptions: TypeaheadOptions<HTMLElement> = {
+            getItems: getOptions,
+            getItemText: getOptionText,
+            isItemDisabled: isOptionDisabled,
+            onMatch: (option) => {
+                moveToOption(option, { focus: true });
+            }
+        };
+
+        if (options.typeaheadTimeout !== undefined) {
+            typeaheadOptions.timeout = options.typeaheadTimeout;
+        }
+
+        return typeaheadOptions;
+    }
+
     selectedOptions = new Set(getInitialSelectedOptions());
     currentOption =
         getSelectedOptions()[0] ??
@@ -327,6 +355,10 @@ export function createListbox(
 
     rovingFocus = createRovingFocus(element, getRovingFocusOptions());
     rovingFocus.activate();
+
+    if (options.typeahead !== false) {
+        typeahead = createTypeahead(getTypeaheadOptions());
+    }
 
     const cleanups: Cleanup[] = [
         addEventListener<MouseEvent>(element, "click", handleClick),
@@ -400,6 +432,9 @@ export function createListbox(
             for (const cleanup of cleanups) {
                 cleanup();
             }
+
+            typeahead?.destroy();
+            typeahead = null;
 
             rovingFocus.deactivate();
             restoreAttributes();

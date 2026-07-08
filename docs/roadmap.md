@@ -18,15 +18,15 @@ Completed:
 - Dialog behavior
 - Tabs navigation
 - Listbox navigation
+- Typeahead navigation
 
 In progress:
 
-- Typeahead navigation
+- Selection utilities
 
 Planned:
 
 - Menu navigation
-- Selection utilities
 - Popover positioning
 - Dismissable layer
 - Overlay stack

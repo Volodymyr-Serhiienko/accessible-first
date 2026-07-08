@@ -12,3 +12,4 @@ export * from "./live-region";
 export * from "./roving-focus";
 export * from "./scroll";
 export * from "./tabs";
+export * from "./typeahead";
