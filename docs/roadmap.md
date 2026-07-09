@@ -1,6 +1,6 @@
 # Roadmap
 
-## Current Phase: Behavior Foundation
+## Complited Phase: Behavior Foundation
 
 Completed:
 
@@ -25,18 +25,14 @@ Completed:
 - Dismissable layer
 - Overlay stack
 - Form field semantics
+- Validation announcements
+
+## Current Phase: Accessible Components
 
 In progress:
 
-- Validation announcements
+- Component foundation
 
-Planned:
-
-
-
----
-
-## Next Phase: Accessible Components
 
 Planned:
 

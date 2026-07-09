@@ -19,3 +19,4 @@ export * from "./scroll";
 export * from "./selection";
 export * from "./tabs";
 export * from "./typeahead";
+export * from "./validation-announcements";
