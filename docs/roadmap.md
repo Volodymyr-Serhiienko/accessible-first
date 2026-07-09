@@ -1,6 +1,6 @@
 # Roadmap
 
-## Complited Phase: Behavior Foundation
+## Completed Phase: Behavior Foundation
 
 Completed:
 
@@ -29,14 +29,17 @@ Completed:
 
 ## Current Phase: Accessible Components
 
-In progress:
+Completed:
 
 - Component foundation
+
+In progress:
+
+- Button
 
 
 Planned:
 
-- Button
 - Icon Button
 - Link
 - Disclosure
