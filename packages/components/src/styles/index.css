@@ -1,0 +1,94 @@
+:root {
+    --af-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --af-target-size: 44px;
+    --af-focus-ring-width: 2px;
+    --af-focus-ring-offset: 2px;
+
+    --af-radius-sm: 4px;
+    --af-radius-md: 6px;
+
+    --af-space-2: 0.5rem;
+    --af-space-3: 0.75rem;
+    --af-space-4: 1rem;
+
+    --af-color-bg: #ffffff;
+    --af-color-fg: #111827;
+    --af-color-muted: #4b5563;
+    --af-color-border: #64748b;
+    --af-color-primary: #0f172a;
+    --af-color-primary-fg: #ffffff;
+    --af-color-danger: #b91c1c;
+    --af-color-danger-fg: #ffffff;
+    --af-color-focus: #2563eb;
+    --af-color-disabled-bg: #e5e7eb;
+    --af-color-disabled-fg: #6b7280;
+}
+
+:root[data-af-theme="dark"] {
+    --af-color-bg: #111827;
+    --af-color-fg: #f9fafb;
+    --af-color-muted: #d1d5db;
+    --af-color-border: #9ca3af;
+    --af-color-primary: #f9fafb;
+    --af-color-primary-fg: #111827;
+    --af-color-danger: #f87171;
+    --af-color-danger-fg: #111827;
+    --af-color-focus: #93c5fd;
+    --af-color-disabled-bg: #374151;
+    --af-color-disabled-fg: #d1d5db;
+}
+
+[data-af-component="button"] {
+    min-inline-size: var(--af-target-size);
+    min-block-size: var(--af-target-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--af-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--af-radius-md);
+    padding: 0 var(--af-space-4);
+    font-family: var(--af-font-family);
+    font: inherit;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+[data-af-component="button"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-component="button"][data-af-variant="primary"] {
+    color: var(--af-color-primary-fg);
+    background: var(--af-color-primary);
+}
+
+[data-af-component="button"][data-af-variant="secondary"] {
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+    border-color: var(--af-color-border);
+}
+
+[data-af-component="button"][data-af-variant="ghost"] {
+    color: var(--af-color-fg);
+    background: transparent;
+    border-color: transparent;
+}
+
+[data-af-component="button"][data-af-variant="danger"] {
+    color: var(--af-color-danger-fg);
+    background: var(--af-color-danger);
+}
+
+[data-af-component="button"][data-af-state="disabled"],
+[data-af-component="button"]:disabled {
+    color: var(--af-color-disabled-fg);
+    background: var(--af-color-disabled-bg);
+    border-color: transparent;
+    cursor: not-allowed;
+}

@@ -32,15 +32,14 @@ Completed:
 Completed:
 
 - Component foundation
+- Button
 
 In progress:
 
-- Button
-
+- Icon Button
 
 Planned:
 
-- Icon Button
 - Link
 - Disclosure
 - Accordion
