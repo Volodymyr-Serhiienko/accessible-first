@@ -36,10 +36,11 @@ Completed:
 - Component foundation
 - Button
 - Icon Button
+- Link
 
 In progress:
 
-- Link
+- Playground foundation
 
 Planned:
 
