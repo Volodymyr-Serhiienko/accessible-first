@@ -38,14 +38,14 @@ Completed:
 - Icon Button
 - Link
 - Playground foundation
+- Disclosure
 
 In progress:
 
-- Disclosure
+- Accordion
 
 Planned:
 
-- Accordion
 - Dialog
 - Alert Dialog
 - Tabs

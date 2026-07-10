@@ -1,5 +1,6 @@
 import {
     createButton,
+    createDisclosure,
     createIconButton,
     createLink
 } from "../packages/components/src";
@@ -35,6 +36,7 @@ app.innerHTML = `
         <a href="#buttons" data-playground-link>Buttons</a>
         <a href="#icon-buttons" data-playground-link>Icon Buttons</a>
         <a href="#links" data-playground-link>Links</a>
+        <a href="#disclosures" data-playground-link>Disclosures</a>
         <a href="#checks" data-playground-link>Checks</a>
     </nav>
 
@@ -79,6 +81,23 @@ app.innerHTML = `
                 <a id="current-link" href="#links">Current section</a>
                 <a id="external-link" href="https://example.com">External link</a>
                 <a id="disabled-link" href="/disabled">Disabled link</a>
+            </div>
+        </section>
+
+        <section class="demo-panel" id="disclosures" aria-labelledby="disclosures-title">
+            <h2 id="disclosures-title">Disclosures</h2>
+
+            <div id="project-disclosure">
+                <button id="project-disclosure-trigger" type="button">
+                    Project details
+                </button>
+
+                <div id="project-disclosure-panel">
+                    <p>
+                        This panel is controlled by the disclosure trigger. It should toggle
+                        aria-expanded, aria-controls, and the hidden state.
+                    </p>
+                </div>
             </div>
         </section>
 
@@ -199,4 +218,13 @@ createLink(queryRequired<HTMLAnchorElement>("#external-link"), {
 
 createLink(queryRequired<HTMLAnchorElement>("#disabled-link"), {
     disabled: true
+});
+
+createDisclosure(queryRequired<HTMLElement>("#project-disclosure"), {
+    trigger: queryRequired<HTMLButtonElement>("#project-disclosure-trigger"),
+    panel: queryRequired<HTMLElement>("#project-disclosure-panel"),
+    defaultOpen: false,
+    onOpenChange(open) {
+        announce(`Disclosure is ${open ? "open" : "closed"}.`);
+    }
 });
