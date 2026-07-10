@@ -9,6 +9,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "playground:dev": "vite --host 0.0.0.0",
+    "playground:build": "vite build",
     "build": "tsc"
   },
   "keywords": [],

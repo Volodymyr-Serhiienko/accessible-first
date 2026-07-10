@@ -37,14 +37,14 @@ Completed:
 - Button
 - Icon Button
 - Link
+- Playground foundation
 
 In progress:
 
-- Playground foundation
+- Disclosure
 
 Planned:
 
-- Disclosure
 - Accordion
 - Dialog
 - Alert Dialog
@@ -117,13 +117,18 @@ Planned:
 
 ## Playground And Validation Phase
 
+Completed:
+
+- Initial Vite playground shell
+- Light and dark theme toggle
+- First demos for Button, Icon Button, and Link
+
 Planned:
 
 - Playground as living documentation
 - Keyboard interaction demos
 - Screen reader behavior notes
 - Responsive viewport demos
-- Light and dark theme demos
 - GitHub Pages deployment
 - Mobile device testing workflow
 - Accessibility checklist per component

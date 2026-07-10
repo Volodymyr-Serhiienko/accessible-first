@@ -1,5 +1,10 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-    root: "playground"
+    root: "playground",
+    base: "./",
+    build: {
+        outDir: "dist",
+        emptyOutDir: true
+    }
 });
