@@ -39,13 +39,15 @@ Completed:
 - Link
 - Playground foundation
 - Disclosure
+- Semantic Composition foundation
 
 In progress:
 
-- Accordion
+- Component composition API
 
 Planned:
 
+- Accordion
 - Dialog
 - Alert Dialog
 - Tabs
@@ -76,6 +78,20 @@ Every component should define:
 - clear documentation examples.
 
 ---
+
+## Semantic Composition Phase
+
+Goal: provide a simple TypeScript-first API for creating accessible pages from semantic blocks, while reusing the same accessibility engine and enhancement components.
+
+Planned:
+
+- DOM adapter: createElement, append, mount
+- Component composition API: Button, IconButton, Link, Disclosure
+- Page object API: Page, Header, Navigation, Section, Footer
+- Page diagnostics: landmarks, headings, accessible names, duplicate ids, broken ARIA references
+- Playground refactor into semantic demo modules
+- Console page report for development
+- Optional visual diagnostics overlay later
 
 ## Page Building Phase
 
