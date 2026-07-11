@@ -25,6 +25,15 @@ export type CompositionChild =
 export type ElementAttributes = Record<string, string | number | boolean | null | undefined>;
 
 /**
+ * Common layout configuration properties used as a foundation for building structural UI component wrappers.
+ */
+export interface BaseCompositionOptions {
+    id?: string;
+    className?: string;
+    attributes?: ElementAttributes;
+}
+
+/**
  * Configuration options detailing properties and child segments to build an HTMLElement tree structure.
  */
 export interface CreateElementOptions {

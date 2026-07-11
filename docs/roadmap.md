@@ -40,10 +40,11 @@ Completed:
 - Playground foundation
 - Disclosure
 - Semantic Composition foundation
+- Component composition API for Button, Icon Button, Link, and Disclosure
 
 In progress:
 
-- Component composition API
+- Playground semantic refactor
 
 Planned:
 

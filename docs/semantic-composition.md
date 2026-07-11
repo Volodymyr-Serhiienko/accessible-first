@@ -83,3 +83,39 @@ page.footer(Footer());
 ```
 
 This keeps large pages readable and gives the library a place to provide automatic structure diagnostics.
+
+## Component Factories
+
+Composition factories create DOM and then enhance it with the existing component engine.
+
+```ts
+import { Button, Disclosure, Link, mount } from "@accessible-first/components";
+
+const save = Button({
+    text: "Save",
+    variant: "primary",
+    onPress() {
+        console.log("Saved");
+    }
+});
+
+const docs = Link({
+    text: "Documentation",
+    href: "/docs"
+});
+
+const details = Disclosure({
+    trigger: "Project details",
+    panel: "This content is controlled by the disclosure trigger."
+});
+
+mount(save, "#app");
+```
+
+The low-level enhancement API remains available:
+
+```ts
+createButton(existingButton, {
+    variant: "primary"
+});
+```

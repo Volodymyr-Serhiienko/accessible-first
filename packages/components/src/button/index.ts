@@ -1,7 +1,9 @@
 export { createButton } from "./createButton";
+export { Button } from "./composeButton";
 
+export type { ButtonCompositionOptions, ComposedButton } from "./composeButton";
 export type {
-    Button,
+    Button as ButtonInstance,
     ButtonOptions,
     ButtonPressedState,
     ButtonSize,

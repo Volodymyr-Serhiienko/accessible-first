@@ -1,8 +1,14 @@
+export { createDisclosure } from "./createDisclosure";
+export { Disclosure } from "./composeDisclosure";
+
 export type {
-    Disclosure,
+    Disclosure as DisclosureInstance,
     DisclosureOptions,
     DisclosureSize,
     DisclosureVariant
 } from "./types";
-
-export { createDisclosure } from "./createDisclosure";
+export type {
+    ComposedDisclosure,
+    DisclosureCompositionContent,
+    DisclosureCompositionOptions
+} from "./composeDisclosure";
