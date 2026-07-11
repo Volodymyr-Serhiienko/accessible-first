@@ -44,10 +44,16 @@ Completed:
 
 In progress:
 
-- Playground semantic refactor
+- Semantic primitives and self-aware callbacks
 
 Planned:
 
+- Self-aware component callbacks
+- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar
+- Page API without spread usage
+- Playground refactor to semantic demo modules
+- Page diagnostics improvements
+- Component factories for remaining components
 - Accordion
 - Dialog
 - Alert Dialog

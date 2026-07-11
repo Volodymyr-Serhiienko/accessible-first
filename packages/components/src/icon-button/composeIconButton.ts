@@ -9,19 +9,34 @@ import { createIconButton } from "./createIconButton";
 import type { IconButton as IconButtonInstance, IconButtonOptions } from "./types";
 
 /**
- * Configuration capabilities defining functional behaviors, explicit graphical layouts, 
- * accessible visual identifiers, and structural base values for an interactive Icon Button element.
+ * Callback function signature executed when a visual icon button receives an operational activation event.
+ * Passes both the original native DOM interaction event and the orchestrating component controller context.
+ * 
+ * @param event - The native browser Event object triggered by pointer, keyboard, or voice activation.
+ * @param button - The contextual ComposedIconButton manager instance executing the action.
  */
-export interface IconButtonCompositionOptions extends IconButtonOptions, BaseCompositionOptions {
+export type IconButtonCompositionOnPress = (
+    event: Event,
+    button: ComposedIconButton
+) => void;
+
+/**
+ * Configuration characteristics defining functional behaviors, explicit graphical layouts, 
+ * accessible visual identifiers, event pipelines, and structural base values for an interactive Icon Button element.
+ */
+export interface IconButtonCompositionOptions
+    extends Omit<IconButtonOptions, "onPress">,
+        BaseCompositionOptions {
     icon?: CompositionChild;
     children?: CompositionChild[];
     title?: string | null;
+    onPress?: IconButtonCompositionOnPress | null;
 }
 
 /**
  * Interface representing a managed, accessibly optimized native HTMLButtonElement built primarily around visual graphic indicators.
- * Exposes explicit semantic controls to dynamically handle descriptive data labels, shift internal assets, 
- * alter focus states, and securely dump binding scopes at teardown.
+ * Houses core structural references while providing functional controls to handle descriptive data labels, 
+ * swap layout graphics, manage custom callback streams, and securely dump binding scopes at teardown.
  */
 export interface ComposedIconButton extends Omit<IconButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
@@ -33,9 +48,17 @@ export interface ComposedIconButton extends Omit<IconButtonInstance, "element" |
 function getElementOptions(options: IconButtonCompositionOptions): CreateElementOptions {
     const elementOptions: CreateElementOptions = {};
 
-    if (options.id !== undefined) elementOptions.id = options.id;
-    if (options.className !== undefined) elementOptions.className = options.className;
-    if (options.attributes !== undefined) elementOptions.attributes = options.attributes;
+    if (options.id !== undefined) {
+        elementOptions.id = options.id;
+    }
+
+    if (options.className !== undefined) {
+        elementOptions.className = options.className;
+    }
+
+    if (options.attributes !== undefined) {
+        elementOptions.attributes = options.attributes;
+    }
 
     return elementOptions;
 }
@@ -52,6 +75,45 @@ function getChildren(options: IconButtonCompositionOptions): CompositionChild[] 
     return [];
 }
 
+function getIconButtonOptions(
+    options: IconButtonCompositionOptions,
+    onPress: (event: Event) => void
+): IconButtonOptions {
+    const iconButtonOptions: IconButtonOptions = {
+        onPress
+    };
+
+    if ("label" in options) {
+        iconButtonOptions.label = options.label ?? null;
+    }
+
+    if ("labelledBy" in options) {
+        iconButtonOptions.labelledBy = options.labelledBy ?? null;
+    }
+
+    if (options.disabled !== undefined) {
+        iconButtonOptions.disabled = options.disabled;
+    }
+
+    if ("pressed" in options) {
+        iconButtonOptions.pressed = options.pressed ?? null;
+    }
+
+    if (options.type !== undefined) {
+        iconButtonOptions.type = options.type;
+    }
+
+    if (options.variant !== undefined) {
+        iconButtonOptions.variant = options.variant;
+    }
+
+    if (options.size !== undefined) {
+        iconButtonOptions.size = options.size;
+    }
+
+    return iconButtonOptions;
+}
+
 function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
     if (label?.trim()) {
         element.title = label;
@@ -62,23 +124,33 @@ function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
 }
 
 /**
- * Instantiates and coordinates an enhanced, accessibly optimized native HTMLButtonElement built around structural graphics.
+ * Instantiates and coordinates an enhanced, accessibly optimized native HTMLButtonElement built around structural graphics with dynamic event injection.
  * Wraps interactive icon configurations, automatically synchronizes fallback visual tooltip descriptions (`title`) 
- * with core screen-reader labels (`aria-label`), manages complex graphic rendering slot pools, and guarantees clean, 
- * isolated runtime state teardowns.
+ * with core screen-reader labels (`aria-label`), hooks up context-aware activation event overrides (`onPress`), 
+ * manages complex graphic rendering slot pools, and guarantees clean, isolated runtime state teardowns.
  *
- * @param options - Visual asset properties, fallback tooltips, initial text strings, and layout behaviors applied at creation time.
- * @returns An interactive ComposedIconButton interface revealing localized layout modifications and lifecycle tracking utilities.
+ * @param options - Visual asset properties, fallback tooltips, initial action hooks, and layout behaviors applied at creation time.
+ * @returns An interactive ComposedIconButton instance revealing localized layout modifications and lifecycle tracking utilities.
  */
 export function IconButton(options: IconButtonCompositionOptions = {}): ComposedIconButton {
     const element = createElement("button", getElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
-    const iconButton = createIconButton(element, options);
 
+    let composed!: ComposedIconButton;
+    let onPress = options.onPress ?? null;
     let syncTitleWithLabel = options.title === undefined;
 
-    if (options.title !== undefined) {
-        if (options.title === null) {
+    const handlePress = (event: Event): void => {
+        onPress?.(event, composed);
+    };
+
+    const iconButton = createIconButton(
+        element,
+        getIconButtonOptions(options, handlePress)
+    );
+
+    if ("title" in options) {
+        if (options.title === null || options.title === undefined) {
             element.removeAttribute("title");
         } else {
             element.title = options.title;
@@ -106,14 +178,18 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         }
     }
 
-    return {
+    composed = {
         ...iconButton,
         element,
         setTitle,
         setLabel,
 
         update(nextOptions: IconButtonCompositionOptions): void {
-            iconButton.update(nextOptions);
+            if ("onPress" in nextOptions) {
+                onPress = nextOptions.onPress ?? null;
+            }
+
+            iconButton.update(getIconButtonOptions(nextOptions, handlePress));
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
@@ -133,4 +209,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
             iconButton.destroy();
         }
     };
+
+    return composed;
 }

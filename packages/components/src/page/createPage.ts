@@ -124,16 +124,8 @@ export function createPage(options: PageOptions = {}): Page {
             return page;
         },
 
-        section(...children: CompositionChild[]): Page {
-            const section = createElement("section", {
-                attributes: {
-                    "data-af-page-section": ""
-                }
-            });
-
-            appendTracked(section, children);
-            main.append(section);
-
+        section(section: CompositionChild): Page {
+            appendTracked(main, [section]);
             return page;
         },
 

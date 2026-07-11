@@ -9,18 +9,33 @@ import { createLink } from "./createLink";
 import type { Link as LinkInstance, LinkOptions } from "./types";
 
 /**
- * Configuration characteristics defining navigation behaviors, interaction states, 
- * base properties, and child rendering layouts for an accessibly sound Link element.
+ * Callback function signature executed when an interactive link component handles a navigation routing trigger.
+ * Passes both the original native DOM interaction event and the orchestrating component controller context.
+ * 
+ * @param event - The native browser Event object triggered by pointer, keyboard, or voice activation.
+ * @param link - The contextual ComposedLink manager instance executing the navigation behavior.
  */
-export interface LinkCompositionOptions extends LinkOptions, BaseCompositionOptions {
+export type LinkCompositionOnNavigate = (
+    event: Event,
+    link: ComposedLink
+) => void;
+
+/**
+ * Configuration characteristics defining navigation behaviors, interaction states, 
+ * event pipelines, and nested layout content arrays for an accessibly sound Link element.
+ */
+export interface LinkCompositionOptions
+    extends Omit<LinkOptions, "onNavigate">,
+        BaseCompositionOptions {
     text?: string;
     children?: CompositionChild[];
+    onNavigate?: LinkCompositionOnNavigate | null;
 }
 
 /**
  * Interface representing a managed, accessibly enhanced native HTMLAnchorElement wrapper.
  * Houses core structural navigation references while providing functional controls to alter content streams, 
- * apply runtime attribute modifications, and cleanly purge listener structures during unmounting.
+ * apply runtime trait modifications, manage route interception pipelines, and cleanly purge listener structures.
  */
 export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLAnchorElement;
@@ -32,9 +47,17 @@ export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | 
 function getElementOptions(options: LinkCompositionOptions): CreateElementOptions {
     const elementOptions: CreateElementOptions = {};
 
-    if (options.id !== undefined) elementOptions.id = options.id;
-    if (options.className !== undefined) elementOptions.className = options.className;
-    if (options.attributes !== undefined) elementOptions.attributes = options.attributes;
+    if (options.id !== undefined) {
+        elementOptions.id = options.id;
+    }
+
+    if (options.className !== undefined) {
+        elementOptions.className = options.className;
+    }
+
+    if (options.attributes !== undefined) {
+        elementOptions.attributes = options.attributes;
+    }
 
     return elementOptions;
 }
@@ -51,31 +74,89 @@ function getChildren(options: LinkCompositionOptions): CompositionChild[] {
     return [];
 }
 
+function getLinkOptions(
+    options: LinkCompositionOptions,
+    onNavigate: (event: Event) => void
+): LinkOptions {
+    const linkOptions: LinkOptions = {
+        onNavigate
+    };
+
+    if ("href" in options) {
+        linkOptions.href = options.href ?? null;
+    }
+
+    if (options.disabled !== undefined) {
+        linkOptions.disabled = options.disabled;
+    }
+
+    if (options.external !== undefined) {
+        linkOptions.external = options.external;
+    }
+
+    if ("target" in options) {
+        linkOptions.target = options.target ?? null;
+    }
+
+    if ("rel" in options) {
+        linkOptions.rel = options.rel ?? null;
+    }
+
+    if ("current" in options) {
+        linkOptions.current = options.current ?? null;
+    }
+
+    if (options.variant !== undefined) {
+        linkOptions.variant = options.variant;
+    }
+
+    if (options.size !== undefined) {
+        linkOptions.size = options.size;
+    }
+
+    return linkOptions;
+}
+
 /**
- * Instantiates and coordinates an enhanced, accessibly sound native HTMLAnchorElement wrapper.
- * Integrates navigational state management hooks alongside dynamic inner content slots to 
- * naturally handle text updates, custom sub-component composition, and seamless runtime adjustments 
- * while anchoring proper semantic markup structure.
+ * Instantiates and coordinates an enhanced, accessibly sound native HTMLAnchorElement wrapper with dynamic event injection.
+ * Integrates navigational state management pipelines, hooks up context-aware routing event overrides (`onNavigate`), 
+ * and sets up isolated inner content slots to securely process typography shifts and sub-tree 
+ * composition updates without breaking parent memory tables.
  *
- * @param options - Navigation traits, initial text strings, and layout behaviors applied at creation time.
- * @returns An interactive ComposedLink interface with layout updating and lifecycle destruction controls.
+ * @param options - Navigation traits, action hooks, content payloads, and layout identifiers assigned at initialization.
+ * @returns An interactive ComposedLink manager offering unified properties, layout updates, and unmounting methods.
  */
 export function Link(options: LinkCompositionOptions = {}): ComposedLink {
     const element = createElement("a", getElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
-    const link = createLink(element, options);
+
+    let composed!: ComposedLink;
+    let onNavigate = options.onNavigate ?? null;
+
+    const handleNavigate = (event: Event): void => {
+        onNavigate?.(event, composed);
+    };
+
+    const link = createLink(
+        element,
+        getLinkOptions(options, handleNavigate)
+    );
 
     function setText(text: string): void {
         content.set([text]);
     }
 
-    return {
+    composed = {
         ...link,
         element,
         setText,
 
         update(nextOptions: LinkCompositionOptions): void {
-            link.update(nextOptions);
+            if ("onNavigate" in nextOptions) {
+                onNavigate = nextOptions.onNavigate ?? null;
+            }
+
+            link.update(getLinkOptions(nextOptions, handleNavigate));
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
@@ -89,4 +170,6 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
             link.destroy();
         }
     };
+
+    return composed;
 }

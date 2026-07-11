@@ -276,3 +276,38 @@
     display: none;
 }
 
+/* --- Semantic Composition --- */
+
+[data-af-layout="row"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--af-space-3);
+}
+
+[data-af-layout="stack"] {
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-layout="group"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--af-space-3);
+}
+
+[data-af-layout="toolbar"] {
+    min-block-size: var(--af-target-size);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--af-space-2);
+}
+
+[data-af-composition="panel"] {
+    border: 1px solid var(--af-color-border);
+    border-radius: 8px;
+    padding: var(--af-space-4);
+    background: var(--af-color-bg);
+}
+

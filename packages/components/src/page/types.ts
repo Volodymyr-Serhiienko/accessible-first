@@ -56,7 +56,7 @@ export interface Page extends ComposedNode {
     readonly main: HTMLElement;
     header(...children: CompositionChild[]): Page;
     navigation(...children: CompositionChild[]): Page;
-    section(...children: CompositionChild[]): Page;
+    section(section: CompositionChild): Page;
     footer(...children: CompositionChild[]): Page;
     appendToMain(...children: CompositionChild[]): Page;
     inspect(options?: PageDiagnosticsOptions): PageDiagnosticsReport;
