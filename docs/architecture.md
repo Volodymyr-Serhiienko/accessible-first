@@ -4,7 +4,7 @@
 
 Accessible First is a framework-independent ecosystem for building accessible web applications.
 
-Instead of starting with UI components, the project is built from small, reusable primitives that form a stable foundation for higher-level features.
+Instead of starting with a visual component library, the project starts from reusable accessibility behavior and builds upward into components, semantic composition, page patterns, and application patterns.
 
 The goal is to make accessibility the default, not an afterthought.
 
@@ -13,11 +13,23 @@ The goal is to make accessibility the default, not an afterthought.
 ## Architectural Layers
 
 ```text
-Applications
+Applications and demos
     |
     v
-Components
-(Dialog, Menu, Tabs, TreeView...)
+Page and app patterns
+(AppShell, Sidebar, SettingsPage, EmptyState...)
+    |
+    v
+Semantic composition
+(createPage, Section, Panel, Row, Stack, Grid, Html, tags...)
+    |
+    v
+Composition components
+(Button, IconButton, Link, Disclosure...)
+    |
+    v
+Enhancement components
+(createButton(element), createDisclosure(root, options)...)
     |
     v
 Behavior
@@ -33,41 +45,113 @@ Browser APIs
 
 Each layer depends only on the layer below it.
 
-Higher-level modules never bypass lower-level abstractions.
+Higher-level modules should not bypass lower-level abstractions unless there is a clear architectural reason.
 
----
+## Public API Surfaces
 
-## Core Principles
+Accessible First has two main public surfaces.
 
-### Accessibility First
+### Enhancement API
 
-Every architectural decision should improve accessibility or preserve accessible behavior.
+The enhancement API improves existing HTML.
 
-### Composition over Complexity
+Example:
 
-Small, focused primitives are preferred over large, monolithic utilities.
+```ts
+createButton(existingButton, {
+    variant: "primary"
+});
+```
 
-### Framework Independence
+Use this when HTML already exists or when integrating with another rendering system.
 
-Core modules must not depend on React or any other UI framework.
+### Composition API
 
-### Progressive Enhancement
+The composition API creates DOM and enhances it.
 
-The library should rely on native browser behavior whenever possible.
+Example:
 
-### Stable Public APIs
+```ts
+const save = Button({
+    text: "Save",
+    variant: "primary",
+    onPress(event, button) {
+        button.setText("Saved");
+    }
+});
+```
 
-Internal implementation may change, but public APIs should remain predictable and consistent.
+Use this when building pages directly with Accessible First.
 
-### Documentation Driven
+## Semantic Composition
 
-Every completed module must be documented before moving on to the next major area.
+Semantic composition is the page-building layer.
 
-### Continuous Refactoring
+It should help developers organize interfaces as meaningful regions and blocks instead of long nested DOM trees.
 
-After completing a foundational module, existing code should be reviewed and updated to use the new abstractions where appropriate.
+Current primitives include:
 
----
+* createPage;
+* Section;
+* Panel;
+* Row;
+* Stack;
+* Grid;
+* Group;
+* Toolbar;
+* tag helpers such as P, H1, H2, Ul, Li;
+* Html for trusted native HTML fragments.
+
+This layer does not replace components. It gives components a readable page structure.
+
+## Layout Strategy
+
+Layout primitives should stay small and predictable.
+
+Row and Stack cover simple directional composition.
+
+Grid is currently a responsive flow grid for arranging blocks and panels. It is not intended to become a full CSS Grid replacement immediately.
+
+Future grid control may be added through a separate Cell or GridCell primitive if real examples show that explicit row, column, span, or area placement is needed.
+
+## Styling Strategy
+
+Accessible First should provide usable default styles.
+
+Default styles should include:
+
+* visible focus indicators;
+* practical target sizes;
+* accessible disabled states;
+* light and dark theme tokens;
+* basic spacing and typography;
+* component state styling.
+
+The library should not require Tailwind, CSS-in-JS, or a specific design framework.
+
+Customization should happen through:
+
+* CSS custom properties;
+* normal CSS selectors;
+* component variants;
+* future theme tokens.
+
+## Diagnostics Strategy
+
+The page layer should help developers notice structural issues during development.
+
+page.inspect() should report issues such as:
+
+* missing landmarks;
+* multiple main landmarks;
+* missing or multiple h1;
+* sections without headings;
+* navigation without an accessible name;
+* duplicate IDs;
+* broken ARIA references;
+* interactive controls without accessible names.
+
+Later diagnostics may include a visual overlay, responsive checks, component checklists, and playground validation helpers.
 
 ## Development Workflow
 
@@ -78,12 +162,10 @@ Each module follows the same lifecycle:
 3. Manual testing
 4. Refactoring
 5. Documentation
-6. Integration into existing modules
+6. Playground integration where useful
 
-Only after completing this cycle should development move to the next module.
-
----
+Only after completing this cycle should development move to the next major module.
 
 ## Long-Term Goal
 
-The long-term goal is to create a complete accessibility-first platform that enables developers to build high-quality web applications using well-designed, reusable, and fully documented building blocks.
+The long-term goal is to create a complete accessibility-first platform that enables developers to build high-quality web applications using well-designed, reusable, documented, and accessible building blocks.

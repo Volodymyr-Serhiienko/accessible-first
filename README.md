@@ -1,14 +1,32 @@
 # Accessible First
 
-An accessibility-first UI ecosystem for building modern web applications.
+Accessible First is a framework-independent ecosystem for building accessible web applications.
+
+The project aims to make accessibility the default path: developers should be able to create high-quality interfaces with correct semantics, keyboard behavior, visible focus states, responsive layout, and light/dark theme support without rebuilding these foundations for every project.
+
+## Direction
+
+Accessible First is not only a component library. It is growing into a small development environment for accessible web applications:
+
+- low-level behavior primitives;
+- accessible enhancement components for existing HTML;
+- composition components that create and enhance DOM;
+- semantic page-building primitives;
+- page diagnostics and playground validation;
+- future application patterns for real web apps.
 
 ## Principles
 
-- Accessibility First
-- Native HTML First
-- Performance First
-- Simplicity First
+- Accessibility first
+- Native HTML first
+- Simplicity first
+- Performance first
+- Progressive enhancement
+- Framework independence
+- Useful defaults with customization through tokens
 
-## Status
+## Current Status
 
 Early stage research and development.
+
+The behavior foundation is mostly complete. The project is now focused on accessible components, semantic composition, playground validation, and the first page-building patterns.

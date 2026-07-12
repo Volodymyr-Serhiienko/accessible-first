@@ -27,9 +27,11 @@ Completed:
 - Form field semantics
 - Validation announcements
 
-## Current Phase: Accessible Components
+---
 
-Goal: build framework-independent, WCAG-oriented component primitives with accessible defaults, predictable behavior, and minimal integration cost.
+## Current Phase: Accessible Components And Semantic Composition
+
+Goal: build framework-independent, WCAG-oriented component primitives with accessible defaults, predictable behavior, semantic page composition, and minimal integration cost.
 
 Completed:
 
@@ -37,24 +39,37 @@ Completed:
 - Button
 - Icon Button
 - Link
-- Playground foundation
 - Disclosure
+- Playground foundation
 - Semantic Composition foundation
 - Component composition API for Button, Icon Button, Link, and Disclosure
+- Self-aware composition callbacks
+- Page object API
+- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar
+- Responsive Grid primitive
+- Tag helpers
+- Trusted Html composition helper
+- System/light/dark page theme support
+- Initial page diagnostics
 
 In progress:
 
-- Semantic primitives and self-aware callbacks
+- Playground as living documentation
+- Responsive playground refinement
+- Component examples and manual checklists
+- Documentation alignment with current architecture
 
-Planned:
+Next:
 
-- Self-aware component callbacks
-- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar
-- Page API without spread usage
-- Playground refactor to semantic demo modules
-- Page diagnostics improvements
-- Component factories for remaining components
-- Accordion
+- Icon helper
+- VisuallyHidden helper
+- Accordion component
+- Accordion playground demo
+- Accordion documentation
+- Manual desktop and mobile checks for Accordion
+
+Planned components:
+
 - Dialog
 - Alert Dialog
 - Tabs
@@ -82,7 +97,8 @@ Every component should define:
 - light and dark theme tokens;
 - manual desktop checks;
 - manual mobile checks;
-- clear documentation examples.
+- clear documentation examples;
+- playground demo where useful.
 
 ---
 
@@ -90,36 +106,58 @@ Every component should define:
 
 Goal: provide a simple TypeScript-first API for creating accessible pages from semantic blocks, while reusing the same accessibility engine and enhancement components.
 
-Planned:
+Completed:
 
 - DOM adapter: createElement, append, mount
 - Component composition API: Button, IconButton, Link, Disclosure
-- Page object API: Page, Header, Navigation, Section, Footer
-- Page diagnostics: landmarks, headings, accessible names, duplicate ids, broken ARIA references
-- Playground refactor into semantic demo modules
+- Page object API: createPage, header, navigation, section, footer
+- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar, Grid
+- Tag helpers
+- Trusted Html helper
 - Console page report for development
-- Optional visual diagnostics overlay later
-
-## Page Building Phase
 
 Planned:
 
-- Semantic page sections
+- Playground refactor into semantic demo modules
+- More diagnostics for page structure and component usage
+- Optional visual diagnostics overlay later
+- GridCell or Cell primitive if explicit grid placement becomes necessary
+- More semantic helpers only after repeated real use proves the need
+
+---
+
+## Page Building Phase
+
+Goal: turn semantic composition into a practical way to build real pages and app screens.
+
+Planned:
+
 - Header patterns
 - Navigation patterns
 - Main content patterns
 - Footer patterns
-- Responsive layout primitives
-- Light and dark theme tokens
-- Typography scale
-- Spacing scale
-- Accessible color tokens
-- Focus ring system
+- Responsive layout patterns
+- DescriptionList
+- ActionsBar
+- InfoCard
+- EmptyState
+- FieldGroup
+- SettingsGroup
+- FormSection
 - Component composition guidelines
+- Page-building examples in the playground
+
+Important direction:
+
+- Do not create too many page patterns before real examples exist.
+- Use the playground and small demo pages to discover repeated patterns.
+- Promote repeated compositions into named helpers only when they clearly reduce complexity.
 
 ---
 
 ## App Building Phase
+
+Goal: provide reusable patterns for full application screens.
 
 Planned:
 
@@ -127,14 +165,37 @@ Planned:
 - Sidebar navigation
 - Top navigation
 - Mobile navigation
+- Breadcrumbs
 - Command menu
 - Settings panels
 - Dashboard patterns
 - CRUD page patterns
-- Empty states
 - Loading states
 - Error states
 - Accessible notification system
+
+---
+
+## Styling And Theme Phase
+
+Goal: provide accessible default styling without forcing a design framework.
+
+Current direction:
+
+- Default component styles are included.
+- CSS custom properties are the main customization mechanism.
+- Components should have practical accessible defaults.
+- The library should not require Tailwind, CSS-in-JS, or a specific framework.
+
+Planned:
+
+- Typography scale
+- Spacing scale
+- Accessible color tokens
+- Focus ring system
+- Component density options
+- More theme documentation
+- Better responsive examples
 
 ---
 
@@ -144,26 +205,34 @@ Completed:
 
 - Initial Vite playground shell
 - Light and dark theme toggle
-- First demos for Button, Icon Button, and Link
+- First demos for Button, Icon Button, Link, and Disclosure
+- Semantic composition demos
+- Layout primitive demos
+
+In progress:
+
+- Playground as living documentation
+- Responsive viewport demos
+- Manual component checklists
 
 Planned:
 
-- Playground as living documentation
 - Keyboard interaction demos
 - Screen reader behavior notes
-- Responsive viewport demos
 - GitHub Pages deployment
 - Mobile device testing workflow
 - Accessibility checklist per component
+- Real page demos such as settings page or application shell
+- Automated unit tests for behavior utilities after APIs settle
+- Playwright smoke tests for core component interactions after the playground stabilizes
 
 ### Planned Validation Flow
 
 - Add manual testing notes for every component as it is created.
-- Create a playground after Button, Icon Button, and Link are stable.
+- Add every meaningful component to the playground.
 - Use the playground for desktop keyboard testing, mobile touch testing, and screen reader smoke checks.
-- Deploy the playground to GitHub Pages when the first component demos are ready.
-- Add automated unit tests for behavior utilities after the component API settles.
-- Add Playwright smoke tests for core component interactions after the playground exists.
+- Deploy the playground to GitHub Pages when the first component demos are stable.
+- Add automated tests after the public API settles enough to avoid churn.
 
 ---
 
@@ -173,9 +242,11 @@ Accessible First should become a simple, framework-independent foundation for bu
 
 The system should provide:
 
-- Low-level accessibility primitives
-- Behavior modules
-- Reusable accessible components
-- Page and application patterns
-- Theme and responsive design foundations
-- A playground for real-device testing and documentation
+- low-level accessibility primitives;
+- behavior modules;
+- reusable accessible components;
+- semantic page composition;
+- page and application patterns;
+- theme and responsive design foundations;
+- diagnostics for development;
+- a playground for real-device testing and documentation.
