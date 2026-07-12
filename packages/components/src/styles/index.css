@@ -311,3 +311,16 @@
     background: var(--af-color-bg);
 }
 
+[data-af-layout="grid"] {
+    display: grid;
+    gap: var(--af-grid-gap, var(--af-space-3));
+    grid-template-columns: var(
+        --af-grid-columns,
+        repeat(auto-fit, minmax(min(100%, var(--af-grid-min, 14rem)), 1fr))
+    );
+}
+
+[data-af-composition="html"] {
+    display: contents;
+}
+

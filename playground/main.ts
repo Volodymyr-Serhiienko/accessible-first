@@ -1,16 +1,7 @@
-import {
-    Button,
-    Disclosure,
-    IconButton,
-    Link,
-    Panel,
-    Row,
-    Section,
-    Stack,
-    createElement,
-    createPage,
-    mount,
-    type ComposedNode
+import { Button, Disclosure, Div, Em, Grid,
+    H1, H3, Html, IconButton, Li, Link, P,
+    Panel, Row, Section, Small, Stack, Strong,
+    Ul, createPage, mount, type ComposedNode
 } from "../packages/components/src";
 
 import "../packages/components/src/styles/index.css";
@@ -27,11 +18,10 @@ function createIcon(path: string): SVGSVGElement {
     iconPath.setAttribute("d", path);
 
     svg.append(iconPath);
-
     return svg;
 }
 
-const status = createElement("p", {
+const status = P({
     id: "status",
     className: "status",
     text: "Ready for component checks.",
@@ -42,17 +32,14 @@ const status = createElement("p", {
 });
 
 function announce(message: string): void {
-    status.textContent = message;
+    status.element.textContent = message;
 }
 
 function HeaderDemo(): ComposedNode {
     return Row(
-        { className: "playground-header" },
+        { className: "playground-header__inner" },
         Stack(
-            createElement("h1", {
-                className: "playground-title",
-                text: "Accessible First Playground"
-            }),
+            H1({ className: "playground-title" }, "Accessible First Playground"),
             status
         ),
         Button({
@@ -78,12 +65,13 @@ function HeaderDemo(): ComposedNode {
 
 function NavigationDemo(): ComposedNode {
     return Row(
-        { className: "playground-nav" },
-        Link({ text: "Buttons", href: "#buttons" }),
-        Link({ text: "Icon Buttons", href: "#icon-buttons" }),
-        Link({ text: "Links", href: "#links" }),
-        Link({ text: "Disclosures", href: "#disclosures" }),
-        Link({ text: "Checks", href: "#checks" })
+        { className: "playground-nav__inner" },
+        Link({ text: "Buttons", href: "#buttons", variant: "standalone" }),
+        Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
+        Link({ text: "Links", href: "#links", variant: "standalone" }),
+        Link({ text: "Disclosure", href: "#disclosure", variant: "standalone" }),
+        Link({ text: "Layout", href: "#layout", variant: "standalone" }),
+        Link({ text: "Markup", href: "#markup", variant: "standalone" })
     );
 }
 
@@ -132,7 +120,7 @@ function ButtonsDemo(): ComposedNode {
 function IconButtonsDemo(): ComposedNode {
     return Section({
         id: "icon-buttons",
-        title: "Icon Buttons",
+        title: "Icon buttons",
         children: [
             Panel(
                 Row(
@@ -181,7 +169,7 @@ function LinksDemo(): ComposedNode {
                         href: "/docs",
                         onNavigate(event) {
                             event.preventDefault();
-                            announce("Documentation link navigation intercepted for playground.");
+                            announce("Documentation navigation intercepted for playground.");
                         }
                     }),
                     Link({
@@ -209,17 +197,18 @@ function LinksDemo(): ComposedNode {
     });
 }
 
-function DisclosuresDemo(): ComposedNode {
+function DisclosureDemo(): ComposedNode {
     return Section({
-        id: "disclosures",
-        title: "Disclosures",
+        id: "disclosure",
+        title: "Disclosure",
         children: [
             Panel(
                 Disclosure({
                     trigger: "Project details",
-                    panel: createElement("p", {
-                        text: "This panel is controlled by the disclosure trigger. It should toggle aria-expanded, aria-controls, and the hidden state."
-                    }),
+                    panel: Stack(
+                        P("The trigger controls aria-expanded, aria-controls, and the panel hidden state."),
+                        P("This component is already useful as a base for future accordion and details patterns.")
+                    ),
                     defaultOpen: false,
                     onOpenChange(open) {
                         announce(`Disclosure is ${open ? "open" : "closed"}.`);
@@ -230,33 +219,147 @@ function DisclosuresDemo(): ComposedNode {
     });
 }
 
-function ChecksDemo(): ComposedNode {
+function LayoutDemo(): ComposedNode {
     return Section({
-        id: "checks",
-        title: "Manual checks later",
+        id: "layout",
+        title: "Layout primitives",
         children: [
-            Panel(
-                Stack(
-                    createElement("ul", {
-                        className: "check-list",
-                        children: [
-                            createElement("li", { text: "Keyboard focus order is predictable." }),
-                            createElement("li", { text: "Focus indicator is visible in light and dark themes." }),
-                            createElement("li", { text: "Disabled controls cannot be activated." }),
-                            createElement("li", { text: "Touch targets feel usable on mobile." }),
-                            createElement("li", { text: "Screen readers announce names, roles, and states." })
-                        ]
-                    })
+            Grid(
+                { minColumnWidth: "15rem", gap: "1rem" },
+                Panel(
+                    Stack(
+                        H3("Stack"),
+                        P("Vertical composition for text, controls, and compact content blocks."),
+                        Button({
+                            text: "Stack action",
+                            variant: "secondary",
+                            onPress: () => announce("Stack action pressed.")
+                        })
+                    )
+                ),
+                Panel(
+                    Stack(
+                        H3("Row"),
+                        P("Horizontal composition that wraps naturally and becomes comfortable on small screens."),
+                        Row(
+                            Button({
+                                text: "One",
+                                variant: "secondary",
+                                onPress: () => announce("First row button pressed.")
+                            }),
+                            Button({
+                                text: "Two",
+                                variant: "secondary",
+                                onPress: () => announce("Second row button pressed.")
+                            })
+                        )
+                    )
+                ),
+                Div({
+                    className: "grid-empty-cell",
+                    attributes: {
+                        "aria-hidden": true
+                    }
+                }),
+                Panel(
+                    Stack(
+                        H3("Grid cell"),
+                        P("A regular panel placed into a responsive grid.")
+                    )
+                ),
+                Div({
+                    className: "grid-empty-cell",
+                    attributes: {
+                        "aria-hidden": true
+                    }
+                }),
+                Panel(
+                    Stack(
+                        H3("Another cell"),
+                        P("Empty cells make the grid shape visible without adding semantic noise.")
+                    )
                 )
             )
         ]
     });
 }
 
+function MarkupDemo(): ComposedNode {
+    return Section({
+        id: "markup",
+        title: "Markup helpers and native HTML",
+        children: [
+            Grid(
+                { minColumnWidth: "17rem", gap: "1rem" },
+                Panel(
+                    Stack(
+                        H3("Tag helpers"),
+                        P(
+                            "This paragraph is assembled with ",
+                            Strong("Strong"),
+                            ", ",
+                            Em("Em"),
+                            ", and regular text nodes."
+                        ),
+                        Ul(
+                            Li("Readable page modules."),
+                            Li("Predictable semantic structure."),
+                            Li("Small helpers instead of long nested object trees.")
+                        )
+                    )
+                ),
+                Panel(
+                    Stack(
+                        H3("Native HTML fragment"),
+                        Html({
+                            html: `
+                                <div class="native-html-demo">
+                                    <p>Native HTML can still be inserted when the project needs trusted static markup.</p>
+                                    <ul>
+                                        <li>Useful for documentation fragments.</li>
+                                        <li>Useful for imported content blocks.</li>
+                                    </ul>
+                                </div>
+                            `
+                        })
+                    )
+                )
+            )
+        ]
+    });
+}
+
+function ChecksDemo(): ComposedNode {
+    return Section({
+        id: "checks",
+        title: "Manual checks",
+        children: [
+            Panel(
+                Ul(
+                    { className: "check-list" },
+                    Li("Keyboard focus order is predictable."),
+                    Li("Focus indicator is visible in light and dark themes."),
+                    Li("Disabled controls cannot be activated."),
+                    Li("Touch targets feel usable on mobile."),
+                    Li("Screen readers announce names, roles, and states.")
+                )
+            )
+        ]
+    });
+}
+
+function FooterDemo(): ComposedNode {
+    return Stack(
+        { className: "playground-footer__inner" },
+        P(Small("Accessible First playground. Living documentation for the component and page-building API."))
+    );
+}
+
 const page = createPage({
     title: "Accessible First Playground",
     mainId: "main",
-    navigationLabel: "Playground sections"
+    navigationLabel: "Playground sections",
+    theme: "system"
 });
 
 page.element.classList.add("playground-shell");
@@ -267,8 +370,11 @@ page.navigation(NavigationDemo());
 page.section(ButtonsDemo());
 page.section(IconButtonsDemo());
 page.section(LinksDemo());
-page.section(DisclosuresDemo());
+page.section(DisclosureDemo());
+page.section(LayoutDemo());
+page.section(MarkupDemo());
 page.section(ChecksDemo());
+page.footer(FooterDemo());
 
 mount(page, "#app");
 page.inspect();

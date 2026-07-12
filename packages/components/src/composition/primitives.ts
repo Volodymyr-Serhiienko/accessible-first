@@ -36,6 +36,24 @@ export interface ToolbarOptions extends Omit<LayoutPrimitiveOptions, "label"> {
     label: string;
 }
 
+/**
+ * Configuration characteristics defining columns, spatial gutters, and sizing patterns 
+ * to structure an accessibly sound tabular or flexible layout network.
+ */
+export interface GridOptions extends LayoutPrimitiveOptions {
+    columns?: number | string;
+    minColumnWidth?: string;
+    gap?: string;
+}
+
+/**
+ * Configuration options specifying raw, un-sanitized string layouts intended for direct 
+ * rendering injection inside the active DOM ecosystem.
+ */
+export interface HtmlOptions extends BaseCompositionOptions {
+    html: string;
+}
+
 let sectionCounter = 0;
 
 function createElementOptions(
@@ -81,7 +99,8 @@ function isComposedNodeLike(value: unknown): value is ComposedNode {
 }
 
 function isLayoutPrimitiveOptions(value: unknown): value is LayoutPrimitiveOptions {
-    if (!value || typeof value !== "object") {
+    if (!value || typeof value !== "object" || "columns" in value
+        || "minColumnWidth" in value || "gap" in value) {
         return false;
     }
 
@@ -277,4 +296,62 @@ export function Toolbar(options: ToolbarOptions, ...children: CompositionChild[]
         ...(options.children ?? []),
         ...children
     ]);
+}
+
+/**
+ * Instantiates and coordinates a highly flexible grid layout container surface.
+ * Dynamically maps structural columns, responsive scaling thresholds, and spatial gap separation 
+ * properties onto isolated CSS custom properties without disrupting structural child flows.
+ *
+ * @param options - Spatial layout parameters, structural configurations, and initial child arrays.
+ * @param children - Supplementary child elements or visual layout items to populate the grid frame.
+ * @returns A ComposedNode package managing the configured grid container element.
+ */
+export function Grid(options: GridOptions, ...children: CompositionChild[]): ComposedNode {
+    const node = createComposedElement("div", options, {
+        "data-af-layout": "grid"
+    }, [
+        ...(options.children ?? []),
+        ...children
+    ]);
+
+    if (options.columns !== undefined) {
+        node.element.style.setProperty(
+            "--af-grid-columns",
+            typeof options.columns === "number"
+                ? `repeat(${options.columns}, minmax(0, 1fr))`
+                : options.columns
+        );
+    }
+
+    if (options.minColumnWidth !== undefined) {
+        node.element.style.setProperty("--af-grid-min", options.minColumnWidth);
+    }
+
+    if (options.gap !== undefined) {
+        node.element.style.setProperty("--af-grid-gap", options.gap);
+    }
+
+    return node;
+}
+
+/**
+ * Parses and securely inserts an un-sanitized layout string payload directly into the active DOM layout structure.
+ * Leverages native template compilation methods to safely clone new node instances into an isolated 
+ * presentation wrapper, ensuring predictable rendering context attachments.
+ *
+ * @param options - Configuration options detailing structural tags and the raw HTML text sequence to mount.
+ * @returns A ComposedNode package wrapping the compiled custom layout markup root.
+ */
+export function Html(options: HtmlOptions): ComposedNode {
+    const wrapper = createElement("div", createElementOptions(options, {
+        "data-af-composition": "html"
+    }));
+
+    const template = document.createElement("template");
+    template.innerHTML = options.html.trim();
+
+    wrapper.append(template.content.cloneNode(true));
+
+    return { element: wrapper };
 }

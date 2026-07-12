@@ -1,6 +1,15 @@
 import type { ComposedNode, CompositionChild } from "../composition";
 
 /**
+ * Represents the supported color scheme modes for the application's user interface.
+ * 
+ * - `"system"` - Automatically matches the operating system's prefers-color-scheme setting.
+ * - `"light"` - Enforces a high-contrast, light background color profile.
+ * - `"dark"` - Enforces a low-light, dark background color profile.
+ */
+export type PageTheme = "system" | "light" | "dark";
+
+/**
  * Severity grading systems defining operational or semantic concerns identified in layout structures.
  */
 export type PageDiagnosticsLevel = "info" | "warning" | "error";
@@ -18,6 +27,7 @@ export interface PageOptions {
     mainId?: string;
     skipLink?: boolean | string;
     navigationLabel?: string;
+    theme?: PageTheme;
 }
 
 /**

@@ -7,6 +7,37 @@ import {
 import { inspectPage } from "./diagnostics";
 import type { Page, PageDiagnosticsOptions, PageDiagnosticsReport, PageOptions } from "./types";
 
+function applyTheme(theme: "light" | "dark"): void {
+    if (theme === "dark") {
+        document.documentElement.setAttribute("data-af-theme", "dark");
+        return;
+    }
+
+    document.documentElement.removeAttribute("data-af-theme");
+}
+
+function setupPageTheme(options: PageOptions): () => void {
+    const theme = options.theme ?? "system";
+
+    if (theme === "light" || theme === "dark") {
+        applyTheme(theme);
+        return () => {};
+    }
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function syncSystemTheme(): void {
+        applyTheme(media.matches ? "dark" : "light");
+    }
+
+    syncSystemTheme();
+    media.addEventListener("change", syncSystemTheme);
+
+    return () => {
+        media.removeEventListener("change", syncSystemTheme);
+    };
+}
+
 /**
  * Instantiates and manages a top-level structured semantic Page component.
  * Automatically configures basic document metadata titles, initializes an accessible 
@@ -37,6 +68,8 @@ export function createPage(options: PageOptions = {}): Page {
     let footerElement: HTMLElement | null = null;
 
     const destroyers: Array<() => void> = [];
+
+    destroyers.push(setupPageTheme(options));
 
     if (options.title !== undefined) {
         document.title = options.title;
