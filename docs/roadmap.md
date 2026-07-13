@@ -51,6 +51,8 @@ Completed:
 - Trusted Html composition helper
 - System/light/dark page theme support
 - Initial page diagnostics
+- Icon helper
+- VisuallyHidden helper
 
 In progress:
 
@@ -61,8 +63,6 @@ In progress:
 
 Next:
 
-- Icon helper
-- VisuallyHidden helper
 - Accordion component
 - Accordion playground demo
 - Accordion documentation

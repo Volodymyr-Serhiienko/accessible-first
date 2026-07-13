@@ -158,6 +158,9 @@ createButton(existingButton, {
 });
 ```
 
+`Icon` for decorative or labelled SVG icons;
+`VisuallyHidden` for screen-reader-only content.
+
 ## Self-Aware Callbacks
 
 Composition callbacks may receive the component instance.
