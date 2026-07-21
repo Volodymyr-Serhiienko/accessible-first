@@ -309,6 +309,31 @@
     display: none;
 }
 
+/* --- Accordion --- */
+
+[data-af-component="accordion"] {
+    display: grid;
+    gap: var(--af-space-2);
+}
+
+[data-af-accordion-item] {
+    min-inline-size: 0;
+}
+
+[data-af-component="accordion"][data-af-variant="plain"] {
+    gap: 0;
+    border-block-start: 1px solid var(--af-color-border);
+}
+
+[data-af-component="accordion"][data-af-variant="plain"] [data-af-accordion-item] {
+    border-block-end: 1px solid var(--af-color-border);
+    border-radius: 0;
+}
+
+[data-af-component="accordion"][data-af-state="disabled"] {
+    color: var(--af-color-disabled-fg);
+}
+
 /* --- Semantic Composition --- */
 
 [data-af-layout="row"] {

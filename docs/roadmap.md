@@ -53,6 +53,7 @@ Completed:
 - Initial page diagnostics
 - Icon helper
 - VisuallyHidden helper
+- Accordion component
 
 In progress:
 
@@ -63,10 +64,10 @@ In progress:
 
 Next:
 
-- Accordion component
 - Accordion playground demo
 - Accordion documentation
 - Manual desktop and mobile checks for Accordion
+- Dialog component
 
 Planned components:
 

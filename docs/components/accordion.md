@@ -1,0 +1,71 @@
+# Accordion
+
+Accordion groups related disclosure items and provides keyboard navigation between item triggers.
+
+## Status
+
+Initial component implementation.
+
+## Layers
+
+- Enhancement API: `createAccordion(element, options)`
+- Composition API: `Accordion(options)`
+- Reuses: `createDisclosure`, `Disclosure`, `createRovingFocus`
+
+## Behavior
+
+Accordion items use disclosure semantics:
+
+- each trigger controls one panel;
+- triggers expose `aria-expanded`;
+- triggers reference panels through `aria-controls`;
+- panels are hidden when closed.
+
+The accordion also adds grouped keyboard navigation:
+
+- `Tab` enters the active trigger;
+- `ArrowDown` / `ArrowUp` move between triggers;
+- `Home` moves to the first trigger;
+- `End` moves to the last trigger.
+
+## Composition Example
+
+```ts
+Accordion({
+    items: [
+        {
+            value: "first",
+            trigger: "First item",
+            panel: "First panel content.",
+            defaultOpen: true
+        },
+        {
+            value: "second",
+            trigger: "Second item",
+            panel: "Second panel content."
+        }
+    ],
+    onOpenChange(detail) {
+        console.log(detail.value, detail.open);
+    }
+});
+```
+
+## Options
+
+* items: accordion item definitions.
+* multiple: allows more than one item to be open.
+* collapsible: allows the last open item to close.
+* disabled: disables all items.
+* loop: loops keyboard navigation.
+* variant: visual variant.
+* size: size token.
+
+## Manual Checks
+
+* Trigger names are announced by screen readers.
+* Expanded/collapsed state is announced.
+* Arrow keys move between triggers.
+* Disabled items cannot be activated.
+* Focus indicator is visible.
+* Touch targets are comfortable on mobile.

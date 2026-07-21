@@ -1,6 +1,6 @@
-import { Icon, VisuallyHidden, Button, Disclosure, Div, Em, Grid,
-    H1, H3, Html, IconButton, Li, Link, P,
-    Panel, Row, Section, Small, Stack, Strong,
+import { Accordion, Button, Disclosure, Div, Em, Grid,
+    H1, H3, Html, Icon, IconButton, Li, Link, P,
+    Panel, Row, Section, Small, Stack, Strong, VisuallyHidden,
     Ul, createPage, mount, type ComposedNode
 } from "../packages/components/src";
 
@@ -55,6 +55,7 @@ function NavigationDemo(): ComposedNode {
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
         Link({ text: "Links", href: "#links", variant: "standalone" }),
         Link({ text: "Disclosure", href: "#disclosure", variant: "standalone" }),
+        Link({ text: "Accordion", href: "#accordion", variant: "standalone" }),
         Link({ text: "Layout", href: "#layout", variant: "standalone" }),
         Link({ text: "Markup", href: "#markup", variant: "standalone" })
     );
@@ -199,6 +200,52 @@ function DisclosureDemo(): ComposedNode {
                         announce(`Disclosure is ${open ? "open" : "closed"}.`);
                     }
                 })
+            )
+        ]
+    });
+}
+
+function AccordionDemo(): ComposedNode {
+    return Section({
+        id: "accordion",
+        title: "Accordion",
+        children: [
+            Panel(
+                Stack(
+                    P("Accordion combines disclosure behavior with grouped keyboard navigation."),
+                    Accordion({
+                        collapsible: true,
+                        items: [
+                            {
+                                value: "semantics",
+                                defaultOpen: true,
+                                trigger: "Accessible semantics",
+                                panel: Stack(
+                                    P("Each item uses a button trigger connected to a controlled panel."),
+                                    P("The component keeps aria-expanded, aria-controls, and hidden state synchronized.")
+                                )
+                            },
+                            {
+                                value: "keyboard",
+                                trigger: "Keyboard support",
+                                panel: Stack(
+                                    P("Tab enters the active accordion trigger."),
+                                    P("Arrow keys, Home, and End move through accordion triggers with roving focus.")
+                                )
+                            },
+                            {
+                                value: "composition",
+                                trigger: "Composition API",
+                                panel: Stack(
+                                    P("Accordion is built from existing Disclosure behavior and can be used directly inside semantic page sections.")
+                                )
+                            }
+                        ],
+                        onOpenChange(detail) {
+                            announce(`Accordion item ${detail.value} is ${detail.open ? "open" : "closed"}.`);
+                        }
+                    })
+                )
             )
         ]
     });
@@ -364,6 +411,7 @@ page.section(ButtonsDemo());
 page.section(IconButtonsDemo());
 page.section(LinksDemo());
 page.section(DisclosureDemo());
+page.section(AccordionDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());
