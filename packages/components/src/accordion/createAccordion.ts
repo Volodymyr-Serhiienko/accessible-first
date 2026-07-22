@@ -1,4 +1,7 @@
-import { createRovingFocus } from "../../../core/src/roving-focus";
+import { addEventListener } from "../../../core/src/events";
+import { focusElement } from "../../../core/src/focus";
+import { isArrowDownKey, isArrowUpKey, isEndKey, isHomeKey } from "../../../core/src/keyboard";
+import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import { createDisclosure, type DisclosureInstance as Disclosure } from "../disclosure";
 import { createComponentLifecycle } from "../foundation";
 import type {
@@ -97,21 +100,86 @@ export function createAccordion(
     let size: AccordionSize = options.size ?? "md";
     let onOpenChange = options.onOpenChange ?? null;
     let suppressOpenChange = false;
+    let loop = options.loop ?? true;
 
     const internalItems: InternalAccordionItem[] = [];
 
-    const rovingFocusOptions = {
-        getItems: () => internalItems.map((item) => item.trigger),
-        orientation: "vertical" as const,
-        loop: options.loop ?? true,
-        currentItem: () => internalItems.find((item) => !item.isDisabled())?.trigger ?? null,
-        isItemDisabled: (trigger: HTMLElement) => {
-            const item = internalItems.find((candidate) => candidate.trigger === trigger);
-            return !item || item.isDisabled();
-        }
-    };
+    function getItemByTrigger(target: EventTarget | null): InternalAccordionItem | null {
+    if (!(target instanceof HTMLElement)) {
+        return null;
+    }
 
-    const rovingFocus = createRovingFocus(element, rovingFocusOptions);
+    return internalItems.find((item) => item.trigger === target) ?? null;
+}
+
+function getAvailableItems(): InternalAccordionItem[] {
+    return internalItems.filter((item) => !item.isDisabled());
+}
+
+function focusItem(item: InternalAccordionItem | null): boolean {
+    if (!item || !focusElement(item.trigger)) {
+        return false;
+    }
+
+    scrollIntoViewIfNeeded(item.trigger);
+    return true;
+}
+
+function getRelativeItem(
+    currentItem: InternalAccordionItem,
+    direction: 1 | -1
+): InternalAccordionItem | null {
+    const items = getAvailableItems();
+    const currentIndex = items.indexOf(currentItem);
+
+    if (items.length === 0 || currentIndex === -1) {
+        return null;
+    }
+
+    const nextIndex = currentIndex + direction;
+
+    if (nextIndex < 0) {
+        return loop ? items[items.length - 1] ?? null : null;
+    }
+
+    if (nextIndex >= items.length) {
+        return loop ? items[0] ?? null : null;
+    }
+
+    return items[nextIndex] ?? null;
+}
+
+    function handleKeyDown(event: KeyboardEvent): void {
+        const item = getItemByTrigger(event.target);
+
+        if (!item || item.isDisabled()) {
+            return;
+        }
+
+        if (isArrowDownKey(event)) {
+            event.preventDefault();
+            focusItem(getRelativeItem(item, 1));
+            return;
+        }
+
+        if (isArrowUpKey(event)) {
+            event.preventDefault();
+            focusItem(getRelativeItem(item, -1));
+            return;
+        }
+
+        if (isHomeKey(event)) {
+            event.preventDefault();
+            focusItem(getAvailableItems()[0] ?? null);
+            return;
+        }
+
+        if (isEndKey(event)) {
+            event.preventDefault();
+            const items = getAvailableItems();
+            focusItem(items[items.length - 1] ?? null);
+        }
+    }
 
     function syncRootAttributes(): void {
         element.setAttribute("data-af-variant", variant);
@@ -189,7 +257,6 @@ export function createAccordion(
             closeOtherItems(item);
         }
 
-        rovingFocus.setCurrentItem(item.trigger, { focus: false });
         emitOpenChange(item);
     }
 
@@ -197,7 +264,6 @@ export function createAccordion(
         item.ownDisabled = nextDisabled;
         item.disclosure.setDisabled(disabled || item.ownDisabled);
         syncItemAttributes(item);
-        rovingFocus.refresh();
     }
 
     function syncDisabledState(): void {
@@ -207,8 +273,6 @@ export function createAccordion(
             item.disclosure.setDisabled(disabled || item.ownDisabled);
             syncItemAttributes(item);
         }
-
-        rovingFocus.refresh();
     }
 
     function ensureRequiredOpenItem(): void {
@@ -324,11 +388,9 @@ export function createAccordion(
         });
     });
 
-    rovingFocus.activate();
-
-    lifecycle.addCleanup(() => {
-        rovingFocus.deactivate();
-    });
+    lifecycle.addCleanup(
+        addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
+    );
 
     lifecycle.addCleanup(() => {
         restoreAttribute(element, "data-af-variant", originalVariant);
@@ -389,7 +451,7 @@ export function createAccordion(
         },
 
         refresh(): void {
-            rovingFocus.refresh();
+            // All accordion triggers remain in the normal Tab sequence.
         },
 
         update(nextOptions): void {
@@ -402,7 +464,7 @@ export function createAccordion(
             }
 
             if (nextOptions.loop !== undefined) {
-                rovingFocusOptions.loop = nextOptions.loop;
+                loop = nextOptions.loop;
             }
 
             if (nextOptions.variant !== undefined) {
@@ -432,7 +494,6 @@ export function createAccordion(
 
             syncRootAttributes();
             normalizeSingleOpenState();
-            rovingFocus.refresh();
         },
 
         destroy(): void {

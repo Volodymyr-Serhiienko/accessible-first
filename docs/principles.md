@@ -67,6 +67,19 @@ Prefer small reliable primitives that can be combined.
 
 Higher-level patterns should be added only after repeated real use shows that a composition is common enough to deserve a named abstraction.
 
+## Perceivable Component Context
+
+Interactive components should help users understand what kind of control they are focused on and what activation is likely to do.
+
+For composite components, the project should prefer semantic structure, accessible names, state attributes, and helpful relationships over hidden instructions that duplicate screen reader output.
+
+Examples:
+
+- disclosure triggers should expose expanded or collapsed state;
+- accordion triggers should be understandable as section headers;
+- panels should be clearly related to their triggers;
+- complex widgets should not rely on one keyboard interaction model that screen readers may intercept.
+
 ## Documentation Driven
 
 Architectural decisions, public APIs, component behavior, and testing expectations should be documented as the project evolves.
@@ -78,8 +91,3 @@ The playground should become living documentation.
 Do not design the API only in theory.
 
 Use the playground and small real page examples to discover what is actually convenient, missing, confusing, or too complex.# Principles
-
-- Accessibility by default
-- No unnecessary complexity
-- Native HTML whenever possible
-- Progressive enhancement

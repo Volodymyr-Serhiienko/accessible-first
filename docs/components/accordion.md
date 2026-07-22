@@ -10,7 +10,7 @@ Initial component implementation.
 
 - Enhancement API: `createAccordion(element, options)`
 - Composition API: `Accordion(options)`
-- Reuses: `createDisclosure`, `Disclosure`, `createRovingFocus`
+- Reuses: `createDisclosure`, `Disclosure`
 
 ## Behavior
 
@@ -21,12 +21,16 @@ Accordion items use disclosure semantics:
 - triggers reference panels through `aria-controls`;
 - panels are hidden when closed.
 
-The accordion also adds grouped keyboard navigation:
+The accordion keeps every trigger in the normal page `Tab` sequence.
 
-- `Tab` enters the active trigger;
-- `ArrowDown` / `ArrowUp` move between triggers;
-- `Home` moves to the first trigger;
-- `End` moves to the last trigger.
+Keyboard behavior:
+
+- `Tab` moves through all accordion triggers and other focusable page controls.
+- `Enter` / `Space` toggles the focused accordion trigger.
+- `ArrowDown` / `ArrowUp` may move focus between triggers when the browser receives those keys.
+- `Home` / `End` may move focus to the first or last trigger.
+
+Arrow key support is an enhancement, not the only navigation path. Screen readers may use arrow keys for their own reading cursor.
 
 ## Composition Example
 
