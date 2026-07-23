@@ -32,6 +32,14 @@ Keyboard behavior:
 
 Arrow key support is an enhancement, not the only navigation path. Screen readers may use arrow keys for their own reading cursor.
 
+In the composition API, each accordion trigger is wrapped in a native heading element.
+
+By default, composition accordions use `h3` for item headings. This can be changed with `headingLevel`.
+
+Panels use `role="region"` and `aria-labelledby` in `panelRole: "auto"` mode when the accordion has a small enough number of panels to avoid landmark proliferation.
+
+Accordion reuses Disclosure announcement behavior. If `announcement` is enabled, opening an item can announce the panel text or a custom message.
+
 ## Composition Example
 
 ```ts
@@ -64,6 +72,9 @@ Accordion({
 * loop: loops keyboard navigation.
 * variant: visual variant.
 * size: size token.
+* headingLevel: native heading level for composition item headers.
+* panelRole: `"auto"`, `"region"`, or `"none"` for panel landmark behavior.
+* announcement: optional live-region output when an item opens. Can be set globally or per item.
 
 ## Manual Checks
 

@@ -1,5 +1,5 @@
 import type { Component } from "../foundation";
-import type { DisclosureInstance } from "../disclosure";
+import type { DisclosureAnnouncement, DisclosureInstance } from "../disclosure";
 
 /**
  * Visual styling configurations permitted for transforming the underlying structural layout treatment of an accordion.
@@ -10,6 +10,17 @@ export type AccordionVariant = "default" | "plain";
  * Standard structural padding, sizing, and typography dimension presets permitted for an accordion layout region.
  */
 export type AccordionSize = "md";
+
+/**
+ * Permitted semantic HTML heading levels (h2 through h6) used to structure accordion header wrappers.
+ */
+export type AccordionHeadingLevel = 2 | 3 | 4 | 5 | 6;
+
+/**
+ * Strategy mode determining whether the expanding panel element explicitly acts as an accessible landmark region (`region`),
+ * skips landmark role assignment (`none`), or assigns it dynamically based on item context (`auto`).
+ */
+export type AccordionPanelRole = "auto" | "region" | "none";
 
 /**
  * Configuration characteristics defining the essential native layout nodes, identifying keys,
@@ -23,6 +34,7 @@ export interface AccordionItemOptions {
     disabled?: boolean;
     defaultOpen?: boolean;
     open?: boolean;
+    announcement?: DisclosureAnnouncement;
 }
 
 /**
@@ -46,6 +58,9 @@ export interface AccordionOptions {
     loop?: boolean;
     variant?: AccordionVariant;
     size?: AccordionSize;
+    headingLevel?: AccordionHeadingLevel;
+    panelRole?: AccordionPanelRole;
+    announcement?: DisclosureAnnouncement;
     onOpenChange?: ((detail: AccordionOpenChangeDetail) => void) | null;
 }
 

@@ -10,7 +10,10 @@ export function AccordionDemo(): ComposedNode {
                 Stack(
                     P("Accordion combines disclosure behavior with grouped keyboard navigation."),
                     Accordion({
+                        headingLevel: 3,
+                        panelRole: "auto",
                         collapsible: true,
+                        announcement: true,
                         items: [
                             {
                                 value: "semantics",
@@ -38,7 +41,9 @@ export function AccordionDemo(): ComposedNode {
                             }
                         ],
                         onOpenChange(detail) {
-                            announce(`Accordion item ${detail.value} is ${detail.open ? "open" : "closed"}.`);
+                            if (!detail.open) {
+                                announce(`Accordion item ${detail.value} is closed.`);
+                            }
                         }
                     })
                 )

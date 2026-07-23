@@ -8,11 +8,14 @@ It wraps the core disclosure behavior and adds stable component styling hooks.
 
 ## Public API
 
+`announcement` enables optional live-region output when the disclosure opens.
+
 ```ts
 const disclosure = createDisclosure(root, {
     trigger,
     panel,
     defaultOpen: false,
+    announcement: true,
     onOpenChange(open) {
         console.log(open);
     }
@@ -22,6 +25,15 @@ disclosure.open();
 disclosure.close();
 disclosure.toggle();
 disclosure.destroy();
+
+Disclosure({
+    trigger: "Details",
+    panel: "Extra information.",
+    announcement: {
+        message: "Details opened. Extra information is now available.",
+        politeness: "polite"
+    }
+});
 ```
 
 ---
@@ -36,6 +48,7 @@ disclosure.destroy();
 * Supports disabled state
 * Exposes stable data attributes for styling
 * Restores original attributes on destroy
+* Can optionally announce panel text when the disclosure opens.
 
 ## Manual Testing
 

@@ -111,6 +111,10 @@ function getDisclosureOptions(
         disclosureOptions.size = options.size;
     }
 
+    if (options.announcement !== undefined) {
+        disclosureOptions.announcement = options.announcement;
+    }
+
     return disclosureOptions;
 }
 
@@ -138,6 +142,10 @@ function getDisclosureUpdateOptions(
 
     if ("onOpenChange" in options) {
         disclosureOptions.onOpenChange = onOpenChange;
+    }
+
+    if (options.announcement !== undefined) {
+        disclosureOptions.announcement = options.announcement;
     }
 
     return disclosureOptions;

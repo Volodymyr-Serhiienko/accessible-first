@@ -2,8 +2,13 @@ import { addEventListener } from "../../../core/src/events";
 import { focusElement } from "../../../core/src/focus";
 import { isArrowDownKey, isArrowUpKey, isEndKey, isHomeKey } from "../../../core/src/keyboard";
 import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
-import { createDisclosure, type DisclosureInstance as Disclosure } from "../disclosure";
 import { createComponentLifecycle } from "../foundation";
+import { createDisclosure,
+    type DisclosureAnnouncement,
+    type DisclosureInstance as Disclosure,
+    type DisclosureOptions
+} from "../disclosure";
+
 import type {
     Accordion,
     AccordionItem,
@@ -16,6 +21,7 @@ import type {
 
 interface InternalAccordionItem extends AccordionItem {
     ownDisabled: boolean;
+    ownAnnouncement: DisclosureAnnouncement | undefined;
 }
 
 function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
@@ -99,6 +105,7 @@ export function createAccordion(
     let variant: AccordionVariant = options.variant ?? "default";
     let size: AccordionSize = options.size ?? "md";
     let onOpenChange = options.onOpenChange ?? null;
+    let announcement = options.announcement;
     let suppressOpenChange = false;
     let loop = options.loop ?? true;
 
@@ -320,7 +327,10 @@ function getRelativeItem(
 
         let item!: InternalAccordionItem;
 
-        const disclosure: Disclosure = createDisclosure(itemOptions.element, {
+        const ownAnnouncement = itemOptions.announcement;
+        const itemAnnouncement = ownAnnouncement ?? announcement;
+
+        const disclosureOptions: DisclosureOptions = {
             trigger: itemOptions.trigger,
             panel: itemOptions.panel,
             defaultOpen: initialOpenStates[index] ?? false,
@@ -330,7 +340,13 @@ function getRelativeItem(
             onOpenChange(open) {
                 handleItemOpenChange(item, open);
             }
-        });
+        };
+
+        if (itemAnnouncement !== undefined) {
+            disclosureOptions.announcement = itemAnnouncement;
+        }
+
+        const disclosure: Disclosure = createDisclosure(itemOptions.element, disclosureOptions);
 
         item = {
             value,
@@ -339,6 +355,7 @@ function getRelativeItem(
             panel: itemOptions.panel,
             disclosure,
             ownDisabled,
+            ownAnnouncement,
 
             open(): void {
                 item.setOpen(true);
@@ -490,6 +507,16 @@ function getRelativeItem(
             if (nextOptions.disabled !== undefined) {
                 disabled = nextOptions.disabled;
                 syncDisabledState();
+            }
+
+            if (nextOptions.announcement !== undefined) {
+                announcement = nextOptions.announcement;
+
+                for (const item of internalItems) {
+                    if (item.ownAnnouncement === undefined) {
+                        item.disclosure.update({ announcement });
+                    }
+                }
             }
 
             syncRootAttributes();

@@ -320,6 +320,11 @@
     min-inline-size: 0;
 }
 
+[data-af-accordion-heading] {
+    margin: 0;
+    font: inherit;
+}
+
 [data-af-component="accordion"][data-af-variant="plain"] {
     gap: 0;
     border-block-start: 1px solid var(--af-color-border);

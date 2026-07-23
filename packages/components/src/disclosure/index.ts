@@ -3,6 +3,10 @@ export { Disclosure } from "./composeDisclosure";
 
 export type {
     Disclosure as DisclosureInstance,
+    DisclosureAnnouncement,
+    DisclosureAnnouncementContext,
+    DisclosureAnnouncementMessage,
+    DisclosureAnnouncementOptions,
     DisclosureOptions,
     DisclosureSize,
     DisclosureVariant

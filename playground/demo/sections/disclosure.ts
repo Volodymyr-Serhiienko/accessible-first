@@ -14,8 +14,11 @@ export function DisclosureDemo(): ComposedNode {
                         P("This component is already useful as a base for future accordion and details patterns.")
                     ),
                     defaultOpen: false,
+                    announcement: true,
                     onOpenChange(open) {
-                        announce(`Disclosure is ${open ? "open" : "closed"}.`);
+                        if (!open) {
+                            announce("Disclosure is closed.");
+                        }
                     }
                 })
             )

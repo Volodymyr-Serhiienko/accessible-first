@@ -3,8 +3,20 @@ import {
     type Disclosure as CoreDisclosure,
     type DisclosureOptions as CoreDisclosureOptions
 } from "../../../core/src/disclosure";
+import {
+    createAnnouncer,
+    type Announcer,
+    type LiveRegionPoliteness
+} from "../../../core/src/live-region";
 import { createComponentLifecycle } from "../foundation";
-import type { Disclosure, DisclosureOptions } from "./types";
+
+import type {
+    Disclosure,
+    DisclosureAnnouncement,
+    DisclosureAnnouncementContext,
+    DisclosureAnnouncementMessage,
+    DisclosureOptions
+} from "./types";
 
 function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
     if (value === null) {
@@ -13,6 +25,63 @@ function restoreAttribute(element: HTMLElement, name: string, value: string | nu
     }
 
     element.setAttribute(name, value);
+}
+
+function normalizeAnnouncementText(value: string): string {
+    return value.replace(/\s+/g, " ").trim();
+}
+
+function isAnnouncementOptions(
+    value: DisclosureAnnouncement
+): value is Exclude<DisclosureAnnouncement, boolean | string | DisclosureAnnouncementMessage> {
+    return Boolean(value && typeof value === "object");
+}
+
+function getPanelText(panel: HTMLElement): string {
+    return normalizeAnnouncementText(panel.textContent ?? "");
+}
+
+function resolveAnnouncementMessage(
+    announcement: DisclosureAnnouncement,
+    context: DisclosureAnnouncementContext
+): string {
+    if (announcement === true) {
+        return context.getPanelText();
+    }
+
+    if (typeof announcement === "string") {
+        return normalizeAnnouncementText(announcement);
+    }
+
+    if (typeof announcement === "function") {
+        return normalizeAnnouncementText(announcement(context) ?? "");
+    }
+
+    if (announcement === false) {
+        return "";
+    }
+
+    const message = announcement.message;
+
+    if (message === undefined) {
+        return context.getPanelText();
+    }
+
+    if (typeof message === "function") {
+        return normalizeAnnouncementText(message(context) ?? "");
+    }
+
+    return normalizeAnnouncementText(message);
+}
+
+function getAnnouncementPoliteness(
+    announcement: DisclosureAnnouncement
+): LiveRegionPoliteness {
+    if (isAnnouncementOptions(announcement) && announcement.politeness !== undefined) {
+        return announcement.politeness;
+    }
+
+    return "polite";
 }
 
 /**
@@ -48,6 +117,9 @@ export function createDisclosure(
     let behavior!: CoreDisclosure;
     let onOpenChange = options.onOpenChange ?? null;
 
+    let announcement = options.announcement;
+    let announcer: Announcer | null = null;
+
     function syncOpenAttributes(): void {
         const open = behavior.isOpen() ? "true" : "false";
 
@@ -60,9 +132,35 @@ export function createDisclosure(
         lifecycle.setState(behavior.isDisabled() ? "disabled" : "ready");
     }
 
+    function announceOpenPanel(open: boolean): void {
+        if (!open || announcement === undefined || announcement === false) {
+            return;
+        }
+
+        const context: DisclosureAnnouncementContext = {
+            element,
+            trigger,
+            panel,
+            open,
+            getPanelText: () => getPanelText(panel)
+        };
+
+        const message = resolveAnnouncementMessage(announcement, context);
+
+        if (!message) {
+            return;
+        }
+
+        announcer ??= createAnnouncer();
+        announcer.announce(message, {
+            politeness: getAnnouncementPoliteness(announcement)
+        });
+    }
+
     const behaviorOptions: CoreDisclosureOptions = {
         onOpenChange(open) {
             syncOpenAttributes();
+            announceOpenPanel(open);
             onOpenChange?.(open);
         }
     };
@@ -86,6 +184,7 @@ export function createDisclosure(
 
     lifecycle.addCleanup(() => {
         behavior.destroy();
+        announcer = null;
     });
 
     lifecycle.addCleanup(() => {
@@ -166,6 +265,10 @@ export function createDisclosure(
 
             if (nextOptions.size !== undefined) {
                 element.setAttribute("data-af-size", nextOptions.size);
+            }
+
+            if (nextOptions.announcement !== undefined) {
+                announcement = nextOptions.announcement;
             }
         },
 

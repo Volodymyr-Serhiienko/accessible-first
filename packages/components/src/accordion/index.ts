@@ -3,10 +3,12 @@ export { Accordion } from "./composeAccordion";
 
 export type {
     Accordion as AccordionInstance,
+    AccordionHeadingLevel,
     AccordionItem,
     AccordionItemOptions,
     AccordionOpenChangeDetail,
     AccordionOptions,
+    AccordionPanelRole,
     AccordionSize,
     AccordionVariant
 } from "./types";
