@@ -1,6 +1,7 @@
 export { AccordionDemo } from "./accordion";
 export { ButtonsDemo } from "./buttons";
 export { ChecksDemo } from "./checks";
+export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
 export { IconButtonsDemo } from "./iconButtons";
 export { LayoutDemo } from "./layout";

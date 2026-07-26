@@ -6,6 +6,7 @@ import {
     AccordionDemo,
     ButtonsDemo,
     ChecksDemo,
+    DialogDemo,
     DisclosureDemo,
     IconButtonsDemo,
     LayoutDemo,
@@ -32,6 +33,7 @@ page.section(IconButtonsDemo());
 page.section(LinksDemo());
 page.section(DisclosureDemo());
 page.section(AccordionDemo());
+page.section(DialogDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());

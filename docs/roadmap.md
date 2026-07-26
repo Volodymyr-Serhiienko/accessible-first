@@ -54,6 +54,7 @@ Completed:
 - Icon helper
 - VisuallyHidden helper
 - Accordion component
+- Dialog component
 
 In progress:
 
@@ -64,15 +65,12 @@ In progress:
 
 Next:
 
-- Accordion playground demo
-- Accordion documentation
-- Manual desktop and mobile checks for Accordion
-- Dialog component
+- Dialog playground manual checks
+- Alert Dialog component
+- Tabs component
 
 Planned components:
 
-- Dialog
-- Alert Dialog
 - Tabs
 - Listbox
 - Menu

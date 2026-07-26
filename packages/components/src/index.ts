@@ -1,6 +1,7 @@
 export * from "./accordion";
 export * from "./button";
 export * from "./composition";
+export * from "./dialog";
 export * from "./disclosure";
 export * from "./foundation";
 export * from "./icon-button";

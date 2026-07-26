@@ -25,6 +25,9 @@
 
     --af-color-link: #0645ad;
     --af-color-link-visited: #5a2a83;
+
+    --af-color-backdrop: rgba(17, 24, 39, 0.58);
+    --af-shadow-overlay: 0 24px 80px rgba(15, 23, 42, 0.22);
 }
 
 :root[data-af-theme="dark"] {
@@ -42,6 +45,9 @@
 
     --af-color-link: #93c5fd;
     --af-color-link-visited: #c4b5fd;
+
+    --af-color-backdrop: rgba(0, 0, 0, 0.72);
+    --af-shadow-overlay: 0 24px 80px rgba(0, 0, 0, 0.55);
 }
 
 /* --- Composition Helpers --- */
@@ -337,6 +343,107 @@
 
 [data-af-component="accordion"][data-af-state="disabled"] {
     color: var(--af-color-disabled-fg);
+}
+
+/* --- Dialog --- */
+
+[data-af-composition="dialog"] {
+    display: inline-block;
+}
+
+[data-af-component="dialog"] {
+    position: fixed;
+    inset: 0;
+    z-index: var(--af-z-dialog, 1000);
+    display: grid;
+    place-items: center;
+    padding: var(--af-space-4);
+    color: var(--af-color-fg);
+    background: var(--af-color-backdrop);
+    overflow: auto;
+}
+
+[data-af-component="dialog"][hidden] {
+    display: none !important;
+}
+
+[data-af-dialog-surface] {
+    inline-size: min(100%, var(--af-dialog-width, 34rem));
+    max-block-size: calc(100vh - 2rem);
+    display: grid;
+    gap: var(--af-space-4);
+    overflow: auto;
+    border: 1px solid var(--af-color-border);
+    border-radius: 8px;
+    padding: var(--af-space-4);
+    background: var(--af-color-bg);
+    box-shadow: var(--af-shadow-overlay);
+}
+
+[data-af-dialog-surface]:focus-visible,
+[data-af-dialog-title]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-dialog-header] {
+    display: grid;
+    gap: var(--af-space-2);
+}
+
+[data-af-dialog-title] {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.25;
+}
+
+[data-af-dialog-description] {
+    margin: 0;
+    color: var(--af-color-muted);
+}
+
+[data-af-dialog-body] {
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-dialog-body] p {
+    margin: 0;
+}
+
+[data-af-dialog-actions] {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--af-space-2);
+}
+
+[data-af-dialog-actions-content] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--af-space-2);
+}
+
+@media (max-width: 640px) {
+    [data-af-component="dialog"] {
+        place-items: end stretch;
+        padding: var(--af-space-3);
+    }
+
+    [data-af-dialog-surface] {
+        inline-size: 100%;
+        max-block-size: calc(100vh - 1.5rem);
+    }
+
+    [data-af-dialog-actions],
+    [data-af-dialog-actions-content] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    [data-af-dialog-actions] [data-af-component="button"] {
+        inline-size: 100%;
+    }
 }
 
 /* --- Semantic Composition --- */
