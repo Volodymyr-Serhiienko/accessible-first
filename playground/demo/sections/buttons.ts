@@ -23,13 +23,15 @@ export function ButtonsDemo(): ComposedNode {
                         variant: "secondary",
                         pressed: false,
                         attributes: {
-                            title: "Toggle option"
+                            title: "Toggle option, not pressed"
                         },
                         onPress(_event, button) {
                             const pressed = button.getPressed() !== true;
+                            const status = pressed ? "pressed" : "not pressed";
 
                             button.setPressed(pressed);
-                            announce(`Toggle button is ${pressed ? "pressed" : "not pressed"}.`);
+                            button.element.title = `Toggle option, ${status}`;
+                            announce(`Toggle button is ${status}.`);
                         }
                     }),
                     Button({

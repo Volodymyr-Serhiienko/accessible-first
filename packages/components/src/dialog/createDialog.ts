@@ -112,6 +112,9 @@ export function createDialog(
     let variant: DialogVariant = options.variant ?? "default";
     let size: DialogSize = options.size ?? "md";
     let onOpenChange = options.onOpenChange ?? null;
+    let onEscapeKeyDown = options.onEscapeKeyDown ?? null;
+    let onPointerDownOutside = options.onPointerDownOutside ?? null;
+    let onFocusOutside = options.onFocusOutside ?? null;
     let closeOnEscape = options.closeOnEscape ?? true;
     let dismissOnPointerDownOutside = options.dismissOnPointerDownOutside ?? true;
     let dismissOnFocusOutside = options.dismissOnFocusOutside ?? false;
@@ -237,7 +240,7 @@ export function createDialog(
         dismissOnFocusOutside: true,
 
         onEscapeKeyDown(event) {
-            options.onEscapeKeyDown?.(event);
+            onEscapeKeyDown?.(event);
 
             if (!closeOnEscape) {
                 event.preventDefault();
@@ -245,7 +248,7 @@ export function createDialog(
         },
 
         onPointerDownOutside(event) {
-            options.onPointerDownOutside?.(event);
+            onPointerDownOutside?.(event);
 
             if (!dismissOnPointerDownOutside) {
                 event.preventDefault();
@@ -253,7 +256,7 @@ export function createDialog(
         },
 
         onFocusOutside(event) {
-            options.onFocusOutside?.(event);
+            onFocusOutside?.(event);
 
             if (!dismissOnFocusOutside) {
                 event.preventDefault();
@@ -332,6 +335,18 @@ export function createDialog(
         update(nextOptions): void {
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
+            }
+
+            if ("onEscapeKeyDown" in nextOptions) {
+                onEscapeKeyDown = nextOptions.onEscapeKeyDown ?? null;
+            }
+
+            if ("onPointerDownOutside" in nextOptions) {
+                onPointerDownOutside = nextOptions.onPointerDownOutside ?? null;
+            }
+
+            if ("onFocusOutside" in nextOptions) {
+                onFocusOutside = nextOptions.onFocusOutside ?? null;
             }
 
             if (nextOptions.closeOnEscape !== undefined) {

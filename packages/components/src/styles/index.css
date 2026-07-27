@@ -208,6 +208,12 @@
     pointer-events: none;
 }
 
+[data-af-composition="icon"] *,
+[data-af-component="icon-button"] svg,
+[data-af-component="icon-button"] svg * {
+    pointer-events: none;
+}
+
 /* --- Link --- */
 
 [data-af-component="link"] {
