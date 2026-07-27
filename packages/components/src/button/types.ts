@@ -27,7 +27,7 @@ export interface ButtonOptions {
     type?: "button" | "submit" | "reset";
     variant?: ButtonVariant;
     size?: ButtonSize;
-    onPress?: (event: Event) => void;
+    onPress?: ((event: Event) => void) | null;
 }
 
 /**

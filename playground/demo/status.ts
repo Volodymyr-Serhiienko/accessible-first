@@ -1,8 +1,8 @@
 import { P } from "./af";
 
 /**
- * Global paragraph node instance configured with live region accessibility attributes 
- * to broadcast dynamic status messages to screen readers.
+ * Visible status line used by playground examples.
+ * It is also a polite live region for screen reader feedback.
  */
 export const status = P({
     id: "status",
@@ -10,16 +10,30 @@ export const status = P({
     text: "Ready for component checks.",
     attributes: {
         role: "status",
-        "aria-live": "polite"
+        "aria-live": "polite",
+        "aria-atomic": "true"
     }
 });
 
+let pendingAnnouncementId: number | null = null;
+
 /**
- * Updates the text content of the global status element, triggering polite notifications 
- * for assistive technologies.
- * 
- * @param message - The text string to announce to screen readers.
+ * Announces a status message even when the same message is repeated.
  */
 export function announce(message: string): void {
-    status.element.textContent = message;
+    if (pendingAnnouncementId !== null) {
+        window.clearTimeout(pendingAnnouncementId);
+        pendingAnnouncementId = null;
+    }
+
+    status.element.textContent = "";
+
+    if (!message) {
+        return;
+    }
+
+    pendingAnnouncementId = window.setTimeout(() => {
+        status.element.textContent = message;
+        pendingAnnouncementId = null;
+    }, 0);
 }

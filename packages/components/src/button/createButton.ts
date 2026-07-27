@@ -50,6 +50,7 @@ export function createButton(
 
     let disabled = options.disabled ?? false;
     let pressed: ButtonPressedState = options.pressed ?? null;
+    let onPress = options.onPress ?? null;
 
     function syncDisabled(): void {
         lifecycle.setState(disabled ? "disabled" : "ready");
@@ -73,7 +74,7 @@ export function createButton(
             return;
         }
 
-        options.onPress?.(event);
+        onPress?.(event);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
@@ -82,7 +83,7 @@ export function createButton(
         }
 
         event.preventDefault();
-        options.onPress?.(event);
+        onPress?.(event);
     }
 
     if (nativeButton && !nativeButton.hasAttribute("type")) {
@@ -155,16 +156,24 @@ export function createButton(
                 this.setDisabled(nextOptions.disabled);
             }
 
-            if (nextOptions.pressed !== undefined) {
-                this.setPressed(nextOptions.pressed);
+            if ("pressed" in nextOptions) {
+                this.setPressed(nextOptions.pressed ?? null);
             }
 
-            if (nextOptions.variant) {
+            if ("onPress" in nextOptions) {
+                onPress = nextOptions.onPress ?? null;
+            }
+
+            if (nextOptions.variant !== undefined) {
                 element.setAttribute("data-af-variant", nextOptions.variant);
             }
 
-            if (nextOptions.size) {
+            if (nextOptions.size !== undefined) {
                 element.setAttribute("data-af-size", nextOptions.size);
+            }
+
+            if (nativeButton && nextOptions.type !== undefined) {
+                nativeButton.type = nextOptions.type;
             }
         },
 

@@ -28,8 +28,8 @@ export function AccordionDemo(): ComposedNode {
                                 value: "keyboard",
                                 trigger: "Keyboard support",
                                 panel: Stack(
-                                    P("Tab enters the active accordion trigger."),
-                                    P("Arrow keys, Home, and End move through accordion triggers with roving focus.")
+                                    P("Tab moves through every accordion trigger in the normal page order."),
+                                    P("Arrow keys, Home, and End are optional shortcuts for moving focus between triggers.")
                                 )
                             },
                             {

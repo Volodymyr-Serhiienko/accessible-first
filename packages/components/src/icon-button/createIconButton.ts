@@ -69,6 +69,7 @@ export function createIconButton(
 
     let disabled = options.disabled ?? false;
     let pressed: ButtonPressedState = options.pressed ?? null;
+    let onPress = options.onPress ?? null;
     let label: string | null = options.label ?? null;
     let labelledBy: AriaReferences = options.labelledBy ?? null;
     let hasExplicitLabel = options.label !== undefined;
@@ -125,7 +126,7 @@ export function createIconButton(
             return;
         }
 
-        options.onPress?.(event);
+        onPress?.(event);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
@@ -242,6 +243,10 @@ export function createIconButton(
         update(nextOptions: IconButtonOptions): void {
             if (nextOptions.disabled !== undefined) {
                 setDisabled(nextOptions.disabled);
+            }
+
+            if ("onPress" in nextOptions) {
+                onPress = nextOptions.onPress ?? null;
             }
 
             if ("pressed" in nextOptions) {

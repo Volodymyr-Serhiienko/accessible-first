@@ -67,9 +67,11 @@ export function createPage(options: PageOptions = {}): Page {
     let navigationElement: HTMLElement | null = null;
     let footerElement: HTMLElement | null = null;
 
-    const destroyers: Array<() => void> = [];
-
-    destroyers.push(setupPageTheme(options));
+    const pageDestroyers: Array<() => void> = [setupPageTheme(options)];
+    const headerDestroyers: Array<() => void> = [];
+    const navigationDestroyers: Array<() => void> = [];
+    const mainDestroyers: Array<() => void> = [];
+    const footerDestroyers: Array<() => void> = [];
 
     if (options.title !== undefined) {
         document.title = options.title;
@@ -91,7 +93,19 @@ export function createPage(options: PageOptions = {}): Page {
 
     root.append(main);
 
-    function appendTracked(parent: HTMLElement, children: CompositionChild[]): void {
+    function disposeDestroyers(destroyers: Array<() => void>): void {
+        for (const destroy of [...destroyers].reverse()) {
+            destroy();
+        }
+
+        destroyers.length = 0;
+    }
+
+    function appendTracked(
+        parent: HTMLElement,
+        children: CompositionChild[],
+        destroyers: Array<() => void>
+    ): void {
         destroyers.push(...collectDestroyers(children));
         append(parent, ...children);
     }
@@ -145,32 +159,41 @@ export function createPage(options: PageOptions = {}): Page {
 
         header(...children: CompositionChild[]): Page {
             const region = ensureHeader();
+
+            disposeDestroyers(headerDestroyers);
             region.replaceChildren();
-            appendTracked(region, children);
+            appendTracked(region, children, headerDestroyers);
+
             return page;
         },
 
         navigation(...children: CompositionChild[]): Page {
             const region = ensureNavigation();
+
+            disposeDestroyers(navigationDestroyers);
             region.replaceChildren();
-            appendTracked(region, children);
+            appendTracked(region, children, navigationDestroyers);
+
             return page;
         },
 
         section(section: CompositionChild): Page {
-            appendTracked(main, [section]);
+            appendTracked(main, [section], mainDestroyers);
             return page;
         },
 
         footer(...children: CompositionChild[]): Page {
             const region = ensureFooter();
+
+            disposeDestroyers(footerDestroyers);
             region.replaceChildren();
-            appendTracked(region, children);
+            appendTracked(region, children, footerDestroyers);
+
             return page;
         },
 
         appendToMain(...children: CompositionChild[]): Page {
-            appendTracked(main, children);
+            appendTracked(main, children, mainDestroyers);
             return page;
         },
 
@@ -185,11 +208,11 @@ export function createPage(options: PageOptions = {}): Page {
 
             destroyed = true;
 
-            for (const destroy of [...destroyers].reverse()) {
-                destroy();
-            }
-
-            destroyers.length = 0;
+            disposeDestroyers(footerDestroyers);
+            disposeDestroyers(mainDestroyers);
+            disposeDestroyers(navigationDestroyers);
+            disposeDestroyers(headerDestroyers);
+            disposeDestroyers(pageDestroyers);
             root.remove();
         },
 

@@ -20,7 +20,7 @@ export interface IconButtonOptions {
     type?: "button" | "submit" | "reset";
     variant?: ButtonVariant;
     size?: IconButtonSize;
-    onPress?: (event: Event) => void;
+    onPress?: ((event: Event) => void) | null;
 }
 
 /**
