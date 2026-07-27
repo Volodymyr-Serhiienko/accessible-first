@@ -79,6 +79,7 @@ export function createDisclosure(
     function handleClick(event: MouseEvent): void {
         if (disabled) {
             event.preventDefault();
+            event.stopPropagation();
             return;
         }
 

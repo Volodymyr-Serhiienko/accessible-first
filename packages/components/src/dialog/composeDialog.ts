@@ -68,6 +68,10 @@ function toChildren(content: DialogCompositionContent | null | undefined): Compo
     return Array.isArray(content) ? content : [content];
 }
 
+function hasDescription(value: string | null | undefined): value is string {
+    return Boolean(value?.trim());
+}
+
 function getElementOptions(options: BaseCompositionOptions): CreateElementOptions {
     const elementOptions: CreateElementOptions = {};
 
@@ -97,7 +101,7 @@ function getDialogOptions(
         onOpenChange
     };
 
-    if (options.description !== undefined && options.description !== null) {
+    if (hasDescription(options.description)) {
         dialogOptions.describedBy = description;
     }
 
@@ -182,10 +186,21 @@ function getDialogUpdateOptions(
     }
 
     if ("description" in options) {
-        dialogOptions.describedBy =
-            options.description === null || options.description === undefined
-                ? null
-                : description;
+        dialogOptions.describedBy = hasDescription(options.description)
+            ? description
+            : null;
+    }
+
+    if ("onEscapeKeyDown" in options) {
+        dialogOptions.onEscapeKeyDown = options.onEscapeKeyDown ?? null;
+    }
+
+    if ("onPointerDownOutside" in options) {
+        dialogOptions.onPointerDownOutside = options.onPointerDownOutside ?? null;
+    }
+
+    if ("onFocusOutside" in options) {
+        dialogOptions.onFocusOutside = options.onFocusOutside ?? null;
     }
 
     if (options.open !== undefined) dialogOptions.open = options.open;
@@ -303,8 +318,10 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     }
 
     function setDescription(nextDescription: string | null): void {
-        description.textContent = nextDescription ?? "";
-        description.hidden = nextDescription === null;
+        const text = nextDescription?.trim() ?? "";
+
+        description.textContent = text;
+        description.hidden = !text;
     }
 
     function setContent(children: CompositionChild[]): void {
