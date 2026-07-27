@@ -1,10 +1,10 @@
 import { append } from "./append";
 import { createElement } from "./createElement";
+import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
     CompositionChild,
-    CreateElementOptions,
     ElementAttributes
 } from "./types";
 
@@ -55,36 +55,6 @@ export interface HtmlOptions extends BaseCompositionOptions {
 }
 
 let sectionCounter = 0;
-
-function createElementOptions(
-    options: BaseCompositionOptions = {},
-    attributes: ElementAttributes = {},
-    children: CompositionChild[] = []
-): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-    const mergedAttributes: ElementAttributes = {
-        ...options.attributes,
-        ...attributes
-    };
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    if (Object.keys(mergedAttributes).length > 0) {
-        elementOptions.attributes = mergedAttributes;
-    }
-
-    if (children.length > 0) {
-        elementOptions.children = children;
-    }
-
-    return elementOptions;
-}
 
 function isNode(value: unknown): value is Node {
     return typeof Node !== "undefined" && value instanceof Node;
@@ -146,7 +116,7 @@ function createComposedElement<KTagName extends keyof HTMLElementTagNameMap>(
 ): ComposedNode {
     const element = createElement(
         tagName,
-        createElementOptions(options, attributes, children)
+        getCompositionElementOptions(options, attributes, children)
     );
 
     return { element };
@@ -193,7 +163,7 @@ export function Section(options: SectionOptions): ComposedNode {
         baseOptions.attributes = options.attributes;
     }
 
-    const section = createElement("section", createElementOptions(
+    const section = createElement("section", getCompositionElementOptions(
         baseOptions,
         {
             "data-af-composition": "section",
@@ -336,15 +306,13 @@ export function Grid(options: GridOptions, ...children: CompositionChild[]): Com
 }
 
 /**
- * Parses and securely inserts an un-sanitized layout string payload directly into the active DOM layout structure.
- * Leverages native template compilation methods to safely clone new node instances into an isolated 
- * presentation wrapper, ensuring predictable rendering context attachments.
+ * Inserts a trusted HTML fragment into a wrapper node.
  *
- * @param options - Configuration options detailing structural tags and the raw HTML text sequence to mount.
- * @returns A ComposedNode package wrapping the compiled custom layout markup root.
+ * Html intentionally uses innerHTML. Pass only static markup or content that was
+ * already sanitized before reaching Accessible First.
  */
 export function Html(options: HtmlOptions): ComposedNode {
-    const wrapper = createElement("div", createElementOptions(options, {
+    const wrapper = createElement("div", getCompositionElementOptions(options, {
         "data-af-composition": "html"
     }));
 

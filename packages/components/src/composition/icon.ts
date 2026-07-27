@@ -1,8 +1,8 @@
 import { createElement } from "./createElement";
+import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
-    CreateElementOptions,
     ElementAttributes
 } from "./types";
 
@@ -48,36 +48,36 @@ function setAttributeValue(
     element.setAttribute(name, String(value));
 }
 
-function getWrapperOptions(options: IconOptions): CreateElementOptions {
+function hasNonEmptyAttribute(value: ElementAttributes[string]): boolean {
+    return typeof value === "string" && value.trim().length > 0;
+}
+
+function getWrapperOptions(options: IconOptions) {
     const title = options.title?.trim();
+    const hasProvidedName =
+        hasNonEmptyAttribute(options.attributes?.["aria-label"])
+        || hasNonEmptyAttribute(options.attributes?.["aria-labelledby"]);
+
     const attributes: ElementAttributes = {
-        ...options.attributes,
         "data-af-composition": "icon"
     };
 
-    if (title && options.decorative !== true) {
-        delete attributes["aria-hidden"];
-        attributes.role = "img";
-        attributes["aria-label"] = title;
-    } else {
-        delete attributes.role;
-        delete attributes["aria-label"];
+    if (options.decorative === true || (!title && !hasProvidedName)) {
+        attributes.role = null;
+        attributes["aria-label"] = null;
+        attributes["aria-labelledby"] = null;
         attributes["aria-hidden"] = true;
+    } else {
+        attributes.role = "img";
+        attributes["aria-hidden"] = null;
+
+        if (title) {
+            attributes["aria-label"] = title;
+            attributes["aria-labelledby"] = null;
+        }
     }
 
-    const elementOptions: CreateElementOptions = {
-        attributes
-    };
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    return elementOptions;
+    return getCompositionElementOptions(options, attributes);
 }
 
 /**

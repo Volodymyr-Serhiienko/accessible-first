@@ -1,11 +1,10 @@
 import { createElement } from "./createElement";
+import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
-    CompositionChild,
-    CreateElementOptions
+    CompositionChild
 } from "./types";
-
 /**
  * Configuration characteristics defining functional attributes, visual traits, 
  * explicit text payloads, and structural child layout tracks to render a label Tag block.
@@ -15,12 +14,20 @@ export interface TagOptions extends BaseCompositionOptions {
     children?: CompositionChild[];
 }
 
+function isNode(value: unknown): value is Node {
+    return typeof Node !== "undefined" && value instanceof Node;
+}
+
+function isComposedNodeLike(value: unknown): value is ComposedNode {
+    return Boolean(value && typeof value === "object" && "element" in value);
+}
+
 function isTagOptions(value: unknown): value is TagOptions {
     return Boolean(
         value
         && typeof value === "object"
-        && !(value instanceof Node)
-        && !("element" in value)
+        && !isNode(value)
+        && !isComposedNodeLike(value)
         && (
             "id" in value
             || "className" in value
@@ -55,13 +62,11 @@ function tag<KTagName extends keyof HTMLElementTagNameMap>(
     args: Array<CompositionChild | TagOptions>
 ): ComposedNode {
     const { options, children } = resolveArgs(args);
-    const elementOptions: CreateElementOptions = {};
+    const elementOptions = getCompositionElementOptions(options, {}, children);
 
-    if (options.id !== undefined) elementOptions.id = options.id;
-    if (options.className !== undefined) elementOptions.className = options.className;
-    if (options.attributes !== undefined) elementOptions.attributes = options.attributes;
-    if (options.text !== undefined && children.length === 0) elementOptions.text = options.text;
-    if (children.length > 0) elementOptions.children = children;
+    if (options.text !== undefined && children.length === 0) {
+        elementOptions.text = options.text;
+    }
 
     return {
         element: createElement(tagName, elementOptions)

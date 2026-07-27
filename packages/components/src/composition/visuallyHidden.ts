@@ -1,11 +1,10 @@
 import { createContentSlot } from "./contentSlot";
 import { createElement } from "./createElement";
+import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
-    CompositionChild,
-    CreateElementOptions,
-    ElementAttributes
+    CompositionChild
 } from "./types";
 
 /**
@@ -87,25 +86,10 @@ function resolveArgs(args: Array<CompositionChild | VisuallyHiddenOptions>): {
     };
 }
 
-function getElementOptions(options: VisuallyHiddenOptions): CreateElementOptions {
-    const attributes: ElementAttributes = {
-        ...options.attributes,
+function getElementOptions(options: VisuallyHiddenOptions) {
+    return getCompositionElementOptions(options, {
         "data-af-composition": "visually-hidden"
-    };
-
-    const elementOptions: CreateElementOptions = {
-        attributes
-    };
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    return elementOptions;
+    });
 }
 
 export function VisuallyHidden(...children: CompositionChild[]): ComposedVisuallyHidden;
