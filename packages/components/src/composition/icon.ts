@@ -1,5 +1,8 @@
 import { createElement } from "./createElement";
-import { getCompositionElementOptions } from "./options";
+import {
+    getCompositionElementOptions,
+    setElementAttributeValue
+} from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
@@ -29,24 +32,6 @@ export interface ComposedIcon extends ComposedNode {
 }
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
-function setAttributeValue(
-    element: Element,
-    name: string,
-    value: string | number | boolean | null | undefined
-): void {
-    if (value === null || value === undefined || value === false) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    if (value === true) {
-        element.setAttribute(name, "");
-        return;
-    }
-
-    element.setAttribute(name, String(value));
-}
 
 function hasNonEmptyAttribute(value: ElementAttributes[string]): boolean {
     return typeof value === "string" && value.trim().length > 0;
@@ -103,7 +88,7 @@ export function Icon(options: IconOptions): ComposedIcon {
     };
 
     for (const [name, value] of Object.entries(svgAttributes)) {
-        setAttributeValue(svg, name, value);
+        setElementAttributeValue(svg, name, value);
     }
 
     for (const pathValue of paths) {
@@ -121,7 +106,7 @@ export function Icon(options: IconOptions): ComposedIcon {
         };
 
         for (const [name, value] of Object.entries(pathAttributes)) {
-            setAttributeValue(path, name, value);
+            setElementAttributeValue(path, name, value);
         }
 
         svg.append(path);

@@ -7,7 +7,11 @@ export { Grid, Html } from "./primitives";
 export { Div, Em, H1, H2, H3, Li, Ol, P, Small, Span, Strong, Ul } from "./tags";
 export { Icon } from "./icon";
 export { VisuallyHidden } from "./visuallyHidden";
-export { getCompositionElementOptions } from "./options";
+export {
+    applyCompositionElementOptions,
+    getCompositionElementOptions,
+    setElementAttributeValue
+} from "./options";
 
 export type { ContentSlot } from "./contentSlot";
 export type { TagOptions } from "./tags";

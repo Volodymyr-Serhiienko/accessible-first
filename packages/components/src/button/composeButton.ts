@@ -1,4 +1,5 @@
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -100,6 +101,8 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         setText,
 
         update(nextOptions: ButtonCompositionOptions): void {
+            applyCompositionElementOptions(element, nextOptions);
+
             if ("onPress" in nextOptions) {
                 onPress = nextOptions.onPress ?? null;
             }

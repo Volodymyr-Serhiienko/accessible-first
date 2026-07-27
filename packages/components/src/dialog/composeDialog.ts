@@ -1,5 +1,6 @@
 import { createId } from "../../../core/src/id";
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -335,6 +336,8 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         setActions,
 
         update(nextOptions): void {
+            applyCompositionElementOptions(dialogElement, nextOptions);
+
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }

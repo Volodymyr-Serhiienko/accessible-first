@@ -1,4 +1,5 @@
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -134,6 +135,8 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
         setText,
 
         update(nextOptions: LinkCompositionOptions): void {
+            applyCompositionElementOptions(element, nextOptions);
+
             if ("onNavigate" in nextOptions) {
                 onNavigate = nextOptions.onNavigate ?? null;
             }

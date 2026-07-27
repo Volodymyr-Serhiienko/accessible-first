@@ -1,4 +1,5 @@
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -167,6 +168,8 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         setLabel,
 
         update(nextOptions: IconButtonCompositionOptions): void {
+            applyCompositionElementOptions(element, nextOptions);
+
             if ("onPress" in nextOptions) {
                 onPress = nextOptions.onPress ?? null;
             }

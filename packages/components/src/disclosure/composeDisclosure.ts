@@ -1,4 +1,5 @@
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -185,6 +186,8 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
         setPanelContent,
 
         update(nextOptions: Partial<DisclosureCompositionOptions>): void {
+            applyCompositionElementOptions(element, nextOptions);
+
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }

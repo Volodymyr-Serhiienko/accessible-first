@@ -1,5 +1,6 @@
 import { setAriaLabelledBy, setRole } from "../../../core/src/aria";
 import {
+    applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -324,6 +325,8 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
         items: composedItems,
 
         update(nextOptions): void {
+            applyCompositionElementOptions(element, nextOptions);
+
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }
@@ -342,6 +345,14 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
                     if (!item) {
                         return;
                     }
+
+                    const node = itemNodes[index];
+
+                    if (!node) {
+                        return;
+                    }
+
+                    applyCompositionElementOptions(node.element, nextItem);
 
                     item.setTriggerContent(nextItem.trigger);
                     item.setPanelContent(nextItem.panel);
