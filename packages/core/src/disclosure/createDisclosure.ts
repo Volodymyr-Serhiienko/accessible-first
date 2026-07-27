@@ -26,14 +26,14 @@ function restoreAttribute(
 }
 
 /**
- * Creates and manages a disclosure component (expandable/collapsible content region).
- * Automatically applies keyboard listeners, updates ARIA attributes (`aria-expanded`, `aria-controls`, 
- * `aria-disabled`), handles roles for non-button fallback triggers, and restores the pristine DOM state upon destruction.
+ * Connects a disclosure trigger with a panel and keeps their accessible state in sync.
+ * Native button triggers keep browser behavior. Non-native triggers receive fallback
+ * button semantics and keyboard activation through the normal click path.
  *
- * @param trigger - The interactive controller element (typically a button).
- * @param panel - The expandable content region controlled by the trigger.
- * @param options - Configuration behavior adjustments for initialization states and change callbacks. Defaults to an empty object.
- * @returns A Disclosure instance exposing API methods to control the open/disabled states and handle teardown.
+ * @param trigger - Interactive element that controls the panel.
+ * @param panel - Content element hidden when the disclosure is closed.
+ * @param options - Initial open/disabled state and open-change callback.
+ * @returns A Disclosure controller for state updates and cleanup.
  */
 export function createDisclosure(
     trigger: HTMLElement,
@@ -90,12 +90,26 @@ export function createDisclosure(
             return;
         }
 
-        if (!isEnterKey(event) && !isSpaceKey(event)) {
+        if (isEnterKey(event)) {
+            event.preventDefault();
+            trigger.click();
             return;
         }
 
-        event.preventDefault();
-        setOpen(!open);
+        if (isSpaceKey(event)) {
+            event.preventDefault();
+        }
+    }
+
+    function handleKeyUp(event: KeyboardEvent): void {
+        if (disabled) {
+            return;
+        }
+
+        if (isSpaceKey(event)) {
+            event.preventDefault();
+            trigger.click();
+        }
     }
 
     const cleanups: Cleanup[] = [
@@ -118,7 +132,8 @@ export function createDisclosure(
         }
 
         cleanups.push(
-            addEventListener<KeyboardEvent>(trigger, "keydown", handleKeyDown)
+            addEventListener<KeyboardEvent>(trigger, "keydown", handleKeyDown),
+            addEventListener<KeyboardEvent>(trigger, "keyup", handleKeyUp)
         );
     }
 

@@ -18,15 +18,13 @@ function restoreAttribute(element: HTMLElement, name: string, value: string | nu
 }
 
 /**
- * Creates and initializes an accessible button component wrapper.
- * Decorates native `<button>` or custom elements (e.g., `<div>`, `<span>`) by integrating them 
- * into a managed lifecycle context, mapping custom design variants (`data-af-variant`, `data-af-size`), 
- * fallback WAI-ARIA roles, sequential keyboard triggers, and toggle states (`aria-pressed`).
- * Automatically caches existing configurations to revert all underlying inline mutations upon destruction.
+ * Enhances a native button or a custom HTMLElement with accessible button behavior.
+ * Native buttons keep browser semantics. Non-native elements receive role, tabindex,
+ * disabled handling, and keyboard activation that routes through the normal click path.
  *
- * @param element - The root HTMLElement context targeted to behave as a button component.
- * @param options - Custom styles, layout sizes, initial disabled overrides, and custom event press listeners.
- * @returns A Button management instance offering atomic interaction setters and instance lifecycle unbinds.
+ * @param element - Native `<button>` or custom element to enhance as a button.
+ * @param options - Disabled state, toggle state, visual variant, size, type, and press callback.
+ * @returns A Button controller for state updates and cleanup.
  */
 export function createButton(
     element: HTMLElement,
@@ -78,12 +76,30 @@ export function createButton(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (disabled || (!isEnterKey(event) && !isSpaceKey(event))) {
+        if (disabled) {
             return;
         }
 
-        event.preventDefault();
-        onPress?.(event);
+        if (isEnterKey(event)) {
+            event.preventDefault();
+            element.click();
+            return;
+        }
+
+        if (isSpaceKey(event)) {
+            event.preventDefault();
+        }
+    }
+
+    function handleKeyUp(event: KeyboardEvent): void {
+        if (disabled) {
+            return;
+        }
+
+        if (isSpaceKey(event)) {
+            event.preventDefault();
+            element.click();
+        }
     }
 
     if (nativeButton && !nativeButton.hasAttribute("type")) {
@@ -101,6 +117,10 @@ export function createButton(
 
         lifecycle.addCleanup(
             addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
+        );
+
+        lifecycle.addCleanup(
+            addEventListener<KeyboardEvent>(element, "keyup", handleKeyUp)
         );
     }
 

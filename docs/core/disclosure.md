@@ -31,7 +31,7 @@ disclosure.destroy();
 * Sets aria-expanded on the trigger
 * Uses the hidden attribute on the panel
 * Supports click activation
-* Supports Enter and Space for non-native triggers
+* Routes Enter and Space activation for non-native triggers through the normal click path
 * Preserves and restores original attributes on destroy
 
 ## Principles

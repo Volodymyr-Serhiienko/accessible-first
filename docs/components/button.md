@@ -27,7 +27,7 @@ button.destroy();
 * Preserves native button behavior when used with <button>
 * Sets type="button" by default for native buttons
 * Adds role="button" for non-native triggers
-* Adds keyboard activation for non-native triggers
+* Routes Enter and Space activation for non-native triggers through the normal click path
 * Supports disabled state
 * Supports toggle button state with aria-pressed
 * Exposes stable data attributes for styling
