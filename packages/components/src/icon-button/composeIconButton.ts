@@ -1,9 +1,9 @@
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import { createIconButton } from "./createIconButton";
 import type { IconButton as IconButtonInstance, IconButtonOptions } from "./types";
@@ -43,24 +43,6 @@ export interface ComposedIconButton extends Omit<IconButtonInstance, "element" |
     setTitle(title: string | null): void;
     update(options: IconButtonCompositionOptions): void;
     destroy(): void;
-}
-
-function getElementOptions(options: IconButtonCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    if (options.attributes !== undefined) {
-        elementOptions.attributes = options.attributes;
-    }
-
-    return elementOptions;
 }
 
 function getChildren(options: IconButtonCompositionOptions): CompositionChild[] {
@@ -133,7 +115,7 @@ function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
  * @returns An interactive ComposedIconButton instance revealing localized layout modifications and lifecycle tracking utilities.
  */
 export function IconButton(options: IconButtonCompositionOptions = {}): ComposedIconButton {
-    const element = createElement("button", getElementOptions(options));
+    const element = createElement("button", getCompositionElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
 
     let composed!: ComposedIconButton;

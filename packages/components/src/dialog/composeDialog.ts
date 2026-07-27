@@ -2,9 +2,9 @@ import { createId } from "../../../core/src/id";
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import {
     Button,
@@ -70,16 +70,6 @@ function toChildren(content: DialogCompositionContent | null | undefined): Compo
 
 function hasDescription(value: string | null | undefined): value is string {
     return Boolean(value?.trim());
-}
-
-function getElementOptions(options: BaseCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) elementOptions.id = options.id;
-    if (options.className !== undefined) elementOptions.className = options.className;
-    if (options.attributes !== undefined) elementOptions.attributes = options.attributes;
-
-    return elementOptions;
 }
 
 function getDialogOptions(
@@ -228,7 +218,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
 
     const triggerButton = Button(getTriggerButtonOptions(options));
 
-    const dialogElement = createElement("div", getElementOptions(options));
+    const dialogElement = createElement("div", getCompositionElementOptions(options));
     const surface = createElement("div", {
         attributes: {
             "data-af-dialog-surface": ""

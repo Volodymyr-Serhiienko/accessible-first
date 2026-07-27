@@ -1,9 +1,9 @@
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import { createDisclosure } from "./createDisclosure";
 import type {
@@ -55,24 +55,6 @@ export interface ComposedDisclosure
     setPanelContent(children: DisclosureCompositionContent): void;
     update(options: Partial<DisclosureCompositionOptions>): void;
     destroy(): void;
-}
-
-function getElementOptions(options: DisclosureCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    if (options.attributes !== undefined) {
-        elementOptions.attributes = options.attributes;
-    }
-
-    return elementOptions;
 }
 
 function toChildren(content: DisclosureCompositionContent): CompositionChild[] {
@@ -161,7 +143,7 @@ function getDisclosureUpdateOptions(
  * @returns A ComposedDisclosure context enabling interactive state mapping, update bindings, and structural view swaps.
  */
 export function Disclosure(options: DisclosureCompositionOptions): ComposedDisclosure {
-    const element = createElement("div", getElementOptions(options));
+    const element = createElement("div", getCompositionElementOptions(options));
     const trigger = createElement("button", {
         attributes: {
             type: "button"

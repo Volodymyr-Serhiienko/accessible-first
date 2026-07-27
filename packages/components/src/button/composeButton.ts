@@ -1,9 +1,9 @@
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import { createButton } from "./createButton";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
@@ -44,16 +44,6 @@ export interface ComposedButton extends Omit<ButtonInstance, "element" | "update
     destroy(): void;
 }
 
-function getElementOptions(options: ButtonCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) elementOptions.id = options.id;
-    if (options.className !== undefined) elementOptions.className = options.className;
-    if (options.attributes !== undefined) elementOptions.attributes = options.attributes;
-
-    return elementOptions;
-}
-
 function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
     if (options.children !== undefined) return options.children;
     if (options.text !== undefined) return [options.text];
@@ -87,7 +77,7 @@ function getButtonOptions(
  * @returns An interactive ComposedButton manager offering unified properties, layout updates, and unmounting methods.
  */
 export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
-    const element = createElement("button", getElementOptions(options));
+    const element = createElement("button", getCompositionElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
 
     let composed!: ComposedButton;

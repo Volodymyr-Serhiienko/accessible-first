@@ -2,9 +2,9 @@ import { setAriaLabelledBy, setRole } from "../../../core/src/aria";
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import { createAccordion } from "./createAccordion";
 import type {
@@ -103,24 +103,6 @@ interface AccordionItemNodes {
     panelContent: ReturnType<typeof createContentSlot>;
 }
 
-function getElementOptions(options: BaseCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    if (options.attributes !== undefined) {
-        elementOptions.attributes = options.attributes;
-    }
-
-    return elementOptions;
-}
-
 function toChildren(content: AccordionCompositionContent): CompositionChild[] {
     return Array.isArray(content) ? content : [content];
 }
@@ -162,7 +144,7 @@ function createItemNodes(
     item: AccordionCompositionItem,
     defaultHeadingLevel: AccordionHeadingLevel
 ): AccordionItemNodes {
-    const element = createElement("div", getElementOptions(item));
+    const element = createElement("div", getCompositionElementOptions(item));
     const heading = createElement(getHeadingTag(item.headingLevel ?? defaultHeadingLevel), {
         attributes: {
             "data-af-accordion-heading": ""
@@ -274,7 +256,7 @@ function getAccordionUpdateOptions(
  * @returns A ComposedAccordion package exposing controls to open/close items, update options dynamically, or tear down state bindings.
  */
 export function Accordion(options: AccordionCompositionOptions): ComposedAccordion {
-    const element = createElement("div", getElementOptions(options));
+    const element = createElement("div", getCompositionElementOptions(options));
     const headingLevel = options.headingLevel ?? 3;
     const itemNodes = options.items.map((item) => createItemNodes(item, headingLevel));
 

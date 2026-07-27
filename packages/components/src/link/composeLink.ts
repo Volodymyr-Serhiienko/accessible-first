@@ -1,9 +1,9 @@
 import {
     createContentSlot,
     createElement,
+    getCompositionElementOptions,
     type BaseCompositionOptions,
-    type CompositionChild,
-    type CreateElementOptions
+    type CompositionChild
 } from "../composition";
 import { createLink } from "./createLink";
 import type { Link as LinkInstance, LinkOptions } from "./types";
@@ -42,24 +42,6 @@ export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | 
     setText(text: string): void;
     update(options: LinkCompositionOptions): void;
     destroy(): void;
-}
-
-function getElementOptions(options: LinkCompositionOptions): CreateElementOptions {
-    const elementOptions: CreateElementOptions = {};
-
-    if (options.id !== undefined) {
-        elementOptions.id = options.id;
-    }
-
-    if (options.className !== undefined) {
-        elementOptions.className = options.className;
-    }
-
-    if (options.attributes !== undefined) {
-        elementOptions.attributes = options.attributes;
-    }
-
-    return elementOptions;
 }
 
 function getChildren(options: LinkCompositionOptions): CompositionChild[] {
@@ -127,7 +109,7 @@ function getLinkOptions(
  * @returns An interactive ComposedLink manager offering unified properties, layout updates, and unmounting methods.
  */
 export function Link(options: LinkCompositionOptions = {}): ComposedLink {
-    const element = createElement("a", getElementOptions(options));
+    const element = createElement("a", getCompositionElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
 
     let composed!: ComposedLink;
