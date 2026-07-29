@@ -8,18 +8,17 @@ import type { OverlayStack } from "../../../core/src/overlay-stack";
 import type { Component } from "../foundation";
 
 /**
- * Visual styling configurations permitted for transforming the underlying structural layout treatment of a dialog overlay.
+ * Visual variant for a dialog.
  */
 export type DialogVariant = "default" | "plain";
 
 /**
- * Standard structural padding, sizing, and viewport dimension presets permitted for a dialog modal container.
+ * Dialog size token.
  */
 export type DialogSize = "md";
 
 /**
- * Global orchestration parameters configuring accessibility role semantics, focus trap rules, 
- * layer dismissal triggers, and overlay stack behaviors for a modal or non-modal dialog layer.
+ * Options for createDialog().
  */
 export interface DialogOptions extends Omit<CoreDialogOptions, "onOpenChange"> {
     open?: boolean;
@@ -39,8 +38,7 @@ export interface DialogOptions extends Omit<CoreDialogOptions, "onOpenChange"> {
 }
 
 /**
- * Main coordinator component managing focus entrapment, accessibility state matrixes, 
- * and layer dismissal behaviors for an interactive dialog surface.
+ * Dialog behavior controller returned by createDialog().
  */
 export interface Dialog extends Component {
     readonly trigger: HTMLElement | null;

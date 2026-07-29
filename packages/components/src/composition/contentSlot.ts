@@ -2,8 +2,8 @@ import { append, collectDestroyers } from "./append";
 import type { CompositionChild } from "./types";
 
 /**
- * Represents a dynamic rendering container sector capable of safely swap-updating nested views
- * layout branches while tracking and cleaning up stale inner component lifecycle bindings.
+ * Managed content area used by composed components.
+ * It replaces children and destroys nested composed nodes safely.
  */
 export interface ContentSlot {
     set(children: CompositionChild[]): void;
@@ -11,13 +11,7 @@ export interface ContentSlot {
 }
 
 /**
- * Creates and initializes a managed content mounting slot bound to a parent layout anchor.
- * Manages rapid tree structural swaps inside the parent node container by tracking sub-component 
- * lifecycles, ensuring memory maps clear out cleanly during replacement cycles or final view teardowns.
- *
- * @param parent - The target native HTMLElement container capturing the dynamic sub-tree segments.
- * @param initialChildren - An array slice of initial layout components, text elements, or child nodes.
- * @returns A ContentSlot interface revealing clean state update and lifecycle isolation methods.
+ * Creates a managed content slot inside a parent element.
  */
 export function createContentSlot(
     parent: HTMLElement,

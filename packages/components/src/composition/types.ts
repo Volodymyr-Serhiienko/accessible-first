@@ -1,14 +1,15 @@
 /**
- * Represents a structured UI component node holding an active DOM reference 
- * along with optional hook routines to tear down runtime state.
+ * A composed DOM node returned by Accessible First composition helpers.
+ * If destroy() exists, parent slots and mounts will call it during cleanup.
  */
-export interface ComposedNode {
-    readonly element: HTMLElement;
+export interface ComposedNode<TElement extends HTMLElement = HTMLElement> {
+    readonly element: TElement;
     destroy?(): void;
 }
 
 /**
- * Valid dynamic content variants that can be arranged and composed inside DOM node trees.
+ * Values that can be appended into a composed DOM tree.
+ * Composed nodes are unwrapped to their element, and primitive values become text.
  */
 export type CompositionChild =
     | ComposedNode
@@ -20,12 +21,19 @@ export type CompositionChild =
     | undefined;
 
 /**
- * Key-value mapping representing the collection of raw attribute properties assigned onto an HTML node.
+ * A single composition child or an array of children.
+ * Useful for component slots such as trigger, panel, actions, and icon.
+ */
+export type CompositionContent = CompositionChild | CompositionChild[];
+
+/**
+ * Raw HTML attributes accepted by composition helpers.
+ * `null`, `undefined`, and `false` remove an attribute; `true` creates a boolean attribute.
  */
 export type ElementAttributes = Record<string, string | number | boolean | null | undefined>;
 
 /**
- * Common layout configuration properties used as a foundation for building structural UI component wrappers.
+ * Common DOM options shared by composition helpers and composed components.
  */
 export interface BaseCompositionOptions {
     id?: string;
@@ -34,7 +42,7 @@ export interface BaseCompositionOptions {
 }
 
 /**
- * Configuration options detailing properties and child segments to build an HTMLElement tree structure.
+ * Options used by createElement() to build a native HTMLElement.
  */
 export interface CreateElementOptions {
     id?: string;
@@ -45,19 +53,19 @@ export interface CreateElementOptions {
 }
 
 /**
- * A native HTMLElement container pointer, or a unique string selector query targeting the DOM anchor.
+ * Where a composed tree should be mounted.
  */
 export type MountTarget = HTMLElement | string;
 
 /**
- * Fine-tuning flag parameters defining layout placement behaviors upon initial view attachment.
+ * Mount behavior.
  */
 export interface MountOptions {
     replace?: boolean;
 }
 
 /**
- * Interface representing a successfully injected, live-managed DOM tree section.
+ * A mounted tree with an explicit unmount operation.
  */
 export interface MountedTree {
     readonly target: HTMLElement;

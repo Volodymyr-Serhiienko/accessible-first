@@ -4,10 +4,12 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    toCompositionChildren,
     type BaseCompositionOptions,
-    type CompositionChild
+    type CompositionContent
 } from "../composition";
 import { createAccordion } from "./createAccordion";
+import type { DisclosureAnnouncement } from "../disclosure";
 import type {
     Accordion as AccordionInstance,
     AccordionHeadingLevel,
@@ -17,18 +19,16 @@ import type {
     AccordionOptions,
     AccordionPanelRole
 } from "./types";
-import type { DisclosureAnnouncement } from "../disclosure";
 
 /**
- * Flexible content payload representing a single composition child node or an array of child nodes for accordion elements.
+ * Content accepted by accordion trigger and panel slots.
  */
-export type AccordionCompositionContent = CompositionChild | CompositionChild[];
+export type AccordionCompositionContent = CompositionContent;
 
 type AccordionHeadingTagName = "h2" | "h3" | "h4" | "h5" | "h6";
 
 /**
- * Configuration characteristics defining the structural content, heading hierarchy, 
- * and initial disclosure state for a single composed accordion item segment.
+ * One item accepted by Accordion().
  */
 export interface AccordionCompositionItem extends BaseCompositionOptions {
     value?: string;
@@ -42,7 +42,7 @@ export interface AccordionCompositionItem extends BaseCompositionOptions {
 }
 
 /**
- * Event notification details packed and dispatched when an individual composed accordion section mutates its disclosure state.
+ * Details passed when a composed accordion item opens or closes.
  */
 export interface AccordionCompositionOpenChangeDetail {
     value: string;
@@ -51,10 +51,7 @@ export interface AccordionCompositionOpenChangeDetail {
 }
 
 /**
- * Callback function signature triggered when an accordion item expands or collapses.
- * 
- * @param detail - State payload containing the updated item, its value, and expansion status.
- * @param accordion - The parent composed accordion instance orchestrating the change.
+ * Called when a composed accordion item opens or closes.
  */
 export type AccordionCompositionOnOpenChange = (
     detail: AccordionCompositionOpenChangeDetail,
@@ -62,17 +59,42 @@ export type AccordionCompositionOnOpenChange = (
 ) => void;
 
 /**
- * Global composition options configuring structural behavior rules, items, and event handlers for an accordion instance.
+ * Options for Accordion().
  */
 export interface AccordionCompositionOptions
     extends Omit<AccordionOptions, "items" | "onOpenChange">,
         BaseCompositionOptions {
     items: AccordionCompositionItem[];
+    headingLevel?: AccordionHeadingLevel;
+    panelRole?: AccordionPanelRole;
     onOpenChange?: AccordionCompositionOnOpenChange | null;
 }
 
 /**
- * Represents a fully assembled structural accordion item, exposing typed DOM node references and dynamic content modifiers.
+ * Partial item update accepted by accordion.update({ items }).
+ *
+ * value and headingLevel are creation-time options.
+ */
+export interface AccordionCompositionItemUpdate extends BaseCompositionOptions {
+    trigger?: AccordionCompositionContent;
+    panel?: AccordionCompositionContent;
+    disabled?: boolean;
+    open?: boolean;
+    announcement?: DisclosureAnnouncement;
+}
+
+/**
+ * Options accepted by ComposedAccordion.update().
+ *
+ * headingLevel is creation-time only because it creates native heading elements.
+ */
+export interface AccordionCompositionUpdateOptions
+    extends Partial<Omit<AccordionCompositionOptions, "items" | "headingLevel">> {
+    items?: AccordionCompositionItemUpdate[];
+}
+
+/**
+ * Accordion item created by the composition API.
  */
 export interface ComposedAccordionItem
     extends Omit<AccordionItem, "element" | "trigger" | "panel"> {
@@ -85,13 +107,13 @@ export interface ComposedAccordionItem
 }
 
 /**
- * Represents a fully assembled composition-based accordion instance orchestrating multiple item segments.
+ * Accordion created by the composition API.
  */
 export interface ComposedAccordion
     extends Omit<AccordionInstance, "element" | "items" | "update" | "destroy"> {
     readonly element: HTMLElement;
     readonly items: ComposedAccordionItem[];
-    update(options: Partial<AccordionCompositionOptions>): void;
+    update(options: AccordionCompositionUpdateOptions): void;
     destroy(): void;
 }
 
@@ -102,10 +124,6 @@ interface AccordionItemNodes {
     panel: HTMLElement;
     triggerContent: ReturnType<typeof createContentSlot>;
     panelContent: ReturnType<typeof createContentSlot>;
-}
-
-function toChildren(content: AccordionCompositionContent): CompositionChild[] {
-    return Array.isArray(content) ? content : [content];
 }
 
 function getHeadingTag(level: AccordionHeadingLevel): AccordionHeadingTagName {
@@ -158,8 +176,8 @@ function createItemNodes(
     });
     const panel = createElement("div");
 
-    const triggerContent = createContentSlot(trigger, toChildren(item.trigger));
-    const panelContent = createContentSlot(panel, toChildren(item.panel));
+    const triggerContent = createContentSlot(trigger, toCompositionChildren(item.trigger));
+    const panelContent = createContentSlot(panel, toCompositionChildren(item.panel));
 
     heading.append(trigger);
     element.append(heading, panel);
@@ -219,15 +237,13 @@ function getAccordionOptions(
     if (options.loop !== undefined) accordionOptions.loop = options.loop;
     if (options.variant !== undefined) accordionOptions.variant = options.variant;
     if (options.size !== undefined) accordionOptions.size = options.size;
-    if (options.headingLevel !== undefined) accordionOptions.headingLevel = options.headingLevel;
-    if (options.panelRole !== undefined) accordionOptions.panelRole = options.panelRole;
     if (options.announcement !== undefined) accordionOptions.announcement = options.announcement;
 
     return accordionOptions;
 }
 
 function getAccordionUpdateOptions(
-    options: Partial<AccordionCompositionOptions>,
+    options: AccordionCompositionUpdateOptions,
     onOpenChange: (detail: AccordionOpenChangeDetail) => void
 ): Partial<Omit<AccordionOptions, "items">> {
     const accordionOptions: Partial<Omit<AccordionOptions, "items">> = {};
@@ -238,8 +254,6 @@ function getAccordionUpdateOptions(
     if (options.loop !== undefined) accordionOptions.loop = options.loop;
     if (options.variant !== undefined) accordionOptions.variant = options.variant;
     if (options.size !== undefined) accordionOptions.size = options.size;
-    if (options.headingLevel !== undefined) accordionOptions.headingLevel = options.headingLevel;
-    if (options.panelRole !== undefined) accordionOptions.panelRole = options.panelRole;
     if (options.announcement !== undefined) accordionOptions.announcement = options.announcement;
 
     if ("onOpenChange" in options) {
@@ -250,11 +264,7 @@ function getAccordionUpdateOptions(
 }
 
 /**
- * Assembles a fully composed, accessible accordion instance that orchestrates multi-panel disclosure states,
- * keyboard interactions, and dynamic content updates.
- * 
- * @param options - Configuration characteristics specifying items, panel role semantics, and lifecycle event handlers.
- * @returns A ComposedAccordion package exposing controls to open/close items, update options dynamically, or tear down state bindings.
+ * Creates an accessible accordion from composed disclosure items.
  */
 export function Accordion(options: AccordionCompositionOptions): ComposedAccordion {
     const element = createElement("div", getCompositionElementOptions(options));
@@ -310,11 +320,11 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
             panel: node.panel,
 
             setTriggerContent(content): void {
-                node.triggerContent.set(toChildren(content));
+                node.triggerContent.set(toCompositionChildren(content));
             },
 
             setPanelContent(content): void {
-                node.panelContent.set(toChildren(content));
+                node.panelContent.set(toCompositionChildren(content));
             }
         };
     });
@@ -324,7 +334,7 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
         element,
         items: composedItems,
 
-        update(nextOptions): void {
+        update(nextOptions: AccordionCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onOpenChange" in nextOptions) {
@@ -354,8 +364,13 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
 
                     applyCompositionElementOptions(node.element, nextItem);
 
-                    item.setTriggerContent(nextItem.trigger);
-                    item.setPanelContent(nextItem.panel);
+                    if (nextItem.trigger !== undefined) {
+                        item.setTriggerContent(nextItem.trigger);
+                    }
+
+                    if (nextItem.panel !== undefined) {
+                        item.setPanelContent(nextItem.panel);
+                    }
 
                     if (nextItem.disabled !== undefined) {
                         item.setDisabled(nextItem.disabled);

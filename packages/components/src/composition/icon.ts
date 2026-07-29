@@ -10,8 +10,10 @@ import type {
 } from "./types";
 
 /**
- * Configuration characteristics defining functional attributes, visual traits, 
- * rendering paths, and accessibility parameters for a structural icon element.
+ * Options for Icon().
+ *
+ * Icons are decorative by default when no title, aria-label, or aria-labelledby
+ * is provided. Provide title or an accessible name when the icon itself carries meaning.
  */
 export interface IconOptions extends BaseCompositionOptions {
     path: string | string[];
@@ -24,10 +26,9 @@ export interface IconOptions extends BaseCompositionOptions {
 }
 
 /**
- * Encapsulates the assembled DOM node references representing an interactive or descriptive structural vector graphic composition.
+ * SVG icon wrapped in a span for styling and accessibility.
  */
-export interface ComposedIcon extends ComposedNode {
-    readonly element: HTMLSpanElement;
+export interface ComposedIcon extends ComposedNode<HTMLSpanElement> {
     readonly svg: SVGSVGElement;
 }
 
@@ -66,10 +67,10 @@ function getWrapperOptions(options: IconOptions) {
 }
 
 /**
- * Assembles an accessible, highly configurable vector graphic icon wrapped within a dedicated inline structural layout element.
- * 
- * @param options - Configuration characteristics specifying coordinate paths, dimension constraints, and explicit accessibility flags.
- * @returns A ComposedIcon package exposing distinct native DOM node tracking references for the outer wrapper span and inner SVG canvas.
+ * Creates an SVG icon.
+ *
+ * The inner svg is hidden from assistive technologies; the wrapper exposes
+ * the accessible name when the icon is not decorative.
  */
 export function Icon(options: IconOptions): ComposedIcon {
     const element = createElement("span", getWrapperOptions(options));

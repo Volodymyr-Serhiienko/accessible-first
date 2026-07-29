@@ -10,11 +10,8 @@ import { createIconButton } from "./createIconButton";
 import type { IconButton as IconButtonInstance, IconButtonOptions } from "./types";
 
 /**
- * Callback function signature executed when a visual icon button receives an operational activation event.
- * Passes both the original native DOM interaction event and the orchestrating component controller context.
- * 
- * @param event - The native browser Event object triggered by pointer, keyboard, or voice activation.
- * @param button - The contextual ComposedIconButton manager instance executing the action.
+ * Called when the composed icon button is activated.
+ * Receives the native event and the composed icon button instance.
  */
 export type IconButtonCompositionOnPress = (
     event: Event,
@@ -22,8 +19,8 @@ export type IconButtonCompositionOnPress = (
 ) => void;
 
 /**
- * Configuration characteristics defining functional behaviors, explicit graphical layouts, 
- * accessible visual identifiers, event pipelines, and structural base values for an interactive Icon Button element.
+ * Options for IconButton(), the composition API for icon-only actions.
+ * Always provide `label` or `labelledBy` unless the visible children already create a clear name.
  */
 export interface IconButtonCompositionOptions
     extends Omit<IconButtonOptions, "onPress">,
@@ -35,9 +32,8 @@ export interface IconButtonCompositionOptions
 }
 
 /**
- * Interface representing a managed, accessibly optimized native HTMLButtonElement built primarily around visual graphic indicators.
- * Houses core structural references while providing functional controls to handle descriptive data labels, 
- * swap layout graphics, manage custom callback streams, and securely dump binding scopes at teardown.
+ * An icon button created by IconButton().
+ * Includes accessible-name controls, pressed state, content updates, and cleanup.
  */
 export interface ComposedIconButton extends Omit<IconButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
@@ -107,13 +103,7 @@ function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
 }
 
 /**
- * Instantiates and coordinates an enhanced, accessibly optimized native HTMLButtonElement built around structural graphics with dynamic event injection.
- * Wraps interactive icon configurations, automatically synchronizes fallback visual tooltip descriptions (`title`) 
- * with core screen-reader labels (`aria-label`), hooks up context-aware activation event overrides (`onPress`), 
- * manages complex graphic rendering slot pools, and guarantees clean, isolated runtime state teardowns.
- *
- * @param options - Visual asset properties, fallback tooltips, initial action hooks, and layout behaviors applied at creation time.
- * @returns An interactive ComposedIconButton instance revealing localized layout modifications and lifecycle tracking utilities.
+ * Creates an accessible icon-only button with default styling hooks.
  */
 export function IconButton(options: IconButtonCompositionOptions = {}): ComposedIconButton {
     const element = createElement("button", getCompositionElementOptions(options));

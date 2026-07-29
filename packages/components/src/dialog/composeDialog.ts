@@ -1,12 +1,3 @@
-import { createId } from "../../../core/src/id";
-import {
-    applyCompositionElementOptions,
-    createContentSlot,
-    createElement,
-    getCompositionElementOptions,
-    type BaseCompositionOptions,
-    type CompositionChild
-} from "../composition";
 import {
     Button,
     type ButtonCompositionOptions,
@@ -14,19 +5,39 @@ import {
     type ButtonVariant,
     type ComposedButton
 } from "../button";
+import {
+    applyCompositionElementOptions,
+    createContentSlot,
+    createElement,
+    getCompositionElementOptions,
+    toCompositionChildren,
+    type BaseCompositionOptions,
+    type CompositionChild,
+    type CompositionContent
+} from "../composition";
 import { createDialog } from "./createDialog";
+import { createId } from "../../../core/src/id";
 import type {
     Dialog as DialogInstance,
     DialogOptions
 } from "./types";
 
-export type DialogCompositionContent = CompositionChild | CompositionChild[];
+/**
+ * Content accepted by dialog trigger and actions slots.
+ */
+export type DialogCompositionContent = CompositionContent;
 
+/**
+ * Called when a composed dialog opens or closes.
+ */
 export type DialogCompositionOnOpenChange = (
     open: boolean,
     dialog: ComposedDialog
 ) => void;
 
+/**
+ * Options for Dialog().
+ */
 export interface DialogCompositionOptions
     extends Omit<
             DialogOptions,
@@ -41,11 +52,15 @@ export interface DialogCompositionOptions
     children?: CompositionChild[];
     actions?: DialogCompositionContent | null;
     closeText?: string;
+    hideCloseButton?: boolean;
     triggerVariant?: ButtonVariant;
     triggerSize?: ButtonSize;
     onOpenChange?: DialogCompositionOnOpenChange | null;
 }
 
+/**
+ * Dialog created by the composition API.
+ */
 export interface ComposedDialog
     extends Omit<DialogInstance, "element" | "trigger" | "surface" | "update" | "destroy"> {
     readonly element: HTMLElement;
@@ -61,14 +76,6 @@ export interface ComposedDialog
     destroy(): void;
 }
 
-function toChildren(content: DialogCompositionContent | null | undefined): CompositionChild[] {
-    if (content === null || content === undefined) {
-        return [];
-    }
-
-    return Array.isArray(content) ? content : [content];
-}
-
 function hasDescription(value: string | null | undefined): value is string {
     return Boolean(value?.trim());
 }
@@ -78,14 +85,14 @@ function getDialogOptions(
     dialogElement: HTMLElement,
     surface: HTMLElement,
     trigger: HTMLElement,
-    closeButton: HTMLElement,
+    closeButton: HTMLElement | null,
     title: HTMLElement,
     description: HTMLElement,
     onOpenChange: (open: boolean) => void
 ): DialogOptions {
     const dialogOptions: DialogOptions = {
         trigger,
-        closeElements: [closeButton],
+        closeElements: closeButton ? [closeButton] : [],
         surface,
         labelledBy: title,
         fallbackFocus: surface,
@@ -134,7 +141,7 @@ function getTriggerButtonOptions(
     options: DialogCompositionOptions
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {
-        children: toChildren(options.trigger),
+        children: toCompositionChildren(options.trigger),
         variant: options.triggerVariant ?? "primary"
     };
 
@@ -151,7 +158,7 @@ function getTriggerButtonUpdateOptions(
     const buttonOptions: ButtonCompositionOptions = {};
 
     if (options.trigger !== undefined) {
-        buttonOptions.children = toChildren(options.trigger);
+        buttonOptions.children = toCompositionChildren(options.trigger);
     }
 
     if (options.triggerVariant !== undefined) {
@@ -210,6 +217,9 @@ function getDialogUpdateOptions(
     return dialogOptions;
 }
 
+/**
+ * Creates an accessible dialog with a trigger button, title, content, actions, and close behavior.
+ */
 export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     const element = createElement("div", {
         attributes: {
@@ -249,7 +259,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         }
     });
 
-    description.hidden = options.description === undefined || options.description === null;
+    description.hidden = !hasDescription(options.description);
 
     const body = createElement("div", {
         attributes: {
@@ -274,8 +284,10 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         variant: "secondary"
     });
 
+    let hideCloseButton = options.hideCloseButton ?? false;
+
     const bodySlot = createContentSlot(body, options.children ?? []);
-    const actionsSlot = createContentSlot(actionsContent, toChildren(options.actions));
+    const actionsSlot = createContentSlot(actionsContent, toCompositionChildren(options.actions));
 
     let composed!: ComposedDialog;
     let onOpenChange = options.onOpenChange ?? null;
@@ -285,7 +297,13 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     };
 
     header.append(title);
-    footer.append(actionsContent, closeButton.element);
+
+    footer.append(actionsContent);
+
+    if (!hideCloseButton) {
+        footer.append(closeButton.element);
+    }
+
     surface.append(header, description, body, footer);
     dialogElement.append(surface);
     element.append(triggerButton.element, dialogElement);
@@ -297,7 +315,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
             dialogElement,
             surface,
             triggerButton.element,
-            closeButton.element,
+            hideCloseButton ? null : closeButton.element,
             title,
             description,
             handleOpenChange
@@ -320,7 +338,21 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     }
 
     function setActions(actions: DialogCompositionContent | null): void {
-        actionsSlot.set(toChildren(actions));
+        actionsSlot.set(toCompositionChildren(actions));
+    }
+
+    function syncCloseButtonVisibility(): void {
+        if (hideCloseButton) {
+            closeButton.element.remove();
+            dialog.update({ closeElements: [] });
+            return;
+        }
+
+        if (closeButton.element.parentElement !== footer) {
+            footer.append(closeButton.element);
+        }
+
+        dialog.update({ closeElements: [closeButton.element] });
     }
 
     composed = {
@@ -360,6 +392,11 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
 
             if (nextOptions.closeText !== undefined) {
                 closeButton.setText(nextOptions.closeText);
+            }
+
+            if (nextOptions.hideCloseButton !== undefined) {
+                hideCloseButton = nextOptions.hideCloseButton;
+                syncCloseButtonVisibility();
             }
 
             if (

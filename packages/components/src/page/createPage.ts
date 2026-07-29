@@ -5,6 +5,7 @@ import {
     type CompositionChild
 } from "../composition";
 import { inspectPage } from "./diagnostics";
+import { restoreAttribute } from "../../../core/src/dom";
 import type { Page, PageDiagnosticsOptions, PageDiagnosticsReport, PageOptions } from "./types";
 
 function applyTheme(theme: "light" | "dark"): void {
@@ -18,10 +19,15 @@ function applyTheme(theme: "light" | "dark"): void {
 
 function setupPageTheme(options: PageOptions): () => void {
     const theme = options.theme ?? "system";
+    const originalTheme = document.documentElement.getAttribute("data-af-theme");
+
+    function restorePageTheme(): void {
+        restoreAttribute(document.documentElement, "data-af-theme", originalTheme);
+    }
 
     if (theme === "light" || theme === "dark") {
         applyTheme(theme);
-        return () => {};
+        return restorePageTheme;
     }
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -35,6 +41,7 @@ function setupPageTheme(options: PageOptions): () => void {
 
     return () => {
         media.removeEventListener("change", syncSystemTheme);
+        restorePageTheme();
     };
 }
 
@@ -74,7 +81,12 @@ export function createPage(options: PageOptions = {}): Page {
     const footerDestroyers: Array<() => void> = [];
 
     if (options.title !== undefined) {
+        const originalTitle = document.title;
+
         document.title = options.title;
+        pageDestroyers.push(() => {
+            document.title = originalTitle;
+        });
     }
 
     if (options.skipLink !== false) {
@@ -86,7 +98,8 @@ export function createPage(options: PageOptions = {}): Page {
             className: "skip-link",
             text: skipText,
             attributes: {
-                href: `#${main.id}`
+                href: `#${main.id}`,
+                "data-af-skip-link": ""
             }
         }));
     }

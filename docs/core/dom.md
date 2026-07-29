@@ -113,6 +113,30 @@ isInert(element: HTMLElement): boolean
 
 ---
 
+### restoreAttribute()
+
+Restores an attribute value previously captured with getAttribute().
+
+```ts
+restoreAttribute(
+    element: Element,
+    name: string,
+    value: string | null
+): void
+```
+
+---
+
+### createAttributeSnapshot()
+
+Remembers original attribute values once and restores them together.
+
+```ts
+createAttributeSnapshot(): AttributeSnapshot
+```
+
+---
+
 ## Typical use cases
 
 The DOM module is used internally by:

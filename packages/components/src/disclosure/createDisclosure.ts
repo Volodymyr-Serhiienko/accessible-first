@@ -76,6 +76,18 @@ function getAnnouncementPoliteness(
     return "polite";
 }
 
+function isAnnouncementEnabled(announcement: DisclosureAnnouncement): boolean {
+    if (announcement === false) {
+        return false;
+    }
+
+    if (isAnnouncementOptions(announcement) && announcement.enabled === false) {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Creates and initializes an accessible structural disclosure component wrapper.
  * Connects an interactive control header (`trigger`) with a collapsible content region (`panel`) 
@@ -125,7 +137,7 @@ export function createDisclosure(
     }
 
     function announceOpenPanel(open: boolean): void {
-        if (!open || announcement === undefined || announcement === false) {
+        if (!open || announcement === undefined || !isAnnouncementEnabled(announcement)) {
             return;
         }
 
@@ -176,6 +188,7 @@ export function createDisclosure(
 
     lifecycle.addCleanup(() => {
         behavior.destroy();
+        announcer?.destroy();
         announcer = null;
     });
 

@@ -7,14 +7,11 @@ import type {
 import { restoreAttribute } from "../../../core/src/dom";
 
 /**
- * Creates and initializes a component runtime lifecycle management state machine.
- * Decorates a target root element with identifying dataset signatures (`data-af-component`, `data-af-state`)
- * to expose active execution phases. Provides a tracking pipeline to safely capture and queue unbinding procedures,
- * which are executed in reverse order (LIFO) upon component teardown to guarantee pristine attribute state restoration.
+ * Creates the shared lifecycle controller used by components.
  *
- * @param element - The core DOM element being bound to the lifecycle scope.
- * @param options - Core diagnostic tagging configurations and initial state values.
- * @returns A ComponentLifecycle manager interface offering state controls and cleanup hooks.
+ * It writes data-af-component and data-af-state for styling/debugging,
+ * runs registered cleanups in reverse order, and restores the original
+ * lifecycle attributes on destroy().
  */
 export function createComponentLifecycle(
     element: HTMLElement,

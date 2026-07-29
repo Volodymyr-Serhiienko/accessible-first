@@ -28,9 +28,9 @@ A page should read as a composition of roles and content areas.
 ## Layers
 
 * Core behavior: focus, keyboard, ARIA, interactions
-* Enhancement components: createButton(element), createDisclosure(root, options)
-* Composition components: Button(), Link(), Disclosure()
-* Semantic composition: createPage(), Section(), Panel(), Row(), Stack(), Grid(), diagnostics
+* Enhancement components: createButton(element), createDisclosure(root, options), createDialog(element, options)
+* Composition components: Button(), IconButton(), Link(), Disclosure(), Accordion(), Dialog()
+* Semantic composition: createPage(), Section(), Panel(), Row(), Stack(), Grid(), Group(), Toolbar(), tag helpers, Html, diagnostics
 
 ## Example
 

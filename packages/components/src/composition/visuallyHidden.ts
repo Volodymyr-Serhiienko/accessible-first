@@ -8,13 +8,12 @@ import type {
 } from "./types";
 
 /**
- * Permitted structural HTML container tags used to frame visually hidden accessible content.
+ * Native element used by VisuallyHidden().
  */
 export type VisuallyHiddenTagName = "span" | "div";
 
 /**
- * Configuration characteristics defining the root node element type, initial textual contents,
- * or nested composition nodes for an accessible screen-reader-only utility container.
+ * Options for VisuallyHidden().
  */
 export interface VisuallyHiddenOptions extends BaseCompositionOptions {
     as?: VisuallyHiddenTagName;
@@ -23,11 +22,9 @@ export interface VisuallyHiddenOptions extends BaseCompositionOptions {
 }
 
 /**
- * Encapsulates the assembled DOM node references and state modifiers managing a visually hidden,
- * screen-reader accessible interface block.
+ * Visually hidden content that remains available to assistive technologies.
  */
-export interface ComposedVisuallyHidden extends ComposedNode {
-    readonly element: HTMLSpanElement | HTMLDivElement;
+export interface ComposedVisuallyHidden extends ComposedNode<HTMLSpanElement | HTMLDivElement> {
     setText(text: string): void;
     setChildren(children: CompositionChild[]): void;
     destroy(): void;
@@ -92,18 +89,14 @@ function getElementOptions(options: VisuallyHiddenOptions) {
     });
 }
 
+/**
+ * Creates content that is visually hidden but still present in the accessibility tree.
+ */
 export function VisuallyHidden(...children: CompositionChild[]): ComposedVisuallyHidden;
 export function VisuallyHidden(
     options: VisuallyHiddenOptions,
     ...children: CompositionChild[]
 ): ComposedVisuallyHidden;
-
-/**
- * Assembles a screen-reader-accessible structural layout container that hides text or child elements visually while preserving them in the assistive technology tree.
- * 
- * @param args - Flexible arguments capturing either configuration options followed by child variants, or a flat collection of child fragments.
- * @returns A ComposedVisuallyHidden package exposing state modifiers to dynamically alter text content, update inner child trees, or handle teardown.
- */
 export function VisuallyHidden(
     ...args: Array<CompositionChild | VisuallyHiddenOptions>
 ): ComposedVisuallyHidden {

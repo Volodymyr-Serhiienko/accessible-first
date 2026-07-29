@@ -3,14 +3,13 @@ import type { ButtonPressedState, ButtonVariant } from "../button";
 import type { Component } from "../foundation";
 
 /**
- * Defines the scale or size layout variant of an icon button component.
+ * Icon button size token.
  */
 export type IconButtonSize = "md";
 
 /**
- * Configuration options used to initialize an accessible interactive icon button component.
- * Because icon buttons lack visible textual titles, explicit labelling configurations 
- * (`label` or `labelledBy`) are critical to ensure accessibility compliance.
+ * Options for createIconButton().
+ * Provide label or labelledBy for icon-only controls.
  */
 export interface IconButtonOptions {
     label?: string | null;
@@ -24,9 +23,7 @@ export interface IconButtonOptions {
 }
 
 /**
- * Interface representing an accessible interactive icon button control component.
- * Ensures standalone functional visual icons maintain structural labels for screen readers 
- * alongside native interactive blockades, design variants, and toggle behaviors.
+ * Icon button behavior controller returned by createIconButton().
  */
 export interface IconButton extends Component {
     setDisabled(disabled: boolean): void;

@@ -70,12 +70,10 @@ function hasAuthorAccessibleName(element: HTMLElement, fallbackLabelApplied: boo
 }
 
 /**
- * Factory function that instantiates and manages an accessible dialog component instance.
- * Coordinates ARIA attributes, trigger bindings, dismissable layer behaviors, and lifecycle cleanups.
- * 
- * @param element - The root HTML element container acting as the dialog layer.
- * @param options - Configuration options governing triggers, dismiss behaviors, variants, and event listeners.
- * @returns A fully initialized Dialog component instance exposing open/close controls and dynamic update handles.
+ * Creates an accessible dialog component.
+ *
+ * It composes core dialog focus behavior with trigger wiring,
+ * dismissable-layer handling, overlay stack support, and styling hooks.
  */
 export function createDialog(
     element: HTMLElement,

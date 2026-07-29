@@ -23,7 +23,8 @@ Initial component implementation.
 - Restores focus to the trigger on close by default.
 - Closes with Escape by default.
 - Can close on pointer interaction outside the dialog surface.
-- Provides a visible close button in the composition API.
+- Provides a visible close button in the composition API by default.
+- The composition close button can be hidden with `hideCloseButton` for specialized dialogs that provide their own actions.
 - Trigger receives `aria-haspopup="dialog"`, `aria-controls`, and `aria-expanded`.
 
 ## Composition Example
@@ -36,7 +37,8 @@ Dialog({
     children: [
         P("Dialog content goes here.")
     ],
-    closeText: "Close"
+    closeText: "Close",
+    hideCloseButton: false
 });
 ```
 

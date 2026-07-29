@@ -1,26 +1,23 @@
 import type { ComposedNode, CompositionChild } from "../composition";
 
 /**
- * Represents the supported color scheme modes for the application's user interface.
- * 
- * - `"system"` - Automatically matches the operating system's prefers-color-scheme setting.
- * - `"light"` - Enforces a high-contrast, light background color profile.
- * - `"dark"` - Enforces a low-light, dark background color profile.
+ * Page color scheme mode.
+ * "system" follows the user's operating system preference.
  */
 export type PageTheme = "system" | "light" | "dark";
 
 /**
- * Severity grading systems defining operational or semantic concerns identified in layout structures.
+ * Severity level for a page diagnostics issue.
  */
 export type PageDiagnosticsLevel = "info" | "warning" | "error";
 
 /**
- * Summary layout health classifications indicating accessibility metrics or validation outcomes.
+ * Overall page diagnostics result.
  */
 export type PageDiagnosticsStatus = "healthy" | "needs-attention" | "blocked";
 
 /**
- * Structural configurations used to initialize semantic layouts and document parameters.
+ * Options for createPage().
  */
 export interface PageOptions {
     title?: string;
@@ -31,7 +28,7 @@ export interface PageOptions {
 }
 
 /**
- * Descriptive entry mapping an layout structural mistake, parsing breakdown, or accessibility problem.
+ * One issue found by page.inspect().
  */
 export interface PageDiagnosticsIssue {
     level: PageDiagnosticsLevel;
@@ -41,7 +38,7 @@ export interface PageDiagnosticsIssue {
 }
 
 /**
- * Comprehensive health validation breakdown scoring semantic compliance across active view trees.
+ * Full report returned by page.inspect() or inspectPage().
  */
 export interface PageDiagnosticsReport {
     status: PageDiagnosticsStatus;
@@ -51,16 +48,17 @@ export interface PageDiagnosticsReport {
 }
 
 /**
- * Execution modifiers targeting diagnostic scanning routines.
+ * Options for page diagnostics.
  */
 export interface PageDiagnosticsOptions {
     log?: boolean;
 }
 
 /**
- * Interface representing a managed top-level semantic document tree container.
- * Enforces fundamental accessibility guidelines (`aria-*`, structural landmarks) while offering 
- * fluent chaining operations to populate distinct core layout sectors.
+ * Top-level semantic page controller.
+ *
+ * Page owns a root element, creates a main landmark, and exposes fluent methods
+ * for header, navigation, sections, footer, diagnostics, and cleanup.
  */
 export interface Page extends ComposedNode {
     readonly main: HTMLElement;

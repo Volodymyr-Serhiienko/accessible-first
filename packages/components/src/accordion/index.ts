@@ -1,5 +1,10 @@
+export {
+    Accordion,
+    type AccordionCompositionItemUpdate,
+    type AccordionCompositionUpdateOptions
+} from "./composeAccordion";
 export { createAccordion } from "./createAccordion";
-export { Accordion } from "./composeAccordion";
+
 
 export type {
     Accordion as AccordionInstance,

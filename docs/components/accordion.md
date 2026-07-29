@@ -72,9 +72,24 @@ Accordion({
 * loop: loops keyboard navigation.
 * variant: visual variant.
 * size: size token.
-* headingLevel: native heading level for composition item headers.
-* panelRole: `"auto"`, `"region"`, or `"none"` for panel landmark behavior.
+* headingLevel: native heading level for composition item headers. Creation-time only.
+* panelRole: `"auto"`, `"region"`, or `"none"` for composition panel landmark behavior.
 * announcement: optional live-region output when an item opens. Can be set globally or per item.
+
+## Update Notes
+
+`headingLevel` is creation-time only because it creates native heading elements.
+
+Item updates are partial:
+
+```ts
+accordion.update({
+    items: [
+        { open: true },
+        { disabled: true }
+    ]
+});
+```
 
 ## Manual Checks
 

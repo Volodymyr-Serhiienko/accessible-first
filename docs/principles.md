@@ -90,4 +90,4 @@ The playground should become living documentation.
 
 Do not design the API only in theory.
 
-Use the playground and small real page examples to discover what is actually convenient, missing, confusing, or too complex.# Principles
+Use the playground and small real page examples to discover what is actually convenient, missing, confusing, or too complex.

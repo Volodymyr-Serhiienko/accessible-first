@@ -3,8 +3,9 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    toCompositionChildren,
     type BaseCompositionOptions,
-    type CompositionChild
+    type CompositionContent
 } from "../composition";
 import { createDisclosure } from "./createDisclosure";
 import type {
@@ -13,16 +14,12 @@ import type {
 } from "./types";
 
 /**
- * Defines the polymorphic structural layouts or collections allowed within Disclosure interactive sectors.
+ * Content accepted by Disclosure trigger and panel slots.
  */
-export type DisclosureCompositionContent = CompositionChild | CompositionChild[];
+export type DisclosureCompositionContent = CompositionContent;
 
 /**
- * Callback function signature executed when a collapsible disclosure component changes its toggle state.
- * Passes both the new boolean state representation and the orchestrating controller instance.
- * 
- * @param open - The updated visibility state, where `true` is expanded and `false` is collapsed.
- * @param disclosure - The contextual ComposedDisclosure manager instance executing the state shift.
+ * Called when a composed disclosure opens or closes.
  */
 export type DisclosureCompositionOnOpenChange = (
     open: boolean,
@@ -30,8 +27,7 @@ export type DisclosureCompositionOnOpenChange = (
 ) => void;
 
 /**
- * Configuration criteria adapting state machines, structural identification tags, callback hooks, 
- * and core custom content zones to configure a standard Disclosure UI element.
+ * Options for Disclosure().
  */
 export interface DisclosureCompositionOptions
     extends Omit<DisclosureOptions, "trigger" | "panel" | "onOpenChange">,
@@ -42,10 +38,7 @@ export interface DisclosureCompositionOptions
 }
 
 /**
- * Interface representing a managed, accessibly sound native collapsible toggle layout architecture.
- * Pairs control button triggers with corresponding expander panels using strict semantic parameters 
- * (`aria-expanded`, `aria-controls`), offering explicit state updates, dynamic layout manipulation, 
- * and structural teardown routines.
+ * Disclosure created by the composition API.
  */
 export interface ComposedDisclosure
     extends Omit<DisclosureInstance, "element" | "trigger" | "panel" | "update" | "destroy"> {
@@ -56,10 +49,6 @@ export interface ComposedDisclosure
     setPanelContent(children: DisclosureCompositionContent): void;
     update(options: Partial<DisclosureCompositionOptions>): void;
     destroy(): void;
-}
-
-function toChildren(content: DisclosureCompositionContent): CompositionChild[] {
-    return Array.isArray(content) ? content : [content];
 }
 
 function getDisclosureOptions(
@@ -135,13 +124,7 @@ function getDisclosureUpdateOptions(
 }
 
 /**
- * Instantiates and coordinates an enhanced, accessibly sound collapsible structural Disclosure element with dynamic event injection.
- * Arranges structural layout fragments by wrapping control elements and toggle panels inside a base layout container, 
- * linking them with strict semantic parameters, hooks up context-aware state mutation callbacks (`onOpenChange`), 
- * and orchestrates nested rendering slots for predictable, memory-safe lifecycle teardowns.
- *
- * @param options - Core layout parameters, active state configurations, visibility mutation hooks, and initial child trees.
- * @returns A ComposedDisclosure context enabling interactive state mapping, update bindings, and structural view swaps.
+ * Creates an accessible disclosure with a button trigger and controlled panel.
  */
 export function Disclosure(options: DisclosureCompositionOptions): ComposedDisclosure {
     const element = createElement("div", getCompositionElementOptions(options));
@@ -152,8 +135,8 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
     });
     const panel = createElement("div");
 
-    const triggerContent = createContentSlot(trigger, toChildren(options.trigger));
-    const panelContent = createContentSlot(panel, toChildren(options.panel));
+    const triggerContent = createContentSlot(trigger, toCompositionChildren(options.trigger));
+    const panelContent = createContentSlot(panel, toCompositionChildren(options.panel));
 
     let composed!: ComposedDisclosure;
     let onOpenChange = options.onOpenChange ?? null;
@@ -170,11 +153,11 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
     );
 
     function setTriggerContent(children: DisclosureCompositionContent): void {
-        triggerContent.set(toChildren(children));
+        triggerContent.set(toCompositionChildren(children));
     }
 
     function setPanelContent(children: DisclosureCompositionContent): void {
-        panelContent.set(toChildren(children));
+        panelContent.set(toCompositionChildren(children));
     }
 
     composed = {

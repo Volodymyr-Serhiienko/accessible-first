@@ -10,11 +10,8 @@ import { createButton } from "./createButton";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
 
 /**
- * Callback function signature executed when an interactive button component receives an operational activation event.
- * Passes both the original native DOM interaction event and the orchestrating component controller context.
- * 
- * @param event - The native browser Event object triggered by pointer, keyboard, or voice activation.
- * @param button - The contextual ComposedButton manager instance executing the action.
+ * Called when the composed button is activated.
+ * Receives the native event and the composed button instance.
  */
 export type ButtonCompositionOnPress = (
     event: Event,
@@ -22,8 +19,8 @@ export type ButtonCompositionOnPress = (
 ) => void;
 
 /**
- * Configuration characteristics defining functional behaviors, accessibility state variations, 
- * event pipelines, and nested layout content arrays for an interactive Button element.
+ * Options for Button(), the composition API that creates and enhances a native button.
+ * Use `text` for simple labels or `children` for richer content.
  */
 export interface ButtonCompositionOptions
     extends Omit<ButtonOptions, "onPress">,
@@ -34,9 +31,8 @@ export interface ButtonCompositionOptions
 }
 
 /**
- * Interface representing a managed, accessibly enhanced native HTMLButtonElement wrapper.
- * Houses core structural references while providing functional controls to alter layout content streams, 
- * apply runtime trait modifications, and cleanly purge listener structures during unmounting.
+ * A button created by Button().
+ * Includes the enhanced button behavior plus content and lifecycle helpers.
  */
 export interface ComposedButton extends Omit<ButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
@@ -69,13 +65,7 @@ function getButtonOptions(
 }
 
 /**
- * Instantiates and coordinates an enhanced, accessibly sound native HTMLButtonElement wrapper with dynamic event injection.
- * Integrates interactive focus and click state management pipelines, hooks up context-aware activation event overrides 
- * (`onPress`), and sets up isolated inner content slots to securely process typography shifts and sub-tree 
- * composition updates without breaking parent memory tables.
- *
- * @param options - Visual properties, action hooks, content payloads, and layout identifiers assigned at initialization.
- * @returns An interactive ComposedButton manager offering unified properties, layout updates, and unmounting methods.
+ * Creates an accessible button with default styling hooks and optional composed content.
  */
 export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     const element = createElement("button", getCompositionElementOptions(options));

@@ -2,29 +2,28 @@ import type { Component } from "../foundation";
 import type { DisclosureAnnouncement, DisclosureInstance } from "../disclosure";
 
 /**
- * Visual styling configurations permitted for transforming the underlying structural layout treatment of an accordion.
+ * Visual variant for an accordion.
  */
 export type AccordionVariant = "default" | "plain";
 
 /**
- * Standard structural padding, sizing, and typography dimension presets permitted for an accordion layout region.
+ * Accordion size token.
  */
 export type AccordionSize = "md";
 
 /**
- * Permitted semantic HTML heading levels (h2 through h6) used to structure accordion header wrappers.
+ * Native heading level used by composed accordion item headings.
  */
 export type AccordionHeadingLevel = 2 | 3 | 4 | 5 | 6;
 
 /**
- * Strategy mode determining whether the expanding panel element explicitly acts as an accessible landmark region (`region`),
- * skips landmark role assignment (`none`), or assigns it dynamically based on item context (`auto`).
+ * Panel landmark strategy.
+ * "auto" uses region only for smaller accordions.
  */
 export type AccordionPanelRole = "auto" | "region" | "none";
 
 /**
- * Configuration characteristics defining the essential native layout nodes, identifying keys,
- * and primitive toggle state tracking criteria required to compose a single accordion regional segment.
+ * Options for one accordion item.
  */
 export interface AccordionItemOptions {
     element: HTMLElement;
@@ -38,7 +37,7 @@ export interface AccordionItemOptions {
 }
 
 /**
- * Event notification details packed and dispatched when any individual accordion section mutates its display state.
+ * Details passed to accordion open-change callbacks.
  */
 export interface AccordionOpenChangeDetail {
     value: string;
@@ -47,8 +46,7 @@ export interface AccordionOpenChangeDetail {
 }
 
 /**
- * Global orchestration parameters configuring structural behavior rules, keyboard navigation loops,
- * and state dispatch mechanisms for a coordinated set of accordion items.
+ * Options for createAccordion().
  */
 export interface AccordionOptions {
     items: AccordionItemOptions[];
@@ -58,15 +56,12 @@ export interface AccordionOptions {
     loop?: boolean;
     variant?: AccordionVariant;
     size?: AccordionSize;
-    headingLevel?: AccordionHeadingLevel;
-    panelRole?: AccordionPanelRole;
     announcement?: DisclosureAnnouncement;
     onOpenChange?: ((detail: AccordionOpenChangeDetail) => void) | null;
 }
 
 /**
- * Represents the compiled runtime model, disclosure drivers, and isolated status accessors 
- * managing an active accordion item segment.
+ * Runtime controller for one accordion item.
  */
 export interface AccordionItem {
     readonly value: string;
@@ -84,8 +79,7 @@ export interface AccordionItem {
 }
 
 /**
- * Main coordinator component managing the accessibility matrix, keyboard focus patterns,
- * and visual disclosure state variations across a group of nested accordion segments.
+ * Accordion behavior controller returned by createAccordion().
  */
 export interface Accordion extends Component {
     readonly items: AccordionItem[];

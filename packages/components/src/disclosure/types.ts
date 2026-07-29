@@ -2,18 +2,17 @@ import type { Component } from "../foundation";
 import type { LiveRegionPoliteness } from "../../../core/src/live-region";
 
 /**
- * Defines the presentation or layout rendering mode variations for a disclosure container.
+ * Visual variant for a disclosure.
  */
 export type DisclosureVariant = "default" | "plain";
 
 /**
- * Defines the spacing, layout padding, or dimensional size constraint of a disclosure block.
+ * Disclosure size token.
  */
 export type DisclosureSize = "md";
 
 /**
- * Contextual state and element payload supplied to dynamic screen reader announcement generators
- * when a disclosure component changes its visibility state.
+ * Context passed to disclosure announcement message functions.
  */
 export interface DisclosureAnnouncementContext {
     readonly element: HTMLElement;
@@ -24,15 +23,14 @@ export interface DisclosureAnnouncementContext {
 }
 
 /**
- * Announcement payload defining either a static string message or a dynamic factory function
- * computing a custom announcement message based on disclosure context.
+ * Static or dynamic message announced when a disclosure opens.
  */
 export type DisclosureAnnouncementMessage =
     | string
     | ((context: DisclosureAnnouncementContext) => string | null | undefined);
 
 /**
- * Detailed configuration options governing live region announcements during disclosure state updates.
+ * Live-region announcement options for disclosure open events.
  */
 export interface DisclosureAnnouncementOptions {
     enabled?: boolean;
@@ -41,8 +39,7 @@ export interface DisclosureAnnouncementOptions {
 }
 
 /**
- * Flexible configuration input permitting a simple toggle boolean, a direct message payload,
- * or a fully explicit options object for managing disclosure accessibility announcements.
+ * Announcement configuration for disclosure open events.
  */
 export type DisclosureAnnouncement =
     | boolean
@@ -50,7 +47,7 @@ export type DisclosureAnnouncement =
     | DisclosureAnnouncementOptions;
 
 /**
- * Configuration options utilized to instantiate an accessible structural disclosure component.
+ * Options for createDisclosure().
  */
 export interface DisclosureOptions {
     trigger: HTMLElement;
@@ -65,9 +62,7 @@ export interface DisclosureOptions {
 }
 
 /**
- * Interface representing an accessible interactive disclosure accordion component.
- * Synchronizes visibility states (`aria-expanded`) and structural relationships (`aria-controls`) 
- * seamlessly across custom trigger elements and text panel nodes.
+ * Disclosure behavior controller returned by createDisclosure().
  */
 export interface Disclosure extends Component {
     readonly trigger: HTMLElement;

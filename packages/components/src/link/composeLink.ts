@@ -10,11 +10,8 @@ import { createLink } from "./createLink";
 import type { Link as LinkInstance, LinkOptions } from "./types";
 
 /**
- * Callback function signature executed when an interactive link component handles a navigation routing trigger.
- * Passes both the original native DOM interaction event and the orchestrating component controller context.
- * 
- * @param event - The native browser Event object triggered by pointer, keyboard, or voice activation.
- * @param link - The contextual ComposedLink manager instance executing the navigation behavior.
+ * Called when the composed link is activated.
+ * Receives the native event and the composed link instance.
  */
 export type LinkCompositionOnNavigate = (
     event: Event,
@@ -22,8 +19,8 @@ export type LinkCompositionOnNavigate = (
 ) => void;
 
 /**
- * Configuration characteristics defining navigation behaviors, interaction states, 
- * event pipelines, and nested layout content arrays for an accessibly sound Link element.
+ * Options for Link(), the composition API that creates and enhances a native anchor.
+ * Use `text` for simple labels or `children` for richer content.
  */
 export interface LinkCompositionOptions
     extends Omit<LinkOptions, "onNavigate">,
@@ -34,9 +31,8 @@ export interface LinkCompositionOptions
 }
 
 /**
- * Interface representing a managed, accessibly enhanced native HTMLAnchorElement wrapper.
- * Houses core structural navigation references while providing functional controls to alter content streams, 
- * apply runtime trait modifications, manage route interception pipelines, and cleanly purge listener structures.
+ * A link created by Link().
+ * Includes the enhanced link behavior plus content and lifecycle helpers.
  */
 export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLAnchorElement;
@@ -101,13 +97,7 @@ function getLinkOptions(
 }
 
 /**
- * Instantiates and coordinates an enhanced, accessibly sound native HTMLAnchorElement wrapper with dynamic event injection.
- * Integrates navigational state management pipelines, hooks up context-aware routing event overrides (`onNavigate`), 
- * and sets up isolated inner content slots to securely process typography shifts and sub-tree 
- * composition updates without breaking parent memory tables.
- *
- * @param options - Navigation traits, action hooks, content payloads, and layout identifiers assigned at initialization.
- * @returns An interactive ComposedLink manager offering unified properties, layout updates, and unmounting methods.
+ * Creates an accessible link with default styling hooks and optional composed content.
  */
 export function Link(options: LinkCompositionOptions = {}): ComposedLink {
     const element = createElement("a", getCompositionElementOptions(options));
