@@ -21,7 +21,7 @@ import {
     type Typeahead,
     type TypeaheadOptions
 } from "../typeahead";
-import { restoreAttribute } from "../dom";
+import { createAttributeSnapshot } from "../dom";
 
 import type {
     Listbox,
@@ -56,36 +56,13 @@ export function createListbox(
     const selectionFollowsFocus =
         options.selectionFollowsFocus ?? selectionMode === "single";
 
-    const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
+    const attributes = createAttributeSnapshot();
 
     let currentOption: HTMLElement | null = null;
     let destroyed = false;
     let rovingFocus: RovingFocus;
     let selection: Selection<HTMLElement>;
     let typeahead: Typeahead<HTMLElement> | null = null;
-
-    function rememberAttribute(target: HTMLElement, name: string): void {
-        let attributes = originalAttributes.get(target);
-
-        if (!attributes) {
-            attributes = new Map<string, string | null>();
-            originalAttributes.set(target, attributes);
-        }
-
-        if (!attributes.has(name)) {
-            attributes.set(name, target.getAttribute(name));
-        }
-    }
-
-    function restoreAttributes(): void {
-        for (const [target, attributes] of originalAttributes) {
-            for (const [name, value] of attributes) {
-                restoreAttribute(target, name, value);
-            }
-        }
-
-        originalAttributes.clear();
-    }
 
     function getOptions(): HTMLElement[] {
         return options.getOptions();
@@ -130,9 +107,9 @@ export function createListbox(
     }
 
     function syncState(): void {
-        rememberAttribute(element, "role");
-        rememberAttribute(element, "aria-orientation");
-        rememberAttribute(element, "aria-multiselectable");
+        attributes.remember(element, "role");
+        attributes.remember(element, "aria-orientation");
+        attributes.remember(element, "aria-multiselectable");
 
         setRole(element, "listbox");
         setAriaAttribute(
@@ -147,8 +124,8 @@ export function createListbox(
         );
 
         for (const option of getOptions()) {
-            rememberAttribute(option, "role");
-            rememberAttribute(option, "aria-selected");
+            attributes.remember(option, "role");
+            attributes.remember(option, "aria-selected");
 
             setRole(option, "option");
             setAriaAttribute(option, "aria-selected", selection.isSelected(option));
@@ -386,7 +363,7 @@ export function createListbox(
             typeahead = null;
 
             rovingFocus.deactivate();
-            restoreAttributes();
+            attributes.restore();
         }
     };
 }

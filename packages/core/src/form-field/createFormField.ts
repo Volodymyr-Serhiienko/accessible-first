@@ -8,7 +8,7 @@ import {
     type AriaReferences
 } from "../aria";
 import { ensureId } from "../id";
-import { restoreAttribute } from "../dom";
+import { createAttributeSnapshot } from "../dom";
 
 import type {
     FormField,
@@ -72,7 +72,7 @@ export function createFormField(
     control: HTMLElement,
     options: FormFieldOptions = {}
 ): FormField {
-    const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
+    const attributes = createAttributeSnapshot();
 
     let destroyed = false;
 
@@ -92,33 +92,10 @@ export function createFormField(
     let hasReadOnly = false;
     let hasInvalid = false;
 
-    function rememberAttribute(element: HTMLElement, name: string): void {
-        let attributes = originalAttributes.get(element);
-
-        if (!attributes) {
-            attributes = new Map<string, string | null>();
-            originalAttributes.set(element, attributes);
-        }
-
-        if (!attributes.has(name)) {
-            attributes.set(name, element.getAttribute(name));
-        }
-    }
-
     function rememberReferenceIds(references: AriaReferences): void {
         for (const element of getReferenceElements(references)) {
-            rememberAttribute(element, "id");
+            attributes.remember(element, "id");
         }
-    }
-
-    function restoreAttributes(): void {
-        for (const [element, attributes] of originalAttributes) {
-            for (const [name, value] of attributes) {
-                restoreAttribute(element, name, value);
-            }
-        }
-
-        originalAttributes.clear();
     }
 
     function getDescriptionReferences(): AriaReference[] {
@@ -140,7 +117,7 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "aria-labelledby");
+        attributes.remember(control, "aria-labelledby");
         rememberReferenceIds(label);
 
         for (const labelElement of getReferenceElements(label)) {
@@ -148,8 +125,8 @@ export function createFormField(
                 continue;
             }
 
-            rememberAttribute(control, "id");
-            rememberAttribute(labelElement, "for");
+            attributes.remember(control, "id");
+            attributes.remember(labelElement, "for");
 
             labelElement.htmlFor = ensureId(control, "af-field");
         }
@@ -162,8 +139,8 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "aria-describedby");
-        rememberAttribute(control, "aria-errormessage");
+        attributes.remember(control, "aria-describedby");
+        attributes.remember(control, "aria-errormessage");
 
         rememberReferenceIds(description);
         rememberReferenceIds(errorMessage);
@@ -184,8 +161,8 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "required");
-        rememberAttribute(control, "aria-required");
+        attributes.remember(control, "required");
+        attributes.remember(control, "aria-required");
 
         if (supportsNativeRequired(control)) {
             setBooleanAttribute(control, "required", required);
@@ -199,8 +176,8 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "disabled");
-        rememberAttribute(control, "aria-disabled");
+        attributes.remember(control, "disabled");
+        attributes.remember(control, "aria-disabled");
 
         if (supportsNativeDisabled(control)) {
             setBooleanAttribute(control, "disabled", disabled);
@@ -214,8 +191,8 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "readonly");
-        rememberAttribute(control, "aria-readonly");
+        attributes.remember(control, "readonly");
+        attributes.remember(control, "aria-readonly");
 
         if (supportsNativeReadOnly(control)) {
             setBooleanAttribute(control, "readonly", readOnly);
@@ -229,7 +206,7 @@ export function createFormField(
             return;
         }
 
-        rememberAttribute(control, "aria-invalid");
+        attributes.remember(control, "aria-invalid");
         setAriaAttribute(control, "aria-invalid", invalid ? invalid : null);
     }
 
@@ -330,7 +307,7 @@ export function createFormField(
             }
 
             destroyed = true;
-            restoreAttributes();
+            attributes.restore();
         }
     };
 

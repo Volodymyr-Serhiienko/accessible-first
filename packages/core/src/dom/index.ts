@@ -1,4 +1,5 @@
-export { restoreAttribute } from "./attributes";
+export { createAttributeSnapshot, restoreAttribute } from "./attributes";
+export type { AttributeSnapshot } from "./attributes";
 export { contains } from "./contains";
 export { getActiveElement } from "./getActiveElement";
 export { getOwnerDocument } from "./getOwnerDocument";

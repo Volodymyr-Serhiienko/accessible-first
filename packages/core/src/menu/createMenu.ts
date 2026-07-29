@@ -17,7 +17,7 @@ import {
     type Typeahead,
     type TypeaheadOptions
 } from "../typeahead";
-import { restoreAttribute } from "../dom";
+import { createAttributeSnapshot } from "../dom";
 
 import type { Menu, MenuItem, MenuOptions } from "./types";
 
@@ -47,35 +47,12 @@ export function createMenu(
     const orientation = options.orientation ?? "vertical";
     const closeOnSelect = options.closeOnSelect ?? true;
 
-    const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
+    const attributes = createAttributeSnapshot();
 
     let currentItem: HTMLElement | null = null;
     let destroyed = false;
     let rovingFocus: RovingFocus;
     let typeahead: Typeahead<HTMLElement> | null = null;
-
-    function rememberAttribute(target: HTMLElement, name: string): void {
-        let attributes = originalAttributes.get(target);
-
-        if (!attributes) {
-            attributes = new Map<string, string | null>();
-            originalAttributes.set(target, attributes);
-        }
-
-        if (!attributes.has(name)) {
-            attributes.set(name, target.getAttribute(name));
-        }
-    }
-
-    function restoreAttributes(): void {
-        for (const [target, attributes] of originalAttributes) {
-            for (const [name, value] of attributes) {
-                restoreAttribute(target, name, value);
-            }
-        }
-
-        originalAttributes.clear();
-    }
 
     function getItems(): HTMLElement[] {
         return options.getItems();
@@ -110,8 +87,8 @@ export function createMenu(
     }
 
     function syncState(): void {
-        rememberAttribute(element, "role");
-        rememberAttribute(element, "aria-orientation");
+        attributes.remember(element, "role");
+        attributes.remember(element, "aria-orientation");
 
         setRole(element, "menu");
         setAriaAttribute(
@@ -121,8 +98,8 @@ export function createMenu(
         );
 
         for (const item of getItems()) {
-            rememberAttribute(item, "role");
-            rememberAttribute(item, "aria-disabled");
+            attributes.remember(item, "role");
+            attributes.remember(item, "aria-disabled");
 
             setRole(item, "menuitem");
             setAriaDisabled(item, isItemDisabled(item) ? true : null);
@@ -290,7 +267,7 @@ export function createMenu(
             typeahead = null;
 
             rovingFocus.deactivate();
-            restoreAttributes();
+            attributes.restore();
         }
     };
 }

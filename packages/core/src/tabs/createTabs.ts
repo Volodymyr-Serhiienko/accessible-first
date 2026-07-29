@@ -13,7 +13,7 @@ import {
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
-import { restoreAttribute } from "../dom";
+import { createAttributeSnapshot } from "../dom";
 
 import type { Tabs, TabsOptions, TabsTab } from "./types";
 
@@ -42,34 +42,11 @@ export function createTabs(
     const orientation = options.orientation ?? "horizontal";
     const activationMode = options.activationMode ?? "automatic";
 
-    const originalAttributes = new Map<HTMLElement, Map<string, string | null>>();
+    const attributes = createAttributeSnapshot();
 
     let currentTab: HTMLElement | null = null;
     let destroyed = false;
     let rovingFocus: RovingFocus;
-
-    function rememberAttribute(element: HTMLElement, name: string): void {
-        let attributes = originalAttributes.get(element);
-
-        if (!attributes) {
-            attributes = new Map<string, string | null>();
-            originalAttributes.set(element, attributes);
-        }
-
-        if (!attributes.has(name)) {
-            attributes.set(name, element.getAttribute(name));
-        }
-    }
-
-    function restoreAttributes(): void {
-        for (const [element, attributes] of originalAttributes) {
-            for (const [name, value] of attributes) {
-                restoreAttribute(element, name, value);
-            }
-        }
-
-        originalAttributes.clear();
-    }
 
     function getTabs(): HTMLElement[] {
         return options.getTabs();
@@ -117,8 +94,8 @@ export function createTabs(
     }
 
     function syncState(): void {
-        rememberAttribute(tablist, "role");
-        rememberAttribute(tablist, "aria-orientation");
+        attributes.remember(tablist, "role");
+        attributes.remember(tablist, "aria-orientation");
 
         setRole(tablist, "tablist");
         setAriaAttribute(
@@ -131,17 +108,17 @@ export function createTabs(
             const panel = getPanel(tab);
             const selected = tab === currentTab && panel !== null;
 
-            rememberAttribute(tab, "role");
-            rememberAttribute(tab, "aria-selected");
-            rememberAttribute(tab, "aria-controls");
+            attributes.remember(tab, "role");
+            attributes.remember(tab, "aria-selected");
+            attributes.remember(tab, "aria-controls");
 
             setRole(tab, "tab");
             setAriaAttribute(tab, "aria-selected", selected);
 
             if (panel) {
-                rememberAttribute(panel, "role");
-                rememberAttribute(panel, "aria-labelledby");
-                rememberAttribute(panel, "hidden");
+                attributes.remember(panel, "role");
+                attributes.remember(panel, "aria-labelledby");
+                attributes.remember(panel, "hidden");
 
                 setRole(panel, "tabpanel");
                 setAriaControls(tab, panel);
@@ -291,7 +268,7 @@ export function createTabs(
             }
 
             rovingFocus.deactivate();
-            restoreAttributes();
+            attributes.restore();
         }
     };
 }
