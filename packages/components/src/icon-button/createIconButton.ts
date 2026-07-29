@@ -240,7 +240,7 @@ export function createIconButton(
         setLabel,
         setLabelledBy,
 
-        update(nextOptions: IconButtonOptions): void {
+        update(nextOptions: Partial<IconButtonOptions>): void {
             if (nextOptions.disabled !== undefined) {
                 setDisabled(nextOptions.disabled);
             }

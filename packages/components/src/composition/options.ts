@@ -67,7 +67,7 @@ export function getCompositionElementOptions(
  */
 export function applyCompositionElementOptions(
     element: HTMLElement,
-    options: BaseCompositionOptions = {}
+    options: Partial<BaseCompositionOptions> = {}
 ): void {
     if (options.id !== undefined) {
         element.id = options.id;

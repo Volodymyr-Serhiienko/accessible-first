@@ -41,7 +41,7 @@ export interface ButtonCompositionOptions
 export interface ComposedButton extends Omit<ButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
     setText(text: string): void;
-    update(options: ButtonCompositionOptions): void;
+    update(options: Partial<ButtonCompositionOptions>): void;
     destroy(): void;
 }
 
@@ -52,7 +52,7 @@ function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
 }
 
 function getButtonOptions(
-    options: ButtonCompositionOptions,
+    options: Partial<ButtonCompositionOptions>,
     onPress: (event: Event) => void
 ): ButtonOptions {
     const buttonOptions: ButtonOptions = {
@@ -100,7 +100,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         element,
         setText,
 
-        update(nextOptions: ButtonCompositionOptions): void {
+        update(nextOptions: Partial<ButtonCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {

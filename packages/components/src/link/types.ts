@@ -48,5 +48,5 @@ export interface Link extends Component {
     isDisabled(): boolean;
     setExternal(external: boolean): void;
     setCurrent(current: LinkCurrent): void;
-    update(options: LinkOptions): void;
+    update(options: Partial<LinkOptions>): void;
 }

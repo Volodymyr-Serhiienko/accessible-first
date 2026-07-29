@@ -40,5 +40,5 @@ export interface Button extends Component {
     isDisabled(): boolean;
     setPressed(pressed: ButtonPressedState): void;
     getPressed(): ButtonPressedState;
-    update(options: ButtonOptions): void;
+    update(options: Partial<ButtonOptions>): void;
 }

@@ -171,7 +171,7 @@ export function createButton(
             return pressed;
         },
 
-        update(nextOptions: ButtonOptions): void {
+        update(nextOptions: Partial<ButtonOptions>): void {
             if (nextOptions.disabled !== undefined) {
                 this.setDisabled(nextOptions.disabled);
             }

@@ -35,5 +35,5 @@ export interface IconButton extends Component {
     getPressed(): ButtonPressedState;
     setLabel(label: string | null): void;
     setLabelledBy(labelledBy: AriaReferences): void;
-    update(options: IconButtonOptions): void;
+    update(options: Partial<IconButtonOptions>): void;
 }

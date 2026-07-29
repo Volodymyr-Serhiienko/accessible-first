@@ -42,7 +42,7 @@ export interface IconButtonCompositionOptions
 export interface ComposedIconButton extends Omit<IconButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
     setTitle(title: string | null): void;
-    update(options: IconButtonCompositionOptions): void;
+    update(options: Partial<IconButtonCompositionOptions>): void;
     destroy(): void;
 }
 
@@ -59,7 +59,7 @@ function getChildren(options: IconButtonCompositionOptions): CompositionChild[] 
 }
 
 function getIconButtonOptions(
-    options: IconButtonCompositionOptions,
+    options: Partial<IconButtonCompositionOptions>,
     onPress: (event: Event) => void
 ): IconButtonOptions {
     const iconButtonOptions: IconButtonOptions = {
@@ -167,7 +167,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         setTitle,
         setLabel,
 
-        update(nextOptions: IconButtonCompositionOptions): void {
+        update(nextOptions: Partial<IconButtonCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {

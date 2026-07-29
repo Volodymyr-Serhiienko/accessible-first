@@ -270,7 +270,7 @@ export function createLink(
         setExternal,
         setCurrent,
 
-        update(nextOptions: LinkOptions): void {
+        update(nextOptions: Partial<LinkOptions>): void {
             if ("href" in nextOptions) {
                 setHref(nextOptions.href ?? null);
             }

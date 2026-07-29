@@ -41,7 +41,7 @@ export interface LinkCompositionOptions
 export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLAnchorElement;
     setText(text: string): void;
-    update(options: LinkCompositionOptions): void;
+    update(options: Partial<LinkCompositionOptions>): void;
     destroy(): void;
 }
 
@@ -58,7 +58,7 @@ function getChildren(options: LinkCompositionOptions): CompositionChild[] {
 }
 
 function getLinkOptions(
-    options: LinkCompositionOptions,
+    options: Partial<LinkCompositionOptions>,
     onNavigate: (event: Event) => void
 ): LinkOptions {
     const linkOptions: LinkOptions = {
@@ -134,7 +134,7 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
         element,
         setText,
 
-        update(nextOptions: LinkCompositionOptions): void {
+        update(nextOptions: Partial<LinkCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onNavigate" in nextOptions) {
