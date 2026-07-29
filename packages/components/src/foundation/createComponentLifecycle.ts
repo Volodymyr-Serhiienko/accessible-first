@@ -4,19 +4,7 @@ import type {
     ComponentLifecycleOptions,
     ComponentState
 } from "./types";
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
-}
+import { restoreAttribute } from "../../../core/src/dom";
 
 /**
  * Creates and initializes a component runtime lifecycle management state machine.

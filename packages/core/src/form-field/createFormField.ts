@@ -8,6 +8,8 @@ import {
     type AriaReferences
 } from "../aria";
 import { ensureId } from "../id";
+import { restoreAttribute } from "../dom";
+
 import type {
     FormField,
     FormFieldInvalidState,
@@ -53,19 +55,6 @@ function setBooleanAttribute(
     }
 
     element.removeAttribute(name);
-}
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 /**

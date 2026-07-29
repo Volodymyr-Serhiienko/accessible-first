@@ -9,6 +9,7 @@ import {
     type LiveRegionPoliteness
 } from "../../../core/src/live-region";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
 
 import type {
     Disclosure,
@@ -17,15 +18,6 @@ import type {
     DisclosureAnnouncementMessage,
     DisclosureOptions
 } from "./types";
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
-}
 
 function normalizeAnnouncementText(value: string): string {
     return value.replace(/\s+/g, " ").trim();

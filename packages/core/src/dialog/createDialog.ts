@@ -12,23 +12,12 @@ import {
     type FocusTrapOptions
 } from "../focus";
 import { isEscapeKey } from "../keyboard";
+import { restoreAttribute } from "../dom";
+
 import type { Dialog, DialogElement, DialogOptions } from "./types";
 
 function resolveElement(value: DialogElement | undefined): HTMLElement | null {
     return typeof value === "function" ? value() : value ?? null;
-}
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 function getFocusTrapOptions(

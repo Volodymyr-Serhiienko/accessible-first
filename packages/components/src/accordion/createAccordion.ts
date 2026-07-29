@@ -3,12 +3,13 @@ import { focusElement } from "../../../core/src/focus";
 import { isArrowDownKey, isArrowUpKey, isEndKey, isHomeKey } from "../../../core/src/keyboard";
 import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
+
 import { createDisclosure,
     type DisclosureAnnouncement,
     type DisclosureInstance as Disclosure,
     type DisclosureOptions
 } from "../disclosure";
-
 import type {
     Accordion,
     AccordionItem,
@@ -22,15 +23,6 @@ import type {
 interface InternalAccordionItem extends AccordionItem {
     ownDisabled: boolean;
     ownAnnouncement: DisclosureAnnouncement | undefined;
-}
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 function getUniqueValue(

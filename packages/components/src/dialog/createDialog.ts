@@ -20,16 +20,9 @@ import {
 } from "../../../core/src/dismissable-layer";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
+
 import type { Dialog, DialogOptions, DialogSize, DialogVariant } from "./types";
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
-}
 
 function isHTMLElement(value: Element | null): value is HTMLElement {
     return value instanceof HTMLElement;

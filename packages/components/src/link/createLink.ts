@@ -3,19 +3,12 @@ import { getOwnerWindow } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
+
 import type { Link, LinkCurrent, LinkOptions, LinkTarget } from "./types";
 
 function isAnchorElement(element: HTMLElement): element is HTMLAnchorElement {
     return element.localName === "a";
-}
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 function mergeRel(value: string | null, tokens: string[]): string {

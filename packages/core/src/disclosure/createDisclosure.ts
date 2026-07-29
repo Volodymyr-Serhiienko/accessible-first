@@ -6,23 +6,12 @@ import {
 } from "../aria";
 import { addEventListener, type Cleanup } from "../events";
 import { isEnterKey, isSpaceKey } from "../keyboard";
+import { restoreAttribute } from "../dom";
+
 import type { Disclosure, DisclosureOptions } from "./types";
 
 function isButtonElement(element: HTMLElement): element is HTMLButtonElement {
     return element.localName === "button";
-}
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 /**

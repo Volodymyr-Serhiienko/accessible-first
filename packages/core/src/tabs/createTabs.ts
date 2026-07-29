@@ -13,6 +13,8 @@ import {
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
+import { restoreAttribute } from "../dom";
+
 import type { Tabs, TabsOptions, TabsTab } from "./types";
 
 function resolveTab(tab: TabsTab | undefined): HTMLElement | null {
@@ -21,19 +23,6 @@ function resolveTab(tab: TabsTab | undefined): HTMLElement | null {
 
 function isNode(value: EventTarget | null): value is Node {
     return typeof value === "object" && value !== null && "nodeType" in value;
-}
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 /**

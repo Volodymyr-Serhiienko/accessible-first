@@ -21,6 +21,8 @@ import {
     type Typeahead,
     type TypeaheadOptions
 } from "../typeahead";
+import { restoreAttribute } from "../dom";
+
 import type {
     Listbox,
     ListboxOption,
@@ -34,21 +36,6 @@ function resolveOption(option: ListboxOption | undefined): HTMLElement | null {
 function isNode(value: EventTarget | null): value is Node {
     return typeof value === "object" && value !== null && "nodeType" in value;
 }
-
-function restoreAttribute(
-    element: HTMLElement,
-    name: string,
-    value: string | null
-): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
-}
-
-
 
 /**
  * Creates and manages an accessible listbox component.

@@ -8,6 +8,8 @@ import {
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
+
 import type { ButtonPressedState } from "../button";
 import type { IconButton, IconButtonOptions } from "./types";
 
@@ -22,15 +24,6 @@ function hasAccessibleName(element: HTMLElement): boolean {
         || element.textContent?.trim()
         || element.getAttribute("title")?.trim()
     );
-}
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 /**

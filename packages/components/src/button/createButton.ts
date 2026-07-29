@@ -2,19 +2,12 @@ import { setAriaAttribute, setAriaDisabled, setRole } from "../../../core/src/ar
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
+import { restoreAttribute } from "../../../core/src/dom";
+
 import type { Button, ButtonOptions, ButtonPressedState } from "./types";
 
 function isNativeButton(element: HTMLElement): element is HTMLButtonElement {
     return element.localName === "button";
-}
-
-function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
-    if (value === null) {
-        element.removeAttribute(name);
-        return;
-    }
-
-    element.setAttribute(name, value);
 }
 
 /**
