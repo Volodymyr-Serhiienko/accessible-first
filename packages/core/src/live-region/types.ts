@@ -1,12 +1,10 @@
 /**
- * Defines the politeness levels for screen reader announcements in a live region.
- * - "polite": Announces changes when the user is idle.
- * - "assertive": Interrupts the user to announce changes immediately.
+ * Screen reader announcement politeness.
  */
 export type LiveRegionPoliteness = "polite" | "assertive";
 
 /**
- * Configuration options for creating an individual accessible live region.
+ * Options for createLiveRegion().
  */
 export interface LiveRegionOptions {
     container?: HTMLElement;
@@ -15,7 +13,7 @@ export interface LiveRegionOptions {
 }
 
 /**
- * Interface representing a specific, managed DOM element acting as an ARIA live region.
+ * Controller returned by createLiveRegion().
  */
 export interface LiveRegion {
     readonly element: HTMLElement;
@@ -25,14 +23,14 @@ export interface LiveRegion {
 }
 
 /**
- * Overriding options for an individual announcement call.
+ * Options for one announcement.
  */
 export interface AnnounceOptions {
     politeness?: LiveRegionPoliteness;
 }
 
 /**
- * Configuration options for a global or contextual announcer manager.
+ * Options for createAnnouncer().
  */
 export interface AnnouncerOptions {
     container?: HTMLElement;
@@ -40,8 +38,7 @@ export interface AnnouncerOptions {
 }
 
 /**
- * Interface for a high-level manager that handles text announcements 
- * by dynamically coordinating live regions based on politeness levels.
+ * Controller returned by createAnnouncer().
  */
 export interface Announcer {
     announce(message: string, options?: AnnounceOptions): void;

@@ -35,3 +35,4 @@ rovingFocus.deactivate();
 * Supports Arrow keys, Home, and End
 * Supports horizontal, vertical, and two-axis navigation
 * Skips disabled, hidden, inert, and aria-disabled="true" items by default
+* `refresh()` is a no-op while the roving focus instance is inactive

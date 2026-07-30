@@ -58,15 +58,10 @@ function setBooleanAttribute(
 }
 
 /**
- * Creates and initializes an accessible form field controller instance.
- * Decorates an interactive input control node by syncing native functional tracking flags 
- * (`disabled`, `required`, `readonly`) alongside explicit structural WAI-ARIA relational metadata maps 
- * (`aria-labelledby`, `aria-describedby`, `aria-errormessage`, `aria-invalid`).
- * Caches previous DOM property modifications to guarantee pristine markup restoration upon teardown.
+ * Creates accessible form-field semantics for a control.
  *
- * @param control - The primary underlying target input, select, or textarea HTMLElement being decorated.
- * @param options - Initial operational states and descriptive text node references to apply immediately.
- * @returns A FormField modifier object exposing atomic mutation sets and dynamic lifecycle hooks.
+ * The controller manages labels, descriptions, error messages, required,
+ * disabled, read-only, invalid state, and restores changed attributes on destroy.
  */
 export function createFormField(
     control: HTMLElement,

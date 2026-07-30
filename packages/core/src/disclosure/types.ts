@@ -1,5 +1,5 @@
 /**
- * Configuration options for initializing a disclosure (expandable/collapsible) component.
+ * Options for createDisclosure().
  */
 export interface DisclosureOptions {
     defaultOpen?: boolean;
@@ -8,9 +8,7 @@ export interface DisclosureOptions {
 }
 
 /**
- * Interface representing a managed disclosure component instance.
- * Coordinates an interactive trigger element with an expandable content panel 
- * following accessible disclosure patterns.
+ * Controller returned by createDisclosure().
  */
 export interface Disclosure {
     readonly trigger: HTMLElement;

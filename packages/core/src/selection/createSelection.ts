@@ -5,14 +5,10 @@ import type {
 } from "./types";
 
 /**
- * Creates and initializes a generic, headless selection state engine.
- * Tracks structural choices within an abstract model dataset collection pool, enforcing 
- * single or multiple entry retention constraints, pruning stale or disabled items, 
- * and emitting state change updates as side effects.
+ * Creates headless selection state for a collection.
  *
- * @template TItem - The data model type of the items tracked inside the collection.
- * @param options - Baseline collection dependencies, initial choice constraints, and subscription handlers.
- * @returns A dynamic Selection controller object managing inclusions, exclusions, and evaluation routines.
+ * Selection normalizes selected items against the current collection,
+ * skips disabled items, preserves collection order, and emits changes.
  */
 export function createSelection<TItem>(
     options: SelectionOptions<TItem>

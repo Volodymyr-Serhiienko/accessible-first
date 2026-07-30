@@ -26,12 +26,7 @@ function getLiveRegionOptions(
 }
 
 /**
- * Creates an accessibility announcer manager that instantiates and coordinates two 
- * distinct ARIA live regions: one polite and one assertive.
- * Combines them into a unified manager to stream messages to screen readers based on context urgency.
- *
- * @param options - General configuration settings for the internal live regions. Defaults to an empty object.
- * @returns An Announcer object capable of broadcasting messages, flushing regions, and cleaning up nodes.
+ * Creates an announcer with polite and assertive live regions.
  */
 export function createAnnouncer(
     options: AnnouncerOptions = {}

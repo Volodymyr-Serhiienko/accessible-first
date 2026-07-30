@@ -28,13 +28,10 @@ function getSearchQuery(query: string): string {
 }
 
 /**
- * Creates and manages a standalone text typeahead state engine for matching elements inside a generic dataset collection.
- * Maintains an internal character buffer that auto-resets after a configurable idle timeout, permitting complex
- * sequential string matches as well as circular looping algorithms when searching from an active cursor item.
+ * Creates reusable typeahead behavior for a collection.
  *
- * @template TItem - The custom item model type being handled inside the dataset collection.
- * @param options - Explicit criteria for parsing query string representation, matching callbacks, and timeout rules.
- * @returns A Typeahead instance exposing character insertion pipelines, keyboard event handlers, and lifecycle hooks.
+ * Typeahead keeps a short-lived character query, searches from the current item,
+ * supports repeated-character cycling, and calls onMatch when it finds an item.
  */
 export function createTypeahead<TItem>(
     options: TypeaheadOptions<TItem>

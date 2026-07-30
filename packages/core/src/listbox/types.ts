@@ -1,19 +1,15 @@
 /**
- * Specifies the visual layout directional alignment of the listbox items.
- * Governs which navigation arrow keys are used to cycle through options.
+ * Listbox orientation used by arrow-key navigation.
  */
 export type ListboxOrientation = "vertical" | "horizontal";
 
 /**
- * Defines the selection constraints for the listbox component.
- * - "single": Only a single choice can be active at a time.
- * - "multiple": Multiple items can be toggled and selected concurrently.
+ * Selection mode for listbox options.
  */
 export type ListboxSelectionMode = "single" | "multiple";
 
 /**
- * A proxy reference resolving to an individual listbox option container.
- * Can be a direct `HTMLElement`, a dynamic factory function, or null.
+ * Listbox option reference.
  */
 export type ListboxOption =
     | HTMLElement
@@ -21,12 +17,12 @@ export type ListboxOption =
     | null;
 
 /**
- * Represents one or more option references used to seed or manipulate selected states.
+ * Initial selected option or options.
  */
 export type ListboxSelectedOptions = ListboxOption | ListboxOption[];
 
 /**
- * Configuration options for initializing an interactive listbox component manager.
+ * Options for createListbox().
  */
 export interface ListboxOptions {
     getOptions: () => HTMLElement[];
@@ -43,10 +39,7 @@ export interface ListboxOptions {
 }
 
 /**
- * Interface representing a managed accessible listbox component instance.
- * Coordinates selection collections, active focus states, roving indices, 
- * and required ARIA states (`role="listbox"`, `role="option"`, `aria-selected`)
- * for single or multi-select list interfaces.
+ * Controller returned by createListbox().
  */
 export interface Listbox {
     readonly element: HTMLElement;

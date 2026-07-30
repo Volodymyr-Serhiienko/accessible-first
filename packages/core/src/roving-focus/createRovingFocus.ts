@@ -252,6 +252,10 @@ export function createRovingFocus(
         },
 
         refresh(): void {
+            if (!active) {
+                return;
+            }
+
             syncTabIndexes();
         },
 

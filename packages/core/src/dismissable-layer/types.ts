@@ -1,8 +1,7 @@
 import type { OverlayStack } from "../overlay-stack";
 
 /**
- * A proxy reference resolving to an external container branch that should be treated 
- * as part of the layer. Interactions within a branch will not trigger dismiss cycles.
+ * Related element that should count as inside a dismissable layer.
  */
 export type DismissableLayerBranch =
     | HTMLElement
@@ -10,9 +9,7 @@ export type DismissableLayerBranch =
     | null;
 
 /**
- * Custom synthetic event wrapper that intercepts interactions outside or within 
- * the layer, permitting consumers to dynamically prevent default dismissal behavior.
- * * @template TEvent - The native DOM event model type being intercepted.
+ * Event wrapper passed to outside-interaction callbacks.
  */
 export interface DismissableLayerEvent<TEvent extends Event = Event> {
     readonly originalEvent: TEvent;
@@ -22,8 +19,7 @@ export interface DismissableLayerEvent<TEvent extends Event = Event> {
 }
 
 /**
- * Configuration options for initializing a contextual layout overlay layer 
- * that can be dismissed via keyboard or outside user interaction.
+ * Options for createDismissableLayer().
  */
 export interface DismissableLayerOptions {
     active?: boolean;
@@ -40,8 +36,7 @@ export interface DismissableLayerOptions {
 }
 
 /**
- * Interface representing a managed surface overlay layer (such as modals, tooltips, popovers, or dropdowns)
- * that intercepts key or interaction cycles to conditionally trigger closure hooks.
+ * Controller returned by createDismissableLayer().
  */
 export interface DismissableLayer {
     readonly element: HTMLElement;

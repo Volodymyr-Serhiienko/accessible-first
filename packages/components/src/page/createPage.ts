@@ -46,14 +46,10 @@ function setupPageTheme(options: PageOptions): () => void {
 }
 
 /**
- * Instantiates and manages a top-level structured semantic Page component.
- * Automatically configures basic document metadata titles, initializes an accessible 
- * bypass mechanism ("Skip to content link"), establishes the main landscape segment, and 
- * exposes fluent layout manipulation utilities that collect and coordinate sub-component 
- * lifecycles for clean runtime destruction sequence routing.
+ * Creates a semantic page controller.
  *
- * @param options - Configuration behavior adjusting landmark configurations, bypass values, or views titles.
- * @returns A fluent Page controller interface detailing structured landmark insertion and validation methods.
+ * Page owns the root container, main landmark, optional skip link, document title,
+ * theme synchronization, landmark slots, lifecycle cleanup, and diagnostics.
  */
 export function createPage(options: PageOptions = {}): Page {
     const root = createElement("div", {

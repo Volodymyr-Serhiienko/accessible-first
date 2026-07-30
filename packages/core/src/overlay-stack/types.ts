@@ -1,5 +1,5 @@
 /**
- * Represents an individual registered overlay tracked inside a stacked layout queue.
+ * Registered overlay entry.
  */
 export interface OverlayStackEntry {
     readonly id: string;
@@ -7,9 +7,7 @@ export interface OverlayStackEntry {
 }
 
 /**
- * Interface representing a centralized layer manager tracking viewport overlays.
- * Coordinates z-index hierarchy balances, multi-modal focus orders, and escape sequence 
- * dismissal priorities by evaluating top-to-bottom entry lists.
+ * Ordered stack of active overlay layers.
  */
 export interface OverlayStack {
     add(element: HTMLElement): OverlayStackEntry;

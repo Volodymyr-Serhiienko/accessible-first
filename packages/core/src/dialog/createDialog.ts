@@ -40,14 +40,10 @@ function getFocusTrapOptions(
 }
 
 /**
- * Creates and manages an accessible modal or non-modal dialog component.
- * Configures required ARIA attributes, wires keyboard behavior (such as closing via Escape), 
- * orchestrates focus containment and initial placement using an internal focus trap, 
- * and reverts changes to return the container element to its initial DOM state upon destruction.
+ * Creates accessible dialog behavior for an existing element.
  *
- * @param element - The main wrapper HTMLElement that functions as the dialog overlay content.
- * @param options - Configuration behavior adjustments for lifecycle management and accessibility mapping. Defaults to an empty object.
- * @returns A Dialog instance exposing control methods over visibility and cleanup routines.
+ * The behavior manages ARIA attributes, hidden state, Escape handling,
+ * focus trapping, initial focus, focus restoration, and cleanup.
  */
 export function createDialog(
     element: HTMLElement,

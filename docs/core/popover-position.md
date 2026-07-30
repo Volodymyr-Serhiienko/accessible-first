@@ -37,6 +37,7 @@ position.destroy();
 * Supports matching the anchor width
 * Updates on window resize and scroll by default
 * Restores original inline styles on destroy
+* `update()` is a no-op after destroy and returns the last known state
 
 ## Principles
 

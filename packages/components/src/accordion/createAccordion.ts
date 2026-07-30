@@ -5,7 +5,8 @@ import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 
-import { createDisclosure,
+import {
+    createDisclosure,
     type DisclosureAnnouncement,
     type DisclosureInstance as Disclosure,
     type DisclosureOptions
@@ -70,6 +71,12 @@ function getInitialOpenStates(
     return states;
 }
 
+/**
+ * Creates an accessible accordion component.
+ *
+ * Accordion items stay in the normal Tab order. Arrow keys are optional shortcuts
+ * for browsers and assistive technologies that pass those keys through.
+ */
 export function createAccordion(
     element: HTMLElement,
     options: AccordionOptions
@@ -104,49 +111,49 @@ export function createAccordion(
     const internalItems: InternalAccordionItem[] = [];
 
     function getItemByTrigger(target: EventTarget | null): InternalAccordionItem | null {
-    if (!(target instanceof HTMLElement)) {
-        return null;
+        if (!(target instanceof HTMLElement)) {
+            return null;
+        }
+
+        return internalItems.find((item) => item.trigger === target) ?? null;
     }
 
-    return internalItems.find((item) => item.trigger === target) ?? null;
-}
-
-function getAvailableItems(): InternalAccordionItem[] {
-    return internalItems.filter((item) => !item.isDisabled());
-}
-
-function focusItem(item: InternalAccordionItem | null): boolean {
-    if (!item || !focusElement(item.trigger)) {
-        return false;
+    function getAvailableItems(): InternalAccordionItem[] {
+        return internalItems.filter((item) => !item.isDisabled());
     }
 
-    scrollIntoViewIfNeeded(item.trigger);
-    return true;
-}
+    function focusItem(item: InternalAccordionItem | null): boolean {
+        if (!item || !focusElement(item.trigger)) {
+            return false;
+        }
 
-function getRelativeItem(
-    currentItem: InternalAccordionItem,
-    direction: 1 | -1
-): InternalAccordionItem | null {
-    const items = getAvailableItems();
-    const currentIndex = items.indexOf(currentItem);
-
-    if (items.length === 0 || currentIndex === -1) {
-        return null;
+        scrollIntoViewIfNeeded(item.trigger);
+        return true;
     }
 
-    const nextIndex = currentIndex + direction;
+    function getRelativeItem(
+        currentItem: InternalAccordionItem,
+        direction: 1 | -1
+    ): InternalAccordionItem | null {
+        const items = getAvailableItems();
+        const currentIndex = items.indexOf(currentItem);
 
-    if (nextIndex < 0) {
-        return loop ? items[items.length - 1] ?? null : null;
+        if (items.length === 0 || currentIndex === -1) {
+            return null;
+        }
+
+        const nextIndex = currentIndex + direction;
+
+        if (nextIndex < 0) {
+            return loop ? items[items.length - 1] ?? null : null;
+        }
+
+        if (nextIndex >= items.length) {
+            return loop ? items[0] ?? null : null;
+        }
+
+        return items[nextIndex] ?? null;
     }
-
-    if (nextIndex >= items.length) {
-        return loop ? items[0] ?? null : null;
-    }
-
-    return items[nextIndex] ?? null;
-}
 
     function handleKeyDown(event: KeyboardEvent): void {
         const item = getItemByTrigger(event.target);

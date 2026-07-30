@@ -1,10 +1,10 @@
 /**
- * Defines the allowed axis orientation for navigating a roving focus collection.
+ * Axis used by arrow-key navigation.
  */
 export type RovingFocusOrientation = "horizontal" | "vertical" | "both";
 
 /**
- * Configuration options for initializing a roving focus management instance.
+ * Options for createRovingFocus().
  */
 export interface RovingFocusOptions {
     getItems: () => HTMLElement[];
@@ -16,8 +16,7 @@ export interface RovingFocusOptions {
 }
 
 /**
- * Interface representing a roving focus management instance, used to handle 
- * keyboard navigation within accessible components like toolbars, menus, or grids.
+ * Controller for roving tabindex navigation.
  */
 export interface RovingFocus {
     activate(): void;

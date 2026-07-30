@@ -89,15 +89,10 @@ function isAnnouncementEnabled(announcement: DisclosureAnnouncement): boolean {
 }
 
 /**
- * Creates and initializes an accessible structural disclosure component wrapper.
- * Connects an interactive control header (`trigger`) with a collapsible content region (`panel`) 
- * by instantiating core visibility behaviors, synchronizing data states across elements 
- * (`data-af-open`), tracking structural component lifecycles, and cleanly restoring 
- * state signatures during teardown cycles.
+ * Creates an accessible disclosure component.
  *
- * @param element - The root HTMLElement containing or managing the disclosure block layout.
- * @param options - Required target child nodes alongside initial states and style variants.
- * @returns A Disclosure interface instance revealing synchronized toggle and lifecycle utilities.
+ * It composes core disclosure behavior with component state attributes,
+ * optional open announcements, styling hooks, and cleanup.
  */
 export function createDisclosure(
     element: HTMLElement,

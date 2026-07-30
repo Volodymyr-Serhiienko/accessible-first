@@ -29,15 +29,10 @@ function toAriaCurrentValue(current: LinkCurrent): string | null {
 }
 
 /**
- * Creates and initializes an accessible hyperlink component wrapper.
- * Decorates native standard `<a>` anchors or custom elements (e.g., `<div>`, `<span>`) by integrating 
- * them into a runtime lifecycle, parsing fallback accessibility link roles, maintaining keyboard focus mappings, 
- * automatically enforcing window target isolation presets (`noopener`, `noreferrer` for `_blank`), 
- * and intercepting Enter-key events to normalize non-native anchor navigations.
+ * Enhances a native anchor or custom element with accessible link behavior.
  *
- * @param element - The root HTMLElement context targeted to behave as a hyperlink component.
- * @param options - Navigation configurations, custom style schemas, and semantic context descriptors.
- * @returns A Link interface instance exposing runtime layout mutators and instance cleanup states.
+ * Native anchors keep browser navigation. Non-native elements receive link role,
+ * focusability, Enter activation, and normalized navigation handling.
  */
 export function createLink(
     element: HTMLElement,

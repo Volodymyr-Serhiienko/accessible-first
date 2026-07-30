@@ -54,14 +54,10 @@ function createLayerEvent<TEvent extends Event>(
 }
 
 /**
- * Creates and initializes a managed dismissable overlay layer surface wrapper.
- * Dynamically binds global window/document events to trap interactions such as outside cursor clicks, 
- * focus changes, or Escape key combinations. Includes branch matching logic to declare external, 
- * structurally unlinked DOM structures (like detached popovers or portals) as safe interactive targets.
+ * Creates a dismissable layer for overlays.
  *
- * @param element - The core parent container HTMLElement acting as the primary boundary layer.
- * @param options - Event interception rules, bypass branch nodes lists, and conditional cancellation hooks.
- * @returns A DismissableLayer context manager allowing explicit lifecycle activation shifts and teardowns.
+ * The layer listens for Escape, outside pointer interaction, and outside focus.
+ * Branches can mark related DOM nodes as inside the layer.
  */
 export function createDismissableLayer(
     element: HTMLElement,

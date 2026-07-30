@@ -69,6 +69,12 @@ function hasAuthorAccessibleName(element: HTMLElement, fallbackLabelApplied: boo
     return Boolean(labelledBy || (label && !fallbackLabelApplied));
 }
 
+function getFallbackAccessibleName(element: HTMLElement): string {
+    return element.getAttribute("role") === "alertdialog"
+        ? "Alert dialog"
+        : "Dialog";
+}
+
 /**
  * Creates an accessible dialog component.
  *
@@ -118,7 +124,7 @@ export function createDialog(
             return;
         }
 
-        element.setAttribute("aria-label", "Dialog");
+        element.setAttribute("aria-label", getFallbackAccessibleName(element));
         element.setAttribute("data-af-warning", "missing-accessible-name");
         fallbackLabelApplied = true;
     }
@@ -364,6 +370,7 @@ export function createDialog(
 
             if (nextOptions.role !== undefined) {
                 setRole(element, nextOptions.role);
+                syncAccessibleName();
             }
 
             if (nextOptions.modal !== undefined) {

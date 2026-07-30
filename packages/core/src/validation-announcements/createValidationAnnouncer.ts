@@ -74,13 +74,10 @@ function getAnnouncementControl(
 }
 
 /**
- * Creates and initializes an accessible form validation announcement engine.
- * Wraps a low-level aria-live announcer utility to format, batch, and queue audible accessibility notifications 
- * for individual control validation drops, multi-error aggregate summaries, or successful submission events.
- * Manages an isolated or shared live region context, safely scrubbing verbal queues on destruction.
+ * Creates a validation announcer for form feedback.
  *
- * @param options - Speech layout strategies, fallback labels, success strings, and summary message composers.
- * @returns A ValidationAnnouncer pipeline interface exposing atomic error formatting and dispatch mechanics.
+ * It formats field errors, summaries, and success messages, then sends them
+ * through a shared or internally created live-region announcer.
  */
 export function createValidationAnnouncer(
     options: ValidationAnnouncerOptions = {}

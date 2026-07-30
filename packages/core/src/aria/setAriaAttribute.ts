@@ -1,20 +1,15 @@
 /**
- * Represents any valid WAI-ARIA attribute name starting with the `aria-` prefix.
+ * ARIA attribute name starting with aria-.
  */
 export type AriaAttributeName = `aria-${string}`;
 
 /**
- * Represents the allowed primitive types that can be assigned as a value to an ARIA attribute.
- * These values are typically serialized to strings before being applied to DOM nodes.
+ * Value accepted by setAriaAttribute().
  */
 export type AriaAttributeValue = string | number | boolean | null | undefined;
 
 /**
- * Sets or removes an ARIA attribute on a specified element based on the provided value.
- *
- * @param element - The HTML element to modify.
- * @param name - The name of the ARIA attribute (must start with "aria-").
- * @param value - The value to assign. If null or undefined, the attribute is removed.
+ * Sets an ARIA attribute, or removes it when value is null or undefined.
  */
 export function setAriaAttribute(
     element: HTMLElement,

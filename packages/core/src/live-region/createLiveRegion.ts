@@ -16,13 +16,10 @@ function visuallyHide(element: HTMLElement): void {
 }
 
 /**
- * Creates and initializes a DOM element configured as an ARIA live region 
- * to handle screen reader text announcements.
- * * Automatically applies structural accessibility settings, updates content asynchronously 
- * to guarantee screen reader interception, and ensures proper cleanup on destruction.
+ * Creates a visually hidden ARIA live region.
  *
- * @param options - Configuration options for positioning, politeness level, and HTML structure. Defaults to an empty object.
- * @returns A LiveRegion object providing methods to manage announcements and element lifecycle.
+ * Announcements are written asynchronously so screen readers can detect
+ * repeated updates more reliably.
  */
 export function createLiveRegion(
     options: LiveRegionOptions = {}

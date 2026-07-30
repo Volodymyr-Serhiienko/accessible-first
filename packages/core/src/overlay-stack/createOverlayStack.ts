@@ -5,12 +5,10 @@ import type {
 } from "./types";
 
 /**
- * Creates and initializes a centralized overlay tracking stack instance.
- * Maintains an ordered registry array representing stacked DOM surfaces (e.g., nested modals, menus, or tooltips),
- * providing explicit mechanics to deduplicate elements, shift existing entries to the front of the viewport hierarchy,
- * and track the topmost surface layer for escape-key or focus management patterns.
+ * Creates an overlay stack.
  *
- * @returns An OverlayStack management engine instance exposing stack array manipulation hooks.
+ * The stack tracks active overlay entries in order so dismissal and focus
+ * behavior can target only the topmost layer.
  */
 export function createOverlayStack(): OverlayStack {
     let entries: OverlayStackEntry[] = [];

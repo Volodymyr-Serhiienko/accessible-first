@@ -165,15 +165,10 @@ function getPosition(
 }
 
 /**
- * Creates and initializes a dynamic floating overlay positioning manager.
- * Tracks structural placement configurations relative to an anchor target element, computing
- * bounding boxes, side switches, viewport constraint shifts, and styling application loops.
- * Automatically hooks up scroll/resize monitors and fully rolls back target inline mutations on destruction.
+ * Creates positioning behavior for a floating element.
  *
- * @param anchor - The baseline target reference element that the popover aligns with.
- * @param popover - The floating target container overlay element to position.
- * @param options - Custom strategies for edge placements, alignment configurations, collision handling, and monitoring.
- * @returns A PopoverPosition manager instance exposing live update pipelines and teardown routines.
+ * The behavior places a popover relative to an anchor, supports collision flip
+ * and shift, can match anchor width, and restores inline styles on destroy.
  */
 export function createPopoverPosition(
     anchor: HTMLElement,
@@ -201,6 +196,15 @@ export function createPopoverPosition(
     let destroyed = false;
 
     function update(): PopoverPositionState {
+        if (destroyed) {
+            return state ?? {
+                side,
+                alignment,
+                x: 0,
+                y: 0
+            };
+        }
+
         const anchorRect = anchor.getBoundingClientRect();
 
         if (options.matchAnchorWidth) {

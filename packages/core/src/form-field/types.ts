@@ -1,16 +1,12 @@
 import type { AriaReferences } from "../aria";
 
 /**
- * Defines the validation error state configurations for an accessible form control field.
- * - `boolean`: `true` flags a generic semantic validation error; `false` indicates valid status.
- * - `"grammar"`: Flags a specific grammatical error condition for semantic assistive engines.
- * - `"spelling"`: Flags a localized spelling error condition for semantic assistive engines.
+ * Values supported by aria-invalid.
  */
 export type FormFieldInvalidState = boolean | "grammar" | "spelling";
 
 /**
- * Operational payload data properties used to update accessible state attributes 
- * and linked relationships on an interactive form input.
+ * Accessible relationships and states that can be applied to a control.
  */
 export interface FormFieldUpdateOptions {
     label?: AriaReferences;
@@ -23,15 +19,12 @@ export interface FormFieldUpdateOptions {
 }
 
 /**
- * Configuration options for initializing an accessible form field controller instance.
+ * Options for createFormField().
  */
 export interface FormFieldOptions extends FormFieldUpdateOptions {}
 
 /**
- * Interface representing an accessible form field layout wrapper controller.
- * Orchestrates real-time sync mutations across input fields, applying native interactive flags, 
- * descriptive relationships (`aria-describedby`), error warnings (`aria-errormessage`), 
- * and accessibility structures (`aria-invalid`).
+ * Controller for accessible form-field relationships and states.
  */
 export interface FormField {
     readonly control: HTMLElement;

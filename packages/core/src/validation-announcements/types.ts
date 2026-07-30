@@ -6,7 +6,7 @@ import type {
 } from "../live-region";
 
 /**
- * Represents an individual validation event message scheduled for screen reader transmission.
+ * Validation message to announce.
  */
 export interface ValidationAnnouncement {
     field?: FormField;
@@ -17,14 +17,14 @@ export interface ValidationAnnouncement {
 }
 
 /**
- * Dynamic configuration variations applied when emitting an active validation statement.
+ * Options for one validation announcement.
  */
 export interface ValidationAnnounceOptions {
     politeness?: LiveRegionPoliteness;
 }
 
 /**
- * Configuration options for initializing an accessible validation notification dispatcher.
+ * Options for createValidationAnnouncer().
  */
 export interface ValidationAnnouncerOptions extends AnnouncerOptions {
     announcer?: Announcer;
@@ -35,9 +35,7 @@ export interface ValidationAnnouncerOptions extends AnnouncerOptions {
 }
 
 /**
- * Interface representing an accessible validation reporter.
- * Integrates directly with dynamic aria live regions to announce localized form field inputs,
- * batch structural mutation failures, and task success confirmations.
+ * Controller returned by createValidationAnnouncer().
  */
 export interface ValidationAnnouncer {
     announce(message: string, options?: ValidationAnnounceOptions): void;

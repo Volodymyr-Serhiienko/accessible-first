@@ -2,10 +2,7 @@ import { getActiveElement } from "../dom";
 import { focusElement } from "./focusElement";
 
 /**
- * Interface representing a stack-based focus manager.
- * Tracks and preserves the history of focused HTML elements over time, allowing complex UI 
- * flows (like nested dialogs or menus) to capture active focus, push or pop elements, 
- * and accurately restore focus to previously active elements.
+ * Stack used to capture and restore focus.
  */
 export interface FocusStack {
     capture(node: Node): HTMLElement | null;
@@ -18,10 +15,7 @@ export interface FocusStack {
 }
 
 /**
- * Creates a stack used to capture and restore focus
- * across nested interactive components.
- * 
- * @returns An object containing methods to manage the focus stack state.
+ * Creates a focus stack for nested interactive flows.
  */
 export function createFocusStack(): FocusStack {
     const stack: Array<HTMLElement | null> = [];

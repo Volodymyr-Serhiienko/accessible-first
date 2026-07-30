@@ -38,14 +38,10 @@ function isNode(value: EventTarget | null): value is Node {
 }
 
 /**
- * Creates and manages an accessible listbox component.
- * Orchestrates a listbox container element (`role="listbox"`) and its child options (`role="option"`), 
- * handling either single or multiple selection layouts, roving keyboard focus loops, and state changes. 
- * Cleans up and fully restores baseline DOM mutations upon destruction.
+ * Creates accessible listbox behavior.
  *
- * @param element - The parent wrapper HTMLElement to be configured as the listbox component.
- * @param options - Custom strategies for list element extraction, orientations, selection behaviors, and notification hooks.
- * @returns A Listbox component instance exposing collection controls, single item mutation, and lifecycle teardowns.
+ * Listbox manages option roles, roving focus, single or multiple selection,
+ * optional typeahead, and attribute restoration.
  */
 export function createListbox(
     element: HTMLElement,

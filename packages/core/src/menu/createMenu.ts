@@ -30,15 +30,10 @@ function isNode(value: EventTarget | null): value is Node {
 }
 
 /**
- * Creates and initializes an accessible menu component.
- * Orchestrates a menu container (`role="menu"`) and its choices (`role="menuitem"`), managing
- * roving keyboard focus loops, optional character sequence text typeahead search tracking, 
- * choice activations, and automatic modal dismissals.
- * Cleans up and fully restores baseline DOM mutations upon destruction.
+ * Creates accessible menu behavior.
  *
- * @param element - The parent context HTMLElement configured as the menu container.
- * @param options - Custom strategies for parsing menu items, layouts, actions, and lifecycle hooks.
- * @returns A Menu component instance exposing focused items tracking and full teardown routines.
+ * Menu manages menuitem roles, roving focus, optional typeahead,
+ * selection callbacks, Escape close handling, and cleanup.
  */
 export function createMenu(
     element: HTMLElement,

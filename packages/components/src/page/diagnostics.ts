@@ -71,6 +71,14 @@ function isHiddenFromDiagnostics(element: HTMLElement): boolean {
     );
 }
 
+function getComponentWarningMessage(code: string): string {
+    if (code === "missing-accessible-name") {
+        return "Accessible First applied a fallback accessible name. Provide a meaningful aria-label or aria-labelledby.";
+    }
+
+    return `Accessible First component warning: ${code}`;
+}
+
 function getStatus(errorCount: number, warningCount: number): PageDiagnosticsStatus {
     if (errorCount > 0) {
         return "blocked";
@@ -84,10 +92,7 @@ function getStatus(errorCount: number, warningCount: number): PageDiagnosticsSta
 }
 
 /**
- * Formats and routes a structured PageDiagnosticsReport into the browser console context.
- * Grouping issues dynamically by severity using native console formatting levels.
- *
- * @param report - The compilation report containing structural audit metrics and anomalies.
+ * Logs a PageDiagnosticsReport to the browser console.
  */
 export function logPageDiagnostics(report: PageDiagnosticsReport): void {
     console.groupCollapsed("Accessible First Page Report");
@@ -111,14 +116,7 @@ export function logPageDiagnostics(report: PageDiagnosticsReport): void {
 }
 
 /**
- * Runs a comprehensive semantic and accessibility structural audit across a target layout tree.
- * Checks for missing or multiple landmark areas (`main`, `header`, `nav`), confirms heading balance, 
- * identifies duplicate identification tokens, detects broken relationships (`aria-controls`), 
- * and ensures interactive elements hold perceivable titles before logging structured diagnostic results.
- *
- * @param root - The base native HTMLElement container tree to inspect.
- * @param options - Execution modifiers to selectively suppress or redirect browser console feedback loops.
- * @returns A structured verification detailing structural metrics, exact failure counts, and trace collections.
+ * Inspects a composed page for common semantic and accessibility issues.
  */
 export function inspectPage(
     root: HTMLElement,
@@ -237,7 +235,26 @@ export function inspectPage(
                 ));
             }
         });
+    
+    root.querySelectorAll<HTMLElement>("[data-af-warning]").forEach((element) => {
+        if (isHiddenFromDiagnostics(element)) {
+            return;
+        }
 
+        const warning = element.getAttribute("data-af-warning")?.trim();
+
+        if (!warning) {
+            return;
+        }
+
+        issues.push(createIssue(
+            "warning",
+            `component.${warning}`,
+            getComponentWarningMessage(warning),
+            element
+        ));
+    });
+    
     const errorCount = issues.filter((issue) => issue.level === "error").length;
     const warningCount = issues.filter((issue) => issue.level === "warning").length;
 

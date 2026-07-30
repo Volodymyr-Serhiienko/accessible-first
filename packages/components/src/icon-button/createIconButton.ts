@@ -27,15 +27,10 @@ function hasAccessibleName(element: HTMLElement): boolean {
 }
 
 /**
- * Creates and initializes an accessible icon button component wrapper.
- * Decorates visual-only button nodes by enforcing strict fallback screen reader names 
- * (`aria-label`, `aria-labelledby`), rendering variant types (`data-af-variant`, `data-af-size`), 
- * native click interceptors, and keyboard activation bindings for non-native interactive tags.
- * Reverts all modified element markup attributes automatically upon component destruction.
+ * Enhances an element as an accessible icon-only button.
  *
- * @param element - The root HTMLElement context targeted to behave as an icon button.
- * @param options - Label strings, reference links, interactive blocks, and variant configurations.
- * @returns An IconButton decorator interface exposing atomic visual/relational mutators.
+ * A meaningful `label` or `labelledBy` should be provided. When missing,
+ * Accessible First applies a fallback name and marks the component for diagnostics.
  */
 export function createIconButton(
     element: HTMLElement,

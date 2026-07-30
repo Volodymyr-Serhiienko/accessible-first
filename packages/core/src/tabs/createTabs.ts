@@ -26,14 +26,10 @@ function isNode(value: EventTarget | null): value is Node {
 }
 
 /**
- * Creates and initializes an accessible tabs management system component.
- * Orchestrates a group of tab controls (`tablist` and `tab` elements) and their corresponding content areas (`tabpanel` elements)
- * according to WAI-ARIA Authoring Practices, featuring roving index tracking, selective auto/manual activation modes, 
- * and absolute state restoration on destruction.
+ * Creates accessible tabs behavior.
  *
- * @param tablist - The parent context element containing the clickable or focusable tab triggers.
- * @param options - Core dependency resolution rules, keyboard navigation behavior overrides, and active visibility hooks.
- * @returns A Tabs lifecycle instance providing operational accessors and teardown APIs.
+ * Tabs manage tablist/tab/tabpanel ARIA state, roving focus,
+ * automatic or manual activation, and attribute restoration.
  */
 export function createTabs(
     tablist: HTMLElement,

@@ -220,6 +220,7 @@ page.inspect() reports common structural and accessibility issues:
 * duplicate IDs;
 * broken ARIA references;
 * interactive controls without accessible names.
+* component warnings exposed through `data-af-warning`.
 
 ## Direction
 

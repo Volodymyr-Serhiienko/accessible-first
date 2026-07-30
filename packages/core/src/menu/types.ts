@@ -1,12 +1,10 @@
 /**
- * Specifies the visual layout alignment of the menu.
- * Determines whether horizontal or vertical arrow keys drive item navigation.
+ * Menu orientation used by arrow-key navigation.
  */
 export type MenuOrientation = "vertical" | "horizontal";
 
 /**
- * A proxy reference resolving to a single menu item element.
- * Can be a direct `HTMLElement`, a dynamic factory function, or null.
+ * Menu item reference.
  */
 export type MenuItem =
     | HTMLElement
@@ -14,7 +12,7 @@ export type MenuItem =
     | null;
 
 /**
- * Configuration options for initializing an accessible menu component manager.
+ * Options for createMenu().
  */
 export interface MenuOptions {
     getItems: () => HTMLElement[];
@@ -31,9 +29,7 @@ export interface MenuOptions {
 }
 
 /**
- * Interface representing a managed accessible navigation or action menu instance.
- * Coordinates roving focus, typeahead lookup buffers, and conditional sub-element activation rules
- * in alignment with WAI-ARIA Menu and Menubar design patterns.
+ * Controller returned by createMenu().
  */
 export interface Menu {
     readonly element: HTMLElement;

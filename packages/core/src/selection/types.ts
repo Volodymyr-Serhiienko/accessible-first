@@ -1,21 +1,17 @@
 /**
- * Defines the selection constraints for a managed data item collection.
- * - "single": Only one item can be selected at any given time.
- * - "multiple": Multiple items can be checked or toggled simultaneously.
+ * Selection mode for a collection.
  */
 export type SelectionMode = "single" | "multiple";
 
 /**
- * Operational flag variations to fine-tune data state mutation behavior.
+ * Options for selection updates.
  */
 export interface SelectionUpdateOptions {
     notify?: boolean;
 }
 
 /**
- * Configuration options for creating a headless multi-item selection controller state machine.
- *
- * @template TItem - The data model type of the items tracked inside the collection.
+ * Options for createSelection().
  */
 export interface SelectionOptions<TItem> {
     getItems: () => readonly TItem[];
@@ -26,11 +22,7 @@ export interface SelectionOptions<TItem> {
 }
 
 /**
- * Interface representing a pure, generic logical selection state engine.
- * Encapsulates single or multi-toggle item matching rules, lookup caching, 
- * event dispatcher side effects, and state verification rules.
- *
- * @template TItem - The data model type of the items tracked inside the collection.
+ * Headless controller for single or multiple selection state.
  */
 export interface Selection<TItem> {
     getSelectedItems(): TItem[];
