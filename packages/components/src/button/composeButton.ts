@@ -7,6 +7,10 @@ import {
     type CompositionChild
 } from "../composition";
 import { createButton } from "./createButton";
+import {
+    createSelectedState,
+    type SelectedStateOptions
+} from "../foundation";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
 
 /**
@@ -27,6 +31,7 @@ export interface ButtonCompositionOptions
         BaseCompositionOptions {
     text?: string;
     children?: CompositionChild[];
+    selected?: boolean;
     onPress?: ButtonCompositionOnPress | null;
 }
 
@@ -37,6 +42,9 @@ export interface ButtonCompositionOptions
 export interface ComposedButton extends Omit<ButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
     setText(text: string): void;
+    setSelected(selected: boolean): void;
+    isSelected(): boolean;
+    toggleSelected(force?: boolean): boolean;
     update(options: Partial<ButtonCompositionOptions>): void;
     destroy(): void;
 }
@@ -64,12 +72,25 @@ function getButtonOptions(
     return buttonOptions;
 }
 
+function getSelectedStateOptions(
+    options: Pick<ButtonCompositionOptions, "selected">
+): SelectedStateOptions {
+    const selectedOptions: SelectedStateOptions = {};
+
+    if (options.selected !== undefined) {
+        selectedOptions.selected = options.selected;
+    }
+
+    return selectedOptions;
+}
+
 /**
  * Creates an accessible button with default styling hooks and optional composed content.
  */
 export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     const element = createElement("button", getCompositionElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
+    const selectedState = createSelectedState(element, getSelectedStateOptions(options));
 
     let composed!: ComposedButton;
     let onPress = options.onPress ?? null;
@@ -89,12 +110,19 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         ...button,
         element,
         setText,
+        setSelected: selectedState.setSelected,
+        isSelected: selectedState.isSelected,
+        toggleSelected: selectedState.toggleSelected,
 
         update(nextOptions: Partial<ButtonCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {
                 onPress = nextOptions.onPress ?? null;
+            }
+
+            if (nextOptions.selected !== undefined) {
+                selectedState.setSelected(nextOptions.selected);
             }
 
             button.update(getButtonOptions(nextOptions, (event) => {
@@ -110,6 +138,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
         destroy(): void {
             content.dispose();
+            selectedState.destroy();
             button.destroy();
         }
     };

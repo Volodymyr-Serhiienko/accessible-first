@@ -19,25 +19,14 @@ export function ButtonsDemo(): ComposedNode {
                         onPress: () => announce("Secondary button pressed.")
                     }),
                     Button({
-                        text: "Toggle option",
+                        text: "Enable option",
                         variant: "secondary",
-                        pressed: false,
-                        attributes: {
-                            title: "Toggle option, not pressed"
-                        },
                         onPress(_event, button) {
-                            const pressed = button.getPressed() !== true;
-                            const status = pressed ? "pressed" : "not pressed";
+                            const selected = button.toggleSelected();
 
-                            button.setPressed(pressed);
-                            button.element.title = `Toggle option, ${status}`;
-                            announce(`Toggle button is ${status}.`);
+                            button.setText(selected ? "Disable option" : "Enable option");
+                            announce(`Option ${selected ? "enabled" : "disabled"}.`);
                         }
-                    }),
-                    Button({
-                        text: "Disabled action",
-                        variant: "secondary",
-                        disabled: true
                     })
                 )
             )

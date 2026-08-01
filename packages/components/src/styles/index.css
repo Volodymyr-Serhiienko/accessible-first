@@ -221,6 +221,8 @@
     cursor: not-allowed;
 }
 
+[data-af-component="button"][data-af-selected="true"],
+[data-af-component="icon-button"][data-af-selected="true"],
 [data-af-component="icon-button"][aria-pressed="true"] {
     box-shadow: inset 0 0 0 2px currentColor;
 }
@@ -236,6 +238,41 @@
 [data-af-component="icon-button"] svg,
 [data-af-component="icon-button"] svg * {
     pointer-events: none;
+}
+
+/* --- ToolTip --- */
+
+[data-af-tooltip] {
+    position: relative;
+}
+
+[data-af-tooltip]::after {
+    position: absolute;
+    inset-block-end: calc(100% + var(--af-space-2));
+    inset-inline-start: 50%;
+    z-index: 20;
+    max-inline-size: min(16rem, calc(100vw - 2rem));
+    padding: 0.35rem 0.5rem;
+    color: var(--af-color-bg);
+    background: var(--af-color-fg);
+    border-radius: var(--af-radius-sm);
+    font-family: var(--af-font-family);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%);
+    content: attr(data-af-tooltip);
+}
+
+[data-af-tooltip]:hover::after,
+[data-af-tooltip]:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* --- Link --- */

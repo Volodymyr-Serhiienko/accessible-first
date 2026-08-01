@@ -11,7 +11,6 @@ export function HeaderDemo(): ComposedNode {
         Button({
             text: "Dark theme",
             variant: "secondary",
-            pressed: false,
             onPress(_event, button) {
                 const isDark = document.documentElement.dataset.afTheme !== "dark";
 
@@ -21,7 +20,6 @@ export function HeaderDemo(): ComposedNode {
                     delete document.documentElement.dataset.afTheme;
                 }
 
-                button.setPressed(isDark);
                 button.setText(isDark ? "Light theme" : "Dark theme");
                 announce(`${isDark ? "Dark" : "Light"} theme enabled.`);
             }

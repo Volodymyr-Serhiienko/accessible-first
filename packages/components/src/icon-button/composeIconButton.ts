@@ -7,6 +7,13 @@ import {
     type CompositionChild
 } from "../composition";
 import { createIconButton } from "./createIconButton";
+import { restoreAttribute } from "../../../core/src/dom";
+import {
+    createSelectedState,
+    type SelectedStateOptions
+} from "../foundation";
+import { createTooltip } from "../tooltip";
+
 import type { IconButton as IconButtonInstance, IconButtonOptions } from "./types";
 
 /**
@@ -28,6 +35,9 @@ export interface IconButtonCompositionOptions
     icon?: CompositionChild;
     children?: CompositionChild[];
     title?: string | null;
+    tooltip?: string | null;
+    announceOnHover?: boolean;
+    selected?: boolean;
     onPress?: IconButtonCompositionOnPress | null;
 }
 
@@ -38,6 +48,10 @@ export interface IconButtonCompositionOptions
 export interface ComposedIconButton extends Omit<IconButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
     setTitle(title: string | null): void;
+    setTooltip(tooltip: string | null): void;
+    setSelected(selected: boolean): void;
+    isSelected(): boolean;
+    toggleSelected(force?: boolean): boolean;
     update(options: Partial<IconButtonCompositionOptions>): void;
     destroy(): void;
 }
@@ -93,13 +107,16 @@ function getIconButtonOptions(
     return iconButtonOptions;
 }
 
-function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
-    if (label?.trim()) {
-        element.title = label;
-        return;
+function getSelectedStateOptions(
+    options: Pick<IconButtonCompositionOptions, "selected">
+): SelectedStateOptions {
+    const selectedOptions: SelectedStateOptions = {};
+
+    if (options.selected !== undefined) {
+        selectedOptions.selected = options.selected;
     }
 
-    element.removeAttribute("title");
+    return selectedOptions;
 }
 
 /**
@@ -108,10 +125,10 @@ function syncTitleFromLabel(element: HTMLElement, label: string | null): void {
 export function IconButton(options: IconButtonCompositionOptions = {}): ComposedIconButton {
     const element = createElement("button", getCompositionElementOptions(options));
     const content = createContentSlot(element, getChildren(options));
+    const selectedState = createSelectedState(element, getSelectedStateOptions(options));
 
     let composed!: ComposedIconButton;
     let onPress = options.onPress ?? null;
-    let syncTitleWithLabel = options.title === undefined;
 
     const handlePress = (event: Event): void => {
         onPress?.(event, composed);
@@ -122,19 +139,16 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         getIconButtonOptions(options, handlePress)
     );
 
-    if ("title" in options) {
-        if (options.title === null || options.title === undefined) {
-            element.removeAttribute("title");
-        } else {
-            element.title = options.title;
-        }
-    } else if (typeof options.label === "string") {
-        syncTitleFromLabel(element, options.label);
-    }
+    let tooltipFollowsLabel = options.tooltip === undefined;
 
-    function setTitle(title: string | null): void {
-        syncTitleWithLabel = false;
+    const tooltip = createTooltip(element, {
+        text: tooltipFollowsLabel ? options.label ?? null : options.tooltip ?? null,
+        announceOnHover: options.announceOnHover ?? true
+    });
 
+    const originalTitle = element.getAttribute("title");
+
+    function applyTitle(title: string | null): void {
         if (title === null) {
             element.removeAttribute("title");
             return;
@@ -143,11 +157,24 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         element.title = title;
     }
 
+    if ("title" in options) {
+        applyTitle(options.title ?? null);
+    }
+
+    function setTitle(title: string | null): void {
+        applyTitle(title);
+    }
+
+    function setTooltip(nextTooltip: string | null): void {
+        tooltipFollowsLabel = false;
+        tooltip.setText(nextTooltip);
+    }
+
     function setLabel(label: string | null): void {
         iconButton.setLabel(label);
 
-        if (syncTitleWithLabel) {
-            syncTitleFromLabel(element, label);
+        if (tooltipFollowsLabel) {
+            tooltip.setText(label);
         }
     }
 
@@ -155,7 +182,11 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         ...iconButton,
         element,
         setTitle,
+        setTooltip,
         setLabel,
+        setSelected: selectedState.setSelected,
+        isSelected: selectedState.isSelected,
+        toggleSelected: selectedState.toggleSelected,
 
         update(nextOptions: Partial<IconButtonCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -166,22 +197,37 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
 
             iconButton.update(getIconButtonOptions(nextOptions, handlePress));
 
+            if (nextOptions.announceOnHover !== undefined) {
+                tooltip.setAnnounceOnHover(nextOptions.announceOnHover);
+            }
+
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
             } else if (nextOptions.icon !== undefined) {
                 content.set([nextOptions.icon]);
             }
 
+            if (nextOptions.selected !== undefined) {
+                selectedState.setSelected(nextOptions.selected);
+            }
+
             if ("title" in nextOptions) {
                 setTitle(nextOptions.title ?? null);
-            } else if ("label" in nextOptions && syncTitleWithLabel) {
-                syncTitleFromLabel(element, nextOptions.label ?? null);
+            }
+
+            if ("tooltip" in nextOptions) {
+                setTooltip(nextOptions.tooltip ?? null);
+            } else if ("label" in nextOptions && tooltipFollowsLabel) {
+                tooltip.setText(nextOptions.label ?? null);
             }
         },
 
         destroy(): void {
             content.dispose();
             iconButton.destroy();
+            restoreAttribute(element, "title", originalTitle);
+            tooltip.destroy();
+            selectedState.destroy();
         }
     };
 
