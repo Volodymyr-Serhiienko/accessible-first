@@ -10,14 +10,10 @@ export function AccordionDemo(): ComposedNode {
                 Stack(
                     P("Accordion combines disclosure behavior with grouped keyboard navigation."),
                     Accordion({
-                        headingLevel: 3,
-                        panelRole: "auto",
-                        collapsible: true,
                         announcement: true,
                         items: [
                             {
                                 value: "semantics",
-                                defaultOpen: true,
                                 trigger: "Accessible semantics",
                                 panel: Stack(
                                     P("Each item uses a button trigger connected to a controlled panel."),

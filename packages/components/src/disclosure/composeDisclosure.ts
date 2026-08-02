@@ -63,12 +63,10 @@ function getDisclosureOptions(
         onOpenChange
     };
 
-    if (options.defaultOpen !== undefined) {
-        disclosureOptions.defaultOpen = options.defaultOpen;
-    }
-
     if (options.open !== undefined) {
         disclosureOptions.open = options.open;
+    } else {
+        disclosureOptions.defaultOpen = options.defaultOpen ?? false;
     }
 
     if (options.disabled !== undefined) {

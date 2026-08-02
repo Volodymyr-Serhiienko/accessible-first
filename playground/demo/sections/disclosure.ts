@@ -13,7 +13,6 @@ export function DisclosureDemo(): ComposedNode {
                         P("The trigger controls aria-expanded, aria-controls, and the panel hidden state."),
                         P("This component is already useful as a base for future accordion and details patterns.")
                     ),
-                    defaultOpen: false,
                     announcement: true,
                     onOpenChange(open) {
                         if (!open) {
