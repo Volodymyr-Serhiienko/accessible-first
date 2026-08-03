@@ -22,8 +22,20 @@ import type {
     DialogOptions
 } from "./types";
 
+/**
+ * Controls how the composed description participates in dialog announcement.
+ *
+ * "aria" connects it with aria-describedby. "content" keeps it as visible
+ * content only, which is useful for longer or structured dialog bodies.
+ */
 export type DialogDescriptionMode = "content" | "aria";
 
+/**
+ * Built-in initial focus preset used when initialFocus is not provided.
+ *
+ * "first" lets the focus trap choose the first tabbable element. Static
+ * targets are available for content-heavy dialogs.
+ */
 export type DialogInitialFocusTarget = "first" | "title" | "description" | "dialog";
 
 /**

@@ -17,7 +17,11 @@ Initial component implementation.
 - Adds `role="dialog"` by default.
 - Adds `aria-modal="true"` for modal dialogs.
 - Requires an accessible name through `aria-labelledby` or `aria-label`.
-- Composition API creates a visible title and links it automatically.
+- Composition API creates a visible title and links it with `aria-labelledby`.
+- Description is connected with `aria-describedby` by default when provided.
+- Default initial focus target is the first focusable element inside the dialog.
+- `initialFocusTarget` can move initial focus to `"title"`, `"description"`, or `"dialog"` for content-heavy cases.
+- `descriptionMode: "content"` keeps the description as visible content only when automatic description announcement would be too verbose.
 - Moves focus inside the dialog on open.
 - Keeps Tab and Shift+Tab inside the dialog while modal focus trapping is enabled.
 - Restores focus to the trigger on close by default.

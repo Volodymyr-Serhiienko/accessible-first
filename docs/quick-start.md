@@ -8,6 +8,7 @@ Accessible First components are designed to start from the smallest useful confi
 
 - [Accordion](#accordion)
 - [Button](#button)
+- [Dialog](#dialog)
 - [Disclosure](#disclosure)
 - [IconButton](#iconbutton)
 - [Link](#link)
@@ -187,6 +188,79 @@ Button({
 ```
 
 Useful hooks include `[data-af-component="button"]`, `[data-af-variant]`, `[data-af-state]`, and `[data-af-selected="true"]`.
+
+[Back to component list](#component-list)
+
+---
+
+<a id="dialog"></a>
+
+## Dialog
+
+Use `Dialog` for modal workflows that temporarily move attention into an overlay.
+
+### Minimal
+
+```ts
+Dialog({
+    trigger: "Open dialog",
+    title: "Project settings",
+    description: "Change project options.",
+    children: [
+        P("Dialog content goes here.")
+    ],
+    actions: Button({
+        text: "Save"
+    })
+});
+```
+
+Defaults:
+
+- `role: "dialog"`
+- `modal: true`
+- `trapFocus: true`
+- `closeOnEscape: true`
+- focus returns to the trigger on close
+- visible title is linked with `aria-labelledby`
+- visible description is linked with `aria-describedby`
+- initial focus moves to the first focusable element
+
+### Options
+
+- `trigger` - Required trigger content.
+- `title` - Required visible dialog title.
+- `description` - Optional short description.
+- `descriptionMode` - `"aria"` or `"content"`.
+- `initialFocusTarget` - `"first"`, `"title"`, `"description"`, or `"dialog"`.
+- `initialFocus` - Custom element or function for initial focus.
+- `children` - Main dialog content.
+- `actions` - Footer action content.
+- `closeText` - Text for the default close button.
+- `hideCloseButton` - Hides the default close button for specialized dialogs.
+- `open` - Controlled open state.
+- `defaultOpen` - Opens initially.
+- `modal` - Enables modal semantics.
+- `trapFocus` - Keeps Tab navigation inside the dialog.
+- `closeOnEscape` - Allows Escape to close the dialog.
+- `restoreFocus` - Restores focus to the opener on close.
+- `variant` - `"default"` or `"plain"`.
+- `size` - `"md"`.
+- `onOpenChange` - Called when the dialog opens or closes.
+- `id`, `className`, `attributes` - Common DOM options.
+
+### Styling
+
+```ts
+Dialog({
+    trigger: "Open settings",
+    title: "Settings",
+    className: "settings-dialog",
+    children: [...]
+});
+```
+
+Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, and `[data-af-dialog-actions]`.
 
 [Back to component list](#component-list)
 
