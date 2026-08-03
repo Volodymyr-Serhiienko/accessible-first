@@ -14,5 +14,7 @@ export type {
     ComposedDialog,
     DialogCompositionContent,
     DialogCompositionOnOpenChange,
-    DialogCompositionOptions
+    DialogCompositionOptions,
+    DialogDescriptionMode,
+    DialogInitialFocusTarget
 } from "./composeDialog";

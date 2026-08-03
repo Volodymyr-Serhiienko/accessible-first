@@ -22,6 +22,10 @@ import type {
     DialogOptions
 } from "./types";
 
+export type DialogDescriptionMode = "content" | "aria";
+
+export type DialogInitialFocusTarget = "first" | "title" | "description" | "dialog";
+
 /**
  * Content accepted by dialog trigger and actions slots.
  */
@@ -49,6 +53,8 @@ export interface DialogCompositionOptions
     titleId?: string;
     description?: string | null;
     descriptionId?: string;
+    descriptionMode?: DialogDescriptionMode;
+    initialFocusTarget?: DialogInitialFocusTarget;
     children?: CompositionChild[];
     actions?: DialogCompositionContent | null;
     closeText?: string;
@@ -80,6 +86,35 @@ function hasDescription(value: string | null | undefined): value is string {
     return Boolean(value?.trim());
 }
 
+function shouldUseAriaDescription(
+    mode: DialogDescriptionMode,
+    description: string | null | undefined
+): boolean {
+    return mode === "aria" && hasDescription(description);
+}
+
+function getCompositionInitialFocus(
+    target: DialogInitialFocusTarget | undefined,
+    dialogElement: HTMLElement,
+    title: HTMLElement,
+    description: HTMLElement
+): DialogOptions["initialFocus"] | undefined {
+    switch (target ?? "first") {
+        case "dialog":
+            return dialogElement;
+
+        case "title":
+            return title;
+
+        case "description":
+            return () => hasDescription(description.textContent) ? description : title;
+
+        case "first":
+        default:
+            return undefined;
+    }
+}
+
 function getDialogOptions(
     options: DialogCompositionOptions,
     dialogElement: HTMLElement,
@@ -90,23 +125,31 @@ function getDialogOptions(
     description: HTMLElement,
     onOpenChange: (open: boolean) => void
 ): DialogOptions {
+    const descriptionMode = options.descriptionMode ?? "aria";
+    const initialFocus = options.initialFocus !== undefined
+        ? options.initialFocus
+        : getCompositionInitialFocus(
+            options.initialFocusTarget,
+            dialogElement,
+            title,
+            description
+        );
+
     const dialogOptions: DialogOptions = {
         trigger,
         closeElements: closeButton ? [closeButton] : [],
         surface,
         labelledBy: title,
-        fallbackFocus: surface,
+        fallbackFocus: dialogElement,
         onOpenChange
     };
 
-    if (hasDescription(options.description)) {
+    if (shouldUseAriaDescription(descriptionMode, options.description)) {
         dialogOptions.describedBy = description;
     }
 
-    if (options.initialFocus !== undefined) {
-        dialogOptions.initialFocus = options.initialFocus;
-    } else {
-        dialogOptions.initialFocus = title;
+    if (initialFocus !== undefined) {
+        dialogOptions.initialFocus = initialFocus;
     }
 
     if (options.defaultOpen !== undefined) dialogOptions.defaultOpen = options.defaultOpen;
@@ -175,6 +218,7 @@ function getTriggerButtonUpdateOptions(
 function getDialogUpdateOptions(
     options: Partial<DialogCompositionOptions>,
     description: HTMLElement,
+    descriptionMode: DialogDescriptionMode,
     onOpenChange: (open: boolean) => void
 ): Partial<DialogOptions> {
     const dialogOptions: Partial<DialogOptions> = {};
@@ -183,8 +227,11 @@ function getDialogUpdateOptions(
         dialogOptions.onOpenChange = onOpenChange;
     }
 
-    if ("description" in options) {
-        dialogOptions.describedBy = hasDescription(options.description)
+    if ("description" in options || "descriptionMode" in options) {
+        dialogOptions.describedBy = shouldUseAriaDescription(
+            descriptionMode,
+            description.textContent
+        )
             ? description
             : null;
     }
@@ -255,7 +302,8 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         id: options.descriptionId ?? createId("af-dialog-description"),
         text: options.description ?? "",
         attributes: {
-            "data-af-dialog-description": ""
+            "data-af-dialog-description": "",
+            tabindex: -1
         }
     });
 
@@ -285,6 +333,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     });
 
     let hideCloseButton = options.hideCloseButton ?? false;
+    let descriptionMode: DialogDescriptionMode = options.descriptionMode ?? "aria";
 
     const bodySlot = createContentSlot(body, options.children ?? []);
     const actionsSlot = createContentSlot(actionsContent, toCompositionChildren(options.actions));
@@ -407,9 +456,14 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
                 triggerButton.update(getTriggerButtonUpdateOptions(nextOptions));
             }
 
+            if (nextOptions.descriptionMode !== undefined) {
+                descriptionMode = nextOptions.descriptionMode;
+            }
+
             dialog.update(getDialogUpdateOptions(
                 nextOptions,
                 description,
+                descriptionMode,
                 handleOpenChange
             ));
         },

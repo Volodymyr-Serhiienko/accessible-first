@@ -90,6 +90,12 @@ export function createFocusTrap(
 
         const current = getActiveElement(container);
 
+        if (!current || !container.contains(current) || !elements.includes(current)) {
+            event.preventDefault();
+            focusElement(event.shiftKey ? last : first);
+            return;
+        }
+
         if (event.shiftKey && current === first) {
             event.preventDefault();
             focusElement(last);

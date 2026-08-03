@@ -1,4 +1,4 @@
-import { Accordion, P, Panel, Section, Stack, type ComposedNode } from "../af";
+import { Accordion, Button, Link, P, Panel, Section, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function AccordionDemo(): ComposedNode {
@@ -33,6 +33,25 @@ export function AccordionDemo(): ComposedNode {
                                 trigger: "Composition API",
                                 panel: Stack(
                                     P("Accordion is built from existing Disclosure behavior and can be used directly inside semantic page sections.")
+                                )
+                            },
+                            {
+                                value: "content",
+                                trigger: "Project details",
+                                announcement: "Project details opened.",
+                                panel: Stack(
+                                    P("This project uses accessible composition helpers."),
+                                    Link({
+                                        text: "Read documentation",
+                                        href: "#docs"
+                                    }),
+                                    Button({
+                                        text: "Confirm",
+                                        variant: "secondary",
+                                        onPress() {
+                                            announce("Confirmed.");
+                                        }
+                                    })
                                 )
                             }
                         ],

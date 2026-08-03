@@ -31,10 +31,7 @@ export function DialogDemo(): ComposedNode {
             P("Try Tab, Shift+Tab, Escape, and touch interaction on a mobile screen reader.")
         ],
         actions: confirm,
-        closeText: "Close dialog",
-        onOpenChange(open) {
-            announce(open ? "Dialog is open." : "Dialog is closed.");
-        }
+        closeText: "Close dialog"
     });
 
     return Section({
