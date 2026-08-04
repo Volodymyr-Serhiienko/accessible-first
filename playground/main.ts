@@ -12,7 +12,8 @@ import {
     IconButtonsDemo,
     LayoutDemo,
     LinksDemo,
-    MarkupDemo
+    MarkupDemo,
+    TabsDemo,
 } from "./demo/sections";
 
 import "../packages/components/src/styles/index.css";
@@ -36,6 +37,7 @@ page.section(DisclosureDemo());
 page.section(AccordionDemo());
 page.section(DialogDemo());
 page.section(AlertDialogDemo());
+page.section(TabsDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());

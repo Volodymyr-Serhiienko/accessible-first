@@ -133,8 +133,10 @@ Planned:
 
 - Header patterns
 - Navigation patterns
+- Responsive navigation with mobile collapse / burger behavior
 - Main content patterns
 - Footer patterns
+- Page outlet pattern for rendering changing page content inside a stable shell
 - Responsive layout patterns
 - DescriptionList
 - ActionsBar
@@ -164,6 +166,8 @@ Planned:
 - Sidebar navigation
 - Top navigation
 - Mobile navigation
+- Multi-page application shell patterns
+- Lightweight client-side page routing / content switching pattern
 - Breadcrumbs
 - Command menu
 - Settings panels
@@ -184,6 +188,7 @@ Current direction:
 - Default component styles are included.
 - CSS custom properties are the main customization mechanism.
 - Components should have practical accessible defaults.
+- Common layout and navigation patterns should need minimal project-specific CSS.
 - The library should not require Tailwind, CSS-in-JS, or a specific framework.
 
 Planned:

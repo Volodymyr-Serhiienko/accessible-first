@@ -412,6 +412,95 @@
     color: var(--af-color-disabled-fg);
 }
 
+/* --- Tabs --- */
+
+[data-af-composition="tabs"] {
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-composition="tabs"][data-af-orientation="vertical"] {
+    grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+    align-items: start;
+}
+
+[data-af-component="tabs"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--af-space-2);
+    border-block-end: 1px solid var(--af-color-border);
+}
+
+[data-af-component="tabs"][data-af-orientation="vertical"] {
+    flex-direction: column;
+    align-items: stretch;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--af-color-border);
+    padding-inline-end: var(--af-space-3);
+}
+
+[data-af-tabs-tab] {
+    min-inline-size: var(--af-target-size);
+    min-block-size: var(--af-target-size);
+    border: 1px solid transparent;
+    border-radius: 8px 8px 0 0;
+    padding: 0 var(--af-space-3);
+    color: var(--af-color-muted);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+[data-af-component="tabs"][data-af-orientation="vertical"] [data-af-tabs-tab] {
+    justify-content: flex-start;
+    border-radius: var(--af-radius-md);
+    text-align: start;
+}
+
+[data-af-tabs-tab][aria-selected="true"] {
+    border-color: var(--af-color-border);
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+}
+
+[data-af-tabs-tab]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-tabs-tab][disabled],
+[data-af-tabs-tab][aria-disabled="true"] {
+    color: var(--af-color-disabled-fg);
+    cursor: not-allowed;
+}
+
+[data-af-tabs-panels] {
+    min-inline-size: 0;
+}
+
+[data-af-tabs-panel] {
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-tabs-panel][hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    [data-af-composition="tabs"][data-af-orientation="vertical"] {
+        grid-template-columns: 1fr;
+    }
+
+    [data-af-component="tabs"][data-af-orientation="vertical"] {
+        border-inline-end: 0;
+        border-block-end: 1px solid var(--af-color-border);
+        padding-inline-end: 0;
+        padding-block-end: var(--af-space-2);
+    }
+}
+
 /* --- Dialog --- */
 
 [data-af-composition="dialog"] {

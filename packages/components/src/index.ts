@@ -8,4 +8,5 @@ export * from "./foundation";
 export * from "./icon-button";
 export * from "./link";
 export * from "./page";
+export * from "./tabs";
 export * from "./tooltip";

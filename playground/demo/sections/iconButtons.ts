@@ -24,7 +24,7 @@ export function IconButtonsDemo(): ComposedNode {
                         variant: "secondary",
                         onPress(_event, button) {
                             const selected = button.toggleSelected();
-    const                   label = selected ? "Remove from favorites" : "Add to favorites";
+                            const label = selected ? "Remove from favorites" : "Add to favorites";
 
                             button.update({
                                 label,

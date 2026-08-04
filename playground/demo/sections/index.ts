@@ -8,3 +8,4 @@ export { IconButtonsDemo } from "./iconButtons";
 export { LayoutDemo } from "./layout";
 export { LinksDemo } from "./links";
 export { MarkupDemo } from "./markup";
+export { TabsDemo } from "./tabs";
