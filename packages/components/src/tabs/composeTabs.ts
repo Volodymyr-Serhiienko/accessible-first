@@ -9,6 +9,7 @@ import {
     type CompositionContent
 } from "../composition";
 import { createTabs as createTabsComponent } from "./createTabs";
+import { createHoverAnnouncement } from "../foundation";
 import type {
     Tabs as TabsInstance,
     TabsActivationMode,
@@ -35,6 +36,8 @@ export interface TabsCompositionItem {
     defaultSelected?: boolean;
     tabOptions?: BaseCompositionOptions;
     panelOptions?: BaseCompositionOptions;
+    announceOnHover?: boolean;
+    hoverAnnouncement?: string | null;
 }
 
 /**
@@ -49,6 +52,8 @@ export interface TabsCompositionItemUpdate {
     disabled?: boolean;
     tabOptions?: BaseCompositionOptions;
     panelOptions?: BaseCompositionOptions;
+    announceOnHover?: boolean;
+    hoverAnnouncement?: string | null;
 }
 
 /**
@@ -85,6 +90,7 @@ export interface TabsCompositionOptions
     activationMode?: TabsActivationMode;
     variant?: TabsVariant;
     size?: TabsSize;
+    announceOnHover?: boolean;
     onTabChange?: TabsCompositionOnChange | null;
 }
 
@@ -136,6 +142,8 @@ interface TabsItemNode {
     panel: HTMLElement;
     tabContent: ReturnType<typeof createContentSlot>;
     panelContent: ReturnType<typeof createContentSlot>;
+    hoverAnnouncement: ReturnType<typeof createHoverAnnouncement>;
+    announceOnHover: boolean | undefined;
     disabled: boolean;
 }
 
@@ -180,7 +188,10 @@ function applyPanelOptions(panel: HTMLElement, options: BaseCompositionOptions |
     panel.setAttribute("data-af-tabs-panel", "");
 }
 
-function createItemNodes(items: TabsCompositionItem[]): TabsItemNode[] {
+function createItemNodes(
+    items: TabsCompositionItem[],
+    rootAnnounceOnHover: boolean
+): TabsItemNode[] {
     const usedValues = new Set<string>();
 
     return items.map((item, index): TabsItemNode => {
@@ -210,6 +221,11 @@ function createItemNodes(items: TabsCompositionItem[]): TabsItemNode[] {
             panel,
             tabContent: createContentSlot(tab, toCompositionChildren(item.tab)),
             panelContent: createContentSlot(panel, toCompositionChildren(item.panel)),
+            hoverAnnouncement: createHoverAnnouncement(tab, {
+                message: item.hoverAnnouncement ?? undefined,
+                enabled: item.announceOnHover ?? rootAnnounceOnHover
+            }),
+            announceOnHover: item.announceOnHover,
             disabled: false
         };
 
@@ -293,7 +309,9 @@ export function Tabs(options: TabsCompositionOptions): ComposedTabs {
         }
     });
 
-    const itemNodes = createItemNodes(options.items);
+    let announceOnHover = options.announceOnHover ?? true;
+
+    const itemNodes = createItemNodes(options.items, announceOnHover);
 
     for (const node of itemNodes) {
         tablist.append(node.tab);
@@ -390,6 +408,14 @@ export function Tabs(options: TabsCompositionOptions): ComposedTabs {
                 onTabChange = nextOptions.onTabChange ?? null;
             }
 
+            if (nextOptions.announceOnHover !== undefined) {
+                announceOnHover = nextOptions.announceOnHover;
+
+                for (const node of itemNodes) {
+                    node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
+                }
+            }
+
             if (nextOptions.items !== undefined) {
                 nextOptions.items.forEach((nextItem, index) => {
                     const node = itemNodes[index];
@@ -416,6 +442,15 @@ export function Tabs(options: TabsCompositionOptions): ComposedTabs {
                     if (nextItem.disabled !== undefined) {
                         item.setDisabled(nextItem.disabled);
                     }
+
+                    if ("hoverAnnouncement" in nextItem) {
+                        node.hoverAnnouncement.setMessage(nextItem.hoverAnnouncement ?? undefined);
+                    }
+
+                    if (nextItem.announceOnHover !== undefined) {
+                        node.announceOnHover = nextItem.announceOnHover;
+                        node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
+                    }
                 });
             }
 
@@ -430,6 +465,7 @@ export function Tabs(options: TabsCompositionOptions): ComposedTabs {
             for (const node of itemNodes) {
                 node.tabContent.dispose();
                 node.panelContent.dispose();
+                node.hoverAnnouncement.destroy();
             }
 
             tabs.destroy();

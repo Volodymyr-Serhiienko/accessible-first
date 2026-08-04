@@ -1,9 +1,14 @@
 export { createComponentLifecycle } from "./createComponentLifecycle";
-export { createSelectedState } from "./createSelectedState";
-
-export type {
-    SelectedState,
-    SelectedStateOptions
+export {
+    createHoverAnnouncement,
+    type HoverAnnouncement,
+    type HoverAnnouncementMessage,
+    type HoverAnnouncementOptions
+} from "./createHoverAnnouncement";
+export {
+    createSelectedState,
+    type SelectedState,
+    type SelectedStateOptions
 } from "./createSelectedState";
 export type {
     Component,
