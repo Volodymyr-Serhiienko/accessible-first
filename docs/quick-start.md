@@ -13,6 +13,7 @@ Accessible First components are designed to start from the smallest useful confi
 - [Disclosure](#disclosure)
 - [IconButton](#iconbutton)
 - [Link](#link)
+- [Tabs](#tabs)
 
 ## Common Styling
 
@@ -540,5 +541,93 @@ Link({
 ```
 
 Useful hooks include `[data-af-component="link"]`, `[data-af-variant]`, `[data-af-state]`, and `[aria-current]`.
+
+[Back to component list](#component-list)
+
+---
+
+<a id="tabs"></a>
+
+## Tabs
+
+Use `Tabs` to switch between related content panels.
+
+### Minimal
+
+```ts
+Tabs({
+    items: [
+        {
+            tab: "Overview",
+            panel: "Overview content."
+        },
+        {
+            tab: "Settings",
+            panel: "Settings content."
+        }
+    ]
+});
+```
+
+Defaults:
+
+- `orientation: "horizontal"`
+- `activationMode: "automatic"`
+- `loop: true`
+- `variant: "default"`
+- `size: "md"`
+- first enabled tab is selected unless `value`, `defaultValue`, or `defaultSelected` is provided
+- tab labels are announced on mouse hover by default
+
+### Options
+
+Root options:
+
+- `items` - Required list of tab definitions.
+- `value` - Controlled selected value.
+- `defaultValue` - Initially selected value.
+- `orientation` - `"horizontal"` or `"vertical"`.
+- `activationMode` - `"automatic"` or `"manual"`.
+- `loop` - Arrow navigation wraps.
+- `variant` - `"default"` or `"plain"`.
+- `size` - `"md"`.
+- `announceOnHover` - Announces tab labels on mouse hover.
+- `onTabChange` - Called when selection changes.
+- `id`, `className`, `attributes` - Common DOM options.
+
+Item options:
+
+- `value` - Stable tab value.
+- `tab` - Required tab label content.
+- `panel` - Required panel content.
+- `disabled` - Disables one tab.
+- `defaultSelected` - Selects one tab initially.
+- `tabOptions` - Common DOM options for the tab button.
+- `panelOptions` - Common DOM options for the panel.
+- `announceOnHover` - Per-tab hover announcement override.
+- `hoverAnnouncement` - Custom hover announcement text.
+
+Manual activation example:
+
+```ts
+Tabs({
+    activationMode: "manual",
+    items: [
+        { value: "preview", tab: "Preview", panel: "Preview content." },
+        { value: "code", tab: "Code", panel: "Code content." }
+    ]
+});
+```
+
+### Styling
+
+```ts
+Tabs({
+    className: "settings-tabs",
+    items: [...]
+});
+```
+
+Useful hooks include `[data-af-composition="tabs"]`, `[data-af-component="tabs"]`, `[data-af-tabs-tab]`, `[data-af-tabs-panel]`, `[aria-selected]`, `[data-af-orientation]`, and `[data-af-activation-mode]`.
 
 [Back to component list](#component-list)

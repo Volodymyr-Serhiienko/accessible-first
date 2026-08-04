@@ -25,7 +25,7 @@ Semantic composition
     |
     v
 Composition components
-(Button, IconButton, Link, Disclosure, Dialog, AlertDialog...)
+(Button, IconButton, Link, Disclosure, Dialog, AlertDialog, Tabs...)
     |
     v
 Enhancement components
@@ -82,6 +82,8 @@ const save = Button({
 ```
 
 Use this when building pages directly with Accessible First.
+
+Some composition components also add small usability helpers around browser and assistive technology differences. For example, tabs can announce their visible label on mouse hover without adding a native `title` tooltip.
 
 ## Semantic Composition
 

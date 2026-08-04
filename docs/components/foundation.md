@@ -32,6 +32,14 @@ isDestroyed(): boolean;
 
 Components may expose additional methods such as update(), open(), close(), or setDisabled() depending on their behavior.
 
+## Shared Helpers
+
+Component Foundation also contains small helpers that keep repeated accessibility behavior out of individual components.
+
+`createHoverAnnouncement(element, options)` announces an element label through a polite live region when a mouse pointer enters the element. It does not create a visual tooltip.
+
+Use it for controls that already have visible text but may not be announced reliably by some screen reader and pointer-hover combinations, such as tabs or future complex menu items.
+
 ## Data Attributes
 
 Components use stable data attributes:
@@ -50,3 +58,4 @@ These attributes are styling and debugging hooks, not accessibility replacements
 * Components should preserve user-authored markup
 * Components should restore mutations on destroy
 * Components should be configurable without losing accessible defaults
+* Shared helpers should be extracted when the same accessibility workaround appears in more than one component

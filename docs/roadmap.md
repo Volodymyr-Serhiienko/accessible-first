@@ -56,6 +56,8 @@ Completed:
 - Accordion component
 - Dialog component
 - Alert Dialog component
+- Tabs component
+- Hover announcement helper
 
 In progress:
 
@@ -66,12 +68,11 @@ In progress:
 
 Next:
 
-- Tabs component
+- Listbox component
 - Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 
-- Tabs
 - Listbox
 - Menu
 - Select
@@ -212,6 +213,7 @@ Completed:
 - First demos for Button, Icon Button, Link, and Disclosure
 - Semantic composition demos
 - Layout primitive demos
+- Tabs demo
 
 In progress:
 
