@@ -225,6 +225,7 @@ Defaults:
 - visible title is linked with `aria-labelledby`
 - visible description is linked with `aria-describedby`
 - initial focus moves to the first focusable element
+- page scrolling behind the dialog is locked for modal dialogs
 
 ### Options
 
@@ -241,6 +242,7 @@ Defaults:
 - `open` - Controlled open state.
 - `defaultOpen` - Opens initially.
 - `modal` - Enables modal semantics.
+- `lockScroll` - Locks page scrolling while the dialog is open. Defaults to `modal`.
 - `trapFocus` - Keeps Tab navigation inside the dialog.
 - `closeOnEscape` - Allows Escape to close the dialog.
 - `restoreFocus` - Restores focus to the opener on close.

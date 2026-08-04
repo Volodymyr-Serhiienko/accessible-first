@@ -29,6 +29,7 @@ export interface DialogOptions extends Omit<CoreDialogOptions, "onOpenChange"> {
     dismissOnFocusOutside?: boolean;
     useOverlayStack?: boolean;
     overlayStack?: OverlayStack;
+    lockScroll?: boolean;
     variant?: DialogVariant;
     size?: DialogSize;
     onEscapeKeyDown?: ((event: DismissableLayerEvent<KeyboardEvent>) => void) | null;

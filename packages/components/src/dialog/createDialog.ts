@@ -21,7 +21,7 @@ import {
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
-
+import { createScrollLock } from "../../../core/src/scroll";
 import type { Dialog, DialogOptions, DialogSize, DialogVariant } from "./types";
 
 function isHTMLElement(value: Element | null): value is HTMLElement {
@@ -115,6 +115,11 @@ export function createDialog(
     let closeOnEscape = options.closeOnEscape ?? true;
     let dismissOnPointerDownOutside = options.dismissOnPointerDownOutside ?? true;
     let dismissOnFocusOutside = options.dismissOnFocusOutside ?? false;
+    let modal = options.modal ?? true;
+    let hasExplicitLockScroll = options.lockScroll !== undefined;
+    let lockScroll = options.lockScroll ?? modal;
+
+    const scrollLock = createScrollLock(element);
 
     const branches: DismissableLayerBranch[] = [];
 
@@ -142,6 +147,12 @@ export function createDialog(
 
         element.setAttribute("data-af-open", String(open));
         syncTriggerAttributes();
+
+        if (open && lockScroll) {
+            scrollLock.activate();
+        } else {
+            scrollLock.deactivate();
+        }
 
         if (open) {
             layer.activate();
@@ -301,6 +312,7 @@ export function createDialog(
 
         closeCleanups = [];
     });
+    lifecycle.addCleanup(() => scrollLock.destroy());
 
     return {
         element,
@@ -374,7 +386,20 @@ export function createDialog(
             }
 
             if (nextOptions.modal !== undefined) {
-                setAriaModal(element, nextOptions.modal ? true : null);
+                modal = nextOptions.modal;
+
+                if (!hasExplicitLockScroll) {
+                    lockScroll = modal;
+                }
+
+                setAriaModal(element, modal ? true : null);
+                syncOpenAttributes();
+            }
+
+            if (nextOptions.lockScroll !== undefined) {
+                hasExplicitLockScroll = true;
+                lockScroll = nextOptions.lockScroll;
+                syncOpenAttributes();
             }
 
             if (nextOptions.labelledBy !== undefined) {

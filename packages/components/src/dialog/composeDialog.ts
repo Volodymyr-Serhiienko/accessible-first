@@ -167,6 +167,7 @@ function getDialogOptions(
     if (options.defaultOpen !== undefined) dialogOptions.defaultOpen = options.defaultOpen;
     if (options.open !== undefined) dialogOptions.open = options.open;
     if (options.modal !== undefined) dialogOptions.modal = options.modal;
+    if (options.lockScroll !== undefined) dialogOptions.lockScroll = options.lockScroll;
     if (options.trapFocus !== undefined) dialogOptions.trapFocus = options.trapFocus;
     if (options.closeOnEscape !== undefined) dialogOptions.closeOnEscape = options.closeOnEscape;
     if (options.restoreFocus !== undefined) dialogOptions.restoreFocus = options.restoreFocus;
@@ -272,6 +273,7 @@ function getDialogUpdateOptions(
     if (options.size !== undefined) dialogOptions.size = options.size;
     if (options.role !== undefined) dialogOptions.role = options.role;
     if (options.modal !== undefined) dialogOptions.modal = options.modal;
+    if (options.lockScroll !== undefined) dialogOptions.lockScroll = options.lockScroll;
 
     return dialogOptions;
 }

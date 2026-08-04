@@ -10,7 +10,7 @@ Initial component implementation.
 
 - Enhancement API: `createDialog(element, options)`
 - Composition API: `Dialog(options)`
-- Reuses: core `createDialog`, `createFocusTrap`, `createDismissableLayer`, `overlay-stack`
+- Reuses: core `createDialog`, `createFocusTrap`, `createDismissableLayer`, `overlay-stack`, `createScrollLock`
 
 ## Behavior
 
@@ -24,6 +24,7 @@ Initial component implementation.
 - `descriptionMode: "content"` keeps the description as visible content only when automatic description announcement would be too verbose.
 - Moves focus inside the dialog on open.
 - Keeps Tab and Shift+Tab inside the dialog while modal focus trapping is enabled.
+- Locks page scrolling behind modal dialogs by default.
 - Restores focus to the trigger on close by default.
 - Closes with Escape by default.
 - Can close on pointer interaction outside the dialog surface.
@@ -52,6 +53,7 @@ Dialog({
 * Opening moves focus inside the dialog.
 * Dialog has a clear accessible name.
 * Tab and Shift+Tab do not leave the dialog.
+* Page behind the dialog does not scroll while a modal dialog is open.
 * Escape closes the dialog.
 * Close button closes the dialog.
 * Focus returns to the trigger after closing.

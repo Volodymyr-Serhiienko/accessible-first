@@ -8,6 +8,22 @@ It is used by higher-level behavior such as roving focus, menus, listboxes, comb
 
 ## Public API
 
+### createScrollLock()
+
+Creates a controller that locks page scrolling for the document that owns an element.
+
+```ts
+const scrollLock = createScrollLock(element);
+
+scrollLock.activate();
+scrollLock.deactivate();
+scrollLock.destroy();
+```
+
+Multiple locks on the same document are reference-counted. This allows nested overlays to close independently without unlocking the page too early.
+
+---
+
 ### isScrollable()
 
 Determines whether a specified HTML element is scrollable.
@@ -46,3 +62,4 @@ scrollIntoViewIfNeeded(element: HTMLElement): void
 - Native browser scrolling
 - Small utilities
 - Useful for keyboard navigation
+- Safe for nested overlays
