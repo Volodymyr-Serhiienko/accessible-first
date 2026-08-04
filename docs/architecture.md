@@ -25,7 +25,7 @@ Semantic composition
     |
     v
 Composition components
-(Button, IconButton, Link, Disclosure...)
+(Button, IconButton, Link, Disclosure, Dialog, AlertDialog...)
     |
     v
 Enhancement components

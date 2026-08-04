@@ -1,4 +1,5 @@
 export { AccordionDemo } from "./accordion";
+export { AlertDialogDemo } from "./alertDialog";
 export { ButtonsDemo } from "./buttons";
 export { ChecksDemo } from "./checks";
 export { DialogDemo } from "./dialog";

@@ -6,6 +6,7 @@ Accessible First components are designed to start from the smallest useful confi
 
 ## Components
 
+- [AlertDialog](#alertdialog)
 - [Accordion](#accordion)
 - [Button](#button)
 - [Dialog](#dialog)
@@ -43,6 +44,76 @@ const button = Button({ text: "Save" });
 
 button.element.style.setProperty("min-inline-size", "12rem");
 ```
+
+---
+
+<a id="alertdialog"></a>
+
+## AlertDialog
+
+Use `AlertDialog` for important confirmations, especially destructive actions.
+
+### Minimal
+
+```ts
+AlertDialog({
+    trigger: "Delete project",
+    title: "Delete project?",
+    description: "This action cannot be undone.",
+    confirmText: "Delete project",
+    cancelText: "Cancel",
+    onConfirm() {
+        deleteProject();
+    }
+});
+```
+
+Defaults:
+
+- `role: "alertdialog"`
+- `modal: true`
+- `trapFocus: true`
+- `lockScroll` follows `modal`
+- `descriptionMode: "aria"`
+- `focusTarget: "cancel"`
+- `confirmVariant: "danger"`
+- `cancelVariant: "secondary"`
+- outside pointer dismissal is disabled by default
+- confirm and cancel close the alert dialog unless the handler calls `event.preventDefault()`
+
+### Options
+
+- `trigger` - Required trigger content.
+- `title` - Required visible alert dialog title.
+- `description` - Required short description.
+- `confirmText` - Confirm button text.
+- `cancelText` - Cancel button text.
+- `confirmVariant` - Confirm button variant.
+- `cancelVariant` - Cancel button variant.
+- `confirmDisabled` - Disables the confirm action.
+- `cancelDisabled` - Disables the cancel action.
+- `focusTarget` - `"cancel"` or `"confirm"`.
+- `onConfirm` - Called when the confirm action is activated.
+- `onCancel` - Called when the cancel action is activated.
+- `onOpenChange` - Called when the alert dialog opens or closes.
+- `children` - Optional supporting content.
+- `open`, `defaultOpen`, `modal`, `lockScroll`, `trapFocus`, `closeOnEscape`, `restoreFocus` - Dialog behavior options.
+- `id`, `className`, `attributes` - Common DOM options.
+
+### Styling
+
+```ts
+AlertDialog({
+    trigger: "Delete project",
+    title: "Delete project?",
+    description: "This action cannot be undone.",
+    className: "danger-confirmation"
+});
+```
+
+AlertDialog reuses Dialog and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, and button `[data-af-variant]`.
+
+[Back to component list](#component-list)
 
 ---
 

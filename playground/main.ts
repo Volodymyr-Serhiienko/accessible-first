@@ -4,6 +4,7 @@ import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
 import {
     AccordionDemo,
+    AlertDialogDemo,
     ButtonsDemo,
     ChecksDemo,
     DialogDemo,
@@ -34,6 +35,7 @@ page.section(LinksDemo());
 page.section(DisclosureDemo());
 page.section(AccordionDemo());
 page.section(DialogDemo());
+page.section(AlertDialogDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());

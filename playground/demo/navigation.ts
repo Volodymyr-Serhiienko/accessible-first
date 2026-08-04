@@ -9,6 +9,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "Disclosure", href: "#disclosure", variant: "standalone" }),
         Link({ text: "Accordion", href: "#accordion", variant: "standalone" }),
         Link({ text: "Dialog", href: "#dialog", variant: "standalone" }),
+        Link({ text: "Alert dialog", href: "#alert-dialog", variant: "standalone" }),
         Link({ text: "Layout", href: "#layout", variant: "standalone" }),
         Link({ text: "Markup", href: "#markup", variant: "standalone" })
     );

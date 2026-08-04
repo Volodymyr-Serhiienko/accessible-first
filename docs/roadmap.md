@@ -55,6 +55,7 @@ Completed:
 - VisuallyHidden helper
 - Accordion component
 - Dialog component
+- Alert Dialog component
 
 In progress:
 
@@ -65,9 +66,8 @@ In progress:
 
 Next:
 
-- Dialog playground manual checks
-- Alert Dialog component
 - Tabs component
+- Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 
