@@ -1,0 +1,71 @@
+[data-af-component="icon-button"] {
+    inline-size: var(--af-target-size);
+    block-size: var(--af-target-size);
+    min-inline-size: var(--af-target-size);
+    min-block-size: var(--af-target-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--af-radius-md);
+    padding: 0;
+    font-family: var(--af-font-family);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+[data-af-component="icon-button"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-component="icon-button"][data-af-variant="primary"] {
+    color: var(--af-color-primary-fg);
+    background: var(--af-color-primary);
+}
+
+[data-af-component="icon-button"][data-af-variant="secondary"] {
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+    border-color: var(--af-color-border);
+}
+
+[data-af-component="icon-button"][data-af-variant="ghost"] {
+    color: var(--af-color-fg);
+    background: transparent;
+    border-color: transparent;
+}
+
+[data-af-component="icon-button"][data-af-variant="danger"] {
+    color: var(--af-color-danger-fg);
+    background: var(--af-color-danger);
+}
+
+[data-af-component="icon-button"][data-af-state="disabled"],
+[data-af-component="icon-button"]:disabled,
+[data-af-component="icon-button"][aria-disabled="true"] {
+    color: var(--af-color-disabled-fg);
+    background: var(--af-color-disabled-bg);
+    border-color: transparent;
+    cursor: not-allowed;
+}
+
+[data-af-component="icon-button"][data-af-selected="true"],
+[data-af-component="icon-button"][aria-pressed="true"] {
+    box-shadow: inset 0 0 0 2px currentColor;
+}
+
+[data-af-component="icon-button"] > svg {
+    inline-size: 1.25em;
+    block-size: 1.25em;
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+
+[data-af-component="icon-button"] svg,
+[data-af-component="icon-button"] svg * {
+    pointer-events: none;
+}

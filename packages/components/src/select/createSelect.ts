@@ -7,6 +7,14 @@ function toValueArray(value: SelectValue): string[] {
     return Array.isArray(value) ? value : [value];
 }
 
+function normalizeVisibleRows(value: number | null | undefined): number | null {
+    if (value === null || value === undefined) return null;
+
+    const rows = Math.floor(value);
+
+    return rows > 0 ? rows : null;
+}
+
 function getSelectedOptions(element: HTMLSelectElement): HTMLOptionElement[] {
     return Array.from(element.selectedOptions);
 }
@@ -73,6 +81,7 @@ export function createSelect(
     const originalName = element.getAttribute("name");
     const originalVariant = element.getAttribute("data-af-variant");
     const originalSize = element.getAttribute("data-af-size");
+    const originalVisibleRows = element.getAttribute("size");
 
     let disabled = options.disabled ?? element.disabled;
     let required = options.required ?? element.required;
@@ -80,6 +89,7 @@ export function createSelect(
     let name = options.name;
     let variant: SelectVariant = options.variant ?? "default";
     let size: SelectSize = options.size ?? "md";
+    let visibleRows = options.visibleRows;
     let onValueChange = options.onValueChange ?? null;
     let component!: Select;
 
@@ -107,6 +117,19 @@ export function createSelect(
         element.name = name;
     }
 
+    function syncVisibleRows(): void {
+        if (visibleRows === undefined) return;
+
+        const rows = normalizeVisibleRows(visibleRows);
+
+        if (rows === null) {
+            element.removeAttribute("size");
+            return;
+        }
+
+        element.size = rows;
+    }
+
     function syncAttributes(): void {
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -120,6 +143,7 @@ export function createSelect(
     syncDisabled();
     syncRequired();
     syncName();
+    syncVisibleRows();
     syncAttributes();
 
     if (options.value !== undefined) {
@@ -137,6 +161,7 @@ export function createSelect(
         restoreAttribute(element, "name", originalName);
         restoreAttribute(element, "data-af-variant", originalVariant);
         restoreAttribute(element, "data-af-size", originalSize);
+        restoreAttribute(element, "size", originalVisibleRows);
     });
 
     component = {
@@ -206,6 +231,11 @@ export function createSelect(
             if ("name" in nextOptions) {
                 name = nextOptions.name ?? null;
                 syncName();
+            }
+
+            if ("visibleRows" in nextOptions) {
+                visibleRows = nextOptions.visibleRows ?? null;
+                syncVisibleRows();
             }
 
             if ("onValueChange" in nextOptions) {

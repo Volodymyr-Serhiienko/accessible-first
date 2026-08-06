@@ -47,6 +47,8 @@ export interface SelectOptions {
     name?: string | null;
     variant?: SelectVariant;
     size?: SelectSize;
+    /** Number of visible native option rows. Maps to the select size attribute. */
+    visibleRows?: number | null;
     onValueChange?: SelectOnValueChange | null;
 }
 

@@ -1,0 +1,58 @@
+[data-af-component="menu"] {
+    min-inline-size: min(100%, var(--af-menu-width, 16rem));
+    max-block-size: var(--af-menu-max-block-size, 18rem);
+    display: grid;
+    gap: var(--af-space-2);
+    overflow: auto;
+    border: 1px solid var(--af-color-border);
+    border-radius: 8px;
+    padding: var(--af-space-2);
+    background: var(--af-color-bg);
+}
+
+[data-af-component="menu"][data-af-variant="plain"] {
+    border-color: transparent;
+    border-radius: 0;
+    padding: 0;
+}
+
+[data-af-component="menu"][data-af-orientation="horizontal"] {
+    min-inline-size: 0;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+[data-af-menu-item] {
+    min-block-size: var(--af-target-size);
+    display: flex;
+    align-items: center;
+    gap: var(--af-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--af-radius-md);
+    padding: 0 var(--af-space-3);
+    color: var(--af-color-fg);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+[data-af-menu-item]:hover:not([aria-disabled="true"]):not([data-af-disabled="true"]) {
+    background: var(--af-color-surface-hover);
+}
+
+[data-af-menu-item]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-menu-item][aria-disabled="true"],
+[data-af-menu-item][data-af-disabled="true"] {
+    color: var(--af-color-disabled-fg);
+    background: var(--af-color-disabled-bg);
+    border-color: transparent;
+    cursor: not-allowed;
+}

@@ -70,6 +70,19 @@ data-af-state="ready"
 
 Data attributes are not accessibility replacements. ARIA and native HTML semantics remain the accessibility source.
 
+## Default Styles
+
+The public style entry point is `packages/components/src/styles/index.css`.
+
+Internally, styles are split by concern:
+
+- `tokens.css` - theme tokens and shared CSS custom properties;
+- `page.css` - page-level utilities such as skip links;
+- `composition.css` - semantic composition and layout helper styles;
+- `components/*.css` - component-specific default styles.
+
+Applications can import the single entry point or copy only the pieces they need later when package distribution is formalized.
+
 ## Shared Helpers
 
 Shared helpers keep repeated accessibility behavior out of individual components.

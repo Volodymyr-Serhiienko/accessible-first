@@ -117,10 +117,6 @@ interface SelectItemNode {
     disabled: boolean;
 }
 
-function toValueArray(value: SelectCompositionValue): string[] {
-    return Array.isArray(value) ? value : [value];
-}
-
 function getElementText(element: HTMLElement, fallback: string): string {
     return element.textContent?.trim() || fallback;
 }
@@ -233,6 +229,7 @@ function getSelectOptions(
     if (options.variant !== undefined) selectOptions.variant = options.variant;
     if (options.size !== undefined) selectOptions.size = options.size;
     if (value !== undefined) selectOptions.value = value;
+    if ("visibleRows" in options) selectOptions.visibleRows = options.visibleRows ?? null;
 
     return selectOptions;
 }

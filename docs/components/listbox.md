@@ -129,6 +129,10 @@ listbox.update({
 
 Useful hooks include `[data-af-component="listbox"]`, `[data-af-listbox-option]`, `[aria-selected]`, `[aria-disabled]`, `[data-af-orientation]`, and `[data-af-selection-mode]`.
 
+Useful CSS custom properties:
+
+- `--af-listbox-max-block-size` - maximum listbox height before scrolling.
+
 ```ts
 Listbox({
     className: "settings-listbox",

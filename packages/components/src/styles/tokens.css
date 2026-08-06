@@ -1,0 +1,59 @@
+:root {
+    --af-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --af-target-size: 44px;
+    --af-focus-ring-width: 2px;
+    --af-focus-ring-offset: 2px;
+
+    --af-radius-sm: 4px;
+    --af-radius-md: 6px;
+
+    --af-space-2: 0.5rem;
+    --af-space-3: 0.75rem;
+    --af-space-4: 1rem;
+
+    --af-color-bg: #ffffff;
+    --af-color-fg: #111827;
+    --af-color-muted: #4b5563;
+    --af-color-border: #64748b;
+    --af-color-primary: #0f172a;
+    --af-color-primary-fg: #ffffff;
+    --af-color-tooltip-bg: #111827;
+    --af-color-tooltip-fg: #ffffff;
+    --af-color-tooltip-border: #334155;
+    --af-color-danger: #b91c1c;
+    --af-color-danger-fg: #ffffff;
+    --af-color-focus: #2563eb;
+    --af-color-disabled-bg: #e5e7eb;
+    --af-color-disabled-fg: #6b7280;
+    --af-color-surface-hover: #f1f5f9;
+
+    --af-color-link: #0645ad;
+    --af-color-link-visited: #5a2a83;
+
+    --af-color-backdrop: rgba(17, 24, 39, 0.58);
+    --af-shadow-overlay: 0 24px 80px rgba(15, 23, 42, 0.22);
+}
+
+:root[data-af-theme="dark"] {
+    --af-color-bg: #111827;
+    --af-color-fg: #f9fafb;
+    --af-color-muted: #d1d5db;
+    --af-color-border: #9ca3af;
+    --af-color-primary: #1d4ed8;
+    --af-color-primary-fg: #ffffff;
+    --af-color-tooltip-bg: #1f2937;
+    --af-color-tooltip-fg: #f9fafb;
+    --af-color-tooltip-border: #4b5563;
+    --af-color-danger: #f87171;
+    --af-color-danger-fg: #111827;
+    --af-color-focus: #93c5fd;
+    --af-color-disabled-bg: #374151;
+    --af-color-disabled-fg: #d1d5db;
+    --af-color-surface-hover: #1f2937;
+
+    --af-color-link: #93c5fd;
+    --af-color-link-visited: #c4b5fd;
+
+    --af-color-backdrop: rgba(0, 0, 0, 0.72);
+    --af-shadow-overlay: 0 24px 80px rgba(0, 0, 0, 0.55);
+}

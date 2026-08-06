@@ -129,6 +129,11 @@ menu.update({
 
 Useful hooks include `[data-af-component="menu"]`, `[data-af-menu-item]`, `[aria-disabled]`, `[data-af-disabled]`, `[data-af-orientation]`, and `[data-af-variant]`.
 
+Useful CSS custom properties:
+
+- `--af-menu-width` - default menu inline size.
+- `--af-menu-max-block-size` - maximum menu height before scrolling.
+
 ```ts
 Menu({
     className: "document-actions",

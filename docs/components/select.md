@@ -33,11 +33,13 @@ Multiple selection:
 Select({
     label: "Testing targets",
     multiple: true,
+    visibleRows: 4,
     defaultValue: ["keyboard", "mobile"],
     items: [
         { value: "keyboard", label: "Keyboard" },
         { value: "screen-reader", label: "Screen reader" },
-        { value: "mobile", label: "Mobile" }
+        { value: "mobile", label: "Mobile" },
+        { value: "automation", label: "Automation later" }
     ]
 });
 ```
@@ -52,11 +54,14 @@ Select({
 
 - Uses native select semantics instead of recreating select behavior with custom DOM.
 - Supports single and multiple selection.
+- Native multiple select uses the platform selection model with modifier keys.
+- For modifier-free multi-selection in application UI, prefer `Listbox` with `selectionMode: "multiple"`.
 - Supports native form submission through `name`.
 - Supports native `required`, `disabled`, and browser validation behavior.
 - Emits normalized value details on change.
 - Connects an optional visible label to the select with `for` and `id`.
 - Keeps styling/debug attributes on the select control.
+- Maps `visibleRows` to the native `size` attribute.
 
 Keyboard and assistive technology behavior is provided by the browser and platform accessibility APIs.
 
@@ -74,6 +79,7 @@ Root options:
 - `disabled` - Disables the select.
 - `required` - Marks the select as required.
 - `multiple` - Enables multiple selection.
+- `visibleRows` - Number of visible native option rows. Useful for multiple selects. Maps to the native `size` attribute.
 - `name` - Native form field name.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -91,6 +97,14 @@ Item options:
 ## Update Notes
 
 `placeholder` and `defaultValue` are creation-time options.
+
+`visibleRows` can be updated later:
+
+```ts
+select.update({
+    visibleRows: 6
+});
+```
 
 Change selected values through `value` or controller methods:
 

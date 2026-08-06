@@ -30,7 +30,7 @@ export function SelectDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Native multiple select"),
-                        P("Multiple select keeps native browser and assistive technology behavior."),
+                        P("Native multiple select uses platform shortcuts. For easier modifier-free multi-selection, use Listbox multiple selection."),
                         Select({
                             label: "Testing targets",
                             multiple: true,
@@ -41,6 +41,7 @@ export function SelectDemo(): ComposedNode {
                                 { value: "mobile", label: "Mobile" },
                                 { value: "automation", label: "Automation later" }
                             ],
+                            visibleRows: 3,
                             onValueChange(detail) {
                                 announce(`Selected ${detail.texts.join(", ") || "none"}.`);
                             }

@@ -1,0 +1,37 @@
+[data-af-component="link"] {
+    color: var(--af-color-link);
+    border-radius: var(--af-radius-sm);
+    font-family: var(--af-font-family);
+    text-decoration-line: underline;
+    text-decoration-thickness: max(1px, 0.08em);
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+}
+
+[data-af-component="link"]:visited {
+    color: var(--af-color-link-visited);
+}
+
+[data-af-component="link"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-component="link"][data-af-variant="muted"] {
+    color: var(--af-color-muted);
+}
+
+[data-af-component="link"][data-af-variant="standalone"] {
+    min-block-size: var(--af-target-size);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--af-space-2);
+    font-weight: 600;
+}
+
+[data-af-component="link"][data-af-state="disabled"],
+[data-af-component="link"][aria-disabled="true"] {
+    color: var(--af-color-disabled-fg);
+    cursor: not-allowed;
+    pointer-events: none;
+}
