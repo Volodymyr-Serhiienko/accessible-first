@@ -2,9 +2,46 @@
 
 Tabs organize related content panels behind a compact tablist.
 
-## Status
+## When To Use
 
-Initial component implementation.
+Use `Tabs` when several related panels share the same space and users need to switch between them.
+
+Do not use tabs as page navigation unless the content behaves like tabbed panels and remains on the same page.
+
+## Quick Start
+
+```ts
+Tabs({
+    defaultValue: "overview",
+    items: [
+        {
+            value: "overview",
+            tab: "Overview",
+            panel: "Project overview content."
+        },
+        {
+            value: "settings",
+            tab: "Settings",
+            panel: "Settings content."
+        }
+    ],
+    onTabChange(detail) {
+        console.log(detail.value);
+    }
+});
+```
+
+Manual activation:
+
+```ts
+Tabs({
+    activationMode: "manual",
+    items: [
+        { value: "preview", tab: "Preview", panel: "Preview content." },
+        { value: "code", tab: "Code", panel: "Code content." }
+    ]
+});
+```
 
 ## Layers
 
@@ -36,29 +73,6 @@ Keyboard behavior:
 - In `activationMode: "automatic"`, moving focus selects the tab.
 - In `activationMode: "manual"`, `Enter` or `Space` selects the focused tab.
 
-## Composition Example
-
-```ts
-Tabs({
-    defaultValue: "overview",
-    items: [
-        {
-            value: "overview",
-            tab: "Overview",
-            panel: "Project overview content."
-        },
-        {
-            value: "settings",
-            tab: "Settings",
-            panel: "Settings content."
-        }
-    ],
-    onTabChange(detail) {
-        console.log(detail.value);
-    }
-});
-```
-
 ## Options
 
 Root options:
@@ -68,12 +82,12 @@ Root options:
 - `defaultValue` - Initially selected tab value.
 - `orientation` - `"horizontal"` or `"vertical"`. Creation-time option.
 - `activationMode` - `"automatic"` or `"manual"`. Creation-time option.
-- `loop` - Allows arrow navigation to wrap.
+- `loop` - Allows arrow navigation to wrap. Creation-time option.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
 - `announceOnHover` - Announces tab labels on mouse hover. Defaults to `true`.
 - `onTabChange` - Called when the selected tab changes.
-- `id`, `className`, `attributes` - Common DOM options.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
 
 Item options:
 
@@ -89,7 +103,7 @@ Item options:
 
 ## Update Notes
 
-`orientation`, `activationMode`, and `defaultValue` are creation-time options.
+`orientation`, `activationMode`, `loop`, and `defaultValue` are creation-time options.
 
 Change the selected tab through `value` or controller methods:
 
@@ -115,14 +129,25 @@ tabs.update({
 });
 ```
 
+## Styling
+
+Useful hooks include `[data-af-composition="tabs"]`, `[data-af-component="tabs"]`, `[data-af-tabs-tab]`, `[data-af-tabs-panel]`, `[aria-selected]`, `[data-af-orientation]`, and `[data-af-activation-mode]`.
+
+```ts
+Tabs({
+    className: "settings-tabs",
+    items: [...]
+});
+```
+
 ## Manual Checks
 
-* Tab names are announced by screen readers.
-* Selected state is announced.
-* Arrow keys move between enabled tabs.
-* Disabled tabs cannot be selected.
-* Manual activation waits for `Enter` or `Space`.
-* Focus indicator is visible.
-* Panel content is reachable after the tablist.
-* Mouse hover announces tab labels when `announceOnHover` is enabled.
-* Touch targets are comfortable on mobile.
+- Tab names are announced.
+- Selected state is announced.
+- Arrow keys move between enabled tabs.
+- Disabled tabs cannot be selected.
+- Manual activation waits for `Enter` or `Space`.
+- Focus indicator is visible.
+- Panel content is reachable after the tablist.
+- Mouse hover announces tab labels when `announceOnHover` is enabled.
+- Touch targets are comfortable on mobile.

@@ -12,6 +12,7 @@ import {
     IconButtonsDemo,
     LayoutDemo,
     LinksDemo,
+    ListboxDemo,
     MarkupDemo,
     TabsDemo,
 } from "./demo/sections";
@@ -38,6 +39,7 @@ page.section(AccordionDemo());
 page.section(DialogDemo());
 page.section(AlertDialogDemo());
 page.section(TabsDemo());
+page.section(ListboxDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());

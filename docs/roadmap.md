@@ -58,6 +58,8 @@ Completed:
 - Alert Dialog component
 - Tabs component
 - Hover announcement helper
+- Listbox component
+- Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
 
@@ -68,12 +70,11 @@ In progress:
 
 Next:
 
-- Listbox component
+- Menu component
 - Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 
-- Listbox
 - Menu
 - Select
 - Combobox
@@ -214,6 +215,7 @@ Completed:
 - Semantic composition demos
 - Layout primitive demos
 - Tabs demo
+- Listbox demo
 
 In progress:
 

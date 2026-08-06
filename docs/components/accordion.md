@@ -2,9 +2,43 @@
 
 Accordion groups related disclosure items and provides keyboard navigation between item triggers.
 
-## Status
+## When To Use
 
-Initial component implementation.
+Use `Accordion` for a set of related expandable sections.
+
+Use `Disclosure` for one standalone expandable panel.
+
+## Quick Start
+
+```ts
+Accordion({
+    items: [
+        {
+            trigger: "Account",
+            panel: "Account settings and preferences."
+        },
+        {
+            trigger: "Security",
+            panel: "Password and sign-in options."
+        }
+    ]
+});
+```
+
+With open announcements:
+
+```ts
+Accordion({
+    announcement: true,
+    items: [
+        {
+            value: "keyboard",
+            trigger: "Keyboard support",
+            panel: "Arrow keys, Home, and End are supported."
+        }
+    ]
+});
+```
 
 ## Layers
 
@@ -14,73 +48,58 @@ Initial component implementation.
 
 ## Behavior
 
-Accordion items use disclosure semantics:
-
-- each trigger controls one panel;
-- triggers expose `aria-expanded`;
-- triggers reference panels through `aria-controls`;
-- panels are hidden when closed.
-
-The accordion keeps every trigger in the normal page `Tab` sequence.
+- Each trigger controls one panel.
+- Triggers expose `aria-expanded`.
+- Triggers reference panels through `aria-controls`.
+- Panels are hidden when closed.
+- Every trigger remains in the normal page `Tab` sequence.
+- Composition API wraps each trigger in a native heading element.
+- Default composition heading level is `h3`.
+- `panelRole: "auto"` uses `role="region"` only when the accordion is small enough to avoid landmark noise.
+- Can announce opened panel text or a custom message.
 
 Keyboard behavior:
 
-- `Tab` moves through all accordion triggers and other focusable page controls.
-- `Enter` / `Space` toggles the focused accordion trigger.
-- `ArrowDown` / `ArrowUp` may move focus between triggers when the browser receives those keys.
-- `Home` / `End` may move focus to the first or last trigger.
+- `Tab` moves through accordion triggers and other focusable page controls.
+- `Enter` or `Space` toggles the focused trigger.
+- `ArrowDown` and `ArrowUp` may move focus between triggers.
+- `Home` and `End` may move focus to the first or last trigger.
 
-Arrow key support is an enhancement, not the only navigation path. Screen readers may use arrow keys for their own reading cursor.
-
-In the composition API, each accordion trigger is wrapped in a native heading element.
-
-By default, composition accordions use `h3` for item headings. This can be changed with `headingLevel`.
-
-Panels use `role="region"` and `aria-labelledby` in `panelRole: "auto"` mode when the accordion has a small enough number of panels to avoid landmark proliferation.
-
-Accordion reuses Disclosure announcement behavior. If `announcement` is enabled, opening an item can announce the panel text or a custom message.
-
-## Composition Example
-
-```ts
-Accordion({
-    items: [
-        {
-            value: "first",
-            trigger: "First item",
-            panel: "First panel content.",
-            defaultOpen: true
-        },
-        {
-            value: "second",
-            trigger: "Second item",
-            panel: "Second panel content."
-        }
-    ],
-    onOpenChange(detail) {
-        console.log(detail.value, detail.open);
-    }
-});
-```
+Arrow keys are an enhancement, not the only navigation path. Screen readers may use arrow keys for their own reading cursor.
 
 ## Options
 
-* items: accordion item definitions.
-* multiple: allows more than one item to be open.
-* collapsible: allows the last open item to close.
-* disabled: disables all items.
-* loop: loops keyboard navigation.
-* variant: visual variant.
-* size: size token.
-* headingLevel: native heading level for composition item headers. Creation-time only.
-* panelRole: `"auto"`, `"region"`, or `"none"` for composition panel landmark behavior.
-* announcement: optional live-region output when an item opens. Can be set globally or per item.
+Root options:
+
+- `items` - Required list of accordion items.
+- `headingLevel` - Default heading level for item headings: `2 | 3 | 4 | 5 | 6`.
+- `panelRole` - `"auto"`, `"region"`, or `"none"`.
+- `multiple` - Allows more than one item to be open.
+- `collapsible` - Allows the last open item to close.
+- `disabled` - Disables the entire accordion.
+- `loop` - Arrow navigation wraps.
+- `variant` - `"default"` or `"plain"`.
+- `size` - `"md"`.
+- `announcement` - Announces opened panel content when enabled.
+- `onOpenChange` - Called when an item opens or closes.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+Item options:
+
+- `value` - Stable item id used by controller methods.
+- `trigger` - Required trigger content.
+- `panel` - Required panel content.
+- `headingLevel` - Overrides heading level for one item.
+- `disabled` - Disables one item.
+- `defaultOpen` - Opens one item initially.
+- `open` - Controlled open state.
+- `announcement` - Per-item announcement override.
 
 ## Update Notes
 
 `headingLevel` is creation-time only because it creates native heading elements.
 
-Item updates are partial:
+Item updates are partial and matched by index:
 
 ```ts
 accordion.update({
@@ -91,11 +110,22 @@ accordion.update({
 });
 ```
 
+## Styling
+
+Useful hooks include `[data-af-component="accordion"]`, `[data-af-accordion-item]`, `[data-af-open]`, and `[data-af-disabled]`.
+
+```ts
+Accordion({
+    className: "settings-accordion",
+    items: [...]
+});
+```
+
 ## Manual Checks
 
-* Trigger names are announced by screen readers.
-* Expanded/collapsed state is announced.
-* Arrow keys move between triggers.
-* Disabled items cannot be activated.
-* Focus indicator is visible.
-* Touch targets are comfortable on mobile.
+- Trigger names are announced.
+- Expanded or collapsed state is announced.
+- Arrow keys move between triggers when available to the browser.
+- Disabled items cannot be activated.
+- Focus indicator is visible.
+- Touch targets are comfortable on mobile.

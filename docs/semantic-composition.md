@@ -1,16 +1,18 @@
 # Semantic Composition
 
-Semantic Composition is the upper-level API for creating accessible pages from meaningful regions and blocks instead of large HTML strings or unreadable nested object trees.
+Semantic Composition is the page-building API for creating accessible pages from meaningful regions and blocks.
 
-It does not replace enhancement components. It builds on top of them.
+It focuses on how a page is organized. Component behavior and component options live in the component docs.
 
 ## Purpose
 
-The goal is to make page structure clear:
+Large pages should read as a composition of roles:
 
 ```ts
 const page = createPage({
-    title: "Accessible First Playground"
+    title: "Accessible First Playground",
+    navigationLabel: "Playground sections",
+    theme: "system"
 });
 
 page.header(Header());
@@ -23,180 +25,60 @@ mount(page, "#app");
 page.inspect();
 ```
 
-A page should read as a composition of roles and content areas.
+This keeps structure visible without forcing developers into one large nested tree.
 
-## Layers
+## Page Object
 
-* Core behavior: focus, keyboard, ARIA, interactions
-* Enhancement components: createButton(element), createDisclosure(root, options), createDialog(element, options)
-* Composition components: Button(), IconButton(), Link(), Disclosure(), Accordion(), Dialog(), AlertDialog(), Tabs()
-* Semantic composition: createPage(), Section(), Panel(), Row(), Stack(), Grid(), Group(), Toolbar(), tag helpers, Html, diagnostics
+`createPage()` creates the stable page shell:
 
-## Example
+- header;
+- navigation;
+- main;
+- footer;
+- skip link;
+- optional system, light, or dark theme;
+- development diagnostics through `page.inspect()`.
 
-```ts
-import {
-    Button,
-    Grid,
-    H1,
-    Li,
-    Link,
-    P,
-    Panel,
-    Row,
-    Section,
-    Stack,
-    Ul,
-    createPage,
-    mount
-} from "@accessible-first/components";
-
-function Header() {
-    return Row(
-        Stack(
-            H1("Accessible First Playground"),
-            P("Living documentation for accessible components.")
-        ),
-        Button({
-            text: "Theme",
-            variant: "secondary"
-        })
-    );
-}
-
-function ButtonsDemo() {
-    return Section({
-        id: "buttons",
-        title: "Buttons",
-        children: [
-            Panel(
-                Row(
-                    Button({
-                        text: "Primary action",
-                        variant: "primary"
-                    }),
-                    Button({
-                        text: "Secondary action",
-                        variant: "secondary"
-                    })
-                )
-            )
-        ]
-    });
-}
-
-function LayoutDemo() {
-    return Section({
-        id: "layout",
-        title: "Layout",
-        children: [
-            Grid(
-                { minColumnWidth: "16rem" },
-                Panel(Stack(P("Stacked content"))),
-                Panel(Stack(P("Another grid cell"))),
-                Panel(
-                    Ul(
-                        Li("Semantic blocks"),
-                        Li("Responsive layout"),
-                        Li("Accessible defaults")
-                    )
-                )
-            )
-        ]
-    });
-}
-
-const page = createPage({
-    title: "Accessible First Playground",
-    navigationLabel: "Playground sections",
-    theme: "system"
-});
-
-page.header(Header());
-page.navigation(
-    Row(
-        Link({ text: "Buttons", href: "#buttons" }),
-        Link({ text: "Layout", href: "#layout" })
-    )
-);
-page.section(ButtonsDemo());
-page.section(LayoutDemo());
-
-mount(page, "#app");
-page.inspect();
-```
-
-## Component Factories
-
-Composition factories create DOM and then enhance it with the existing component engine.
-
-```ts
-const save = Button({
-    text: "Save",
-    variant: "primary",
-    onPress(event, button) {
-        button.setText("Saved");
-    }
-});
-
-const docs = Link({
-    text: "Documentation",
-    href: "/docs"
-});
-
-const details = Disclosure({
-    trigger: "Project details",
-    panel: "This content is controlled by the disclosure trigger."
-});
-```
-
-The low-level enhancement API remains available:
-
-```ts
-createButton(existingButton, {
-    variant: "primary"
-});
-```
-
-`Icon` for decorative or labelled SVG icons;
-`VisuallyHidden` for screen-reader-only content.
-
-## Self-Aware Callbacks
-
-Composition callbacks may receive the component instance.
-
-This avoids awkward external variables:
-
-```ts
-Button({
-    text: "Toggle",
-    pressed: false,
-    onPress(event, button) {
-        const next = button.getPressed() !== true;
-        button.setPressed(next);
-    }
-});
-```
+Sections added with `page.section(...)` are mounted into the main landmark.
 
 ## Layout Primitives
 
-Current layout primitives are intentionally small.
+Current primitives are intentionally small:
 
-* Section creates a labelled document section.
-* Panel frames a related content block.
-* Row arranges children horizontally and wraps.
-* Stack arranges children vertically.
-* Grid arranges blocks in a responsive grid.
-* Group groups related controls or content.
-* Toolbar creates a labelled toolbar region.
+- `Section` creates a labelled document section.
+- `Panel` frames a related content block.
+- `Row` arranges children horizontally and wraps.
+- `Stack` arranges children vertically.
+- `Grid` creates a responsive flow grid.
+- `Group` groups related content or controls.
+- `Toolbar` creates a labelled toolbar region.
 
-Grid should be understood as a responsive flow grid for common block layouts. It is not yet a full CSS Grid DSL.
+Grid is a responsive flow helper, not a full CSS Grid DSL. If real pages need explicit placement, a future `Cell` or `GridCell` primitive can add row, column, span, or named area control.
 
-If real examples require explicit grid placement, a future Cell or GridCell primitive may add row, column, span, or named area control.
+## Tag Helpers
 
-## Native HTML Fragments
+Tag helpers keep simple markup readable:
 
-Html allows trusted native HTML fragments:
+```ts
+Section({
+    id: "layout",
+    title: "Layout",
+    children: [
+        Panel(
+            Stack(
+                H3("Stack"),
+                P("Vertical composition for text and controls.")
+            )
+        )
+    ]
+});
+```
+
+Use native helpers such as `P`, `H1`, `H2`, `H3`, `Ul`, and `Li` when they make the page easier to read.
+
+## Trusted HTML
+
+`Html()` inserts trusted native HTML fragments:
 
 ```ts
 Html({
@@ -204,26 +86,24 @@ Html({
 });
 ```
 
-This is useful for documentation fragments or imported trusted content.
-
-Do not use Html for untrusted user content unless it has been sanitized before reaching Accessible First.
+Use it only for static or already sanitized content.
 
 ## Diagnostics
 
-page.inspect() reports common structural and accessibility issues:
+`page.inspect()` should help developers catch common structural issues:
 
-* missing landmarks;
-* multiple main landmarks;
-* missing or multiple h1;
-* sections without headings;
-* navigation without accessible name;
-* duplicate IDs;
-* broken ARIA references;
-* interactive controls without accessible names.
-* component warnings exposed through `data-af-warning`.
+- missing landmarks;
+- multiple main landmarks;
+- missing or multiple `h1`;
+- sections without headings;
+- navigation without an accessible name;
+- duplicate ids;
+- broken ARIA references;
+- interactive controls without accessible names;
+- component warnings exposed through `data-af-warning`.
 
 ## Direction
 
-Semantic Composition should evolve through real examples.
+Semantic Composition should grow from real pages and the playground.
 
-The project should first provide reliable primitives and components. Higher-level page and app patterns should be added only when the playground or real demo pages show repeated compositions that deserve names.
+New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.

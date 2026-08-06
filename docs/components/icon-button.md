@@ -1,73 +1,109 @@
-# Icon Button
+# IconButton
 
-Icon Button is an icon-only action component with built-in keyboard behavior, disabled state, pressed state, and accessible-name protection.
+IconButton is an icon-only action component with accessible-name protection, default tooltip behavior, and optional selected or pressed state.
 
 ## When To Use
 
-Use Icon Button for compact actions where the visual icon is enough for sighted users, but the control still needs a meaningful accessible name for assistive technologies.
+Use `IconButton` for compact actions where the visual icon is enough for sighted users, but assistive technologies still need a meaningful name.
 
-## Accessibility
+For actions with visible text, prefer `Button`.
 
-- Uses native `button` behavior when attached to a `<button>`.
+## Quick Start
+
+```ts
+IconButton({
+    label: "Save",
+    icon: Icon({
+        path: "M5 3h12l2 2v16H5V3Z"
+    }),
+    onPress() {
+        save();
+    }
+});
+```
+
+Dynamic action with changing label and icon:
+
+```ts
+IconButton({
+    label: "Add to favorites",
+    icon: favoriteIcon(false),
+    onPress(_event, button) {
+        const selected = button.toggleSelected();
+        const label = selected ? "Remove from favorites" : "Add to favorites";
+
+        button.update({
+            label,
+            icon: favoriteIcon(selected)
+        });
+    }
+});
+```
+
+Enhance existing HTML:
+
+```ts
+const button = createIconButton(existingButton, {
+    label: "Save",
+    variant: "secondary"
+});
+```
+
+## Layers
+
+- Enhancement API: `createIconButton(element, options)`
+- Composition API: `IconButton(options)`
+- Reuses: core button behavior, selected state, tooltip, hover announcement, and component lifecycle
+
+## Behavior
+
+- Uses native button behavior when attached to a `<button>`.
 - Adds `role="button"` and keyboard activation when attached to a non-button element.
-- Supports `Enter` and `Space` activation for non-native buttons.
 - Supports `aria-label` through `label`.
 - Supports `aria-labelledby` through `labelledBy`.
-- Supports `aria-pressed` for toggle icon buttons.
+- Supports `aria-pressed` for true toggle icon buttons with stable labels.
 - Uses at least a 44 by 44 CSS pixel target by default.
-- Shows a visible focus indicator through `:focus-visible`.
+- Shows a visible focus indicator.
+- Shows a visual tooltip by default when `label` is provided.
+- Announces tooltip or label on mouse hover by default.
 - Falls back to `aria-label="Icon button"` and `data-af-warning="missing-accessible-name"` when no accessible name is provided.
 
-## Example
+## Options
+
+- `label` - Accessible name for icon-only buttons.
+- `labelledBy` - References visible text by id instead of `label`.
+- `icon` - Icon content.
+- `children` - Rich content instead of `icon`.
+- `title` - Native title attribute. Avoid unless specifically needed.
+- `tooltip` - Visual tooltip text. Defaults to `label`; use `null` to disable.
+- `announceOnHover` - Announces tooltip or label on mouse hover.
+- `selected` - Adds visual/action state through `data-af-selected`.
+- `pressed` - Adds `aria-pressed` for true toggle icon buttons with stable labels.
+- `disabled` - Disables the button.
+- `type` - `"button"`, `"submit"`, or `"reset"`.
+- `variant` - `"primary"`, `"secondary"`, `"ghost"`, or `"danger"`.
+- `size` - `"md"`.
+- `onPress` - Called when activated.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+## Styling
+
+Useful hooks include `[data-af-component="icon-button"]`, `[data-af-tooltip]`, `[data-af-selected="true"]`, `[aria-pressed]`, `[data-af-variant]`, and `[data-af-state]`.
 
 ```ts
-import { createIconButton } from "@accessible-first/components";
-
-const button = createIconButton(document.querySelector("[data-save]")!, {
+IconButton({
     label: "Save",
-    variant: "secondary",
-    onPress() {
-        saveDocument();
-    }
+    icon: saveIcon,
+    className: "toolbar-save"
 });
 ```
-
-## Toggle Example
-
-```ts
-const button = createIconButton(document.querySelector("[data-favorite]")!, {
-    label: "Add to favorites",
-    pressed: false,
-    onPress() {
-        const nextPressed = button.getPressed() !== true;
-        button.setPressed(nextPressed);
-        button.setLabel(nextPressed ? "Remove from favorites" : "Add to favorites");
-    }
-});
-```
-
----
 
 ## Manual Checks
 
-### Desktop:
-
-* The button receives focus with Tab.
-* The focus indicator is clearly visible.
-* Enter activates non-native icon buttons.
-* Space activates non-native icon buttons.
-* Disabled buttons cannot be activated.
-* Toggle buttons expose aria-pressed.
-* Screen readers announce a meaningful name and button role.
-
-### Mobile:
-
-* The touch target is at least 44 by 44 CSS pixels.
-* The button can be activated by touch.
-* Screen readers announce the name, role, and pressed state where applicable.
-
----
-
-## Notes
-
-A generic fallback label prevents a completely nameless control, but production icon buttons should always provide a meaningful label or labelledBy.
+- Tab reaches the button.
+- Focus indicator is visible.
+- Disabled buttons cannot be activated.
+- Toggle buttons expose pressed state where used.
+- Screen readers announce a meaningful name and button role.
+- Tooltip remains readable in light and dark themes.
+- Touch target is at least 44 by 44 CSS pixels.

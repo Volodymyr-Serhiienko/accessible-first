@@ -1,0 +1,69 @@
+import {
+    Grid,
+    H3,
+    Listbox,
+    P,
+    Panel,
+    Section,
+    Stack,
+    type ComposedListboxItem,
+    type ComposedNode
+} from "../af";
+import { announce } from "../status";
+
+function getItemText(item: ComposedListboxItem): string {
+    return item.option.textContent?.trim() || item.value;
+}
+
+function getSelectionText(items: ComposedListboxItem[]): string {
+    return items.map(getItemText).join(", ") || "none";
+}
+
+export function ListboxDemo(): ComposedNode {
+    return Section({
+        id: "listbox",
+        title: "Listbox",
+        children: [
+            Grid(
+                { minColumnWidth: "16rem" },
+                Panel(
+                    Stack(
+                        H3("Single selection"),
+                        P("Arrow keys move through options. Typeahead is enabled by default."),
+                        Listbox({
+                            defaultValue: "documentation",
+                            items: [
+                                { value: "components", label: "Components" },
+                                { value: "documentation", label: "Documentation" },
+                                { value: "patterns", label: "Page patterns" },
+                                { value: "disabled", label: "Unavailable option", disabled: true }
+                            ],
+                            onSelectionChange(detail) {
+                                announce(`Selected ${getSelectionText(detail.selectedItems)}.`);
+                            }
+                        })
+                    )
+                ),
+                Panel(
+                    Stack(
+                        H3("Multiple selection"),
+                        P("Use Enter or Space to toggle focused options."),
+                        Listbox({
+                            selectionMode: "multiple",
+                            defaultValue: ["keyboard", "screen-reader"],
+                            items: [
+                                { value: "keyboard", label: "Keyboard support" },
+                                { value: "screen-reader", label: "Screen reader checks" },
+                                { value: "mobile", label: "Mobile testing" },
+                                { value: "automation", label: "Automation later" }
+                            ],
+                            onSelectionChange(detail) {
+                                announce(`Selected ${getSelectionText(detail.selectedItems)}.`);
+                            }
+                        })
+                    )
+                )
+            )
+        ]
+    });
+}

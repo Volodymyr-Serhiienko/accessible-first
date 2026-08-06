@@ -1,53 +1,100 @@
-# Button Component
+# Button
 
-## Purpose
+Button provides accessible action controls with default styling hooks.
 
-The Button component provides accessible button behavior and default styling hooks.
+## When To Use
 
-Native `button` elements are preferred. Non-native elements receive button semantics and keyboard activation.
+Use `Button` for actions, not navigation. For navigation, use `Link`.
 
-## Public API
+Native `<button>` behavior is preferred. Enhancement APIs can also add button semantics and keyboard activation to non-native elements when needed.
+
+## Quick Start
 
 ```ts
-const button = createButton(element, {
+Button({
+    text: "Save",
     variant: "primary",
-    onPress: () => {
-        console.log("Pressed");
+    onPress() {
+        save();
     }
 });
-
-button.setDisabled(true);
-button.destroy();
 ```
 
----
+Toggle-like action with changing label:
+
+```ts
+Button({
+    text: "Enable option",
+    variant: "secondary",
+    onPress(_event, button) {
+        const selected = button.toggleSelected();
+
+        button.setText(selected ? "Disable option" : "Enable option");
+    }
+});
+```
+
+Enhance existing HTML:
+
+```ts
+const button = createButton(existingButton, {
+    variant: "primary",
+    onPress() {
+        save();
+    }
+});
+```
+
+## Layers
+
+- Enhancement API: `createButton(element, options)`
+- Composition API: `Button(options)`
+- Reuses: core button behavior and component lifecycle
 
 ## Behavior
 
-* Preserves native button behavior when used with <button>
-* Sets type="button" by default for native buttons
-* Adds role="button" for non-native triggers
-* Routes Enter and Space activation for non-native triggers through the normal click path
-* Supports disabled state
-* Supports toggle button state with aria-pressed
-* Exposes stable data attributes for styling
-* Restores original attributes on destroy
+- Preserves native button behavior when used with `<button>`.
+- Sets `type="button"` by default for native buttons.
+- Adds `role="button"` for non-native triggers.
+- Routes `Enter` and `Space` activation for non-native triggers through the normal click path.
+- Supports disabled state.
+- Supports `aria-pressed` for true toggle buttons with stable labels.
+- Supports visual selected state through `data-af-selected`.
+- Exposes stable data attributes for styling.
+- Restores original attributes on `destroy()`.
 
-## Manual Testing
+## Options
 
-### Desktop:
+- `text` - Simple visible label.
+- `children` - Rich content instead of `text`.
+- `disabled` - Disables the button.
+- `pressed` - Adds `aria-pressed` for true toggle buttons with stable labels.
+- `selected` - Adds visual/action state through `data-af-selected`.
+- `type` - `"button"`, `"submit"`, or `"reset"`.
+- `variant` - `"primary"`, `"secondary"`, `"ghost"`, or `"danger"`.
+- `size` - `"md"`.
+- `onPress` - Called when the button is activated.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
 
-* Tab reaches the button
-* Focus indicator is clearly visible
-* Enter activates the button
-* Space activates the button
-* Disabled state cannot be activated
-* Text contrast is readable in light and dark themes
+## Styling
 
-### Mobile:
+Useful hooks include `[data-af-component="button"]`, `[data-af-variant]`, `[data-af-state]`, and `[data-af-selected="true"]`.
 
-* Tap activates the button
-* Target size is comfortable
-* Disabled state cannot be activated
-* Screen reader announces the accessible name and button role
-* Toggle buttons announce pressed state
+```ts
+Button({
+    text: "Delete",
+    variant: "danger",
+    className: "danger-action"
+});
+```
+
+## Manual Checks
+
+- Tab reaches the button.
+- Focus indicator is visible.
+- `Enter` activates the button.
+- `Space` activates the button.
+- Disabled state cannot be activated.
+- Toggle buttons announce pressed state.
+- Text contrast is readable in light and dark themes.
+- Touch target is comfortable on mobile.

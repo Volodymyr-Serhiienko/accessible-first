@@ -1,35 +1,14 @@
 # AlertDialog
 
-AlertDialog provides a stricter dialog preset for important confirmations and destructive actions.
+AlertDialog is a stricter dialog preset for important confirmations and destructive actions.
 
-## Status
+## When To Use
 
-Initial component implementation.
+Use `AlertDialog` when the user must make a deliberate decision before continuing, especially for destructive actions.
 
-## Layers
+Use `Dialog` for ordinary modal workflows.
 
-- Composition API: `AlertDialog(options)`
-- Reuses: `Dialog`, `Button`
-- Built on top of dialog focus trapping, dismissable layer behavior, overlay stack, and scroll lock
-
-## Behavior
-
-- Uses `role="alertdialog"`.
-- Requires a visible `title`.
-- Requires a short `description`.
-- Connects the title with `aria-labelledby`.
-- Connects the description with `aria-describedby`.
-- Moves focus inside the alert dialog on open.
-- Focuses the cancel action by default as the safer action.
-- Falls back to the confirm action if the cancel action is disabled.
-- Keeps Tab and Shift+Tab inside the alert dialog while modal focus trapping is enabled.
-- Locks page scrolling behind the alert dialog by default.
-- Does not close on outside pointer interaction by default.
-- Closes with Escape by default.
-- Confirm and cancel actions close the alert dialog unless their handler calls `event.preventDefault()`.
-- Restores focus to the trigger on close by default.
-
-## Composition Example
+## Quick Start
 
 ```ts
 AlertDialog({
@@ -43,6 +22,29 @@ AlertDialog({
     }
 });
 ```
+
+## Layers
+
+- Composition API: `AlertDialog(options)`
+- Reuses: `Dialog`, `Button`
+- Built on dialog focus trapping, dismissable layer behavior, overlay stack, and scroll lock
+
+## Behavior
+
+- Uses `role="alertdialog"`.
+- Requires a visible `title`.
+- Requires a short `description`.
+- Connects the title with `aria-labelledby`.
+- Connects the description with `aria-describedby`.
+- Moves focus inside the alert dialog on open.
+- Focuses the cancel action by default as the safer action.
+- Falls back to the confirm action if the cancel action is disabled.
+- Keeps `Tab` and `Shift+Tab` inside while modal focus trapping is enabled.
+- Locks page scrolling behind the alert dialog by default.
+- Does not close on outside pointer interaction by default.
+- Closes with `Escape` by default.
+- Confirm and cancel actions close the alert dialog unless their handler calls `event.preventDefault()`.
+- Restores focus to the trigger on close by default.
 
 ## Options
 
@@ -66,22 +68,34 @@ AlertDialog({
 - `defaultOpen` - Opens initially.
 - `modal` - Enables modal semantics.
 - `lockScroll` - Locks page scrolling while open. Defaults to `modal`.
-- `trapFocus` - Keeps Tab navigation inside the alert dialog.
-- `closeOnEscape` - Allows Escape to close the alert dialog.
+- `trapFocus` - Keeps tab navigation inside the alert dialog.
+- `closeOnEscape` - Allows `Escape` to close the alert dialog.
 - `restoreFocus` - Restores focus to the opener on close.
 - `dismissOnPointerDownOutside` - Allows outside pointer dismissal when explicitly set to `true`.
-- `id`, `className`, `attributes` - Common DOM options.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+## Styling
+
+AlertDialog reuses Dialog and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, and button `[data-af-variant]`.
+
+```ts
+AlertDialog({
+    trigger: "Delete project",
+    title: "Delete project?",
+    description: "This action cannot be undone.",
+    className: "danger-confirmation"
+});
+```
 
 ## Manual Checks
 
-* Trigger announces that it opens a dialog.
-* Opening announces the alert dialog title and description.
-* Initial focus lands on the cancel action by default.
-* Confirm action is visually distinct for destructive flows.
-* Tab and Shift+Tab do not leave the alert dialog.
-* Page behind the alert dialog does not scroll while open.
-* Outside pointer interaction does not close it by default.
-* Escape closes it unless disabled.
-* Confirm and cancel actions close it by default.
-* Focus returns to the trigger after closing.
-* Mobile screen reader can open, understand, and close the alert dialog.
+- Trigger announces that it opens a dialog.
+- Opening announces title and description.
+- Initial focus lands on the cancel action by default.
+- Confirm action is visually distinct for destructive flows.
+- `Tab` and `Shift+Tab` do not leave the alert dialog.
+- Page behind the alert dialog does not scroll while open.
+- Outside pointer interaction does not close it by default.
+- `Escape` closes it unless disabled.
+- Confirm and cancel actions close it by default.
+- Focus returns to the trigger after closing.
