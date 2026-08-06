@@ -630,6 +630,54 @@
     cursor: not-allowed;
 }
 
+/* --- Select --- */
+
+[data-af-composition="select"] {
+    display: grid;
+    gap: var(--af-space-2);
+}
+
+[data-af-select-label] {
+    color: var(--af-color-fg);
+    font: inherit;
+    font-weight: 600;
+}
+
+[data-af-component="select"] {
+    min-inline-size: min(100%, var(--af-select-width, 20rem));
+    min-block-size: var(--af-target-size);
+    border: 1px solid var(--af-color-border);
+    border-radius: var(--af-radius-md);
+    padding: 0 var(--af-space-3);
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+    font: inherit;
+}
+
+[data-af-component="select"][multiple] {
+    min-block-size: calc(var(--af-target-size) * 3);
+    padding-block: var(--af-space-2);
+}
+
+[data-af-component="select"][data-af-variant="plain"] {
+    border-color: transparent;
+    border-radius: 0;
+    padding-inline: 0;
+    background: transparent;
+}
+
+[data-af-component="select"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-component="select"]:disabled,
+[data-af-component="select"][data-af-state="disabled"] {
+    color: var(--af-color-disabled-fg);
+    background: var(--af-color-disabled-bg);
+    cursor: not-allowed;
+}
+
 /* --- Dialog --- */
 
 [data-af-composition="dialog"] {

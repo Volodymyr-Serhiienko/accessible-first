@@ -10,5 +10,6 @@ export * from "./link";
 export * from "./listbox";
 export * from "./menu";
 export * from "./page";
+export * from "./select";
 export * from "./tabs";
 export * from "./tooltip";

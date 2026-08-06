@@ -13,6 +13,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "Tabs", href: "#tabs", variant: "standalone" }),
         Link({ text: "Listbox", href: "#listbox", variant: "standalone" }),
         Link({ text: "Menu", href: "#menu", variant: "standalone" }),
+        Link({ text: "Select", href: "#select", variant: "standalone" }),
         Link({ text: "Layout", href: "#layout", variant: "standalone" }),
         Link({ text: "Markup", href: "#markup", variant: "standalone" })
     );

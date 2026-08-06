@@ -23,6 +23,7 @@ Each component document should contain:
 - [Link](./link.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
+- [Select](./select.md)
 - [Tabs](./tabs.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).

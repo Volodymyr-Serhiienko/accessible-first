@@ -10,4 +10,5 @@ export { LinksDemo } from "./links";
 export { ListboxDemo } from "./listbox";
 export { MarkupDemo } from "./markup";
 export { MenuDemo } from "./menu";
+export { SelectDemo } from "./select";
 export { TabsDemo } from "./tabs";
