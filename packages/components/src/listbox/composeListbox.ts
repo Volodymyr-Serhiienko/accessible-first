@@ -61,6 +61,8 @@ export interface ListboxCompositionSelectionChangeDetail {
     selectedValues: string[];
     selectedOptions: HTMLElement[];
     selectedItems: ComposedListboxItem[];
+    selectedTexts: string[];
+    selectedText: string;
 }
 
 /**
@@ -113,6 +115,7 @@ export interface ComposedListboxItem {
     setLabelContent(content: ListboxCompositionContent): void;
     setDisabled(disabled: boolean): void;
     isDisabled(): boolean;
+    getText(): string;
 }
 
 /**
@@ -144,6 +147,16 @@ interface ListboxItemNode {
     hoverAnnouncement: ReturnType<typeof createHoverAnnouncement>;
     announceOnHover: boolean | undefined;
     disabled: boolean;
+}
+
+function getElementText(element: HTMLElement, fallback: string): string {
+    return element.textContent?.trim() || fallback;
+}
+
+function getListboxOptionText(option: HTMLElement, itemNodes: ListboxItemNode[]): string {
+    const node = itemNodes.find((candidate) => candidate.option === option);
+
+    return getElementText(option, node?.value ?? "");
 }
 
 function toValueArray(value: ListboxCompositionValue): string[] {
@@ -255,7 +268,7 @@ function getListboxOptions(
             itemNodes.find((node) => node.option === option)?.disabled
             ?? option.getAttribute("aria-disabled") === "true"
         ),
-        getOptionText: (option) => option.textContent ?? "",
+        getOptionText: (option) => getListboxOptionText(option, itemNodes),
         onSelectionChange
     };
 
@@ -311,12 +324,15 @@ export function Listbox(options: ListboxCompositionOptions): ComposedListbox {
 
     const handleSelectionChange = (selectedOptions: HTMLElement[]): void => {
         const selectedItems = composedItems.filter((item) => selectedOptions.includes(item.option));
+        const selectedTexts = selectedItems.map((item) => item.getText());
 
         onSelectionChange?.(
             {
                 selectedValues: selectedItems.map((item) => item.value),
                 selectedOptions,
-                selectedItems
+                selectedItems,
+                selectedTexts,
+                selectedText: selectedTexts.join(", ")
             },
             composed
         );
@@ -354,6 +370,9 @@ export function Listbox(options: ListboxCompositionOptions): ComposedListbox {
     composedItems = itemNodes.map((node): ComposedListboxItem => ({
         value: node.value,
         option: node.option,
+        getText(): string {
+            return getElementText(node.option, node.value);
+        },
 
         setLabelContent(content): void {
             node.labelContent.set(toCompositionChildren(content));

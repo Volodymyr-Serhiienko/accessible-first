@@ -6,18 +6,9 @@ import {
     Panel,
     Section,
     Stack,
-    type ComposedListboxItem,
     type ComposedNode
 } from "../af";
 import { announce } from "../status";
-
-function getItemText(item: ComposedListboxItem): string {
-    return item.option.textContent?.trim() || item.value;
-}
-
-function getSelectionText(items: ComposedListboxItem[]): string {
-    return items.map(getItemText).join(", ") || "none";
-}
 
 export function ListboxDemo(): ComposedNode {
     return Section({
@@ -39,7 +30,7 @@ export function ListboxDemo(): ComposedNode {
                                 { value: "disabled", label: "Unavailable option", disabled: true }
                             ],
                             onSelectionChange(detail) {
-                                announce(`Selected ${getSelectionText(detail.selectedItems)}.`);
+                                announce(`Selected ${detail.selectedText || "none"}.`);
                             }
                         })
                     )
@@ -58,7 +49,7 @@ export function ListboxDemo(): ComposedNode {
                                 { value: "automation", label: "Automation later" }
                             ],
                             onSelectionChange(detail) {
-                                announce(`Selected ${getSelectionText(detail.selectedItems)}.`);
+                                announce(`Selected ${detail.selectedText || "none"}.`);
                             }
                         })
                     )

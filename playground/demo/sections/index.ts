@@ -9,4 +9,5 @@ export { LayoutDemo } from "./layout";
 export { LinksDemo } from "./links";
 export { ListboxDemo } from "./listbox";
 export { MarkupDemo } from "./markup";
+export { MenuDemo } from "./menu";
 export { TabsDemo } from "./tabs";

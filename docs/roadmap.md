@@ -59,10 +59,12 @@ Completed:
 - Tabs component
 - Hover announcement helper
 - Listbox component
+- Menu component enhancement and composition APIs
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
 
+- Menu playground demo and styling
 - Playground as living documentation
 - Responsive playground refinement
 - Component examples and manual checklists
@@ -70,12 +72,11 @@ In progress:
 
 Next:
 
-- Menu component
+- Select component
 - Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 
-- Menu
 - Select
 - Combobox
 - Tooltip

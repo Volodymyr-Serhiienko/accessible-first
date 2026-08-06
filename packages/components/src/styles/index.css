@@ -25,6 +25,7 @@
     --af-color-focus: #2563eb;
     --af-color-disabled-bg: #e5e7eb;
     --af-color-disabled-fg: #6b7280;
+    --af-color-surface-hover: #f1f5f9;
 
     --af-color-link: #0645ad;
     --af-color-link-visited: #5a2a83;
@@ -48,6 +49,7 @@
     --af-color-focus: #93c5fd;
     --af-color-disabled-bg: #374151;
     --af-color-disabled-fg: #d1d5db;
+    --af-color-surface-hover: #1f2937;
 
     --af-color-link: #93c5fd;
     --af-color-link-visited: #c4b5fd;
@@ -568,6 +570,66 @@
     cursor: not-allowed;
 }
 
+/* --- Menu --- */
+
+[data-af-component="menu"] {
+    min-inline-size: min(100%, var(--af-menu-width, 16rem));
+    display: grid;
+    gap: var(--af-space-2);
+    overflow: auto;
+    border: 1px solid var(--af-color-border);
+    border-radius: 8px;
+    padding: var(--af-space-2);
+    background: var(--af-color-bg);
+}
+
+[data-af-component="menu"][data-af-variant="plain"] {
+    border-color: transparent;
+    border-radius: 0;
+    padding: 0;
+}
+
+[data-af-component="menu"][data-af-orientation="horizontal"] {
+    min-inline-size: 0;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+[data-af-menu-item] {
+    min-block-size: var(--af-target-size);
+    display: flex;
+    align-items: center;
+    gap: var(--af-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--af-radius-md);
+    padding: 0 var(--af-space-3);
+    color: var(--af-color-fg);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+[data-af-menu-item]:hover:not([aria-disabled="true"]):not([data-af-disabled="true"]) {
+    background: var(--af-color-surface-hover);
+}
+
+[data-af-menu-item]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-menu-item][aria-disabled="true"],
+[data-af-menu-item][data-af-disabled="true"] {
+    color: var(--af-color-disabled-fg);
+    background: var(--af-color-disabled-bg);
+    border-color: transparent;
+    cursor: not-allowed;
+}
+
 /* --- Dialog --- */
 
 [data-af-composition="dialog"] {
@@ -670,6 +732,17 @@
 }
 
 /* --- Semantic Composition --- */
+
+[data-af-composition="section"] {
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-composition="section"] > :is(h2, h3, h4, h5, h6) {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.25;
+}
 
 [data-af-layout="row"] {
     display: flex;
