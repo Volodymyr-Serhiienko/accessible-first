@@ -23,6 +23,7 @@ Each component document should contain:
 - [Link](./link.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
+- [Popover](./popover.md)
 - [Select](./select.md)
 - [Tabs](./tabs.md)
 

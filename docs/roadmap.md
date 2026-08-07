@@ -61,11 +61,11 @@ Completed:
 - Listbox component
 - Menu component enhancement and composition APIs
 - Select component enhancement and composition APIs
+- Popover component enhancement and composition APIs
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
 
-- Select playground demo and styling
 - Playground as living documentation
 - Responsive playground refinement
 - Component examples and manual checklists
@@ -74,13 +74,13 @@ In progress:
 Next:
 
 - Combobox component
+- Popover screen reader refinement after playground checks
 - Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 
 - Combobox
 - Tooltip
-- Popover
 - Toast
 - Form Field
 - Checkbox

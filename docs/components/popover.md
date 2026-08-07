@@ -1,0 +1,218 @@
+# Popover
+
+Popover provides anchored floating content for lightweight non-modal UI.
+
+## When To Use
+
+Use `Popover` when content should appear near a trigger without taking over the whole page.
+
+Good uses include quick actions, small help panels, dropdown shells, combobox popups, and future responsive navigation panels.
+
+Use `Disclosure` when content should expand in the normal page flow. Use `Dialog` when the workflow is modal and focus must stay inside the overlay.
+
+## Quick Start
+
+```ts
+Popover({
+    trigger: "Open guidance",
+    description: "Short guidance opens in a floating panel.",
+    role: "dialog",
+    hasPopup: "dialog",
+    children: [
+        P("Popover content goes here.")
+    ]
+});
+```
+
+Positioned actions:
+
+```ts
+const actions = Popover({
+    trigger: "Quick actions",
+    description: "Choose one action.",
+    role: "dialog",
+    hasPopup: "dialog",
+    side: "bottom",
+    alignment: "start",
+    matchAnchorWidth: true,
+    children: [
+        Button({
+            text: "Preview",
+            onPress() {
+                actions.close();
+            }
+        })
+    ]
+});
+```
+
+Enhance existing HTML:
+
+```ts
+const popover = createPopover(content, {
+    trigger,
+    role: "dialog",
+    hasPopup: "dialog",
+    labelledBy: "help-title",
+    describedBy: "help-description"
+});
+```
+
+## Layers
+
+- Enhancement API: `createPopover(content, options)`
+- Composition API: `Popover(options)`
+- Reuses: dismissable layer, overlay stack, popover positioning, optional live announcements, and component lifecycle
+
+## Behavior
+
+- Keeps the trigger in the normal tab order.
+- Opens and closes anchored floating content.
+- Does not trap focus by default.
+- Allows `Tab` to move into focusable content inside the popover and then continue through the page.
+- Restores focus to the trigger on close when focus was inside the popover and `restoreFocus` is enabled.
+- Closes with `Escape` by default.
+- Closes on pointer interaction outside by default.
+- Can close on focus leaving the popover when `dismissOnFocusOutside` is enabled.
+- Connects trigger and content with `aria-controls`.
+- Updates trigger `aria-expanded`.
+- Applies `aria-haspopup` from `hasPopup`, or from `role` when `hasPopup` is not provided.
+- Supports optional `aria-labelledby` and `aria-describedby`.
+- Composition API can create a visible `description`.
+- Composition `descriptionMode: "aria"` links the visible description with `aria-describedby`.
+- Composition `descriptionMode: "content"` keeps the description visible only.
+- When a composed description exists and no explicit `announcement` is provided, the description can be announced when the popover opens.
+- Exposes stable data attributes for styling.
+- Restores original attributes on `destroy()`.
+
+## Options
+
+Root options:
+
+- `trigger` - Required trigger content for `Popover()`, or trigger element for `createPopover()`.
+- `children` - Floating content for the composition API.
+- `description` - Optional visible explanation for composed popovers.
+- `descriptionMode` - `"aria"` or `"content"`.
+- `contentId` - Custom id for the floating content.
+- `contentOptions` - Common DOM options for the composed content element.
+- `open` - Controlled open state.
+- `defaultOpen` - Opens initially.
+- `disabled` - Prevents opening and closes the popover.
+- `restoreFocus` - Restores focus to the trigger when closing from inside the popover. Defaults to `true`.
+- `role` - Optional role for the floating content: `"dialog"`, `"menu"`, `"listbox"`, `"tree"`, `"grid"`, or `null`.
+- `hasPopup` - Explicit trigger `aria-haspopup` value.
+- `labelledBy` - Element or id that labels the popover content.
+- `describedBy` - Element or id that describes the popover content.
+- `announcement` - Announces text when the popover opens.
+- `dismissOnEscape` - Allows `Escape` to close the popover.
+- `dismissOnPointerDownOutside` - Allows outside pointer interaction to close the popover.
+- `dismissOnFocusOutside` - Allows outside focus movement to close the popover.
+- `side` - Preferred placement side: `"top"`, `"right"`, `"bottom"`, or `"left"`.
+- `alignment` - Cross-axis alignment: `"start"`, `"center"`, or `"end"`.
+- `strategy` - CSS position strategy: `"absolute"` or `"fixed"`.
+- `offset` - Distance from trigger.
+- `crossAxisOffset` - Cross-axis offset.
+- `collisionPadding` - Viewport collision padding.
+- `flip` - Allows placement to flip when space is limited.
+- `shift` - Keeps the popover inside the viewport when possible.
+- `matchAnchorWidth` - Makes the popover at least as wide as the trigger.
+- `autoUpdate` - Repositions on scroll and resize.
+- `variant` - `"default"` or `"plain"`.
+- `size` - `"md"`.
+- `onOpenChange` - Called when open state changes.
+- common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+Creation-time options:
+
+- `defaultOpen`
+- `useOverlayStack`
+- `overlayStack`
+
+## Description And Announcement
+
+`description` and `announcement` serve different jobs.
+
+Use `description` for visible helper text and semantic description. It can be connected with `aria-describedby` through `descriptionMode: "aria"`.
+
+Use `announcement` when something should be read through a live region on open without moving focus into the popover.
+
+```ts
+Popover({
+    trigger: "Open tips",
+    description: "Tips opened. Use Tab to move into the panel.",
+    role: "dialog",
+    hasPopup: "dialog",
+    children: [
+        P("Tip content.")
+    ]
+});
+```
+
+Custom announcement:
+
+```ts
+Popover({
+    trigger: "Open tips",
+    description: "Visible helper text.",
+    announcement: "Tips panel opened.",
+    children: [
+        P("Tip content.")
+    ]
+});
+```
+
+Disable open announcement:
+
+```ts
+Popover({
+    trigger: "Open quiet panel",
+    description: "Visible helper text.",
+    announcement: false,
+    children: [
+        P("Quiet content.")
+    ]
+});
+```
+
+## Popover Versus Disclosure
+
+`Disclosure` reveals content in place. It changes the page layout and is read as part of the normal document flow.
+
+`Popover` creates floating content anchored to a trigger. It is for transient overlay content and can be positioned, dismissed from outside, and layered with other overlays.
+
+If the content belongs permanently in the document, prefer `Disclosure`. If the content is temporary floating UI, prefer `Popover`.
+
+## Styling
+
+Useful hooks include `[data-af-composition="popover"]`, `[data-af-component="popover"]`, `[data-af-popover-content]`, `[data-af-popover-description]`, `[data-af-popover-body]`, `[data-af-open]`, `[data-af-side]`, and `[data-af-align]`.
+
+Useful CSS custom properties:
+
+- `--af-z-popover` - popover stacking level.
+- `--af-popover-max-width` - maximum inline size.
+- `--af-popover-max-block-size` - maximum block size before scrolling.
+
+```ts
+Popover({
+    trigger: "Open help",
+    className: "help-popover-wrapper",
+    contentOptions: {
+        className: "help-popover"
+    },
+    children: [...]
+});
+```
+
+## Manual Checks
+
+- Trigger announces expanded or collapsed state.
+- Trigger announces popup type when `hasPopup` is provided.
+- Opening positions the popover near the trigger.
+- `Escape` closes the popover when enabled.
+- Pointer interaction outside closes the popover when enabled.
+- `Tab` can move into focusable content inside the popover.
+- `Tab` is not trapped inside the popover.
+- Closing from inside restores focus to the trigger when `restoreFocus` is enabled.
+- Description and announcement do not create repeated or confusing speech.
+- Popover remains inside the viewport on small screens.
+- Mobile screen reader can open, read, move through, and close the popover.

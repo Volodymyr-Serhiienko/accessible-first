@@ -91,6 +91,16 @@ Shared helpers keep repeated accessibility behavior out of individual components
 
 Use it for controls that already have visible text but may not be announced reliably by some screen reader and pointer-hover combinations.
 
+## Descriptions And Announcements
+
+Interactive components should keep visible explanation and live-region speech separate.
+
+Use `description` for helper text that is visible to everyone and can be connected with `aria-describedby` when appropriate.
+
+Use `announcement` when opening a component should be announced without moving focus. This is useful for non-modal expandable or floating UI such as Disclosure, Accordion items, and Popover.
+
+Future expandable components should consider this pattern when it helps users understand what opened and what to do next.
+
 ## Callback Shape
 
 Composition callbacks may receive the component instance when that makes state updates easier:

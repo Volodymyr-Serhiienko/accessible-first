@@ -15,6 +15,7 @@ import {
     ListboxDemo,
     MarkupDemo,
     MenuDemo,
+    PopoverDemo,
     SelectDemo,
     TabsDemo,
 } from "./demo/sections";
@@ -44,6 +45,7 @@ page.section(TabsDemo());
 page.section(ListboxDemo());
 page.section(MenuDemo());
 page.section(SelectDemo());
+page.section(PopoverDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());

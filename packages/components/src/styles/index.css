@@ -4,6 +4,7 @@
 @import "./components/button.css";
 @import "./components/icon-button.css";
 @import "./components/tooltip.css";
+@import "./components/popover.css";
 @import "./components/link.css";
 @import "./components/disclosure.css";
 @import "./components/accordion.css";
