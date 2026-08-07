@@ -405,23 +405,26 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
                 hasExplicitAnnouncement = true;
             }
 
+            const popoverOptions = getPopoverUpdateOptions(
+                nextOptions,
+                contentIdChanged ? content.id : null
+            );
+
             if (
                 "description" in nextOptions
                 || nextOptions.descriptionMode !== undefined
                 || nextOptions.descriptionId !== undefined
             ) {
-                const descriptionOptions: PopoverInstanceUpdateOptions = {};
-
                 applyDescriptionPopoverOptions(
-                    descriptionOptions,
+                    popoverOptions,
                     description,
                     descriptionMode,
                     hasExplicitDescribedBy,
                     hasExplicitAnnouncement
                 );
-
-                popover.update(descriptionOptions);
             }
+
+            popover.update(popoverOptions);
         },
 
         destroy(): void {

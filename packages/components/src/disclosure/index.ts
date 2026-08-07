@@ -14,5 +14,6 @@ export type {
 export type {
     ComposedDisclosure,
     DisclosureCompositionContent,
-    DisclosureCompositionOptions
+    DisclosureCompositionOptions,
+    DisclosureDescriptionMode
 } from "./composeDisclosure";

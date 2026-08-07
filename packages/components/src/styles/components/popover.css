@@ -5,7 +5,8 @@
 [data-af-component="popover"] {
     z-index: var(--af-z-popover, 900);
     box-sizing: border-box;
-    inline-size: max-content;
+    inline-size: fit-content;
+    overflow-wrap: anywhere;
     max-inline-size: min(var(--af-popover-max-width, 24rem), calc(100vw - 1rem));
     max-block-size: min(var(--af-popover-max-block-size, 20rem), calc(100vh - 1rem));
     display: grid;
@@ -52,6 +53,11 @@
 
 [data-af-popover-body]:empty {
     display: none;
+}
+
+[data-af-popover-description],
+[data-af-popover-body] {
+    min-inline-size: 0;
 }
 
 @media (max-width: 640px) {

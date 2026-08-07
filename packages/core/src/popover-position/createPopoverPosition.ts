@@ -179,7 +179,7 @@ export function createPopoverPosition(
 
     const side = options.side ?? "bottom";
     const alignment = options.alignment ?? "start";
-    const strategy = options.strategy ?? "absolute";
+    const strategy = options.strategy ?? "fixed";
     const offset = options.offset ?? 4;
     const crossAxisOffset = options.crossAxisOffset ?? 0;
     const collisionPadding = options.collisionPadding ?? 8;
