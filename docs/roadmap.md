@@ -74,6 +74,8 @@ In progress:
 Next:
 
 - Combobox component
+- Mobile playground layout cleanup after real-device checks
+- Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks
 - Dialog and Alert Dialog documentation refinement after more screen reader checks
 
@@ -124,6 +126,8 @@ Planned:
 - More diagnostics for page structure and component usage
 - Optional visual diagnostics overlay later
 - GridCell or Cell primitive if explicit grid placement becomes necessary
+- Image and Logo helpers for real page headers, cards, and branded surfaces
+- Expanded Icon helper inputs for common icon sources when repeated use proves the API shape
 - More semantic helpers only after repeated real use proves the need
 
 ---
@@ -141,6 +145,7 @@ Planned:
 - Footer patterns
 - Page outlet pattern for rendering changing page content inside a stable shell
 - Responsive layout patterns
+- Small-screen control layout guidelines
 - DescriptionList
 - ActionsBar
 - InfoCard

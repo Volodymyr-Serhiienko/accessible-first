@@ -19,8 +19,19 @@ import {
     SelectDemo,
     TabsDemo,
 } from "./demo/sections";
-
 import "../packages/components/src/styles/index.css";
+
+const shouldResetInitialScroll = !window.location.hash;
+
+if (shouldResetInitialScroll && "scrollRestoration" in window.history) {
+    window.history.scrollRestoration = "manual";
+}
+
+function resetInitialScrollPosition(): void {
+    window.scrollTo(0, 0);
+    window.requestAnimationFrame(() => window.scrollTo(0, 0));
+    window.setTimeout(() => window.scrollTo(0, 0), 50);
+}
 
 const page = createPage({
     title: "Accessible First Playground",
@@ -52,4 +63,9 @@ page.section(ChecksDemo());
 page.footer(FooterDemo());
 
 mount(page, "#app");
+
+if (shouldResetInitialScroll) {
+    resetInitialScrollPosition();
+}
+
 page.inspect();
