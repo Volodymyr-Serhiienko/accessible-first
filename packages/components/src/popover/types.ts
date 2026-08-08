@@ -106,6 +106,7 @@ export interface PopoverOptions extends PopoverPositionOptions {
     defaultOpen?: boolean;
     disabled?: boolean;
     restoreFocus?: boolean;
+    closeOnAnchorHidden?: boolean;
     role?: PopoverRole;
     hasPopup?: PopoverHasPopup;
     labelledBy?: string | null;

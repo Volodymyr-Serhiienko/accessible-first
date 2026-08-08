@@ -13,7 +13,12 @@ import {
     type DismissableLayerEvent,
     type DismissableLayerOptions
 } from "../../../core/src/dismissable-layer";
-import { getActiveElement, restoreAttribute } from "../../../core/src/dom";
+import {
+    getActiveElement,
+    getOwnerDocument,
+    getOwnerWindow,
+    restoreAttribute
+} from "../../../core/src/dom";
 import { focusElement } from "../../../core/src/focus";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
@@ -95,6 +100,20 @@ function getHasPopupValue(
     return role;
 }
 
+function isAnchorVisible(anchor: HTMLElement): boolean {
+    const rect = anchor.getBoundingClientRect();
+    const ownerWindow = getOwnerWindow(anchor);
+
+    return (
+        rect.width > 0
+        && rect.height > 0
+        && rect.bottom > 0
+        && rect.right > 0
+        && rect.top < ownerWindow.innerHeight
+        && rect.left < ownerWindow.innerWidth
+    );
+}
+
 function normalizeAnnouncementText(value: string): string {
     return value.replace(/\s+/g, " ").trim();
 }
@@ -169,10 +188,13 @@ export function createPopover(
     let triggerCleanup: Cleanup | null = null;
     let position: PopoverPosition | null = null;
     let positionOptions = getPositionOptions(options);
+    let positionUpdateCleanups: Cleanup[] = [];
+    let pendingPositionUpdateFrame: number | null = null;
 
     let open = options.open ?? options.defaultOpen ?? false;
     let disabled = options.disabled ?? false;
     let restoreFocus = options.restoreFocus ?? true;
+    let closeOnAnchorHidden = options.closeOnAnchorHidden ?? true;
     let contentId = options.contentId;
     let role: PopoverRole = options.role ?? null;
     let hasPopup = options.hasPopup;
@@ -212,14 +234,75 @@ export function createPopover(
         position = null;
     }
 
+    function getPositionBehaviorOptions(): PopoverPositionOptions {
+        return {
+            ...positionOptions,
+            autoUpdate: false
+        };
+    }
+
+    function cancelScheduledPositionUpdate(): void {
+        if (pendingPositionUpdateFrame === null) return;
+
+        getOwnerWindow(content).cancelAnimationFrame(pendingPositionUpdateFrame);
+        pendingPositionUpdateFrame = null;
+    }
+
+    function disposePositionAutoUpdate(): void {
+        cancelScheduledPositionUpdate();
+
+        for (const cleanup of positionUpdateCleanups.splice(0)) {
+            cleanup();
+        }
+    }
+
+    function schedulePositionUpdate(): void {
+        if (lifecycle.isDestroyed() || pendingPositionUpdateFrame !== null) {
+            return;
+        }
+
+        pendingPositionUpdateFrame = getOwnerWindow(content).requestAnimationFrame(() => {
+            pendingPositionUpdateFrame = null;
+            updatePosition();
+        });
+    }
+
+    function syncPositionAutoUpdate(): void {
+        disposePositionAutoUpdate();
+
+        if (!open || !trigger || positionOptions.autoUpdate === false) {
+            return;
+        }
+
+        const ownerWindow = getOwnerWindow(trigger);
+        const ownerDocument = getOwnerDocument(trigger);
+        const scrollOptions: AddEventListenerOptions = {
+            capture: true,
+            passive: true
+        };
+
+        positionUpdateCleanups = [
+            addEventListener<Event>(ownerWindow, "resize", schedulePositionUpdate),
+            addEventListener<Event>(ownerWindow, "scroll", schedulePositionUpdate, true),
+            addEventListener<Event>(ownerDocument, "scroll", schedulePositionUpdate, true),
+            addEventListener<WheelEvent>(ownerWindow, "wheel", schedulePositionUpdate, scrollOptions),
+            addEventListener<TouchEvent>(ownerWindow, "touchmove", schedulePositionUpdate, scrollOptions)
+        ];
+    }
+
     function updatePosition(): PopoverPositionState | null {
         if (!open || !trigger) {
             return position?.getState() ?? null;
         }
 
+        if (closeOnAnchorHidden && !isAnchorVisible(trigger)) {
+            syncOpenState(false);
+            return null;
+        }
+
         content.hidden = false;
 
-        position ??= createPopoverPosition(trigger, content, positionOptions);
+        position ??= createPopoverPosition(trigger, content, getPositionBehaviorOptions());
 
         const state = position.update();
 
@@ -310,7 +393,12 @@ export function createPopover(
     function syncOpenState(nextOpen: boolean, notify = true): void {
         if (lifecycle.isDestroyed()) return;
 
-        const resolvedOpen = disabled ? false : nextOpen;
+        let resolvedOpen = disabled ? false : nextOpen;
+
+        if (resolvedOpen && closeOnAnchorHidden && trigger && !isAnchorVisible(trigger)) {
+            resolvedOpen = false;
+        }
+
         const changed = open !== resolvedOpen;
         const shouldRestoreFocus = open && !resolvedOpen && shouldRestoreTriggerFocus();
 
@@ -320,7 +408,9 @@ export function createPopover(
         if (open) {
             layer.activate();
             updatePosition();
+            syncPositionAutoUpdate();
         } else {
+            disposePositionAutoUpdate();
             layer.deactivate();
             destroyPosition();
 
@@ -356,6 +446,11 @@ export function createPopover(
 
         currentTrigger.setAttribute("data-af-popover-trigger", "");
         syncTriggerAttributes();
+
+        if (open) {
+            destroyPosition();
+            syncPositionAutoUpdate();
+        }
 
         const cleanupClick = addEventListener<MouseEvent>(currentTrigger, "click", (event) => {
             if (disabled) return;
@@ -441,6 +536,7 @@ export function createPopover(
     });
 
     lifecycle.addCleanup(() => layer.destroy());
+    lifecycle.addCleanup(() => disposePositionAutoUpdate());
     lifecycle.addCleanup(() => triggerCleanup?.());
 
     popover = {
@@ -556,6 +652,10 @@ export function createPopover(
                 restoreFocus = nextOptions.restoreFocus;
             }
 
+            if (nextOptions.closeOnAnchorHidden !== undefined) {
+                closeOnAnchorHidden = nextOptions.closeOnAnchorHidden;
+            }
+
             if (nextOptions.trigger !== undefined) {
                 bindTrigger(nextOptions.trigger);
             }
@@ -567,6 +667,10 @@ export function createPopover(
             if (hasPositionOption(nextOptions)) {
                 positionOptions = mergePositionOptions(positionOptions, nextOptions);
                 destroyPosition();
+
+                if (open) {
+                    syncPositionAutoUpdate();
+                }
             }
 
             syncContentAttributes();

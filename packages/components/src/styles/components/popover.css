@@ -18,6 +18,7 @@
     color: var(--af-color-fg);
     background: var(--af-color-bg);
     box-shadow: var(--af-shadow-overlay);
+    overscroll-behavior: contain;
 }
 
 [data-af-component="popover"][hidden] {

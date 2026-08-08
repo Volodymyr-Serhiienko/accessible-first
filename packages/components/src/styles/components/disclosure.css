@@ -63,20 +63,20 @@
     display: none;
 }
 
-[data-af-disclosure-description] {
-    margin: 0 0 var(--af-space-3);
+[data-af-component="disclosure"] [data-af-disclosure-description] {
+    margin-block: 0 var(--af-space-3);
     color: var(--af-color-muted);
 }
 
-[data-af-disclosure-body] {
+[data-af-component="disclosure"] [data-af-disclosure-body] {
     display: grid;
     gap: var(--af-space-3);
 }
 
-[data-af-disclosure-body]:empty {
+[data-af-component="disclosure"] [data-af-disclosure-body]:empty {
     display: none;
 }
 
-[data-af-disclosure-body] p {
+[data-af-component="disclosure"] [data-af-disclosure-body] p {
     margin: 0;
 }

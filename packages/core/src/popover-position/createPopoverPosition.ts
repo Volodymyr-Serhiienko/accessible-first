@@ -1,4 +1,4 @@
-import { getOwnerWindow } from "../dom";
+import { getOwnerDocument, getOwnerWindow } from "../dom";
 import { addEventListener, type Cleanup } from "../events";
 import type {
     PopoverPosition,
@@ -176,6 +176,7 @@ export function createPopoverPosition(
     options: PopoverPositionOptions = {}
 ): PopoverPosition {
     const ownerWindow = getOwnerWindow(anchor);
+    const ownerDocument = getOwnerDocument(anchor);
 
     const side = options.side ?? "bottom";
     const alignment = options.alignment ?? "start";
@@ -194,6 +195,7 @@ export function createPopoverPosition(
 
     let state: PopoverPositionState | null = null;
     let destroyed = false;
+    let pendingUpdateFrame: number | null = null;
 
     function update(): PopoverPositionState {
         if (destroyed) {
@@ -265,12 +267,31 @@ export function createPopoverPosition(
         return state;
     }
 
+    function scheduleUpdate(): void {
+        if (destroyed || pendingUpdateFrame !== null) {
+            return;
+        }
+
+        pendingUpdateFrame = ownerWindow.requestAnimationFrame(() => {
+            pendingUpdateFrame = null;
+            update();
+        });
+    }
+
     const cleanups: Cleanup[] = [];
 
     if (autoUpdate) {
+        const scrollOptions: AddEventListenerOptions = {
+            capture: true,
+            passive: true
+        };
+
         cleanups.push(
-            addEventListener(ownerWindow, "resize", update),
-            addEventListener(ownerWindow, "scroll", update, true)
+            addEventListener<Event>(ownerWindow, "resize", scheduleUpdate),
+            addEventListener<Event>(ownerWindow, "scroll", scheduleUpdate, true),
+            addEventListener<Event>(ownerDocument, "scroll", scheduleUpdate, true),
+            addEventListener<WheelEvent>(ownerWindow, "wheel", scheduleUpdate, scrollOptions),
+            addEventListener<TouchEvent>(ownerWindow, "touchmove", scheduleUpdate, scrollOptions)
         );
     }
 
@@ -289,6 +310,11 @@ export function createPopoverPosition(
             }
 
             destroyed = true;
+
+            if (pendingUpdateFrame !== null) {
+                ownerWindow.cancelAnimationFrame(pendingUpdateFrame);
+                pendingUpdateFrame = null;
+            }
 
             for (const cleanup of cleanups) {
                 cleanup();

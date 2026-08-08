@@ -25,15 +25,15 @@ Accordion({
 });
 ```
 
-With open announcements:
+With short open announcements:
 
 ```ts
 Accordion({
-    announcement: true,
     items: [
         {
             value: "keyboard",
             trigger: "Keyboard support",
+            announcement: "Keyboard support opened.",
             panel: "Arrow keys, Home, and End are supported."
         }
     ]
@@ -56,7 +56,8 @@ Accordion({
 - Composition API wraps each trigger in a native heading element.
 - Default composition heading level is `h3`.
 - `panelRole: "auto"` uses `role="region"` only when the accordion is small enough to avoid landmark noise.
-- Can announce opened panel text or a custom message.
+- Can announce root-level or per-item open messages.
+- Prefer short per-item announcements for panels with longer text or interactive content.
 
 Keyboard behavior:
 
@@ -80,7 +81,7 @@ Root options:
 - `loop` - Arrow navigation wraps.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
-- `announcement` - Announces opened panel content when enabled.
+- `announcement` - Root fallback announcement for opened items. `true` reads each opened panel text.
 - `onOpenChange` - Called when an item opens or closes.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
@@ -93,7 +94,30 @@ Item options:
 - `disabled` - Disables one item.
 - `defaultOpen` - Opens one item initially.
 - `open` - Controlled open state.
-- `announcement` - Per-item announcement override.
+- `announcement` - Per-item announcement override. Prefer a short string for verbose panels.
+
+## Announcements
+
+Accordion items use the same open-announcement mechanism as `Disclosure`.
+
+Use a short per-item `announcement` when the panel contains several paragraphs, links, or controls. This confirms what opened without forcing the screen reader to read the whole panel immediately.
+
+```ts
+Accordion({
+    items: [
+        {
+            trigger: "Project details",
+            announcement: "Project details opened. Use Tab to reach actions inside.",
+            panel: [
+                P("Project summary."),
+                Button({ text: "Confirm" })
+            ]
+        }
+    ]
+});
+```
+
+Use root-level `announcement` only when one announcement strategy should apply to every item. Use `announcement: true` sparingly because it reads the full opened panel text.
 
 ## Update Notes
 
@@ -129,3 +153,4 @@ Accordion({
 - Disabled items cannot be activated.
 - Focus indicator is visible.
 - Touch targets are comfortable on mobile.
+- Opening an item announces useful context without repeating long panel content.

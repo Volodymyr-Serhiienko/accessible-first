@@ -97,7 +97,7 @@ Interactive components should keep visible explanation and live-region speech se
 
 Use `description` for helper text that is visible to everyone and can be connected with `aria-describedby` when appropriate.
 
-Use `announcement` when opening a component should be announced without moving focus. This is useful for non-modal expandable or floating UI such as Disclosure, Accordion items, and Popover.
+Use `announcement` when opening a component should be announced without moving focus. Prefer concise messages for non-modal expandable or floating UI such as Disclosure, Accordion items, and Popover.
 
 Future expandable components should consider this pattern when it helps users understand what opened and what to do next.
 

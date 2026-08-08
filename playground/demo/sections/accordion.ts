@@ -10,11 +10,11 @@ export function AccordionDemo(): ComposedNode {
                 Stack(
                     P("Accordion combines disclosure behavior with grouped keyboard navigation."),
                     Accordion({
-                        announcement: true,
                         items: [
                             {
                                 value: "semantics",
                                 trigger: "Accessible semantics",
+                                announcement: "Accessible semantics opened.",
                                 panel: Stack(
                                     P("Each item uses a button trigger connected to a controlled panel."),
                                     P("The component keeps aria-expanded, aria-controls, and hidden state synchronized.")
@@ -23,6 +23,7 @@ export function AccordionDemo(): ComposedNode {
                             {
                                 value: "keyboard",
                                 trigger: "Keyboard support",
+                                announcement: "Keyboard support opened.",
                                 panel: Stack(
                                     P("Tab moves through every accordion trigger in the normal page order."),
                                     P("Arrow keys, Home, and End are optional shortcuts for moving focus between triggers.")
@@ -31,6 +32,7 @@ export function AccordionDemo(): ComposedNode {
                             {
                                 value: "composition",
                                 trigger: "Composition API",
+                                announcement: "Composition API opened.",
                                 panel: Stack(
                                     P("Accordion is built from existing Disclosure behavior and can be used directly inside semantic page sections.")
                                 )
@@ -38,7 +40,7 @@ export function AccordionDemo(): ComposedNode {
                             {
                                 value: "content",
                                 trigger: "Project details",
-                                announcement: "Project details opened.",
+                                announcement: "Project details opened. Use Tab to reach the documentation link and confirm button.",
                                 panel: Stack(
                                     P("This project uses accessible composition helpers."),
                                     Link({

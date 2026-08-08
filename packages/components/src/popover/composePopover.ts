@@ -207,6 +207,7 @@ function applyPopoverOptions(
     if (options.autoUpdate !== undefined) target.autoUpdate = options.autoUpdate;
     if (options.restoreFocus !== undefined) target.restoreFocus = options.restoreFocus;
     if (options.announcement !== undefined) target.announcement = options.announcement;
+    if (options.closeOnAnchorHidden !== undefined) target.closeOnAnchorHidden = options.closeOnAnchorHidden;
 }
 
 function getPopoverOptions(

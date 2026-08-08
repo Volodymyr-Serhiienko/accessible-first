@@ -15,15 +15,27 @@ import type {
     DisclosureOptions
 } from "./types";
 
+/**
+ * Content accepted by Disclosure trigger, description, and panel slots.
+ */
 export type DisclosureCompositionContent = CompositionContent;
 
+/**
+ * Controls whether the visible description is only panel content or also linked to the trigger.
+ */
 export type DisclosureDescriptionMode = "content" | "aria";
 
+/**
+ * Called when a composed disclosure opens or closes.
+ */
 export type DisclosureCompositionOnOpenChange = (
     open: boolean,
     disclosure: ComposedDisclosure
 ) => void;
 
+/**
+ * Options for Disclosure(), the composition API that creates a trigger and expandable panel.
+ */
 export interface DisclosureCompositionOptions
     extends Omit<DisclosureOptions, "trigger" | "panel" | "onOpenChange">,
         BaseCompositionOptions {
@@ -35,6 +47,9 @@ export interface DisclosureCompositionOptions
     onOpenChange?: DisclosureCompositionOnOpenChange | null;
 }
 
+/**
+ * Disclosure created by the composition API.
+ */
 export interface ComposedDisclosure
     extends Omit<DisclosureInstance, "element" | "trigger" | "panel" | "update" | "destroy"> {
     readonly element: HTMLElement;
@@ -149,6 +164,9 @@ function getDisclosureUpdateOptions(
     return disclosureOptions;
 }
 
+/**
+ * Creates an accessible disclosure with a button trigger, optional short description, and controlled panel.
+ */
 export function Disclosure(options: DisclosureCompositionOptions): ComposedDisclosure {
     const element = createElement("div", getCompositionElementOptions(options));
     const trigger = createElement("button", {
@@ -175,7 +193,7 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
     description.hidden = !hasDescription(options.description);
     panel.append(description, body);
 
-    let descriptionMode = options.descriptionMode ?? "aria";
+    let descriptionMode = options.descriptionMode ?? "content";
     let hasExplicitAnnouncement = options.announcement !== undefined;
 
     const triggerContent = createContentSlot(trigger, toCompositionChildren(options.trigger));

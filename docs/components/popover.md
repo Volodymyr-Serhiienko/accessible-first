@@ -74,6 +74,8 @@ const popover = createPopover(content, {
 - Closes with `Escape` by default.
 - Closes on pointer interaction outside by default.
 - Can close on focus leaving the popover when `dismissOnFocusOutside` is enabled.
+- Repositions on scroll, resize, wheel, and touch movement while open.
+- Closes when the trigger leaves the viewport when `closeOnAnchorHidden` is enabled.
 - Connects trigger and content with `aria-controls`.
 - Updates trigger `aria-expanded`.
 - Applies `aria-haspopup` from `hasPopup`, or from `role` when `hasPopup` is not provided.
@@ -99,6 +101,7 @@ Root options:
 - `defaultOpen` - Opens initially.
 - `disabled` - Prevents opening and closes the popover.
 - `restoreFocus` - Restores focus to the trigger when closing from inside the popover. Defaults to `true`.
+- `closeOnAnchorHidden` - Closes the popover when the trigger leaves the viewport. Defaults to `true`.
 - `role` - Optional role for the floating content: `"dialog"`, `"menu"`, `"listbox"`, `"tree"`, `"grid"`, or `null`.
 - `hasPopup` - Explicit trigger `aria-haspopup` value.
 - `labelledBy` - Element or id that labels the popover content.
@@ -116,7 +119,7 @@ Root options:
 - `flip` - Allows placement to flip when space is limited.
 - `shift` - Keeps the popover inside the viewport when possible.
 - `matchAnchorWidth` - Makes the popover at least as wide as the trigger.
-- `autoUpdate` - Repositions on scroll and resize.
+- `autoUpdate` - Repositions on scroll, resize, wheel, and touch movement.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
 - `onOpenChange` - Called when open state changes.
@@ -132,9 +135,11 @@ Creation-time options:
 
 `description` and `announcement` serve different jobs.
 
-Use `description` for visible helper text and semantic description. It can be connected with `aria-describedby` through `descriptionMode: "aria"`.
+Use `description` for visible helper text and semantic description. It can be connected with `aria-describedby` through `descriptionMode: "aria"`, which is the composed popover default.
 
 Use `announcement` when something should be read through a live region on open without moving focus into the popover.
+
+When a composed description exists and no explicit `announcement` is provided, the description is announced when the popover opens. Set `announcement: false` to keep the description visible and semantic without an open live-region message.
 
 ```ts
 Popover({
@@ -208,6 +213,7 @@ Popover({
 - Trigger announces expanded or collapsed state.
 - Trigger announces popup type when `hasPopup` is provided.
 - Opening positions the popover near the trigger.
+- Scrolling keeps the popover anchored or closes it when the trigger leaves the viewport.
 - `Escape` closes the popover when enabled.
 - Pointer interaction outside closes the popover when enabled.
 - `Tab` can move into focusable content inside the popover.
