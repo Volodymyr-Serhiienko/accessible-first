@@ -1,5 +1,6 @@
 export * from "./aria";
 export * from "./collection";
+export * from "./combobox";
 export * from "./dialog";
 export * from "./disclosure";
 export * from "./dismissable-layer";

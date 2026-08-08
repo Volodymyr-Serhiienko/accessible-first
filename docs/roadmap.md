@@ -62,6 +62,7 @@ Completed:
 - Menu component enhancement and composition APIs
 - Select component enhancement and composition APIs
 - Popover component enhancement and composition APIs
+- Combobox core behavior, enhancement API, composition API, styles, and playground demo
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
@@ -73,7 +74,6 @@ In progress:
 
 Next:
 
-- Combobox component
 - Mobile playground layout cleanup after real-device checks
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks

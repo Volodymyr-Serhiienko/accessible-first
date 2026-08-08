@@ -1,6 +1,7 @@
 export * from "./accordion";
 export * from "./alert-dialog";
 export * from "./button";
+export * from "./combobox";
 export * from "./composition";
 export * from "./dialog";
 export * from "./disclosure";

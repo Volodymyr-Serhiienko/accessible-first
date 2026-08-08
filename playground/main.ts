@@ -7,6 +7,7 @@ import {
     AlertDialogDemo,
     ButtonsDemo,
     ChecksDemo,
+    ComboboxDemo,
     DialogDemo,
     DisclosureDemo,
     IconButtonsDemo,
@@ -21,7 +22,7 @@ import {
 } from "./demo/sections";
 import "../packages/components/src/styles/index.css";
 
-const shouldResetInitialScroll = !window.location.hash;
+/*const shouldResetInitialScroll = !window.location.hash;
 
 if (shouldResetInitialScroll && "scrollRestoration" in window.history) {
     window.history.scrollRestoration = "manual";
@@ -31,7 +32,7 @@ function resetInitialScrollPosition(): void {
     window.scrollTo(0, 0);
     window.requestAnimationFrame(() => window.scrollTo(0, 0));
     window.setTimeout(() => window.scrollTo(0, 0), 50);
-}
+}*/
 
 const page = createPage({
     title: "Accessible First Playground",
@@ -56,6 +57,7 @@ page.section(TabsDemo());
 page.section(ListboxDemo());
 page.section(MenuDemo());
 page.section(SelectDemo());
+page.section(ComboboxDemo());
 page.section(PopoverDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
@@ -64,8 +66,8 @@ page.footer(FooterDemo());
 
 mount(page, "#app");
 
-if (shouldResetInitialScroll) {
+/*if (shouldResetInitialScroll) {
     resetInitialScrollPosition();
-}
+}*/
 
 page.inspect();

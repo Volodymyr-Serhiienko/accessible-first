@@ -8,7 +8,7 @@ Use `Select` when users need to choose one or more values from a native form con
 
 This component intentionally builds on the platform `<select>` element. That keeps mobile behavior, form integration, browser validation, and screen reader support reliable without adding custom popover complexity.
 
-For fully custom autocomplete or filtered popover behavior, a future `Combobox` component will be a better fit.
+For editable autocomplete or filtered popup selection, use `Combobox`.
 
 ## Quick Start
 

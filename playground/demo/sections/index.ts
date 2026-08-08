@@ -2,6 +2,7 @@ export { AccordionDemo } from "./accordion";
 export { AlertDialogDemo } from "./alertDialog";
 export { ButtonsDemo } from "./buttons";
 export { ChecksDemo } from "./checks";
+export { ComboboxDemo } from "./combobox";
 export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
 export { IconButtonsDemo } from "./iconButtons";
