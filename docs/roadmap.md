@@ -68,6 +68,7 @@ Completed:
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
+- Dialog and AlertDialog focus/description documentation refinement
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
@@ -84,7 +85,6 @@ Next:
 - Mobile playground layout cleanup after real-device checks
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks
-- Dialog and Alert Dialog documentation refinement after more screen reader checks
 
 Planned components:
 

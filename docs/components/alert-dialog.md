@@ -74,6 +74,14 @@ AlertDialog({
 - `dismissOnPointerDownOutside` - Allows outside pointer dismissal when explicitly set to `true`.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
+## Focus And Decision Safety
+
+AlertDialog is the safest pattern when the user must make a decision before continuing. It moves focus directly to an action, traps keyboard navigation while open, and keeps the decision visible until the user cancels, confirms, or dismisses it with an allowed keyboard command.
+
+The default focus target is the cancel action. This avoids placing keyboard and screen reader users on a destructive confirmation by default. Use `focusTarget: "confirm"` only for harmless or strongly expected confirmations.
+
+The required `description` should be short and specific. It is connected with `aria-describedby` so assistive technology can announce the consequence before the user chooses an action.
+
 ## Styling
 
 AlertDialog reuses Dialog and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, and button `[data-af-variant]`.
@@ -92,6 +100,7 @@ AlertDialog({
 - Trigger announces that it opens a dialog.
 - Opening announces title and description.
 - Initial focus lands on the cancel action by default.
+- Cancel and confirm actions are reachable immediately after opening.
 - Confirm action is visually distinct for destructive flows.
 - `Tab` and `Shift+Tab` do not leave the alert dialog.
 - Page behind the alert dialog does not scroll while open.

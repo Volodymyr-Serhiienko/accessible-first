@@ -10,7 +10,7 @@ import {
     type ComposedNode,
     type Toast
 } from "../af";
-import { announce, notifications } from "../status";
+import { notifications } from "../status";
 
 export function ToastDemo(): ComposedNode {
     let persistentToast: Toast | null = null;
@@ -28,23 +28,15 @@ export function ToastDemo(): ComposedNode {
         }
     });
 
-    const showWarningAction = Button({
-        text: "Show action",
+    const showWarning = Button({
+        text: "Show warning",
         variant: "secondary",
         onPress() {
             notifications.show({
-                title: "Draft archived",
-                description: "You can undo this demo action.",
+                title: "Unsaved changes",
+                description: "This warning toast is a status message only. Required actions should use a dialog.",
                 variant: "warning",
-                duration: null,
-                actionText: "Undo",
-                actionLabel: "Undo archive action",
-                onAction() {
-                    announce("Archive action undone.", {
-                        variant: "success",
-                        title: "Undo complete"
-                    });
-                }
+                duration: 7000
             });
         }
     });
@@ -106,9 +98,9 @@ export function ToastDemo(): ComposedNode {
                 { minColumnWidth: "16rem" },
                 Panel(
                     Stack(
-                        H3("Timed and action toasts"),
+                        H3("Timed status toasts"),
                         P("Toast messages appear without moving focus. Timed dismissal is opt-in."),
-                        Row(showSuccess, showWarningAction)
+                        Row(showSuccess, showWarning)
                     )
                 ),
                 Panel(

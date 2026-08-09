@@ -87,6 +87,14 @@ Dialog({
 - `onOpenChange` - Called when the dialog opens or closes.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
+## Focus And Description
+
+Dialog is the preferred component when the user must press a button, choose an option, or complete a focused workflow. Unlike `Toast`, a dialog moves focus inside itself when it opens and keeps keyboard navigation inside the modal while focus trapping is enabled.
+
+Use `description` for a short explanation that helps the user understand the dialog before acting. By default, the description is connected with `aria-describedby`, so screen readers can announce it as part of the dialog context.
+
+Use `descriptionMode: "content"` when the description is long, when it is repeated in the main body, or when screen reader testing shows that the same text is being spoken twice.
+
 ## Styling
 
 Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, and `[data-af-dialog-actions]`.
@@ -105,6 +113,7 @@ Dialog({
 - Trigger announces that it opens a dialog.
 - Opening moves focus inside the dialog.
 - Dialog has a clear accessible name.
+- Short description is useful and not repeated unnecessarily.
 - `Tab` and `Shift+Tab` do not leave a trapped modal dialog.
 - Page behind the dialog does not scroll while modal dialog is open.
 - `Escape` closes the dialog when enabled.
