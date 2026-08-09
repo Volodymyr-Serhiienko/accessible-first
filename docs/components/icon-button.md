@@ -13,6 +13,8 @@ For actions with visible text, prefer `Button`.
 ```ts
 IconButton({
     label: "Save",
+    hint: "Saves the current draft.",
+    hintDisplay: "both",
     icon: Icon({
         path: "M5 3h12l2 2v16H5V3Z"
     }),
@@ -53,7 +55,7 @@ const button = createIconButton(existingButton, {
 
 - Enhancement API: `createIconButton(element, options)`
 - Composition API: `IconButton(options)`
-- Reuses: core button behavior, selected state, tooltip, hover announcement, and component lifecycle
+- Reuses: core button behavior, selected state, shared control hint, tooltip, hover announcement, and component lifecycle
 
 ## Behavior
 
@@ -66,6 +68,7 @@ const button = createIconButton(existingButton, {
 - Shows a visible focus indicator.
 - Shows a visual tooltip by default when `label` is provided.
 - Announces tooltip or label on mouse hover by default.
+- Supports the same `hint` and `hintDisplay` model as Button and Link.
 - Falls back to `aria-label="Icon button"` and `data-af-warning="missing-accessible-name"` when no accessible name is provided.
 
 ## Options
@@ -75,8 +78,12 @@ const button = createIconButton(existingButton, {
 - `icon` - Icon content.
 - `children` - Rich content instead of `icon`.
 - `title` - Native title attribute. Avoid unless specifically needed.
-- `tooltip` - Visual tooltip text. Defaults to `label`; use `null` to disable.
-- `announceOnHover` - Announces tooltip or label on mouse hover.
+- `hint` - Supporting context for the icon button.
+- `hintId` - Custom id for the generated hint text.
+- `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
+- `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the icon button.
+- `tooltip` - Backward-compatible visual hint alias. Defaults to `label`; use `null` to disable the default label tooltip.
+- `announceOnHover` - Backward-compatible alias for `hintAnnounceOnHover`.
 - `selected` - Adds visual/action state through `data-af-selected`.
 - `pressed` - Adds `aria-pressed` for true toggle icon buttons with stable labels.
 - `disabled` - Disables the button.
@@ -105,5 +112,7 @@ IconButton({
 - Disabled buttons cannot be activated.
 - Toggle buttons expose pressed state where used.
 - Screen readers announce a meaningful name and button role.
-- Tooltip remains readable in light and dark themes.
+- Default label tooltip remains readable in light and dark themes.
+- Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
+- Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
 - Touch target is at least 44 by 44 CSS pixels.

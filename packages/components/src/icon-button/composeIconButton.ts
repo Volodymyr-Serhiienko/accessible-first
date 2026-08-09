@@ -9,10 +9,12 @@ import {
 import { createIconButton } from "./createIconButton";
 import { restoreAttribute } from "../../../core/src/dom";
 import {
+    createControlHint,
     createSelectedState,
+    type ControlHintDisplay,
+    type ControlHintOptions,
     type SelectedStateOptions
 } from "../foundation";
-import { createTooltip } from "../tooltip";
 
 import type { IconButton as IconButtonInstance, IconButtonOptions } from "./types";
 
@@ -35,6 +37,10 @@ export interface IconButtonCompositionOptions
     icon?: CompositionChild;
     children?: CompositionChild[];
     title?: string | null;
+    hint?: string | null;
+    hintId?: string;
+    hintDisplay?: ControlHintDisplay;
+    hintAnnounceOnHover?: boolean;
     tooltip?: string | null;
     announceOnHover?: boolean;
     selected?: boolean;
@@ -48,6 +54,7 @@ export interface IconButtonCompositionOptions
 export interface ComposedIconButton extends Omit<IconButtonInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLButtonElement;
     setTitle(title: string | null): void;
+    setHint(hint: string | null): void;
     setTooltip(tooltip: string | null): void;
     setSelected(selected: boolean): void;
     isSelected(): boolean;
@@ -66,6 +73,39 @@ function getChildren(options: IconButtonCompositionOptions): CompositionChild[] 
     }
 
     return [];
+}
+
+function getInitialControlHintOptions(
+    options: IconButtonCompositionOptions
+): ControlHintOptions {
+    const hintOptions: ControlHintOptions = {};
+
+    if ("hint" in options) {
+        hintOptions.hint = options.hint ?? null;
+    } else if ("tooltip" in options) {
+        hintOptions.hint = options.tooltip ?? null;
+    } else {
+        hintOptions.hint = options.label ?? null;
+    }
+
+    if (options.hintId !== undefined) {
+        hintOptions.hintId = options.hintId;
+    }
+
+    if (options.hintDisplay !== undefined) {
+        hintOptions.hintDisplay = options.hintDisplay;
+    } else if ("hint" in options) {
+        hintOptions.hintDisplay = "description";
+    } else if ("tooltip" in options) {
+        hintOptions.hintDisplay = options.tooltip === null ? "none" : "tooltip";
+    } else {
+        hintOptions.hintDisplay = "tooltip";
+    }
+
+    hintOptions.hintAnnounceOnHover =
+        options.hintAnnounceOnHover ?? options.announceOnHover ?? true;
+
+    return hintOptions;
 }
 
 function getIconButtonOptions(
@@ -139,12 +179,9 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         getIconButtonOptions(options, handlePress)
     );
 
-    let tooltipFollowsLabel = options.tooltip === undefined;
+    let hintFollowsLabel = options.hint === undefined && options.tooltip === undefined;
 
-    const tooltip = createTooltip(element, {
-        text: tooltipFollowsLabel ? options.label ?? null : options.tooltip ?? null,
-        announceOnHover: options.announceOnHover ?? true
-    });
+    const controlHint = createControlHint(element, getInitialControlHintOptions(options));
 
     const originalTitle = element.getAttribute("title");
 
@@ -165,23 +202,70 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         applyTitle(title);
     }
 
+    function setHint(nextHint: string | null): void {
+        hintFollowsLabel = false;
+        controlHint.setHint(nextHint);
+        controlHint.refresh();
+    }
+
     function setTooltip(nextTooltip: string | null): void {
-        tooltipFollowsLabel = false;
-        tooltip.setText(nextTooltip);
+        hintFollowsLabel = false;
+        controlHint.update({
+            hint: nextTooltip,
+            hintDisplay: nextTooltip === null ? "none" : "tooltip"
+        });
+        controlHint.refresh();
     }
 
     function setLabel(label: string | null): void {
         iconButton.setLabel(label);
 
-        if (tooltipFollowsLabel) {
-            tooltip.setText(label);
+        if (hintFollowsLabel) {
+            controlHint.setHint(label);
+            controlHint.refresh();
         }
+    }
+
+    function updateControlHint(nextOptions: Partial<IconButtonCompositionOptions>): void {
+        const hintOptions: ControlHintOptions = {};
+
+        if ("hint" in nextOptions) {
+            hintFollowsLabel = false;
+            hintOptions.hint = nextOptions.hint ?? null;
+        } else if ("tooltip" in nextOptions) {
+            hintFollowsLabel = false;
+            hintOptions.hint = nextOptions.tooltip ?? null;
+
+            if (nextOptions.hintDisplay === undefined) {
+                hintOptions.hintDisplay = nextOptions.tooltip === null ? "none" : "tooltip";
+            }
+        } else if ("label" in nextOptions && hintFollowsLabel) {
+            hintOptions.hint = nextOptions.label ?? null;
+        }
+
+        if (nextOptions.hintId !== undefined) {
+            hintOptions.hintId = nextOptions.hintId;
+        }
+
+        if (nextOptions.hintDisplay !== undefined) {
+            hintOptions.hintDisplay = nextOptions.hintDisplay;
+        }
+
+        if (nextOptions.hintAnnounceOnHover !== undefined) {
+            hintOptions.hintAnnounceOnHover = nextOptions.hintAnnounceOnHover;
+        } else if (nextOptions.announceOnHover !== undefined) {
+            hintOptions.hintAnnounceOnHover = nextOptions.announceOnHover;
+        }
+
+        controlHint.update(hintOptions);
+        controlHint.refresh();
     }
 
     composed = {
         ...iconButton,
         element,
         setTitle,
+        setHint,
         setTooltip,
         setLabel,
         setSelected: selectedState.setSelected,
@@ -197,10 +281,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
 
             iconButton.update(getIconButtonOptions(nextOptions, handlePress));
 
-            if (nextOptions.announceOnHover !== undefined) {
-                tooltip.setAnnounceOnHover(nextOptions.announceOnHover);
-            }
-
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
             } else if (nextOptions.icon !== undefined) {
@@ -215,18 +295,14 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
                 setTitle(nextOptions.title ?? null);
             }
 
-            if ("tooltip" in nextOptions) {
-                setTooltip(nextOptions.tooltip ?? null);
-            } else if ("label" in nextOptions && tooltipFollowsLabel) {
-                tooltip.setText(nextOptions.label ?? null);
-            }
+            updateControlHint(nextOptions);
         },
 
         destroy(): void {
             content.dispose();
             iconButton.destroy();
             restoreAttribute(element, "title", originalTitle);
-            tooltip.destroy();
+            controlHint.destroy();
             selectedState.destroy();
         }
     };
