@@ -7,6 +7,7 @@ import {
     AccordionDemo,
     AlertDialogDemo,
     ButtonsDemo,
+    CheckboxDemo,
     ChecksDemo,
     ComboboxDemo,
     DialogDemo,
@@ -39,6 +40,7 @@ page.header(HeaderDemo());
 page.navigation(NavigationDemo());
 
 page.section(ButtonsDemo());
+page.section(CheckboxDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());
