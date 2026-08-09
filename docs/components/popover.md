@@ -15,9 +15,7 @@ Use `Disclosure` when content should expand in the normal page flow. Use `Dialog
 ```ts
 Popover({
     trigger: "Open guidance",
-    description: "Short guidance opens in a floating panel.",
-    role: "dialog",
-    hasPopup: "dialog",
+    description: "Short guidance appears in a floating panel.",
     children: [
         P("Popover content goes here.")
     ]
@@ -29,9 +27,7 @@ Positioned actions:
 ```ts
 const actions = Popover({
     trigger: "Quick actions",
-    description: "Choose one action.",
-    role: "dialog",
-    hasPopup: "dialog",
+    description: "Choose one action from the floating panel.",
     side: "bottom",
     alignment: "start",
     matchAnchorWidth: true,
@@ -81,8 +77,8 @@ const popover = createPopover(content, {
 - Applies `aria-haspopup` from `hasPopup`, or from `role` when `hasPopup` is not provided.
 - Supports optional `aria-labelledby` and `aria-describedby`.
 - Composition API can create a visible `description`.
+- Composition `descriptionMode: "content"` keeps the description visible only. This is the default.
 - Composition `descriptionMode: "aria"` links the visible description with `aria-describedby`.
-- Composition `descriptionMode: "content"` keeps the description visible only.
 - When a composed description exists and no explicit `announcement` is provided, the description can be announced when the popover opens.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
@@ -94,7 +90,7 @@ Root options:
 - `trigger` - Required trigger content for `Popover()`, or trigger element for `createPopover()`.
 - `children` - Floating content for the composition API.
 - `description` - Optional visible explanation for composed popovers.
-- `descriptionMode` - `"aria"` or `"content"`.
+- `descriptionMode` - `"content"` or `"aria"`. Defaults to `"content"`.
 - `contentId` - Custom id for the floating content.
 - `contentOptions` - Common DOM options for the composed content element.
 - `open` - Controlled open state.
@@ -135,20 +131,38 @@ Creation-time options:
 
 `description` and `announcement` serve different jobs.
 
-Use `description` for visible helper text and semantic description. It can be connected with `aria-describedby` through `descriptionMode: "aria"`, which is the composed popover default.
+Use `description` for visible helper text. By default it stays as content and can be announced on open without being repeated when focus later enters the popover.
 
-Use `announcement` when something should be read through a live region on open without moving focus into the popover.
+Use `descriptionMode: "aria"` only when the popover container itself should be described by that text. This is useful for dialog-like popovers, but it can cause repeated speech in some screen reader and browser combinations if the same description is also announced on open.
+
+Use `announcement` when something should be read through a live region on open without moving focus into the popover, especially when the spoken message should be different from the visible description.
 
 When a composed description exists and no explicit `announcement` is provided, the description is announced when the popover opens. Set `announcement: false` to keep the description visible and semantic without an open live-region message.
 
 ```ts
 Popover({
     trigger: "Open tips",
-    description: "Tips opened. Use Tab to move into the panel.",
-    role: "dialog",
-    hasPopup: "dialog",
+    description: "Use Tab to move into the panel.",
     children: [
         P("Tip content.")
+    ]
+});
+```
+
+Dialog-like popover:
+
+```ts
+Popover({
+    trigger: "Open tools",
+    description: "Choose one tool.",
+    descriptionMode: "aria",
+    announcement: false,
+    role: "dialog",
+    hasPopup: "dialog",
+    labelledBy: "tools-title",
+    children: [
+        H3({ id: "tools-title" }, "Tools"),
+        Button({ text: "Preview" })
     ]
 });
 ```

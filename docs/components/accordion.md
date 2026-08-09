@@ -25,7 +25,7 @@ Accordion({
 });
 ```
 
-With short open announcements:
+With short item descriptions:
 
 ```ts
 Accordion({
@@ -33,7 +33,7 @@ Accordion({
         {
             value: "keyboard",
             trigger: "Keyboard support",
-            announcement: "Keyboard support opened.",
+            description: "This panel explains arrow-key shortcuts.",
             panel: "Arrow keys, Home, and End are supported."
         }
     ]
@@ -56,8 +56,10 @@ Accordion({
 - Composition API wraps each trigger in a native heading element.
 - Default composition heading level is `h3`.
 - `panelRole: "auto"` uses `role="region"` only when the accordion is small enough to avoid landmark noise.
-- Can announce root-level or per-item open messages.
-- Prefer short per-item announcements for panels with longer text or interactive content.
+- Composition items can create a visible `description` inside the panel.
+- `descriptionMode` defaults to `"content"`, so item descriptions are not read from triggers before their panels open.
+- When an item description exists and no explicit item `announcement` is provided, the description is announced when that item opens.
+- Can announce root-level or per-item open messages when a custom live-region message is needed.
 
 Keyboard behavior:
 
@@ -75,6 +77,7 @@ Root options:
 - `items` - Required list of accordion items.
 - `headingLevel` - Default heading level for item headings: `2 | 3 | 4 | 5 | 6`.
 - `panelRole` - `"auto"`, `"region"`, or `"none"`.
+- `descriptionMode` - Default description mode for items: `"content"` or `"aria"`. Defaults to `"content"`.
 - `multiple` - Allows more than one item to be open.
 - `collapsible` - Allows the last open item to close.
 - `disabled` - Disables the entire accordion.
@@ -90,24 +93,27 @@ Item options:
 - `value` - Stable item id used by controller methods.
 - `trigger` - Required trigger content.
 - `panel` - Required panel content.
+- `description` - Optional short visible explanation shown before the item body.
+- `descriptionId` - Custom id for the item description.
+- `descriptionMode` - Per-item override for root `descriptionMode`.
 - `headingLevel` - Overrides heading level for one item.
 - `disabled` - Disables one item.
 - `defaultOpen` - Opens one item initially.
 - `open` - Controlled open state.
 - `announcement` - Per-item announcement override. Prefer a short string for verbose panels.
 
-## Announcements
+## Description And Announcement
 
-Accordion items use the same open-announcement mechanism as `Disclosure`.
+Accordion items use the same description and open-announcement model as `Disclosure`.
 
-Use a short per-item `announcement` when the panel contains several paragraphs, links, or controls. This confirms what opened without forcing the screen reader to read the whole panel immediately.
+Use item `description` as the default way to provide short visible context. It appears at the top of the opened panel and is announced on open when no explicit `announcement` is provided.
 
 ```ts
 Accordion({
     items: [
         {
             trigger: "Project details",
-            announcement: "Project details opened. Use Tab to reach actions inside.",
+            description: "Use Tab to reach actions inside.",
             panel: [
                 P("Project summary."),
                 Button({ text: "Confirm" })
@@ -117,7 +123,21 @@ Accordion({
 });
 ```
 
-Use root-level `announcement` only when one announcement strategy should apply to every item. Use `announcement: true` sparingly because it reads the full opened panel text.
+Use per-item `announcement` when the spoken message should be different from the visible description, or when it should explicitly say that an item opened. Use root-level `announcement` only as a fallback strategy for items without their own description or announcement. Use `announcement: true` sparingly because it reads the full opened panel text.
+
+```ts
+Accordion({
+    announcement: "Accordion item opened.",
+    items: [
+        {
+            trigger: "Quiet details",
+            description: "Visible helper text.",
+            announcement: false,
+            panel: "Quiet panel content."
+        }
+    ]
+});
+```
 
 ## Update Notes
 
@@ -136,7 +156,7 @@ accordion.update({
 
 ## Styling
 
-Useful hooks include `[data-af-component="accordion"]`, `[data-af-accordion-item]`, `[data-af-open]`, and `[data-af-disabled]`.
+Useful hooks include `[data-af-component="accordion"]`, `[data-af-accordion-item]`, `[data-af-disclosure-description]`, `[data-af-disclosure-body]`, `[data-af-open]`, and `[data-af-disabled]`.
 
 ```ts
 Accordion({
@@ -154,3 +174,4 @@ Accordion({
 - Focus indicator is visible.
 - Touch targets are comfortable on mobile.
 - Opening an item announces useful context without repeating long panel content.
+- Item descriptions are not announced before opening unless `descriptionMode: "aria"` is intentionally used.

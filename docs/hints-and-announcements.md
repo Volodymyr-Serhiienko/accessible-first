@@ -41,6 +41,8 @@ Use it for application feedback that should remain available visually. Toast sho
 - Visual tooltip is optional enhancement, not the primary accessibility channel.
 - Mobile-friendly visual help should be visible in the layout, not hidden behind hover.
 - Opening components may use `description` for visible context and `announcement` for concise open feedback.
+- For non-modal expandable components, a short visible `description` may be announced on open when no explicit `announcement` is provided.
+- Prefer `announcement` for event wording such as "Panel opened"; keep `description` useful as visible text.
 - Action results should use toast or another visible status pattern, not tooltip.
 - Assertive announcements are reserved for urgent updates.
 - Repeated identical announcements must be supported by the live-region engine.

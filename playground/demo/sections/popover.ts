@@ -14,9 +14,6 @@ import {
 import { announce } from "../status";
 
 export function PopoverDemo(): ComposedNode {
-    const guidanceTitleId = "popover-guidance-title";
-    const actionsTitleId = "popover-actions-title";
-
     let guidancePopover!: ComposedPopover;
     let actionsPopover!: ComposedPopover;
 
@@ -30,16 +27,13 @@ export function PopoverDemo(): ComposedNode {
 
     guidancePopover = Popover({
         trigger: "Open guidance",
-        description: "Guidance popover opened. Use Tab to move into the panel, or Escape to close it.",
-        role: "dialog",
-        hasPopup: "dialog",
-        labelledBy: guidanceTitleId,
+        description: "Use Tab to move into the panel, or Escape to close it.",
         side: "bottom",
         alignment: "start",
         offset: 8,
         children: [
             Stack(
-                H3({ id: guidanceTitleId }, "Popover guidance"),
+                H3("Popover guidance"),
                 P("Popover is a lightweight floating panel anchored to a trigger."),
                 P("Focus stays on the trigger when the panel opens. Press Tab to move into interactive content inside the panel."),
                 Row(closeGuidance)
@@ -67,17 +61,14 @@ export function PopoverDemo(): ComposedNode {
 
     actionsPopover = Popover({
         trigger: "Quick actions",
-        description: "Quick actions opened. Use Tab to move between actions.",
-        role: "dialog",
-        hasPopup: "dialog",
-        labelledBy: actionsTitleId,
+        description: "Use Tab to move between actions.",
         side: "bottom",
         alignment: "start",
         offset: 8,
         matchAnchorWidth: true,
         children: [
             Stack(
-                H3({ id: actionsTitleId }, "Quick actions"),
+                H3("Quick actions"),
                 P("This panel matches the trigger width and contains ordinary composed buttons."),
                 Row(previewAction, publishAction)
             )

@@ -8,8 +8,10 @@ import {
     type BaseCompositionOptions,
     type CompositionContent
 } from "../composition";
+import { createId } from "../../../core/src/id";
+import { restoreAttribute } from "../../../core/src/dom";
 import { createAccordion } from "./createAccordion";
-import type { DisclosureAnnouncement } from "../disclosure";
+import type { DisclosureAnnouncement, DisclosureDescriptionMode } from "../disclosure";
 import type {
     Accordion as AccordionInstance,
     AccordionHeadingLevel,
@@ -25,6 +27,11 @@ import type {
  */
 export type AccordionCompositionContent = CompositionContent;
 
+/**
+ * Controls whether an item description is only panel content or also linked to its trigger.
+ */
+export type AccordionDescriptionMode = DisclosureDescriptionMode;
+
 type AccordionHeadingTagName = "h2" | "h3" | "h4" | "h5" | "h6";
 
 /**
@@ -34,6 +41,9 @@ export interface AccordionCompositionItem extends BaseCompositionOptions {
     value?: string;
     trigger: AccordionCompositionContent;
     panel: AccordionCompositionContent;
+    description?: string | null;
+    descriptionId?: string;
+    descriptionMode?: AccordionDescriptionMode;
     headingLevel?: AccordionHeadingLevel;
     disabled?: boolean;
     defaultOpen?: boolean;
@@ -67,6 +77,7 @@ export interface AccordionCompositionOptions
     items: AccordionCompositionItem[];
     headingLevel?: AccordionHeadingLevel;
     panelRole?: AccordionPanelRole;
+    descriptionMode?: AccordionDescriptionMode;
     onOpenChange?: AccordionCompositionOnOpenChange | null;
 }
 
@@ -78,6 +89,9 @@ export interface AccordionCompositionOptions
 export interface AccordionCompositionItemUpdate extends BaseCompositionOptions {
     trigger?: AccordionCompositionContent;
     panel?: AccordionCompositionContent;
+    description?: string | null;
+    descriptionId?: string;
+    descriptionMode?: AccordionDescriptionMode;
     disabled?: boolean;
     open?: boolean;
     announcement?: DisclosureAnnouncement;
@@ -102,6 +116,9 @@ export interface ComposedAccordionItem
     readonly heading: HTMLHeadingElement;
     readonly trigger: HTMLButtonElement;
     readonly panel: HTMLElement;
+    readonly description: HTMLElement;
+    readonly body: HTMLElement;
+    setDescription(description: string | null): void;
     setTriggerContent(content: AccordionCompositionContent): void;
     setPanelContent(content: AccordionCompositionContent): void;
 }
@@ -122,8 +139,14 @@ interface AccordionItemNodes {
     heading: HTMLHeadingElement;
     trigger: HTMLButtonElement;
     panel: HTMLElement;
+    description: HTMLElement;
+    body: HTMLElement;
     triggerContent: ReturnType<typeof createContentSlot>;
     panelContent: ReturnType<typeof createContentSlot>;
+    descriptionMode: AccordionDescriptionMode;
+    ownDescriptionMode: AccordionDescriptionMode | undefined;
+    ownAnnouncement: DisclosureAnnouncement | undefined;
+    originalTriggerDescribedBy: string | null;
 }
 
 function getHeadingTag(level: AccordionHeadingLevel): AccordionHeadingTagName {
@@ -140,6 +163,84 @@ function shouldUsePanelRegion(panelRole: AccordionPanelRole, itemCount: number):
     }
 
     return itemCount <= 6;
+}
+
+function hasDescription(value: string | null | undefined): value is string {
+    return Boolean(value?.trim());
+}
+
+function getDescriptionText(description: HTMLElement): string {
+    return description.textContent?.replace(/\s+/g, " ").trim() ?? "";
+}
+
+function getDescriptionAnnouncement(description: HTMLElement): DisclosureAnnouncement | undefined {
+    const text = getDescriptionText(description);
+
+    return text || undefined;
+}
+
+function removeIdReference(value: string | null, id: string): string | null {
+    const nextValue = (value ?? "")
+        .split(/\s+/)
+        .filter((item) => item && item !== id)
+        .join(" ");
+
+    return nextValue || null;
+}
+
+function joinIdReferences(value: string | null, id: string): string {
+    const ids = new Set((value ?? "").split(/\s+/).filter(Boolean));
+    ids.add(id);
+
+    return Array.from(ids).join(" ");
+}
+
+function shouldUseAriaDescription(
+    mode: AccordionDescriptionMode,
+    description: HTMLElement
+): boolean {
+    return mode === "aria" && Boolean(getDescriptionText(description));
+}
+
+function removeTriggerDescriptionReference(
+    node: AccordionItemNodes,
+    descriptionId = node.description.id
+): void {
+    const current = removeIdReference(node.trigger.getAttribute("aria-describedby"), descriptionId);
+
+    if (current) {
+        node.trigger.setAttribute("aria-describedby", current);
+        return;
+    }
+
+    restoreAttribute(node.trigger, "aria-describedby", node.originalTriggerDescribedBy);
+}
+
+function syncTriggerDescription(node: AccordionItemNodes): void {
+    const current = removeIdReference(
+        node.trigger.getAttribute("aria-describedby"),
+        node.description.id
+    );
+
+    if (shouldUseAriaDescription(node.descriptionMode, node.description)) {
+        node.trigger.setAttribute("aria-describedby", joinIdReferences(current, node.description.id));
+        return;
+    }
+
+    if (current) {
+        node.trigger.setAttribute("aria-describedby", current);
+        return;
+    }
+
+    restoreAttribute(node.trigger, "aria-describedby", node.originalTriggerDescribedBy);
+}
+
+function setItemDescription(node: AccordionItemNodes, nextDescription: string | null): void {
+    const text = nextDescription?.trim() ?? "";
+
+    node.description.textContent = text;
+    node.description.hidden = !text;
+    syncTriggerDescription(node);
 }
 
 function syncPanelSemantics(
@@ -161,7 +262,8 @@ function syncPanelSemantics(
 
 function createItemNodes(
     item: AccordionCompositionItem,
-    defaultHeadingLevel: AccordionHeadingLevel
+    defaultHeadingLevel: AccordionHeadingLevel,
+    defaultDescriptionMode: AccordionDescriptionMode
 ): AccordionItemNodes {
     const element = createElement("div", getCompositionElementOptions(item));
     const heading = createElement(getHeadingTag(item.headingLevel ?? defaultHeadingLevel), {
@@ -176,10 +278,27 @@ function createItemNodes(
     });
     const panel = createElement("div");
 
+    const description = createElement("p", {
+        id: item.descriptionId ?? createId("af-accordion-description"),
+        text: item.description ?? "",
+        attributes: {
+            "data-af-disclosure-description": ""
+        }
+    });
+
+    const body = createElement("div", {
+        attributes: {
+            "data-af-disclosure-body": ""
+        }
+    });
+
     const triggerContent = createContentSlot(trigger, toCompositionChildren(item.trigger));
-    const panelContent = createContentSlot(panel, toCompositionChildren(item.panel));
+    const panelContent = createContentSlot(body, toCompositionChildren(item.panel));
+
+    description.hidden = !hasDescription(item.description);
 
     heading.append(trigger);
+    panel.append(description, body);
     element.append(heading, panel);
 
     return {
@@ -187,9 +306,36 @@ function createItemNodes(
         heading,
         trigger,
         panel,
+        description,
+        body,
         triggerContent,
-        panelContent
+        panelContent,
+        descriptionMode: item.descriptionMode ?? defaultDescriptionMode,
+        ownDescriptionMode: item.descriptionMode,
+        ownAnnouncement: item.announcement,
+        originalTriggerDescribedBy: trigger.getAttribute("aria-describedby")
     };
+}
+
+function getResolvedItemAnnouncement(
+    node: AccordionItemNodes,
+    rootAnnouncement: DisclosureAnnouncement | undefined
+): DisclosureAnnouncement | undefined {
+    if (node.ownAnnouncement !== undefined) {
+        return node.ownAnnouncement;
+    }
+
+    return getDescriptionAnnouncement(node.description) ?? rootAnnouncement;
+}
+
+function syncItemAnnouncement(
+    item: Pick<AccordionItem, "disclosure">,
+    node: AccordionItemNodes,
+    rootAnnouncement: DisclosureAnnouncement | undefined
+): void {
+    item.disclosure.update({
+        announcement: getResolvedItemAnnouncement(node, rootAnnouncement) ?? false
+    });
 }
 
 function getAccordionOptions(
@@ -222,8 +368,10 @@ function getAccordionOptions(
                 itemOptions.open = source.open;
             }
 
-            if (source?.announcement !== undefined) {
-                itemOptions.announcement = source.announcement;
+            const itemAnnouncement = getResolvedItemAnnouncement(node, options.announcement);
+
+            if (itemAnnouncement !== undefined) {
+                itemOptions.announcement = itemAnnouncement;
             }
 
             return itemOptions;
@@ -269,11 +417,16 @@ function getAccordionUpdateOptions(
 export function Accordion(options: AccordionCompositionOptions): ComposedAccordion {
     const element = createElement("div", getCompositionElementOptions(options));
     const headingLevel = options.headingLevel ?? 3;
-    const itemNodes = options.items.map((item) => createItemNodes(item, headingLevel));
+    let descriptionMode: AccordionDescriptionMode = options.descriptionMode ?? "content";
+    let rootAnnouncement = options.announcement;
+    const itemNodes = options.items.map((item) => (
+        createItemNodes(item, headingLevel, descriptionMode)
+    ));
 
     let panelRole = options.panelRole ?? "auto";
 
     syncPanelSemantics(itemNodes, panelRole);
+    itemNodes.forEach(syncTriggerDescription);
 
     for (const item of itemNodes) {
         element.append(item.element);
@@ -318,6 +471,13 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
             heading: node.heading,
             trigger: node.trigger,
             panel: node.panel,
+            description: node.description,
+            body: node.body,
+
+            setDescription(description): void {
+                setItemDescription(node, description);
+                syncItemAnnouncement(item, node, rootAnnouncement);
+            },
 
             setTriggerContent(content): void {
                 node.triggerContent.set(toCompositionChildren(content));
@@ -346,6 +506,21 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
                 syncPanelSemantics(itemNodes, panelRole);
             }
 
+            if (nextOptions.descriptionMode !== undefined) {
+                descriptionMode = nextOptions.descriptionMode;
+
+                for (const node of itemNodes) {
+                    if (node.ownDescriptionMode === undefined) {
+                        node.descriptionMode = descriptionMode;
+                        syncTriggerDescription(node);
+                    }
+                }
+            }
+
+            if (nextOptions.announcement !== undefined) {
+                rootAnnouncement = nextOptions.announcement;
+            }
+
             accordion.update(getAccordionUpdateOptions(nextOptions, handleOpenChange));
 
             if (nextOptions.items !== undefined) {
@@ -372,6 +547,27 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
                         item.setPanelContent(nextItem.panel);
                     }
 
+                    let shouldSyncItemAnnouncement = false;
+
+                    if (nextItem.descriptionId !== undefined) {
+                        const previousDescriptionId = node.description.id;
+
+                        removeTriggerDescriptionReference(node, previousDescriptionId);
+                        node.description.id = nextItem.descriptionId;
+                        syncTriggerDescription(node);
+                    }
+
+                    if ("description" in nextItem) {
+                        setItemDescription(node, nextItem.description ?? null);
+                        shouldSyncItemAnnouncement = true;
+                    }
+
+                    if (nextItem.descriptionMode !== undefined) {
+                        node.ownDescriptionMode = nextItem.descriptionMode;
+                        node.descriptionMode = nextItem.descriptionMode;
+                        syncTriggerDescription(node);
+                    }
+
                     if (nextItem.disabled !== undefined) {
                         item.setDisabled(nextItem.disabled);
                     }
@@ -381,7 +577,20 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
                     }
 
                     if (nextItem.announcement !== undefined) {
+                        node.ownAnnouncement = nextItem.announcement;
                         item.disclosure.update({ announcement: nextItem.announcement });
+                    } else if (shouldSyncItemAnnouncement) {
+                        syncItemAnnouncement(item, node, rootAnnouncement);
+                    }
+                });
+            }
+
+            if (nextOptions.announcement !== undefined) {
+                composedItems.forEach((item, index) => {
+                    const node = itemNodes[index];
+
+                    if (node && node.ownAnnouncement === undefined) {
+                        syncItemAnnouncement(item, node, rootAnnouncement);
                     }
                 });
             }
@@ -389,6 +598,7 @@ export function Accordion(options: AccordionCompositionOptions): ComposedAccordi
 
         destroy(): void {
             for (const node of itemNodes) {
+                removeTriggerDescriptionReference(node);
                 node.triggerContent.dispose();
                 node.panelContent.dispose();
             }

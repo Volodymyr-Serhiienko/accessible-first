@@ -17,12 +17,12 @@ Disclosure({
 });
 ```
 
-With open announcement:
+With short open context:
 
 ```ts
 Disclosure({
     trigger: "Details",
-    description: "Details opened. Use Tab to reach interactive content inside.",
+    description: "Use Tab to reach interactive content inside.",
     panel: "More information."
 });
 ```
@@ -98,12 +98,12 @@ const disclosure = createDisclosure(root, {
 
 `description` is the preferred way to give a short visible hint for composed disclosures. By default it is shown inside the opened panel and announced only when the panel opens.
 
-Use `announcement` for explicit live-region speech. Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable.
+Use `announcement` for explicit event wording such as "Details opened." Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable.
 
 ```ts
 Disclosure({
     trigger: "Payment details",
-    description: "Payment details opened.",
+    description: "Saved cards and invoice settings are shown below.",
     panel: [
         P("Saved cards and invoice settings.")
     ]

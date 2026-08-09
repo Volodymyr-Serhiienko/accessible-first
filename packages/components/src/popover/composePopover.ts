@@ -31,6 +31,9 @@ export type PopoverCompositionContent = CompositionContent;
 
 /**
  * Controls how the composed description participates in popover semantics.
+ *
+ * The default is "content": the description stays visible inside the popover
+ * and can be announced on open without being repeated when focus enters.
  */
 export type PopoverDescriptionMode = "content" | "aria";
 
@@ -240,7 +243,7 @@ function getPopoverOptions(
     applyDescriptionPopoverOptions(
         popoverOptions,
         description,
-        options.descriptionMode ?? "aria",
+        options.descriptionMode ?? "content",
         options.describedBy !== undefined,
         options.announcement !== undefined
     );
@@ -303,7 +306,7 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
     let composed!: ComposedPopover;
     let onOpenChange = options.onOpenChange ?? null;
 
-    let descriptionMode = options.descriptionMode ?? "aria";
+    let descriptionMode = options.descriptionMode ?? "content";
     let hasExplicitDescribedBy = options.describedBy !== undefined;
     let hasExplicitAnnouncement = options.announcement !== undefined;
 

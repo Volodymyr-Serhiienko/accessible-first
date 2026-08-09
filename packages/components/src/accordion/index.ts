@@ -19,6 +19,7 @@ export type {
 } from "./types";
 
 export type {
+    AccordionDescriptionMode,
     AccordionCompositionContent,
     AccordionCompositionItem,
     AccordionCompositionOnOpenChange,
