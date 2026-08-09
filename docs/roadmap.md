@@ -66,6 +66,7 @@ Completed:
 - Tooltip enhancement and composition APIs
 - Toast viewport enhancement and composition APIs
 - Checkbox component enhancement and composition APIs
+- Radio Group component enhancement and composition APIs
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
@@ -90,7 +91,6 @@ Next:
 Planned components:
 
 - Form Field
-- Radio Group
 - Switch
 
 ### Component Quality Baseline

@@ -26,6 +26,7 @@ Each component document should contain:
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
 - [Popover](./popover.md)
+- [RadioGroup](./radio-group.md)
 - [Select](./select.md)
 - [Tabs](./tabs.md)
 - [Toast](./toast.md)

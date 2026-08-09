@@ -15,4 +15,5 @@
 @import "./components/select.css";
 @import "./components/combobox.css";
 @import "./components/checkbox.css";
+@import "./components/radio-group.css";
 @import "./components/dialog.css";

@@ -4,6 +4,8 @@ export function NavigationDemo(): ComposedNode {
     return Row(
         { className: "playground-nav__inner" },
         Link({ text: "Buttons", href: "#buttons", variant: "standalone" }),
+        Link({ text: "Checkbox", href: "#checkbox", variant: "standalone" }),
+        Link({ text: "RadioGroup", href: "#radio-group", variant: "standalone" }),
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
         Link({ text: "Tooltip", href: "#tooltip", variant: "standalone" }),
         Link({ text: "Toast", href: "#toast", variant: "standalone" }),
@@ -19,6 +21,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "Combobox", href: "#combobox", variant: "standalone" }),
         Link({ text: "Popover", href: "#popover", variant: "standalone" }),
         Link({ text: "Layout", href: "#layout", variant: "standalone" }),
-        Link({ text: "Markup", href: "#markup", variant: "standalone" })
+        Link({ text: "Markup", href: "#markup", variant: "standalone" }),
+        Link({ text: "Manual checks", href: "#checks", variant: "standalone" })
     );
 }

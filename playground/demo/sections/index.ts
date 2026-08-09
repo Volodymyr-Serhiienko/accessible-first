@@ -13,6 +13,7 @@ export { ListboxDemo } from "./listbox";
 export { MarkupDemo } from "./markup";
 export { MenuDemo } from "./menu";
 export { PopoverDemo } from "./popover";
+export { RadioGroupDemo } from "./radioGroup";
 export { SelectDemo } from "./select";
 export { TabsDemo } from "./tabs";
 export { ToastDemo } from "./toast";

@@ -6,7 +6,7 @@ Checkbox provides an accessible native checkbox with Accessible First styling ho
 
 Use `Checkbox` when users can turn one independent option on or off.
 
-For a mutually exclusive choice, use a future `RadioGroup`. For a setting that behaves like an immediate on/off switch, use a future `Switch`.
+For a mutually exclusive choice, use `RadioGroup`. For a setting that behaves like an immediate on/off switch, use a future `Switch`.
 
 ## Quick Start
 
