@@ -61,6 +61,10 @@ function getCoreComboboxOptions(
 
     applyCoreOptions(options, coreOptions);
 
+    if (options.openOnFocus === undefined) {
+        coreOptions.openOnFocus = true;
+    }
+
     if (options.defaultInputValue !== undefined) {
         coreOptions.defaultInputValue = options.defaultInputValue;
     }

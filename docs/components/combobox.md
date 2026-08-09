@@ -57,6 +57,7 @@ Combobox({
 - Uses `role="listbox"` on the popup.
 - Uses `role="option"` on each option.
 - Filters options as the user types.
+- Opens on focus by default.
 - Opens on input by default.
 - Closes on blur and outside pointer interaction.
 - Supports disabled options.
@@ -96,7 +97,7 @@ Root options:
 - `disabled` - Disables the input and closes the popup.
 - `open` - Controlled open state.
 - `defaultOpen` - Opens initially. Creation-time option.
-- `openOnFocus` - Opens when input receives focus.
+- `openOnFocus` - Opens when input receives focus. Defaults to `true`; set to `false` for quieter fields.
 - `openOnInput` - Opens while typing. Defaults to `true`.
 - `closeOnBlur` - Closes when focus leaves the input/listbox interaction. Defaults to `true`.
 - `closeOnEmpty` - Closes when no options match. Defaults to `true`, but defaults to `false` when `notFoundText` is provided.
@@ -183,6 +184,7 @@ Combobox({
 ## Manual Checks
 
 - Label is announced with the input.
+- Focus opens the popup and shows available options when the input is empty.
 - Typing opens and filters the popup.
 - Active option is announced while using arrow keys.
 - `Enter` selects the active option.
