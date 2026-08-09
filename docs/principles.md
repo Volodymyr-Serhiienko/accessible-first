@@ -80,6 +80,19 @@ Examples:
 - panels should be clearly related to their triggers;
 - complex widgets should not rely on one keyboard interaction model that screen readers may intercept.
 
+## Unified Hint Model
+
+Components should use the same language for user help:
+
+- `label` names the control;
+- `hint` explains useful context before activation;
+- `tooltip` is optional short visual help, mostly for pointer and keyboard focus;
+- `description` is visible explanatory content owned by a component or region;
+- `announcement` reports something that just happened;
+- `toast` shows visible non-modal application feedback.
+
+Important information must not live only in hover content because touch devices do not have reliable hover.
+
 ## Documentation Driven
 
 Architectural decisions, public APIs, component behavior, and testing expectations should be documented as the project evolves.

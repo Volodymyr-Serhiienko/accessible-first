@@ -60,6 +60,7 @@ The two surfaces should reuse the same behavior engine.
 - Prefer native HTML semantics before custom roles.
 - Keep core behavior framework-independent.
 - Put repeated accessibility behavior in shared utilities.
+- Keep labels, hints, descriptions, announcements, tooltips, and toasts conceptually separate.
 - Keep component APIs small, but expose escape hatches through native attributes and DOM access.
 - Restore component mutations on `destroy()`.
 - Add page and app patterns only after real examples prove they are useful.
@@ -68,6 +69,7 @@ The two surfaces should reuse the same behavior engine.
 
 - Project vision: [vision.md](./vision.md)
 - Design principles: [principles.md](./principles.md)
+- Hints and announcements: [hints-and-announcements.md](./hints-and-announcements.md)
 - Page-building API: [semantic-composition.md](./semantic-composition.md)
 - Component reference: [components/README.md](./components/README.md)
 - Development plan: [roadmap.md](./roadmap.md)

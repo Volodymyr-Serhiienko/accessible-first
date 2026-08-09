@@ -6,6 +6,11 @@ import {
     type BaseCompositionOptions,
     type CompositionChild
 } from "../composition";
+import {
+    createControlHint,
+    type ControlHintDisplay,
+    type ControlHintOptions
+} from "../foundation";
 import { createLink } from "./createLink";
 import type { Link as LinkInstance, LinkOptions } from "./types";
 
@@ -27,6 +32,10 @@ export interface LinkCompositionOptions
         BaseCompositionOptions {
     text?: string;
     children?: CompositionChild[];
+    hint?: string | null;
+    hintId?: string;
+    hintDisplay?: ControlHintDisplay;
+    hintAnnounceOnHover?: boolean;
     onNavigate?: LinkCompositionOnNavigate | null;
 }
 
@@ -37,8 +46,24 @@ export interface LinkCompositionOptions
 export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | "destroy"> {
     readonly element: HTMLAnchorElement;
     setText(text: string): void;
+    setHint(hint: string | null): void;
     update(options: Partial<LinkCompositionOptions>): void;
     destroy(): void;
+}
+
+function getControlHintOptions(
+    options: Partial<LinkCompositionOptions>
+): ControlHintOptions {
+    const hintOptions: ControlHintOptions = {};
+
+    if ("hint" in options) hintOptions.hint = options.hint ?? null;
+    if (options.hintId !== undefined) hintOptions.hintId = options.hintId;
+    if (options.hintDisplay !== undefined) hintOptions.hintDisplay = options.hintDisplay;
+    if (options.hintAnnounceOnHover !== undefined) {
+        hintOptions.hintAnnounceOnHover = options.hintAnnounceOnHover;
+    }
+
+    return hintOptions;
 }
 
 function getChildren(options: LinkCompositionOptions): CompositionChild[] {
@@ -115,14 +140,18 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
         getLinkOptions(options, handleNavigate)
     );
 
+    const controlHint = createControlHint(element, getControlHintOptions(options));
+
     function setText(text: string): void {
         content.set([text]);
+        controlHint.refresh();
     }
 
     composed = {
         ...link,
         element,
         setText,
+        setHint: controlHint.setHint,
 
         update(nextOptions: Partial<LinkCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -138,10 +167,14 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
             } else if (nextOptions.text !== undefined) {
                 setText(nextOptions.text);
             }
+
+            controlHint.update(getControlHintOptions(nextOptions));
+            controlHint.refresh();
         },
 
         destroy(): void {
             content.dispose();
+            controlHint.destroy();
             link.destroy();
         }
     };

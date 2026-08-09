@@ -10,6 +10,13 @@ export {
     type SelectedState,
     type SelectedStateOptions
 } from "./createSelectedState";
+export {
+    createControlHint,
+    type ControlHint,
+    type ControlHintDisplay,
+    type ControlHintOptions,
+    type ControlHintUpdateOptions
+} from "./createControlHint";
 export type {
     Component,
     ComponentCleanup,

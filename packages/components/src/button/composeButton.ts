@@ -8,7 +8,10 @@ import {
 } from "../composition";
 import { createButton } from "./createButton";
 import {
+    createControlHint,
     createSelectedState,
+    type ControlHintDisplay,
+    type ControlHintOptions,
     type SelectedStateOptions
 } from "../foundation";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
@@ -32,6 +35,10 @@ export interface ButtonCompositionOptions
     text?: string;
     children?: CompositionChild[];
     selected?: boolean;
+    hint?: string | null;
+    hintId?: string;
+    hintDisplay?: ControlHintDisplay;
+    hintAnnounceOnHover?: boolean;
     onPress?: ButtonCompositionOnPress | null;
 }
 
@@ -45,8 +52,24 @@ export interface ComposedButton extends Omit<ButtonInstance, "element" | "update
     setSelected(selected: boolean): void;
     isSelected(): boolean;
     toggleSelected(force?: boolean): boolean;
+    setHint(hint: string | null): void;
     update(options: Partial<ButtonCompositionOptions>): void;
     destroy(): void;
+}
+
+function getControlHintOptions(
+    options: Partial<ButtonCompositionOptions>
+): ControlHintOptions {
+    const hintOptions: ControlHintOptions = {};
+
+    if ("hint" in options) hintOptions.hint = options.hint ?? null;
+    if (options.hintId !== undefined) hintOptions.hintId = options.hintId;
+    if (options.hintDisplay !== undefined) hintOptions.hintDisplay = options.hintDisplay;
+    if (options.hintAnnounceOnHover !== undefined) {
+        hintOptions.hintAnnounceOnHover = options.hintAnnounceOnHover;
+    }
+
+    return hintOptions;
 }
 
 function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
@@ -102,8 +125,11 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         })
     );
 
+    const controlHint = createControlHint(element, getControlHintOptions(options));
+
     function setText(text: string): void {
         content.set([text]);
+        controlHint.refresh();
     }
 
     composed = {
@@ -113,6 +139,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         setSelected: selectedState.setSelected,
         isSelected: selectedState.isSelected,
         toggleSelected: selectedState.toggleSelected,
+        setHint: controlHint.setHint,
 
         update(nextOptions: Partial<ButtonCompositionOptions>): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -134,11 +161,15 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
             } else if (nextOptions.text !== undefined) {
                 setText(nextOptions.text);
             }
+
+            controlHint.update(getControlHintOptions(nextOptions));
+            controlHint.refresh();
         },
 
         destroy(): void {
             content.dispose();
             selectedState.destroy();
+            controlHint.destroy();
             button.destroy();
         }
     };

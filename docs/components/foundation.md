@@ -95,11 +95,24 @@ Use it for controls that already have visible text but may not be announced reli
 
 Interactive components should keep visible explanation and live-region speech separate.
 
-Use `description` for helper text that is visible to everyone and can be connected with `aria-describedby` when appropriate.
+Use `hint` for supporting context attached to a control. It should connect through `aria-describedby` when useful.
+
+Use `tooltip` for optional short visual helper text. Tooltip must not be the only source of important information because touch devices do not have reliable hover.
+
+Simple controls use `hintDisplay` to choose the output:
+
+- `"description"` - programmatic hint through `aria-describedby`;
+- `"tooltip"` - visual tooltip only;
+- `"both"` - programmatic hint and visual tooltip;
+- `"none"` - no hint output.
+
+Use `description` for helper text that is visible to everyone and belongs to a component, panel, dialog, popover, field, or region.
 
 Use `announcement` when opening a component should be announced without moving focus. Prefer concise messages for non-modal expandable or floating UI such as Disclosure, Accordion items, and Popover.
 
 Future expandable components should consider this pattern when it helps users understand what opened and what to do next.
+
+The shared terminology is defined in [Hints And Announcements](../hints-and-announcements.md).
 
 ## Callback Shape
 

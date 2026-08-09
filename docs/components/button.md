@@ -14,9 +14,20 @@ Native `<button>` behavior is preferred. Enhancement APIs can also add button se
 Button({
     text: "Save",
     variant: "primary",
+    hint: "Saves the current draft without publishing.",
     onPress() {
         save();
     }
+});
+```
+
+Visual and screen reader hint:
+
+```ts
+Button({
+    text: "Save",
+    hint: "Saves the current draft without publishing.",
+    hintDisplay: "both"
 });
 ```
 
@@ -60,6 +71,7 @@ const button = createButton(existingButton, {
 - Supports disabled state.
 - Supports `aria-pressed` for true toggle buttons with stable labels.
 - Supports visual selected state through `data-af-selected`.
+- Supports optional `hint` through `aria-describedby` and optional visual tooltip.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
 
@@ -70,6 +82,10 @@ const button = createButton(existingButton, {
 - `disabled` - Disables the button.
 - `pressed` - Adds `aria-pressed` for true toggle buttons with stable labels.
 - `selected` - Adds visual/action state through `data-af-selected`.
+- `hint` - Supporting context for the button.
+- `hintId` - Custom id for the generated hint text.
+- `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
+- `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the button.
 - `type` - `"button"`, `"submit"`, or `"reset"`.
 - `variant` - `"primary"`, `"secondary"`, `"ghost"`, or `"danger"`.
 - `size` - `"md"`.
@@ -96,5 +112,7 @@ Button({
 - `Space` activates the button.
 - Disabled state cannot be activated.
 - Toggle buttons announce pressed state.
+- Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
+- Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
 - Text contrast is readable in light and dark themes.
 - Touch target is comfortable on mobile.

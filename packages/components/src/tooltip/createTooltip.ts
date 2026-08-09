@@ -101,7 +101,13 @@ export function createTooltip(
     }
 
     function ensureVisualContent(): HTMLElement {
-        if (visualContent) return visualContent;
+        if (visualContent) {
+            if (visualContent.parentElement !== element) {
+                element.append(visualContent);
+            }
+
+        return visualContent;
+    }
 
         visualContent = ownerDocument.createElement("span");
         visualContent.setAttribute("aria-hidden", "true");

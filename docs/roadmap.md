@@ -69,6 +69,7 @@ Completed:
 
 In progress:
 
+- Unified hint, tooltip, description, announcement, and toast model
 - Playground as living documentation
 - Responsive playground refinement
 - Component examples and manual checklists
@@ -76,6 +77,8 @@ In progress:
 
 Next:
 
+- Shared control hint foundation and migration of Button, Link, and IconButton
+- Toast action accessibility review and notification-center direction
 - Mobile playground layout cleanup after real-device checks
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks
