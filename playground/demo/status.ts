@@ -1,39 +1,58 @@
-import { P } from "./af";
+import {
+    ToastViewport,
+    type ToastPoliteness,
+    type ToastShowOptions,
+    type ToastVariant
+} from "./af";
 
 /**
- * Visible status line used by playground examples.
- * It is also a polite live region for screen reader feedback.
+ * Options for playground announcements shown through the shared toast viewport.
  */
-export const status = P({
-    id: "status",
-    className: "status",
-    text: "Ready for component checks.",
-    attributes: {
-        role: "status",
-        "aria-live": "polite",
-        "aria-atomic": "true"
-    }
+export interface PlaygroundAnnouncementOptions {
+    title?: string;
+    variant?: ToastVariant;
+    politeness?: ToastPoliteness;
+    duration?: number | null;
+    dismissible?: boolean;
+}
+
+/**
+ * Shared playground notification viewport.
+ */
+export const notifications = ToastViewport({
+    id: "playground-notifications",
+    placement: "bottom-end",
+    label: "Playground notifications",
+    limit: 4,
+    pauseOnHover: true,
+    newestOnTop: true
 });
 
-let pendingAnnouncementId: number | null = null;
-
 /**
- * Announces a status message even when the same message is repeated.
+ * Shows a playground notification without forcing focus to move.
  */
-export function announce(message: string): void {
-    if (pendingAnnouncementId !== null) {
-        window.clearTimeout(pendingAnnouncementId);
-        pendingAnnouncementId = null;
+export function announce(
+    message: string,
+    options: PlaygroundAnnouncementOptions = {}
+): void {
+    const text = message.trim();
+
+    if (!text) return;
+
+    const toastOptions: ToastShowOptions = {
+        description: text,
+        variant: options.variant ?? "info",
+        dismissible: options.dismissible ?? true
+    };
+
+    if (options.title !== undefined) toastOptions.title = options.title;
+    if (options.politeness !== undefined) toastOptions.politeness = options.politeness;
+
+    if ("duration" in options) {
+        toastOptions.duration = options.duration ?? null;
+    } else {
+        toastOptions.duration = 5000;
     }
 
-    status.element.textContent = "";
-
-    if (!message) {
-        return;
-    }
-
-    pendingAnnouncementId = window.setTimeout(() => {
-        status.element.textContent = message;
-        pendingAnnouncementId = null;
-    }, 0);
+    notifications.show(toastOptions);
 }

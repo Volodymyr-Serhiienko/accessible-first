@@ -2,6 +2,7 @@ import { createPage, mount } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
+import { notifications } from "./demo/status";
 import {
     AccordionDemo,
     AlertDialogDemo,
@@ -19,6 +20,7 @@ import {
     PopoverDemo,
     SelectDemo,
     TabsDemo,
+    ToastDemo,
     TooltipDemo
 } from "./demo/sections";
 import "../packages/components/src/styles/index.css";
@@ -35,9 +37,11 @@ page.main.classList.add("playground-main");
 
 page.header(HeaderDemo());
 page.navigation(NavigationDemo());
+
 page.section(ButtonsDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
+page.section(ToastDemo());
 page.section(LinksDemo());
 page.section(DisclosureDemo());
 page.section(AccordionDemo());
@@ -52,6 +56,8 @@ page.section(PopoverDemo());
 page.section(LayoutDemo());
 page.section(MarkupDemo());
 page.section(ChecksDemo());
+
+page.appendToMain(notifications);
 page.footer(FooterDemo());
 
 mount(page, "#app");

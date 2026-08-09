@@ -1,6 +1,8 @@
 import { getOwnerDocument, getOwnerWindow } from "../dom";
 import { createId } from "../id";
-import type { LiveRegion, LiveRegionOptions } from "./types";
+import type { LiveRegion, LiveRegionOptions, LiveRegionPoliteness } from "./types";
+
+const ANNOUNCEMENT_DELAY = 50;
 
 function visuallyHide(element: HTMLElement): void {
     element.style.position = "absolute";
@@ -15,11 +17,25 @@ function visuallyHide(element: HTMLElement): void {
     element.style.whiteSpace = "nowrap";
 }
 
+function createRegion(
+    ownerDocument: Document,
+    politeness: LiveRegionPoliteness,
+    atomic: boolean
+): HTMLElement {
+    const region = ownerDocument.createElement("div");
+
+    region.setAttribute("aria-live", politeness);
+    region.setAttribute("aria-atomic", String(atomic));
+    region.setAttribute("role", politeness === "assertive" ? "alert" : "status");
+
+    return region;
+}
+
 /**
  * Creates a visually hidden ARIA live region.
  *
- * Announcements are written asynchronously so screen readers can detect
- * repeated updates more reliably.
+ * Announcements are written asynchronously and alternate between two internal
+ * regions so repeated identical messages are detected more reliably.
  */
 export function createLiveRegion(
     options: LiveRegionOptions = {}
@@ -38,16 +54,20 @@ export function createLiveRegion(
 
     const element = ownerDocument.createElement("div");
     const ownerWindow = getOwnerWindow(element);
+    const regions = [
+        createRegion(ownerDocument, politeness, atomic),
+        createRegion(ownerDocument, politeness, atomic)
+    ];
 
     let pendingAnnouncementId: number | null = null;
+    let activeRegionIndex = 0;
     let destroyed = false;
 
     element.id = createId("af-live-region");
-    element.setAttribute("aria-live", politeness);
-    element.setAttribute("aria-atomic", String(atomic));
-    element.setAttribute("role", politeness === "assertive" ? "alert" : "status");
+    element.setAttribute("data-af-live-region", "");
 
     visuallyHide(element);
+    element.append(...regions);
     container.appendChild(element);
 
     function cancelPendingAnnouncement(): void {
@@ -59,9 +79,15 @@ export function createLiveRegion(
         pendingAnnouncementId = null;
     }
 
+    function clearRegionText(): void {
+        for (const region of regions) {
+            region.textContent = "";
+        }
+    }
+
     function clear(): void {
         cancelPendingAnnouncement();
-        element.textContent = "";
+        clearRegionText();
     }
 
     return {
@@ -78,10 +104,18 @@ export function createLiveRegion(
                 return;
             }
 
+            activeRegionIndex = (activeRegionIndex + 1) % regions.length;
+
+            const region = regions[activeRegionIndex];
+
             pendingAnnouncementId = ownerWindow.setTimeout(() => {
-                element.textContent = message;
+                if (destroyed) {
+                    return;
+                }
+
+                region!.textContent = message;
                 pendingAnnouncementId = null;
-            }, 0);
+            }, ANNOUNCEMENT_DELAY);
         },
 
         clear,

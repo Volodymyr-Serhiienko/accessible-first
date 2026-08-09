@@ -1,13 +1,10 @@
-import { Button, H1, Row, Stack, type ComposedNode } from "./af";
-import { announce, status } from "./status";
+import { Button, H1, Row, type ComposedNode } from "./af";
+import { announce } from "./status";
 
 export function HeaderDemo(): ComposedNode {
     return Row(
         { className: "playground-header__inner" },
-        Stack(
-            H1({ className: "playground-title" }, "Accessible First Playground"),
-            status
-        ),
+        H1({ className: "playground-title" }, "Accessible First Playground"),
         Button({
             text: "Dark theme",
             variant: "secondary",

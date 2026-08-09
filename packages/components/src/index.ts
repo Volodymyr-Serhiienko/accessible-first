@@ -14,4 +14,5 @@ export * from "./page";
 export * from "./popover";
 export * from "./select";
 export * from "./tabs";
+export * from "./toast";
 export * from "./tooltip";

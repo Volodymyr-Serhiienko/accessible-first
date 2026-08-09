@@ -68,12 +68,6 @@ body {
     margin-block: 0;
 }
 
-.status {
-    min-block-size: 1.5rem;
-    margin: 0;
-    color: var(--af-color-muted);
-}
-
 .icon {
     inline-size: 1.25em;
     block-size: 1.25em;
