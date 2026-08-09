@@ -32,7 +32,7 @@ Examples: "Draft saved.", "Dialog opened.", "No matching results.".
 
 `toast` is a visible non-modal notification.
 
-Use it for application feedback that should remain available visually. Toast should not steal focus. If the user must act, use Dialog, AlertDialog, inline content, or a future notification center instead of relying only on a toast action.
+Use it for application feedback that should remain available visually. Toast should not steal focus. If the user must act, use Dialog, AlertDialog, inline content, or another visible control in the current workflow instead of relying on a toast action.
 
 ## Baseline Rules
 
@@ -101,6 +101,8 @@ Tooltip content is short and passive. If the content needs focusable controls, u
 
 Toast is visible feedback and should be announced through hidden live regions.
 
-Toast actions are convenience actions only. They must not be the only way to complete an important task because focus does not move to the toast when it appears.
+Toast actions are a limited convenience feature only. They must not be the only way to complete an important task because focus does not move to the toast when it appears, and the framework does not yet provide a reliable keyboard or screen reader route into the notification viewport.
+
+Use `Dialog`, `AlertDialog`, inline page actions, or visible page content when the user must press a button.
 
 Use persistent toast for messages that should remain visible until dismissed. Use timed toast only when the message is short and non-critical.

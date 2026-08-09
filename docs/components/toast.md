@@ -8,6 +8,8 @@ Use `Toast` for messages such as saved changes, background completion, recoverab
 
 Do not use toast for critical confirmations, long instructions, or information that must block the user. Use `AlertDialog`, `Dialog`, visible inline validation, or page content when the user must make a decision.
 
+Avoid interactive toast actions in accessible production flows. A toast does not receive focus when it appears, and the framework does not yet provide a reliable keyboard or screen reader route into the notification viewport. If a user must press a button, prefer `Dialog` or `AlertDialog`.
+
 ## Quick Start
 
 ```ts
@@ -55,7 +57,8 @@ const notifications = createToastViewport(element, {
 - Announces messages through hidden live regions while keeping the visible toast card non-modal.
 - Defaults to persistent messages. Set `duration` when auto-dismiss is appropriate.
 - Provides a close button by default.
-- Supports one optional action button.
+- Supports one optional action button as a limited convenience feature.
+- Interactive toast actions are not recommended for flows that must be fully accessible to blind keyboard or screen reader users.
 - Pauses auto-dismiss on mouse hover when `pauseOnHover` is enabled.
 - Can limit the number of visible toasts.
 - Restores original viewport attributes on `destroy()`.
@@ -84,10 +87,18 @@ Toast options:
 - `duration` - Per-toast auto-dismiss duration. `null` keeps the toast open.
 - `dismissible` - Per-toast close button control.
 - `closeLabel` - Per-toast close button label.
-- `actionText` - Optional action button text.
+- `actionText` - Optional action button text. Limited feature; prefer `Dialog` or `AlertDialog` for required actions.
 - `actionLabel` - Optional accessible label for the action button.
 - `onAction` - Called when the action button is pressed.
 - `onClose` - Called when the toast closes.
+
+## Interactive Action Limitation
+
+Toast is intentionally non-modal and does not move focus. This is good for status messages, but poor for required actions.
+
+Current interactive toasts can contain action or close buttons, but reaching those buttons without a mouse or touch pointer is not reliable enough for accessible application workflows. On a long page, keyboard users may need to tab through large parts of the document to reach the notification viewport. Screen reader users may also have to know how to search for the notification region manually.
+
+For now, treat toast actions as experimental convenience controls only. Do not use them as the only way to undo, confirm, cancel, save, delete, or complete an important task. Use `Dialog`, `AlertDialog`, inline page actions, or another visible control near the user workflow.
 
 ## Styling
 
@@ -103,7 +114,8 @@ Useful CSS custom properties:
 - Toast appears visually without moving focus.
 - Screen reader announces the message once.
 - Close button is reachable by keyboard.
-- Action button works and closes only when intended.
+- Action buttons are avoided for required workflows.
+- If an action button is used anyway, the same action exists elsewhere in the page or in a dialog.
 - Persistent toasts remain until dismissed.
 - Timed toasts give enough time to read and pause on hover.
 - Toasts fit on small mobile screens.

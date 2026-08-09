@@ -67,6 +67,7 @@ Completed:
 - Toast viewport enhancement and composition APIs
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
+- Toast action guidance: use Dialog or AlertDialog for required actions
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
@@ -79,7 +80,6 @@ In progress:
 
 Next:
 
-- Toast action accessibility review and notification-center direction
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Icon, Image, and Logo composition review
