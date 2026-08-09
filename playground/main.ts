@@ -19,6 +19,7 @@ import {
     PopoverDemo,
     SelectDemo,
     TabsDemo,
+    TooltipDemo
 } from "./demo/sections";
 import "../packages/components/src/styles/index.css";
 
@@ -36,6 +37,7 @@ page.header(HeaderDemo());
 page.navigation(NavigationDemo());
 page.section(ButtonsDemo());
 page.section(IconButtonsDemo());
+page.section(TooltipDemo());
 page.section(LinksDemo());
 page.section(DisclosureDemo());
 page.section(AccordionDemo());

@@ -27,5 +27,6 @@ Each component document should contain:
 - [Popover](./popover.md)
 - [Select](./select.md)
 - [Tabs](./tabs.md)
+- [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).

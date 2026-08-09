@@ -5,6 +5,7 @@ export function NavigationDemo(): ComposedNode {
         { className: "playground-nav__inner" },
         Link({ text: "Buttons", href: "#buttons", variant: "standalone" }),
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
+        Link({ text: "Tooltip", href: "#tooltip", variant: "standalone" }),
         Link({ text: "Links", href: "#links", variant: "standalone" }),
         Link({ text: "Disclosure", href: "#disclosure", variant: "standalone" }),
         Link({ text: "Accordion", href: "#accordion", variant: "standalone" }),

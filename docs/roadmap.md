@@ -63,6 +63,7 @@ Completed:
 - Select component enhancement and composition APIs
 - Popover component enhancement and composition APIs
 - Combobox core behavior, enhancement API, composition API, styles, and playground demo
+- Tooltip enhancement and composition APIs
 - Documentation structure consolidation: component docs now own Quick Start sections
 
 In progress:
@@ -81,8 +82,6 @@ Next:
 
 Planned components:
 
-- Combobox
-- Tooltip
 - Toast
 - Form Field
 - Checkbox

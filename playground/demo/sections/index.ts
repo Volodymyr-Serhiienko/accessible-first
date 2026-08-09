@@ -14,3 +14,4 @@ export { MenuDemo } from "./menu";
 export { PopoverDemo } from "./popover";
 export { SelectDemo } from "./select";
 export { TabsDemo } from "./tabs";
+export { TooltipDemo } from "./tooltip";
