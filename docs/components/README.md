@@ -28,6 +28,7 @@ Each component document should contain:
 - [Popover](./popover.md)
 - [RadioGroup](./radio-group.md)
 - [Select](./select.md)
+- [Switch](./switch.md)
 - [Tabs](./tabs.md)
 - [Toast](./toast.md)
 - [Tooltip](./tooltip.md)

@@ -15,6 +15,7 @@ export { MenuDemo } from "./menu";
 export { PopoverDemo } from "./popover";
 export { RadioGroupDemo } from "./radioGroup";
 export { SelectDemo } from "./select";
+export { SwitchDemo } from "./switch";
 export { TabsDemo } from "./tabs";
 export { ToastDemo } from "./toast";
 export { TooltipDemo } from "./tooltip";

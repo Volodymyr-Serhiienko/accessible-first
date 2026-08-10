@@ -67,6 +67,7 @@ Completed:
 - Toast viewport enhancement and composition APIs
 - Checkbox component enhancement and composition APIs
 - Radio Group component enhancement and composition APIs
+- Switch component enhancement and composition APIs
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
@@ -85,13 +86,15 @@ Next:
 
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
+- Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks
 
 Planned components:
 
 - Form Field
-- Switch
+
+Planned components will be updated after the next component batch is selected.
 
 ### Component Quality Baseline
 

@@ -15,6 +15,7 @@ export * from "./page";
 export * from "./popover";
 export * from "./radio-group";
 export * from "./select";
+export * from "./switch";
 export * from "./tabs";
 export * from "./toast";
 export * from "./tooltip";

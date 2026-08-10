@@ -21,6 +21,7 @@ import {
     PopoverDemo,
     RadioGroupDemo,
     SelectDemo,
+    SwitchDemo,
     TabsDemo,
     ToastDemo,
     TooltipDemo
@@ -43,6 +44,7 @@ page.navigation(NavigationDemo());
 page.section(ButtonsDemo());
 page.section(CheckboxDemo());
 page.section(RadioGroupDemo());
+page.section(SwitchDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());
