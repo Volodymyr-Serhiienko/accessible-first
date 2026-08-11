@@ -5,6 +5,7 @@ import {
     type ButtonVariant,
     type ComposedButton
 } from "../button";
+import { ActionsBar } from "../actions-bar";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -329,18 +330,6 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         }
     });
 
-    const footer = createElement("div", {
-        attributes: {
-            "data-af-dialog-actions": ""
-        }
-    });
-
-    const actionsContent = createElement("div", {
-        attributes: {
-            "data-af-dialog-actions-content": ""
-        }
-    });
-
     const closeButton: ComposedButton = Button({
         text: options.closeText ?? "Close",
         variant: "secondary"
@@ -349,8 +338,26 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     let hideCloseButton = options.hideCloseButton ?? false;
     let descriptionMode: DialogDescriptionMode = options.descriptionMode ?? "aria";
 
+    const actionsBar = ActionsBar({
+        align: "end",
+        secondary: options.actions ?? null,
+        primary: hideCloseButton ? null : closeButton.element,
+        attributes: {
+            "data-af-dialog-actions": ""
+        },
+        secondaryOptions: {
+            attributes: {
+                "data-af-dialog-actions-content": ""
+            }
+        },
+        primaryOptions: {
+            attributes: {
+                "data-af-dialog-close-action": ""
+            }
+        }
+    });
+
     const bodySlot = createContentSlot(body, options.children ?? []);
-    const actionsSlot = createContentSlot(actionsContent, toCompositionChildren(options.actions));
 
     let composed!: ComposedDialog;
     let onOpenChange = options.onOpenChange ?? null;
@@ -361,13 +368,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
 
     header.append(title);
 
-    footer.append(actionsContent);
-
-    if (!hideCloseButton) {
-        footer.append(closeButton.element);
-    }
-
-    surface.append(header, description, body, footer);
+    surface.append(header, description, body, actionsBar.element);
     dialogElement.append(surface);
     element.append(triggerButton.element, dialogElement);
 
@@ -401,21 +402,14 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     }
 
     function setActions(actions: DialogCompositionContent | null): void {
-        actionsSlot.set(toCompositionChildren(actions));
+        actionsBar.setSecondary(actions);
     }
 
     function syncCloseButtonVisibility(): void {
-        if (hideCloseButton) {
-            closeButton.element.remove();
-            dialog.update({ closeElements: [] });
-            return;
-        }
-
-        if (closeButton.element.parentElement !== footer) {
-            footer.append(closeButton.element);
-        }
-
-        dialog.update({ closeElements: [closeButton.element] });
+        actionsBar.setPrimary(hideCloseButton ? null : closeButton.element);
+        dialog.update({
+            closeElements: hideCloseButton ? [] : [closeButton.element]
+        });
     }
 
     composed = {
@@ -485,7 +479,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         destroy(): void {
             dialog.destroy();
             bodySlot.dispose();
-            actionsSlot.dispose();
+            actionsBar.destroy();
             triggerButton.destroy();
             closeButton.destroy();
         }

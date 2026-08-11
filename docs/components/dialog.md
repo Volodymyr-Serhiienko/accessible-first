@@ -42,7 +42,7 @@ Dialog({
 
 - Enhancement API: `createDialog(element, options)`
 - Composition API: `Dialog(options)`
-- Reuses: core `createDialog`, focus trap, dismissable layer, overlay stack, scroll lock
+- Reuses: core `createDialog`, focus trap, dismissable layer, overlay stack, scroll lock, `ActionsBar`
 
 ## Behavior
 
@@ -61,6 +61,7 @@ Dialog({
 - Closes with `Escape` by default.
 - Can close on pointer interaction outside the dialog surface.
 - Provides a visible close button in the composition API by default.
+- Uses `ActionsBar` for footer action layout.
 - Trigger receives `aria-haspopup="dialog"`, `aria-controls`, and `aria-expanded`.
 
 ## Options
@@ -97,7 +98,7 @@ Use `descriptionMode: "content"` when the description is long, when it is repeat
 
 ## Styling
 
-Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, and `[data-af-dialog-actions]`.
+Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, `[data-af-dialog-actions]`, and the shared ActionsBar hooks `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, and `[data-af-actions-bar-primary]`.
 
 ```ts
 Dialog({

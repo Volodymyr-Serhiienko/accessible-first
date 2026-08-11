@@ -62,19 +62,6 @@
     margin: 0;
 }
 
-[data-af-dialog-actions] {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--af-space-2);
-}
-
-[data-af-dialog-actions-content] {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--af-space-2);
-}
-
 @media (max-width: 640px) {
     [data-af-component="dialog"] {
         place-items: end stretch;
@@ -84,15 +71,5 @@
     [data-af-dialog-surface] {
         inline-size: 100%;
         max-block-size: calc(100vh - 1.5rem);
-    }
-
-    [data-af-dialog-actions],
-    [data-af-dialog-actions-content] {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    [data-af-dialog-actions] [data-af-component="button"] {
-        inline-size: 100%;
     }
 }

@@ -26,7 +26,7 @@ AlertDialog({
 ## Layers
 
 - Composition API: `AlertDialog(options)`
-- Reuses: `Dialog`, `Button`
+- Reuses: `Dialog`, `Button`, `ActionsBar` through `Dialog`
 - Built on dialog focus trapping, dismissable layer behavior, overlay stack, and scroll lock
 
 ## Behavior
@@ -84,7 +84,7 @@ The required `description` should be short and specific. It is connected with `a
 
 ## Styling
 
-AlertDialog reuses Dialog and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, and button `[data-af-variant]`.
+AlertDialog reuses Dialog, ActionsBar, and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, `[data-af-composition="actions-bar"]`, and button `[data-af-variant]`.
 
 ```ts
 AlertDialog({

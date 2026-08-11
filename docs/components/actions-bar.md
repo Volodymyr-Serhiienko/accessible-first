@@ -62,6 +62,7 @@ ActionsBar({
 - Keeps secondary and primary actions in separate slots.
 - Supports start, end, between, and stretch alignment.
 - Wraps actions on small screens.
+- Can be reused internally by components such as `Dialog` and `AlertDialog` for consistent action layout.
 - Does not add keyboard behavior because native controls own their interactions.
 - Exposes stable data attributes for styling.
 
