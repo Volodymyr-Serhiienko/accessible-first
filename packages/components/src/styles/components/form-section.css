@@ -38,13 +38,6 @@
     min-inline-size: 0;
 }
 
-[data-af-form-section-actions] {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--af-space-2);
-}
-
 [data-af-form-section-description][hidden],
 [data-af-form-section-actions][hidden] {
     display: none !important;

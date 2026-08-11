@@ -74,6 +74,7 @@ Completed:
 - DescriptionList component and playground demo
 - Breadcrumbs component and playground demo
 - ActionsBar component and playground demo
+- Dialog and AlertDialog actions layout reuse ActionsBar
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
@@ -90,7 +91,7 @@ In progress:
 
 Next:
 
-- Dialog and AlertDialog actions layout reuse ActionsBar
+- FormSection actions layout reuse ActionsBar
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

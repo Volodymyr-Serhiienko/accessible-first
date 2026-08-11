@@ -1,3 +1,4 @@
+import { ActionsBar, type ActionsBarOptions } from "../actions-bar";
 import { setAriaDescribedBy, setAriaLabelledBy } from "../../../core/src/aria";
 import { ensureId } from "../../../core/src/id";
 import {
@@ -85,6 +86,43 @@ function getHeadingTag(level: FormSectionHeadingLevel): keyof HTMLElementTagName
     return `h${level}` as keyof HTMLElementTagNameMap;
 }
 
+function hasActionsContent(content: FormSectionCompositionContent | null | undefined): boolean {
+    return toCompositionChildren(content).some((child) => (
+        child !== null
+        && child !== undefined
+        && child !== false
+    ));
+}
+
+function getActionsBarBaseOptions(
+    options: BaseCompositionOptions | undefined
+): ActionsBarOptions {
+    const actionsBarOptions: ActionsBarOptions = {
+        attributes: {
+            ...options?.attributes,
+            "data-af-form-section-actions": ""
+        }
+    };
+
+    if (options?.id !== undefined) {
+        actionsBarOptions.id = options.id;
+    }
+
+    if (options?.className !== undefined) {
+        actionsBarOptions.className = options.className;
+    }
+
+    return actionsBarOptions;
+}
+
+function getActionsBarOptions(options: FormSectionOptions): ActionsBarOptions {
+    return {
+        ...getActionsBarBaseOptions(options.actionsOptions),
+        align: "end",
+        primary: options.actions ?? null
+    };
+}
+
 /**
  * Creates a labelled form section with optional description, body, and actions.
  */
@@ -114,27 +152,25 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
         "data-af-form-section-body": ""
     }));
 
-    const actions = createElement("div", getCompositionElementOptions(options.actionsOptions, {
-        "data-af-form-section-actions": ""
-    }));
+    const actionsBar = ActionsBar(getActionsBarOptions(options));
 
     const titleSlot = createContentSlot(heading, toCompositionChildren(options.title));
     const descriptionSlot = createContentSlot(description, toCompositionChildren(options.description));
     const bodySlot = createContentSlot(body, toCompositionChildren(options.children));
-    const actionsSlot = createContentSlot(actions, toCompositionChildren(options.actions));
 
-    let hasActions = toCompositionChildren(options.actions).length > 0;
+    let hasActions = hasActionsContent(options.actions);
     let variant: FormSectionVariant = options.variant ?? "default";
     let size: FormSectionSize = options.size ?? "md";
 
     header.append(heading, description);
-    element.append(header, body, actions);
+    element.append(header, body, actionsBar.element);
 
     function sync(): void {
         ensureId(heading, "af-form-section-title");
 
         description.hidden = !hasVisibleContent(description);
-        actions.hidden = !hasActions;
+        actionsBar.element.hidden = !hasActions;
+        actionsBar.element.setAttribute("data-af-form-section-actions", "");
 
         element.setAttribute("data-af-composition", "form-section");
         element.setAttribute("data-af-variant", variant);
@@ -159,10 +195,8 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     }
 
     function setActions(content: FormSectionCompositionContent | null): void {
-        const children = toCompositionChildren(content);
-
-        hasActions = children.length > 0;
-        actionsSlot.set(children);
+        hasActions = hasActionsContent(content);
+        actionsBar.setPrimary(content);
         sync();
     }
 
@@ -174,7 +208,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
         heading,
         description,
         body,
-        actions,
+        actions: actionsBar.element,
         setTitleContent,
         setDescription,
         setChildren,
@@ -199,8 +233,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
             }
 
             if (nextOptions.actionsOptions !== undefined) {
-                applyCompositionElementOptions(actions, nextOptions.actionsOptions);
-                actions.setAttribute("data-af-form-section-actions", "");
+                actionsBar.update(getActionsBarBaseOptions(nextOptions.actionsOptions));
             }
 
             if (nextOptions.title !== undefined) setTitleContent(nextOptions.title);
@@ -218,7 +251,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
             titleSlot.dispose();
             descriptionSlot.dispose();
             bodySlot.dispose();
-            actionsSlot.dispose();
+            actionsBar.destroy();
         }
     };
 }

@@ -48,13 +48,14 @@ FormSection({
 ## Layers
 
 - Composition API: `FormSection(options)`
-- Reuses: native `<section>`, heading, description slot, body slot, actions slot
+- Reuses: native `<section>`, heading, description slot, body slot, `ActionsBar`
 
 ## Behavior
 
 - Creates a native section labelled by its heading.
 - Connects an optional visible description with `aria-describedby`.
-- Keeps body content and section actions in separate slots.
+- Keeps body content and section actions in separate areas.
+- Uses `ActionsBar` for section action layout.
 - Does not submit forms, trap focus, or validate fields.
 - Exposes stable data attributes for styling.
 
@@ -63,7 +64,7 @@ FormSection({
 - `title` - Required visible section heading content.
 - `description` - Optional supporting content connected to the section.
 - `children` - Fields, field groups, or composed nodes inside the section body.
-- `actions` - Optional section actions, usually buttons.
+- `actions` - Optional section actions, usually buttons. They are rendered through the `ActionsBar` primary slot.
 - `headingLevel` - Heading level from `2` to `6`. Defaults to `3`. Creation-time option.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -92,7 +93,7 @@ section.setActions(Button({ text: "Save profile", variant: "primary" }));
 
 ## Styling
 
-Useful hooks include `[data-af-composition="form-section"]`, `[data-af-form-section-header]`, `[data-af-form-section-heading]`, `[data-af-form-section-description]`, `[data-af-form-section-body]`, `[data-af-form-section-actions]`, `[data-af-variant]`, and `[data-af-size]`.
+Useful hooks include `[data-af-composition="form-section"]`, `[data-af-form-section-header]`, `[data-af-form-section-heading]`, `[data-af-form-section-description]`, `[data-af-form-section-body]`, `[data-af-form-section-actions]`, `[data-af-variant]`, `[data-af-size]`, and the shared ActionsBar hooks `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, and `[data-af-actions-bar-primary]`.
 
 ```ts
 FormSection({
