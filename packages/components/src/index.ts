@@ -6,6 +6,7 @@ export * from "./combobox";
 export * from "./composition";
 export * from "./dialog";
 export * from "./disclosure";
+export * from "./field-group";
 export * from "./foundation";
 export * from "./icon-button";
 export * from "./link";

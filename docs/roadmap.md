@@ -85,6 +85,7 @@ In progress:
 
 Next:
 
+- FieldGroup component implementation and playground demo
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

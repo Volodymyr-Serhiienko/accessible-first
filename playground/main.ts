@@ -12,6 +12,7 @@ import {
     ComboboxDemo,
     DialogDemo,
     DisclosureDemo,
+    FieldGroupDemo,
     IconButtonsDemo,
     LayoutDemo,
     LinksDemo,
@@ -47,6 +48,7 @@ page.section(CheckboxDemo());
 page.section(RadioGroupDemo());
 page.section(SwitchDemo());
 page.section(TextFieldDemo());
+page.section(FieldGroupDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());

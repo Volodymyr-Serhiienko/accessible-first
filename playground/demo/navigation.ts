@@ -8,6 +8,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "RadioGroup", href: "#radio-group", variant: "standalone" }),
         Link({ text: "Switch", href: "#switch", variant: "standalone" }),
         Link({ text: "TextField", href: "#text-field", variant: "standalone" }),
+        Link({ text: "FieldGroup", href: "#field-group", variant: "standalone" }),
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
         Link({ text: "Tooltip", href: "#tooltip", variant: "standalone" }),
         Link({ text: "Toast", href: "#toast", variant: "standalone" }),
