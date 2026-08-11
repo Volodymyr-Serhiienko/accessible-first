@@ -1,0 +1,49 @@
+[data-af-composition="description-list"] {
+    min-inline-size: 0;
+    margin: 0;
+    display: grid;
+    color: var(--af-color-fg);
+}
+
+[data-af-description-list-item] {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--af-space-2);
+    padding-block: var(--af-space-3);
+    border-block-end: 1px solid var(--af-color-border);
+}
+
+[data-af-description-list-item]:first-child {
+    border-block-start: 1px solid var(--af-color-border);
+}
+
+[data-af-description-list-term] {
+    color: var(--af-color-fg);
+    font: inherit;
+    font-weight: 700;
+}
+
+[data-af-description-list-details] {
+    margin: 0;
+    color: var(--af-color-muted);
+    font: inherit;
+    line-height: 1.45;
+}
+
+[data-af-composition="description-list"][data-af-layout="inline"] [data-af-description-list-item] {
+    grid-template-columns: minmax(8rem, 0.45fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--af-space-3);
+}
+
+[data-af-composition="description-list"][data-af-variant="plain"] [data-af-description-list-item] {
+    padding-block: 0;
+    border-block: 0;
+}
+
+@media (max-width: 38rem) {
+    [data-af-composition="description-list"][data-af-layout="inline"] [data-af-description-list-item] {
+        grid-template-columns: 1fr;
+        gap: var(--af-space-2);
+    }
+}

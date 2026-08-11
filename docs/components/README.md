@@ -21,6 +21,7 @@ Each component document should contain:
 - [Combobox](./combobox.md)
 - [Dialog](./dialog.md)
 - [Disclosure](./disclosure.md)
+- [DescriptionList](./description-list.md)
 - [FieldGroup](./field-group.md)
 - [FormSection](./form-section.md)
 - [IconButton](./icon-button.md)

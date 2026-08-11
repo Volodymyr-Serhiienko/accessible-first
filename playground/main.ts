@@ -10,6 +10,7 @@ import {
     CheckboxDemo,
     ChecksDemo,
     ComboboxDemo,
+    DescriptionListDemo,
     DialogDemo,
     DisclosureDemo,
     FieldGroupDemo,
@@ -51,6 +52,7 @@ page.section(SwitchDemo());
 page.section(TextFieldDemo());
 page.section(FieldGroupDemo());
 page.section(FormSectionDemo());
+page.section(DescriptionListDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());

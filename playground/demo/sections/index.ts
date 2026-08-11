@@ -4,6 +4,7 @@ export { ButtonsDemo } from "./buttons";
 export { CheckboxDemo } from "./checkbox";
 export { ChecksDemo } from "./checks";
 export { ComboboxDemo } from "./combobox";
+export { DescriptionListDemo } from "./descriptionList";
 export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
 export { FieldGroupDemo } from "./fieldGroup";

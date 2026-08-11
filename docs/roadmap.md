@@ -70,6 +70,7 @@ Completed:
 - Switch component enhancement and composition APIs
 - TextField component enhancement and composition APIs
 - FieldGroup component and playground demo
+- FormSection component and playground demo
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
@@ -86,7 +87,7 @@ In progress:
 
 Next:
 
-- FormSection component implementation and playground demo
+- DescriptionList component implementation and playground demo
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -95,7 +96,6 @@ Next:
 
 Planned components:
 
-- FormSection
 - DescriptionList
 - Breadcrumbs
 - Navigation patterns
@@ -162,7 +162,6 @@ Planned:
 - InfoCard
 - EmptyState
 - SettingsGroup
-- FormSection
 - Component composition guidelines
 - Page-building examples in the playground
 
