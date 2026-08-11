@@ -9,6 +9,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "Switch", href: "#switch", variant: "standalone" }),
         Link({ text: "TextField", href: "#text-field", variant: "standalone" }),
         Link({ text: "FieldGroup", href: "#field-group", variant: "standalone" }),
+        Link({ text: "FormSection", href: "#form-section", variant: "standalone" }),
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
         Link({ text: "Tooltip", href: "#tooltip", variant: "standalone" }),
         Link({ text: "Toast", href: "#toast", variant: "standalone" }),

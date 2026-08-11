@@ -13,6 +13,7 @@ import {
     DialogDemo,
     DisclosureDemo,
     FieldGroupDemo,
+    FormSectionDemo,
     IconButtonsDemo,
     LayoutDemo,
     LinksDemo,
@@ -49,6 +50,7 @@ page.section(RadioGroupDemo());
 page.section(SwitchDemo());
 page.section(TextFieldDemo());
 page.section(FieldGroupDemo());
+page.section(FormSectionDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());

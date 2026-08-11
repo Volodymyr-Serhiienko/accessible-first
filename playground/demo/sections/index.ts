@@ -7,6 +7,7 @@ export { ComboboxDemo } from "./combobox";
 export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
 export { FieldGroupDemo } from "./fieldGroup";
+export { FormSectionDemo } from "./formSection";
 export { IconButtonsDemo } from "./iconButtons";
 export { LayoutDemo } from "./layout";
 export { LinksDemo } from "./links";

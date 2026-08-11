@@ -22,6 +22,7 @@ Each component document should contain:
 - [Dialog](./dialog.md)
 - [Disclosure](./disclosure.md)
 - [FieldGroup](./field-group.md)
+- [FormSection](./form-section.md)
 - [IconButton](./icon-button.md)
 - [Link](./link.md)
 - [Listbox](./listbox.md)
