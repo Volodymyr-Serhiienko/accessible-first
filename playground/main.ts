@@ -6,6 +6,7 @@ import { notifications } from "./demo/status";
 import {
     AccordionDemo,
     AlertDialogDemo,
+    BreadcrumbsDemo,
     ButtonsDemo,
     CheckboxDemo,
     ChecksDemo,
@@ -53,6 +54,7 @@ page.section(TextFieldDemo());
 page.section(FieldGroupDemo());
 page.section(FormSectionDemo());
 page.section(DescriptionListDemo());
+page.section(BreadcrumbsDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());

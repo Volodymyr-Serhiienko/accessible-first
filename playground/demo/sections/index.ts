@@ -1,5 +1,6 @@
 export { AccordionDemo } from "./accordion";
 export { AlertDialogDemo } from "./alertDialog";
+export { BreadcrumbsDemo } from "./breadcrumbs";
 export { ButtonsDemo } from "./buttons";
 export { CheckboxDemo } from "./checkbox";
 export { ChecksDemo } from "./checks";

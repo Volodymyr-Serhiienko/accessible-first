@@ -11,6 +11,7 @@ export function NavigationDemo(): ComposedNode {
         Link({ text: "FieldGroup", href: "#field-group", variant: "standalone" }),
         Link({ text: "FormSection", href: "#form-section", variant: "standalone" }),
         Link({ text: "DescriptionList", href: "#description-list", variant: "standalone" }),
+        Link({ text: "Breadcrumbs", href: "#breadcrumbs", variant: "standalone" }),
         Link({ text: "Icon buttons", href: "#icon-buttons", variant: "standalone" }),
         Link({ text: "Tooltip", href: "#tooltip", variant: "standalone" }),
         Link({ text: "Toast", href: "#toast", variant: "standalone" }),

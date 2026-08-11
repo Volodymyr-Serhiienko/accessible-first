@@ -16,6 +16,7 @@ Each component document should contain:
 
 - [Accordion](./accordion.md)
 - [AlertDialog](./alert-dialog.md)
+- [Breadcrumbs](./breadcrumbs.md)
 - [Button](./button.md)
 - [Checkbox](./checkbox.md)
 - [Combobox](./combobox.md)
