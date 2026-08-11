@@ -30,6 +30,7 @@ Each component document should contain:
 - [Select](./select.md)
 - [Switch](./switch.md)
 - [Tabs](./tabs.md)
+- [TextField](./text-field.md)
 - [Toast](./toast.md)
 - [Tooltip](./tooltip.md)
 

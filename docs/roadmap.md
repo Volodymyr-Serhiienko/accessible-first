@@ -68,6 +68,7 @@ Completed:
 - Checkbox component enhancement and composition APIs
 - Radio Group component enhancement and composition APIs
 - Switch component enhancement and composition APIs
+- TextField component enhancement and composition APIs
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
@@ -92,9 +93,11 @@ Next:
 
 Planned components:
 
-- Form Field
-
-Planned components will be updated after the next component batch is selected.
+- FieldGroup
+- FormSection
+- DescriptionList
+- Breadcrumbs
+- Navigation patterns
 
 ### Component Quality Baseline
 

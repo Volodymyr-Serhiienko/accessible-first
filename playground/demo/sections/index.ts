@@ -17,5 +17,6 @@ export { RadioGroupDemo } from "./radioGroup";
 export { SelectDemo } from "./select";
 export { SwitchDemo } from "./switch";
 export { TabsDemo } from "./tabs";
+export { TextFieldDemo } from "./textField";
 export { ToastDemo } from "./toast";
 export { TooltipDemo } from "./tooltip";

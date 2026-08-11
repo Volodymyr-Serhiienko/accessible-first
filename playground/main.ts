@@ -23,6 +23,7 @@ import {
     SelectDemo,
     SwitchDemo,
     TabsDemo,
+    TextFieldDemo,
     ToastDemo,
     TooltipDemo
 } from "./demo/sections";
@@ -45,6 +46,7 @@ page.section(ButtonsDemo());
 page.section(CheckboxDemo());
 page.section(RadioGroupDemo());
 page.section(SwitchDemo());
+page.section(TextFieldDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());
