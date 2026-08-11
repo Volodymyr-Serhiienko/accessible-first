@@ -1,4 +1,5 @@
 export { AccordionDemo } from "./accordion";
+export { ActionsBarDemo } from "./actionsBar";
 export { AlertDialogDemo } from "./alertDialog";
 export { BreadcrumbsDemo } from "./breadcrumbs";
 export { ButtonsDemo } from "./buttons";

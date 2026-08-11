@@ -15,6 +15,7 @@ Each component document should contain:
 ## Component Docs
 
 - [Accordion](./accordion.md)
+- [ActionsBar](./actions-bar.md)
 - [AlertDialog](./alert-dialog.md)
 - [Breadcrumbs](./breadcrumbs.md)
 - [Button](./button.md)

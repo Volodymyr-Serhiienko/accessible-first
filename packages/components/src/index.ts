@@ -1,4 +1,5 @@
 export * from "./accordion";
+export * from "./actions-bar";
 export * from "./alert-dialog";
 export * from "./breadcrumbs";
 export * from "./button";

@@ -5,6 +5,7 @@ import { NavigationDemo } from "./demo/navigation";
 import { notifications } from "./demo/status";
 import {
     AccordionDemo,
+    ActionsBarDemo,
     AlertDialogDemo,
     BreadcrumbsDemo,
     ButtonsDemo,
@@ -55,6 +56,7 @@ page.section(FieldGroupDemo());
 page.section(FormSectionDemo());
 page.section(DescriptionListDemo());
 page.section(BreadcrumbsDemo());
+page.section(ActionsBarDemo());
 page.section(IconButtonsDemo());
 page.section(TooltipDemo());
 page.section(ToastDemo());
