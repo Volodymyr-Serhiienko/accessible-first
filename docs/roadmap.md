@@ -90,6 +90,7 @@ In progress:
 - Unified hint, tooltip, description, announcement, and toast model
 - Playground as living documentation
 - Responsive playground refinement
+- Navigation patterns and responsive navigation
 - Component examples and manual checklists
 - Documentation alignment with current architecture
 - Form composition layer
@@ -98,6 +99,7 @@ Next:
 
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
+- Replace the playground section-link strip with ResponsiveNavigation when the component is in place
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks

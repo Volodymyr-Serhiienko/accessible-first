@@ -21,6 +21,7 @@ export * from "./navigation";
 export * from "./page";
 export * from "./popover";
 export * from "./radio-group";
+export * from "./responsive-navigation";
 export * from "./select";
 export * from "./switch";
 export * from "./tabs";

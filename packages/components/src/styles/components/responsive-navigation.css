@@ -1,0 +1,45 @@
+[data-af-composition="responsive-navigation"] {
+    min-inline-size: 0;
+}
+
+[data-af-responsive-navigation-desktop] {
+    display: flex;
+}
+
+[data-af-responsive-navigation-mobile] {
+    display: none;
+}
+
+[data-af-responsive-navigation-mobile][data-af-component="disclosure"] {
+    border-color: transparent;
+    background: transparent;
+}
+
+[data-af-responsive-navigation-trigger]::after {
+    inline-size: 1.25rem;
+    block-size: 0.875rem;
+    border: 0;
+    background:
+        linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
+        linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat;
+    transform: none;
+}
+
+[data-af-responsive-navigation-trigger][aria-expanded="true"]::after {
+    transform: none;
+}
+
+[data-af-responsive-navigation-panel] {
+    padding-inline: 0;
+}
+
+@media (max-width: 640px) {
+    [data-af-responsive-navigation-desktop] {
+        display: none;
+    }
+
+    [data-af-responsive-navigation-mobile] {
+        display: grid;
+    }
+}
