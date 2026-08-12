@@ -104,7 +104,7 @@ Next:
 
 Planned components:
 
-- Navigation patterns
+- Navigation patterns, starting with native-link navigation that works for multi-page apps and can be intercepted by SPA-style shells
 
 ### Component Quality Baseline
 
@@ -156,7 +156,7 @@ Goal: turn semantic composition into a practical way to build real pages and app
 Planned:
 
 - Header patterns
-- Navigation patterns
+- Navigation patterns based on real links first, so multi-page apps, static pages, server-rendered pages, and SPA shells share the same foundation
 - Form shell and submit-validation pattern
 - Responsive navigation with mobile collapse / burger behavior
 - Main content patterns

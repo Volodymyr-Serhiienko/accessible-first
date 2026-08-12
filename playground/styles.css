@@ -42,6 +42,13 @@ body {
     padding-block: 0.75rem;
 }
 
+[data-af-composition="navigation"].playground-nav__inner {
+    box-sizing: border-box;
+    inline-size: min(100% - calc(var(--playground-gutter) * 2), var(--playground-max-width));
+    margin-inline: auto;
+    padding-block: 0.75rem;
+}
+
 .playground-footer__inner {
     padding-block: 1rem;
 }
@@ -125,7 +132,7 @@ body {
         min-inline-size: 0;
     }
 
-    .playground-nav__inner {
+    [data-af-composition="navigation"].playground-nav__inner {
         align-items: center;
         flex-wrap: nowrap;
         gap: 0.5rem;

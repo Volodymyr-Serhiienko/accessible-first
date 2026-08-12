@@ -31,6 +31,7 @@ Each component document should contain:
 - [Link](./link.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
+- [Navigation](./navigation.md)
 - [Popover](./popover.md)
 - [RadioGroup](./radio-group.md)
 - [Select](./select.md)

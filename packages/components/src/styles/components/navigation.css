@@ -1,0 +1,56 @@
+[data-af-composition="navigation"] {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--af-space-2);
+}
+
+[data-af-composition="navigation"][data-af-orientation="vertical"] {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+[data-af-navigation-item] {
+    min-inline-size: 0;
+    display: flex;
+}
+
+[data-af-navigation-link] {
+    min-inline-size: 0;
+    border-radius: var(--af-radius-md);
+}
+
+[data-af-navigation-link][aria-current] {
+    color: var(--af-color-fg);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+[data-af-composition="navigation"][data-af-variant="plain"] {
+    gap: var(--af-space-3);
+}
+
+[data-af-composition="navigation"][data-af-variant="plain"] [data-af-navigation-link] {
+    min-block-size: auto;
+}
+
+[data-af-composition="navigation"][data-af-variant="pills"] [data-af-navigation-link] {
+    padding-inline: var(--af-space-3);
+    color: var(--af-color-fg);
+    border: 1px solid transparent;
+    text-decoration: none;
+}
+
+[data-af-composition="navigation"][data-af-variant="pills"] [data-af-navigation-link]:hover {
+    background: var(--af-color-surface-hover);
+}
+
+[data-af-composition="navigation"][data-af-variant="pills"] [data-af-navigation-link][aria-current] {
+    color: var(--af-color-primary-fg);
+    background: var(--af-color-primary);
+    border-color: var(--af-color-primary);
+}
