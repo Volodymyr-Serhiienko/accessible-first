@@ -86,6 +86,7 @@ Completed:
 - Shared ARIA reference id helpers reused by hint, tooltip, and accordion logic
 - Navigation and ResponsiveNavigation composition APIs
 - Playground section navigation migrated to ResponsiveNavigation
+- Brand component and Img helper for real page headers
 
 In progress:
 
@@ -94,6 +95,7 @@ In progress:
 - Responsive playground refinement
 - Navigation patterns and responsive navigation
 - Image, logo, and brand composition helpers
+- Page outlet foundation for replacing main content inside stable page shells
 - Component examples and manual checklists
 - Documentation alignment with current architecture
 - Form composition layer

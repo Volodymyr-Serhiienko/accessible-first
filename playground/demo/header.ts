@@ -9,11 +9,11 @@ export function HeaderDemo(): ComposedNode {
             href: "#main",
             label: "Accessible First Playground home",
             logo: Img({
-                src: "./assets/accessible-first-logo-transparent.svg",
+                src: "./assets/accessible-first-logo-no-text.svg",
                 alt: "",
                 decorative: true,
-                width: 48,
-                height: 48
+                width: 80,
+                height: 80
             }),
             name: "Accessible First Playground",
             nameTag: "h1",

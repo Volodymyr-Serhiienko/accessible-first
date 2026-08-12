@@ -58,13 +58,14 @@ export interface PageDiagnosticsOptions {
  * Top-level semantic page controller.
  *
  * Page owns a root element, creates a main landmark, and exposes fluent methods
- * for header, navigation, sections, footer, diagnostics, and cleanup.
- */
-export interface Page extends ComposedNode {
+ * for header, navigation, main content, sections, footer, diagnostics, and cleanup.
+ */export interface Page extends ComposedNode {
     readonly main: HTMLElement;
     header(...children: CompositionChild[]): Page;
     navigation(...children: CompositionChild[]): Page;
     section(section: CompositionChild): Page;
+    setMainContent(...children: CompositionChild[]): Page;
+    focusMain(options?: FocusOptions): Page;
     footer(...children: CompositionChild[]): Page;
     appendToMain(...children: CompositionChild[]): Page;
     inspect(options?: PageDiagnosticsOptions): PageDiagnosticsReport;

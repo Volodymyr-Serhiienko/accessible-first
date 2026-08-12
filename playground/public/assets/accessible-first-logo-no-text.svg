@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024"
+     role="img" aria-labelledby="title desc">
+  <title id="title">Accessible First icon</title>
+  <desc id="desc">AF monogram in silver and cyan inside a glowing rounded square.</desc>
+  
+<defs>
+  <linearGradient id="frameGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#EAFBFF"/>
+    <stop offset="34%" stop-color="#7FEAFF"/>
+    <stop offset="68%" stop-color="#00D8FF"/>
+    <stop offset="100%" stop-color="#1677FF"/>
+  </linearGradient>
+
+  <linearGradient id="silverGrad" x1="0" y1="0" x2="0.85" y2="1">
+    <stop offset="0%" stop-color="#FFFFFF"/>
+    <stop offset="28%" stop-color="#E9EEF3"/>
+    <stop offset="57%" stop-color="#AEB8C2"/>
+    <stop offset="82%" stop-color="#F5F7F9"/>
+    <stop offset="100%" stop-color="#7F8B96"/>
+  </linearGradient>
+
+  <linearGradient id="blueGrad" x1="0" y1="0" x2="0.8" y2="1">
+    <stop offset="0%" stop-color="#73F3FF"/>
+    <stop offset="36%" stop-color="#11D8FF"/>
+    <stop offset="70%" stop-color="#0795FF"/>
+    <stop offset="100%" stop-color="#1555FF"/>
+  </linearGradient>
+
+  <linearGradient id="panelGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#152530"/>
+    <stop offset="46%" stop-color="#0B151D"/>
+    <stop offset="100%" stop-color="#050A0F"/>
+  </linearGradient>
+
+  <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="9" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+
+  <filter id="tinyGlow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3.2" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  </filter>
+</defs>
+
+  
+<g id="badge">
+  <rect x="170" y="120" width="684" height="684" rx="146"
+        fill="url(#panelGrad)" stroke="#0C2232" stroke-width="18"/>
+  <rect x="170" y="120" width="684" height="684" rx="146"
+        fill="none" stroke="url(#frameGrad)" stroke-width="9" filter="url(#softGlow)"/>
+  <rect x="182" y="132" width="660" height="660" rx="134"
+        fill="none" stroke="#8EF3FF" stroke-opacity="0.28" stroke-width="2"/>
+
+  <!-- A -->
+  <path d="M300 665 L453 300 L512 300 L665 665 L593 665 L557 577 L409 577 L373 665 Z
+           M435 514 L531 514 L483 395 Z"
+        fill="url(#silverGrad)" fill-rule="evenodd"/>
+  <path d="M300 665 L453 300 L512 300 L665 665"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.48" stroke-width="3"/>
+
+  <!-- F -->
+  <path d="M566 300 H748 L711 365 H635 V462 H711 L676 524 H635 V665 H566 Z"
+        fill="url(#blueGrad)" filter="url(#tinyGlow)"/>
+  <path d="M566 300 H748 L711 365 H635 V462 H711"
+        fill="none" stroke="#B9FBFF" stroke-opacity="0.62" stroke-width="3"/>
+
+  <!-- subtle connector/accent -->
+  <path d="M506 565 L566 565" stroke="#DDE6ED" stroke-width="18" stroke-linecap="round" opacity="0.92"/>
+</g>
+
+</svg>

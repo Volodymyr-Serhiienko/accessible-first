@@ -41,6 +41,15 @@ This keeps structure visible without forcing developers into one large nested tr
 
 Sections added with `page.section(...)` are mounted into the main landmark.
 
+For application shells or SPA-style content switching, keep header, navigation, and footer stable, then replace only the main content:
+
+```ts
+page.setMainContent(SettingsPage());
+page.focusMain();
+```
+
+`setMainContent(...)` is the first page outlet primitive. It does not implement routing. It gives routing, multi-page demos, and app shells a safe place to render changing content while preserving the semantic page frame.
+
 ## Header Composition
 
 `Page.header(...)` owns the native header landmark. Keep reusable header parts small and composable:

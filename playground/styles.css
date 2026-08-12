@@ -39,7 +39,11 @@ body {
 }
 
 .playground-brand {
-    --af-brand-logo-size: 2.25rem;
+    --af-brand-logo-size: 3.5rem;
+}
+
+.playground-brand [data-af-brand-logo] {
+    transform: translateY(0.2rem);
 }
 
 .playground-brand [data-af-brand-name] {

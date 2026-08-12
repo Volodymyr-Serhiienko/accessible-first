@@ -119,6 +119,17 @@ export function createPage(options: PageOptions = {}): Page {
         append(parent, ...children);
     }
 
+    function moveFocusToMain(options: FocusOptions = {}): void {
+        const originalTabIndex = main.getAttribute("tabindex");
+
+        if (originalTabIndex === null) {
+            main.tabIndex = -1;
+        }
+
+        main.focus(options);
+        restoreAttribute(main, "tabindex", originalTabIndex);
+    }
+
     function ensureHeader(): HTMLElement {
         if (!headerElement) {
             headerElement = createElement("header", {
@@ -188,6 +199,20 @@ export function createPage(options: PageOptions = {}): Page {
 
         section(section: CompositionChild): Page {
             appendTracked(main, [section], mainDestroyers);
+            return page;
+        },
+
+        setMainContent(...children: CompositionChild[]): Page {
+            disposeDestroyers(mainDestroyers);
+            main.replaceChildren();
+            appendTracked(main, children, mainDestroyers);
+
+            return page;
+        },
+
+        focusMain(options: FocusOptions = {}): Page {
+            moveFocusToMain(options);
+
             return page;
         },
 
