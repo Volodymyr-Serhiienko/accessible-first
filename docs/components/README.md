@@ -18,6 +18,7 @@ Each component document should contain:
 - [ActionsBar](./actions-bar.md)
 - [AlertDialog](./alert-dialog.md)
 - [Breadcrumbs](./breadcrumbs.md)
+- [Brand](./brand.md)
 - [Button](./button.md)
 - [Checkbox](./checkbox.md)
 - [Combobox](./combobox.md)

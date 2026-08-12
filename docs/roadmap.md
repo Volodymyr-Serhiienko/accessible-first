@@ -84,6 +84,8 @@ Completed:
 - Dialog, AlertDialog, and Disclosure update APIs narrowed to runtime-safe options
 - Breadcrumb separator updates preserve existing item DOM nodes
 - Shared ARIA reference id helpers reused by hint, tooltip, and accordion logic
+- Navigation and ResponsiveNavigation composition APIs
+- Playground section navigation migrated to ResponsiveNavigation
 
 In progress:
 
@@ -91,6 +93,7 @@ In progress:
 - Playground as living documentation
 - Responsive playground refinement
 - Navigation patterns and responsive navigation
+- Image, logo, and brand composition helpers
 - Component examples and manual checklists
 - Documentation alignment with current architecture
 - Form composition layer
@@ -99,7 +102,6 @@ Next:
 
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
-- Replace the playground section-link strip with ResponsiveNavigation when the component is in place
 - Consider a reusable overflow scroller with optional arrow controls for long Navigation, Tabs, and Toolbar patterns after real examples prove the API shape
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
 - Icon, Image, and Logo composition review

@@ -33,6 +33,12 @@
     border: 0;
 }
 
+[data-af-composition="image"] {
+    max-inline-size: 100%;
+    block-size: auto;
+    display: block;
+}
+
 [data-af-composition="section"] {
     display: grid;
     gap: var(--af-space-3);

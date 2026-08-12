@@ -76,6 +76,29 @@ Section({
 
 Use native helpers such as `P`, `H1`, `H2`, `H3`, `Ul`, and `Li` when they make the page easier to read.
 
+## Images
+
+`Img()` creates an accessible native image helper:
+
+```ts
+Img({
+    src: "/product.png",
+    alt: "Accessible First component playground"
+});
+```
+
+Decorative images should be marked intentionally:
+
+```ts
+Img({
+    src: "/logo-mark.svg",
+    alt: "",
+    decorative: true
+});
+```
+
+Use meaningful `alt` text when the image communicates content. Use `decorative: true` when nearby text already provides the meaning, such as a logo mark next to a visible brand name.
+
 ## Trusted HTML
 
 `Html()` inserts trusted native HTML fragments:
