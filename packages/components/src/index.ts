@@ -10,6 +10,7 @@ export * from "./description-list";
 export * from "./dialog";
 export * from "./disclosure";
 export * from "./field-group";
+export * from "./form";
 export * from "./form-section";
 export * from "./foundation";
 export * from "./icon-button";

@@ -25,6 +25,7 @@ Each component document should contain:
 - [Disclosure](./disclosure.md)
 - [DescriptionList](./description-list.md)
 - [FieldGroup](./field-group.md)
+- [Form](./form.md)
 - [FormSection](./form-section.md)
 - [IconButton](./icon-button.md)
 - [Link](./link.md)

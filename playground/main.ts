@@ -16,6 +16,7 @@ import {
     DialogDemo,
     DisclosureDemo,
     FieldGroupDemo,
+    FormDemo,
     FormSectionDemo,
     IconButtonsDemo,
     LayoutDemo,
@@ -54,6 +55,7 @@ page.section(SwitchDemo());
 page.section(TextFieldDemo());
 page.section(FieldGroupDemo());
 page.section(FormSectionDemo());
+page.section(FormDemo());
 page.section(DescriptionListDemo());
 page.section(BreadcrumbsDemo());
 page.section(ActionsBarDemo());

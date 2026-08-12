@@ -47,6 +47,8 @@ TextField({
 });
 ```
 
+`type: "email"` uses a stricter Accessible First default pattern that requires a dotted domain, so `name@host` is invalid and `name@example.com` is valid. Pass a custom `pattern` when an application needs different email rules.
+
 Multiline textarea:
 
 ```ts
@@ -96,6 +98,7 @@ const field = createTextField(existingInput, {
 - `value` - Controlled current value.
 - `defaultValue` - Initial value. Creation-time option.
 - `type` - `"text"`, `"email"`, `"password"`, `"search"`, `"tel"`, `"url"`, or `"number"` for single-line inputs.
+- `type: "email"` - Applies a default email pattern that requires text after `@`, a dot, and text after the dot.
 - `multiline` - Creates a textarea instead of an input.
 - `rows` - Visible textarea rows when `multiline` is true.
 - `disabled` - Disables the control.
@@ -108,7 +111,7 @@ const field = createTextField(existingInput, {
 - `inputMode` - Native inputmode hint.
 - `minLength` - Native minlength.
 - `maxLength` - Native maxlength.
-- `pattern` - Native pattern for single-line input.
+- `pattern` - Native pattern for single-line input. Overrides the default email pattern when provided.
 - `validateOnBlur` - Validates when focus leaves the control. Defaults to `true`.
 - `validateOnInput` - Validates while typing. Defaults to `false`.
 - `showValidState` - Shows visual valid state when the field is valid. Defaults to `true`.

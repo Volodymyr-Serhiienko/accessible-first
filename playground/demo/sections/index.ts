@@ -10,6 +10,7 @@ export { DescriptionListDemo } from "./descriptionList";
 export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
 export { FieldGroupDemo } from "./fieldGroup";
+export { FormDemo } from "./form";
 export { FormSectionDemo } from "./formSection";
 export { IconButtonsDemo } from "./iconButtons";
 export { LayoutDemo } from "./layout";

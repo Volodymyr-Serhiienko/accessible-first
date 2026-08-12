@@ -1,0 +1,20 @@
+[data-af-composition="form"] {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--af-space-4);
+    color: var(--af-color-fg);
+}
+
+[data-af-composition="form"][data-af-variant="plain"] {
+    gap: var(--af-space-3);
+}
+
+[data-af-form-body] {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--af-space-4);
+}
+
+[data-af-form-actions][hidden] {
+    display: none !important;
+}

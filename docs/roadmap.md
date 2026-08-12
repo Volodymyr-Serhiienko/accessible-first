@@ -92,6 +92,7 @@ In progress:
 - Responsive playground refinement
 - Component examples and manual checklists
 - Documentation alignment with current architecture
+- Form composition layer
 
 Next:
 
@@ -104,7 +105,6 @@ Next:
 Planned components:
 
 - Navigation patterns
-- Form composition layer for collecting field validation results and submit behavior
 
 ### Component Quality Baseline
 

@@ -17,6 +17,10 @@ import {
     createValidationAnnouncer,
     type ValidationAnnouncer
 } from "../../../core/src/validation-announcements";
+import {
+    textFieldEmailPattern,
+    textFieldEmailPatternMismatchMessage
+} from "./emailValidation";
 import type {
     TextField as TextFieldInstance,
     TextFieldElement,
@@ -181,6 +185,12 @@ function isTextAreaElement(element: TextFieldElement): element is HTMLTextAreaEl
     return element.localName === "textarea";
 }
 
+function hasDefaultEmailPattern(control: TextFieldElement): control is HTMLInputElement {
+    return !isTextAreaElement(control)
+        && control.type === "email"
+        && control.getAttribute("pattern") === textFieldEmailPattern;
+}
+
 function getControlAttributes(options: TextFieldCompositionOptions): ElementAttributes {
     const attributes: ElementAttributes = {
         "data-af-text-field-control": ""
@@ -336,7 +346,12 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
 
         if (validity.valueMissing) return validationMessages.valueMissing ?? control.validationMessage;
         if (validity.typeMismatch) return validationMessages.typeMismatch ?? control.validationMessage;
-        if (validity.patternMismatch) return validationMessages.patternMismatch ?? control.validationMessage;
+        if (validity.patternMismatch) {
+            return validationMessages.patternMismatch
+                ?? (hasDefaultEmailPattern(control)
+                    ? textFieldEmailPatternMismatchMessage
+                    : control.validationMessage);
+        }
         if (validity.tooShort) return validationMessages.tooShort ?? control.validationMessage;
         if (validity.tooLong) return validationMessages.tooLong ?? control.validationMessage;
         if (validity.customError) return validationMessages.customError ?? control.validationMessage;

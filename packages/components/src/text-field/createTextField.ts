@@ -2,6 +2,7 @@ import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import type { FormFieldInvalidState } from "../../../core/src/form-field";
 import { createComponentLifecycle } from "../foundation";
+import { textFieldEmailPattern } from "./emailValidation";
 import type {
     TextField,
     TextFieldElement,
@@ -70,6 +71,23 @@ function syncNumberAttribute(
     element.setAttribute(name, String(value));
 }
 
+function getInputPattern(
+    type: TextFieldInputType,
+    pattern: string | null | undefined,
+    hasExplicitPattern: boolean,
+    originalPattern: string | null
+): string | null | undefined {
+    if (hasExplicitPattern) {
+        return pattern ?? null;
+    }
+
+    if (originalPattern !== null) {
+        return undefined;
+    }
+
+    return type === "email" ? textFieldEmailPattern : null;
+}
+
 /**
  * Enhances a native input or textarea with Accessible First lifecycle,
  * form attributes, state helpers, styling hooks, and value callbacks.
@@ -114,6 +132,7 @@ export function createTextField(
     let minLength = options.minLength;
     let maxLength = options.maxLength;
     let pattern = options.pattern;
+    let hasExplicitPattern = "pattern" in options;
     let variant: TextFieldVariant = options.variant ?? "default";
     let size: TextFieldSize = options.size ?? "md";
     let onValueInput = options.onValueInput ?? null;
@@ -151,7 +170,11 @@ export function createTextField(
     function syncAttributes(): void {
         if (isInputElement(element)) {
             element.type = type;
-            syncNullableAttribute(element, "pattern", pattern);
+            syncNullableAttribute(
+                element,
+                "pattern",
+                getInputPattern(type, pattern, hasExplicitPattern, originalPattern)
+            );
         } else if (pattern !== undefined) {
             element.removeAttribute("pattern");
         }
@@ -281,7 +304,10 @@ export function createTextField(
             if ("inputMode" in nextOptions) inputMode = nextOptions.inputMode ?? null;
             if ("minLength" in nextOptions) minLength = nextOptions.minLength ?? null;
             if ("maxLength" in nextOptions) maxLength = nextOptions.maxLength ?? null;
-            if ("pattern" in nextOptions) pattern = nextOptions.pattern ?? null;
+            if ("pattern" in nextOptions) {
+                hasExplicitPattern = true;
+                pattern = nextOptions.pattern ?? null;
+            }
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
 
