@@ -3,6 +3,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -162,10 +163,6 @@ interface MenuItemNode {
     announceOnHover: boolean | undefined;
     disabled: boolean;
     onSelect: MenuCompositionItemOnSelect | null;
-}
-
-function getElementText(element: HTMLElement, fallback: string): string {
-    return element.textContent?.trim() || fallback;
 }
 
 function getMenuItemText(item: HTMLElement, itemNodes: MenuItemNode[]): string {

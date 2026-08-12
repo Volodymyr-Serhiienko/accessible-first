@@ -82,6 +82,12 @@ The default focus target is the cancel action. This avoids placing keyboard and 
 
 The required `description` should be short and specific. It is connected with `aria-describedby` so assistive technology can announce the consequence before the user chooses an action.
 
+## Update Notes
+
+`alertDialog.update()` accepts runtime content, visual, and decision options such as `open`, `title`, `description`, `children`, `confirmText`, `cancelText`, button variants and disabled states, `focusTarget`, `modal`, `lockScroll`, and `closeOnEscape`.
+
+Creation-time dialog wiring options are intentionally not updateable: `defaultOpen`, `trapFocus`, `restoreFocus`, `fallbackFocus`, `useOverlayStack`, and `overlayStack`. Create a new alert dialog when those contracts need to change.
+
 ## Styling
 
 AlertDialog reuses Dialog, ActionsBar, and Button styling hooks, including `[data-af-component="dialog"]`, `[data-af-dialog-surface]`, `[data-af-dialog-actions]`, `[data-af-composition="actions-bar"]`, and button `[data-af-variant]`.

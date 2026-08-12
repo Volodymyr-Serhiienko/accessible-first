@@ -2,6 +2,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -12,7 +13,8 @@ import { createDisclosure } from "./createDisclosure";
 import type {
     Disclosure as DisclosureInstance,
     DisclosureAnnouncement,
-    DisclosureOptions
+    DisclosureOptions,
+    DisclosureUpdateOptions
 } from "./types";
 
 /**
@@ -48,6 +50,15 @@ export interface DisclosureCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedDisclosure.update().
+ *
+ * defaultOpen is creation-time only. Use open, setOpen(), open(), close(), or
+ * toggle() to change current state.
+ */
+export interface DisclosureCompositionUpdateOptions
+    extends Partial<Omit<DisclosureCompositionOptions, "defaultOpen">> {}
+
+/**
  * Disclosure created by the composition API.
  */
 export interface ComposedDisclosure
@@ -60,7 +71,7 @@ export interface ComposedDisclosure
     setDescription(description: string | null): void;
     setTriggerContent(children: DisclosureCompositionContent): void;
     setPanelContent(children: DisclosureCompositionContent): void;
-    update(options: Partial<DisclosureCompositionOptions>): void;
+    update(options: DisclosureCompositionUpdateOptions): void;
     destroy(): void;
 }
 
@@ -69,7 +80,7 @@ function hasDescription(value: string | null | undefined): value is string {
 }
 
 function getDescriptionText(description: HTMLElement): string {
-    return description.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    return getElementText(description);
 }
 
 function shouldUseAriaDescription(
@@ -139,12 +150,12 @@ function getDisclosureOptions(
 }
 
 function getDisclosureUpdateOptions(
-    options: Partial<DisclosureCompositionOptions>,
+    options: DisclosureCompositionUpdateOptions,
     onOpenChange: (open: boolean) => void,
     descriptionAnnouncement: DisclosureAnnouncement | undefined,
     shouldSyncDescriptionAnnouncement: boolean
-): Partial<DisclosureOptions> {
-    const disclosureOptions: Partial<DisclosureOptions> = {};
+): DisclosureUpdateOptions {
+    const disclosureOptions: DisclosureUpdateOptions = {};
 
     if (options.open !== undefined) disclosureOptions.open = options.open;
     if (options.disabled !== undefined) disclosureOptions.disabled = options.disabled;

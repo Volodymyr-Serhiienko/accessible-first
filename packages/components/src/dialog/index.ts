@@ -7,6 +7,7 @@ export type {
     DialogOptions,
     DialogRole,
     DialogSize,
+    DialogUpdateOptions,
     DialogVariant
 } from "./types";
 
@@ -15,6 +16,7 @@ export type {
     DialogCompositionContent,
     DialogCompositionOnOpenChange,
     DialogCompositionOptions,
+    DialogCompositionUpdateOptions,
     DialogDescriptionMode,
     DialogInitialFocusTarget
 } from "./composeDialog";

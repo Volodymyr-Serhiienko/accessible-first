@@ -4,7 +4,7 @@ import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 
-import type { Button, ButtonOptions, ButtonPressedState } from "./types";
+import type { Button, ButtonOptions, ButtonPressedState, ButtonUpdateOptions } from "./types";
 
 function isNativeButton(element: HTMLElement): element is HTMLButtonElement {
     return element.localName === "button";
@@ -164,7 +164,7 @@ export function createButton(
             return pressed;
         },
 
-        update(nextOptions: Partial<ButtonOptions>): void {
+        update(nextOptions: ButtonUpdateOptions): void {
             if (nextOptions.disabled !== undefined) {
                 this.setDisabled(nextOptions.disabled);
             }

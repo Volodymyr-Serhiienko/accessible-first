@@ -1,5 +1,6 @@
 export { append, collectDestroyers } from "./append";
 export { toCompositionChildren } from "./content";
+export { getElementText, hasCompositionContent, hasVisibleContent } from "./contentState";
 export { createContentSlot } from "./contentSlot";
 export { createElement } from "./createElement";
 export { Icon } from "./icon";

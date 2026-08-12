@@ -121,6 +121,12 @@ Disclosure({
 });
 ```
 
+## Update Notes
+
+`disclosure.update()` accepts runtime content, state, visual, and announcement options such as `trigger`, `panel`, `description`, `open`, `disabled`, `variant`, `size`, `announcement`, and `onOpenChange`.
+
+`defaultOpen` is creation-time only. Use `open`, `setOpen()`, `open()`, `close()`, or `toggle()` to change state after creation.
+
 ## Styling
 
 Useful hooks include `[data-af-component="disclosure"]`, `[data-af-disclosure-trigger]`, `[data-af-disclosure-panel]`, and `[data-af-open]`.

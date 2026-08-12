@@ -43,6 +43,11 @@ export interface ButtonCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedButton.update().
+ */
+export interface ButtonCompositionUpdateOptions extends Partial<ButtonCompositionOptions> {}
+
+/**
  * A button created by Button().
  * Includes the enhanced button behavior plus content and lifecycle helpers.
  */
@@ -53,12 +58,12 @@ export interface ComposedButton extends Omit<ButtonInstance, "element" | "update
     isSelected(): boolean;
     toggleSelected(force?: boolean): boolean;
     setHint(hint: string | null): void;
-    update(options: Partial<ButtonCompositionOptions>): void;
+    update(options: ButtonCompositionUpdateOptions): void;
     destroy(): void;
 }
 
 function getControlHintOptions(
-    options: Partial<ButtonCompositionOptions>
+    options: ButtonCompositionUpdateOptions
 ): ControlHintOptions {
     const hintOptions: ControlHintOptions = {};
 
@@ -79,7 +84,7 @@ function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
 }
 
 function getButtonOptions(
-    options: Partial<ButtonCompositionOptions>,
+    options: ButtonCompositionUpdateOptions,
     onPress: (event: Event) => void
 ): ButtonOptions {
     const buttonOptions: ButtonOptions = {
@@ -141,7 +146,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         toggleSelected: selectedState.toggleSelected,
         setHint: controlHint.setHint,
 
-        update(nextOptions: Partial<ButtonCompositionOptions>): void {
+        update(nextOptions: ButtonCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {

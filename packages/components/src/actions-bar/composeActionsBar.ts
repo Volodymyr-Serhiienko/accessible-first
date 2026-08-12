@@ -3,6 +3,7 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasCompositionContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type ComposedNode,
@@ -68,14 +69,6 @@ function getPrimaryContent(options: ActionsBarOptions): ActionsBarCompositionCon
     return options.children;
 }
 
-function hasSlotContent(content: ActionsBarCompositionContent | null | undefined): boolean {
-    return toCompositionChildren(content).some((child) => (
-        child !== null
-        && child !== undefined
-        && child !== false
-    ));
-}
-
 /**
  * Creates a consistent layout container for related command actions.
  */
@@ -96,8 +89,8 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     let align: ActionsBarAlign = options.align ?? "end";
     let variant: ActionsBarVariant = options.variant ?? "default";
     let size: ActionsBarSize = options.size ?? "md";
-    let hasPrimary = hasSlotContent(getPrimaryContent(options));
-    let hasSecondary = hasSlotContent(options.secondary);
+    let hasPrimary = hasCompositionContent(getPrimaryContent(options));
+    let hasSecondary = hasCompositionContent(options.secondary);
 
     const secondaryContent = createContentSlot(secondarySlot, toCompositionChildren(options.secondary));
     const primaryContent = createContentSlot(primarySlot, toCompositionChildren(getPrimaryContent(options)));
@@ -131,13 +124,13 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     }
 
     function setPrimary(content: ActionsBarCompositionContent | null): void {
-        hasPrimary = hasSlotContent(content);
+        hasPrimary = hasCompositionContent(content);
         primaryContent.set(toCompositionChildren(content));
         sync();
     }
 
     function setSecondary(content: ActionsBarCompositionContent | null): void {
-        hasSecondary = hasSlotContent(content);
+        hasSecondary = hasCompositionContent(content);
         secondaryContent.set(toCompositionChildren(content));
         sync();
     }

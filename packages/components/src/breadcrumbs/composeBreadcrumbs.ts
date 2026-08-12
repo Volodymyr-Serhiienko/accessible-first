@@ -2,6 +2,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -89,10 +90,6 @@ interface BreadcrumbsItemNode {
     contentSlot: ReturnType<typeof createContentSlot>;
 }
 
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
 function getAriaCurrentValue(
     item: BreadcrumbsItem,
     index: number,
@@ -126,6 +123,41 @@ function getContentAttributes(
     return attributes;
 }
 
+function createSeparatorElement(separatorText: string): HTMLElement {
+    return createElement("span", {
+        text: separatorText,
+        attributes: {
+            "data-af-breadcrumbs-separator": "",
+            "aria-hidden": "true"
+        }
+    });
+}
+
+function syncItemSeparator(
+    node: BreadcrumbsItemNode,
+    index: number,
+    total: number,
+    separatorText: string
+): void {
+    const shouldShowSeparator = index < total - 1 && separatorText.length > 0;
+
+    if (!shouldShowSeparator) {
+        node.separator?.remove();
+        node.separator = null;
+        return;
+    }
+
+    if (!node.separator) {
+        node.separator = createSeparatorElement(separatorText);
+        node.element.append(node.separator);
+        return;
+    }
+
+    node.separator.textContent = separatorText;
+    node.separator.setAttribute("data-af-breadcrumbs-separator", "");
+    node.separator.setAttribute("aria-hidden", "true");
+}
+
 function createItemNode(
     item: BreadcrumbsItem,
     index: number,
@@ -149,13 +181,7 @@ function createItemNode(
 
     const contentSlot = createContentSlot(content, toCompositionChildren(item.label));
     const separator = index < total - 1 && separatorText
-        ? createElement("span", {
-            text: separatorText,
-            attributes: {
-                "data-af-breadcrumbs-separator": "",
-                "aria-hidden": "true"
-            }
-        })
+        ? createSeparatorElement(separatorText)
         : null;
 
     element.append(content);
@@ -177,7 +203,10 @@ function createComposedItem(node: BreadcrumbsItemNode): ComposedBreadcrumbsItem 
     return {
         element: node.element,
         content: node.content,
-        separator: node.separator,
+
+        get separator(): HTMLElement | null {
+            return node.separator;
+        },
 
         getText(): string {
             return getElementText(node.content);
@@ -251,6 +280,12 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         sync();
     }
 
+    function syncSeparators(): void {
+        itemNodes.forEach((node, index) => {
+            syncItemSeparator(node, index, itemNodes.length, separator);
+        });
+    }
+
     setItems(itemDefinitions);
 
     return {
@@ -272,11 +307,10 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
 
-            if (
-                nextOptions.items !== undefined
-                || nextOptions.separator !== undefined
-            ) {
-                setItems(nextOptions.items ?? itemDefinitions);
+            if (nextOptions.items !== undefined) {
+                setItems(nextOptions.items);
+            } else if (nextOptions.separator !== undefined) {
+                syncSeparators();
             }
 
             sync();

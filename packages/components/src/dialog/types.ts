@@ -39,6 +39,27 @@ export interface DialogOptions extends Omit<CoreDialogOptions, "onOpenChange"> {
 }
 
 /**
+ * Options accepted by dialog.update().
+ *
+ * Focus-trap setup, initial focus, defaultOpen, surface, and overlay stack
+ * wiring are creation-time options.
+ */
+export interface DialogUpdateOptions
+    extends Partial<
+        Omit<
+            DialogOptions,
+            | "defaultOpen"
+            | "trapFocus"
+            | "restoreFocus"
+            | "initialFocus"
+            | "fallbackFocus"
+            | "surface"
+            | "useOverlayStack"
+            | "overlayStack"
+        >
+    > {}
+
+/**
  * Dialog behavior controller returned by createDialog().
  */
 export interface Dialog extends Component {
@@ -49,7 +70,7 @@ export interface Dialog extends Component {
     toggle(): void;
     setOpen(open: boolean): void;
     isOpen(): boolean;
-    update(options: Partial<DialogOptions>): void;
+    update(options: DialogUpdateOptions): void;
 }
 
 export type { DialogElement, DialogRole };

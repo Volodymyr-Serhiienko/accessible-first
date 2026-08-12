@@ -6,6 +6,8 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasCompositionContent,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type ComposedNode,
@@ -74,24 +76,8 @@ export interface ComposedFormSection extends ComposedNode<HTMLElement> {
     destroy(): void;
 }
 
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
-}
-
 function getHeadingTag(level: FormSectionHeadingLevel): keyof HTMLElementTagNameMap {
     return `h${level}` as keyof HTMLElementTagNameMap;
-}
-
-function hasActionsContent(content: FormSectionCompositionContent | null | undefined): boolean {
-    return toCompositionChildren(content).some((child) => (
-        child !== null
-        && child !== undefined
-        && child !== false
-    ));
 }
 
 function getActionsBarBaseOptions(
@@ -158,7 +144,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     const descriptionSlot = createContentSlot(description, toCompositionChildren(options.description));
     const bodySlot = createContentSlot(body, toCompositionChildren(options.children));
 
-    let hasActions = hasActionsContent(options.actions);
+    let hasActions = hasCompositionContent(options.actions);
     let variant: FormSectionVariant = options.variant ?? "default";
     let size: FormSectionSize = options.size ?? "md";
 
@@ -195,7 +181,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     }
 
     function setActions(content: FormSectionCompositionContent | null): void {
-        hasActions = hasActionsContent(content);
+        hasActions = hasCompositionContent(content);
         actionsBar.setPrimary(content);
         sync();
     }

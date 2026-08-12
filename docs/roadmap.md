@@ -75,11 +75,15 @@ Completed:
 - Breadcrumbs component and playground demo
 - ActionsBar component and playground demo
 - Dialog and AlertDialog actions layout reuse ActionsBar
+- FormSection actions layout reuse ActionsBar
 - Shared control hint foundation and migration of Button, Link, and IconButton
 - Accordion item descriptions aligned with Disclosure open-announcement behavior
 - Toast action guidance: use Dialog or AlertDialog for required actions
 - Dialog and AlertDialog focus/description documentation refinement
 - Documentation structure consolidation: component docs now own Quick Start sections
+- Dialog, AlertDialog, and Disclosure update APIs narrowed to runtime-safe options
+- Breadcrumb separator updates preserve existing item DOM nodes
+- Shared ARIA reference id helpers reused by hint, tooltip, and accordion logic
 
 In progress:
 
@@ -91,7 +95,6 @@ In progress:
 
 Next:
 
-- FormSection actions layout reuse ActionsBar
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -101,6 +104,7 @@ Next:
 Planned components:
 
 - Navigation patterns
+- Form composition layer for collecting field validation results and submit behavior
 
 ### Component Quality Baseline
 
@@ -153,6 +157,7 @@ Planned:
 
 - Header patterns
 - Navigation patterns
+- Form shell and submit-validation pattern
 - Responsive navigation with mobile collapse / burger behavior
 - Main content patterns
 - Footer patterns

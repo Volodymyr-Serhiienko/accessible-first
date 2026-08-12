@@ -19,6 +19,7 @@ export type {
     SelectOnValueChange,
     SelectOptions,
     SelectSize,
+    SelectUpdateOptions,
     SelectValue,
     SelectVariant
 } from "./types";

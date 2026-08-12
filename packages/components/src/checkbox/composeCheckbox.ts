@@ -5,6 +5,7 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type CompositionContent
@@ -78,14 +79,6 @@ export interface ComposedCheckbox
     setErrorMessage(content: CheckboxCompositionContent | null): void;
     update(options: CheckboxCompositionUpdateOptions): void;
     destroy(): void;
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
 }
 
 function getCheckboxOptions(

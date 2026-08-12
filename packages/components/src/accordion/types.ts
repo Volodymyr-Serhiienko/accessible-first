@@ -61,6 +61,14 @@ export interface AccordionOptions {
 }
 
 /**
+ * Options accepted by accordion.update().
+ *
+ * Item registration is creation-time only. Use item controllers to open,
+ * close, or disable individual items.
+ */
+export interface AccordionUpdateOptions extends Partial<Omit<AccordionOptions, "items">> {}
+
+/**
  * Runtime controller for one accordion item.
  */
 export interface AccordionItem {
@@ -92,5 +100,5 @@ export interface Accordion extends Component {
     setDisabled(disabled: boolean): void;
     isDisabled(): boolean;
     refresh(): void;
-    update(options: Partial<Omit<AccordionOptions, "items">>): void;
+    update(options: AccordionUpdateOptions): void;
 }

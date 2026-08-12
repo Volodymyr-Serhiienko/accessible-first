@@ -1,10 +1,18 @@
 import { restoreAttribute } from "../../../core/src/dom";
 
+/**
+ * Options for createSelectedState().
+ */
 export interface SelectedStateOptions {
+    /** Initial selected state. Falls back to the current attribute value. */
     selected?: boolean;
+    /** Attribute used to store visual selected state. Defaults to data-af-selected. */
     attribute?: string;
 }
 
+/**
+ * Controller for a non-ARIA visual selected state.
+ */
 export interface SelectedState {
     setSelected(selected: boolean): void;
     isSelected(): boolean;

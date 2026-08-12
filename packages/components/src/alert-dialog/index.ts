@@ -4,6 +4,7 @@ export type {
     AlertDialogCompositionOnAction,
     AlertDialogCompositionOnOpenChange,
     AlertDialogCompositionOptions,
+    AlertDialogCompositionUpdateOptions,
     AlertDialogFocusTarget,
     ComposedAlertDialog
 } from "./composeAlertDialog";

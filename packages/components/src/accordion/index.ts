@@ -15,6 +15,7 @@ export type {
     AccordionOptions,
     AccordionPanelRole,
     AccordionSize,
+    AccordionUpdateOptions,
     AccordionVariant
 } from "./types";
 

@@ -4,7 +4,11 @@ export {
     type AriaAttributeValue
 } from "./setAriaAttribute";
 export {
+    addAriaReferenceId,
+    getAriaReferencedText,
+    removeAriaReferenceId,
     setAriaReferences,
+    splitAriaReferenceIds,
     type AriaReference,
     type AriaReferences
 } from "./setAriaReferences";

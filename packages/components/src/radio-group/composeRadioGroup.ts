@@ -4,7 +4,9 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type CompositionContent
@@ -161,14 +163,6 @@ interface RadioGroupOptionsSource {
     orientation?: RadioGroupOrientation;
     variant?: RadioGroupVariant;
     size?: RadioGroupSize;
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
 }
 
 function getUniqueValue(
@@ -423,7 +417,7 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
         description: node.description,
 
         getText(): string {
-            return getElementText(node.label) || node.value;
+            return getElementText(node.label, node.value);
         },
 
         setLabelContent(content): void {

@@ -9,6 +9,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -114,7 +115,7 @@ function hasDescription(value: string | null | undefined): value is string {
 }
 
 function getDescriptionText(description: HTMLElement): string {
-    return description.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    return getElementText(description);
 }
 
 function shouldUseAriaDescription(

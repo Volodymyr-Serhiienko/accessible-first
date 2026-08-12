@@ -3,6 +3,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     setElementAttributeValue,
     toCompositionChildren,
@@ -183,10 +184,6 @@ interface ComboboxItemNode {
     option: HTMLElement;
     labelContent: ReturnType<typeof createContentSlot>;
     disabled: boolean;
-}
-
-function getElementText(element: HTMLElement, fallback: string): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() || fallback;
 }
 
 function getOptionalText(value: string | null | undefined): string {

@@ -4,9 +4,11 @@ export { IconButton } from "./composeIconButton";
 export type {
     IconButton as IconButtonInstance,
     IconButtonOptions,
-    IconButtonSize
+    IconButtonSize,
+    IconButtonUpdateOptions
 } from "./types";
 export type {
     ComposedIconButton,
-    IconButtonCompositionOptions
+    IconButtonCompositionOptions,
+    IconButtonCompositionUpdateOptions
 } from "./composeIconButton";

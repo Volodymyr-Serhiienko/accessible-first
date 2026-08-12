@@ -53,6 +53,11 @@ export interface SelectOptions {
 }
 
 /**
+ * Options accepted by select.update().
+ */
+export interface SelectUpdateOptions extends Partial<SelectOptions> {}
+
+/**
  * Select component controller returned by createSelect().
  */
 export interface Select extends Component<HTMLSelectElement> {
@@ -66,5 +71,5 @@ export interface Select extends Component<HTMLSelectElement> {
     isRequired(): boolean;
     setMultiple(multiple: boolean): void;
     isMultiple(): boolean;
-    update(options: Partial<SelectOptions>): void;
+    update(options: SelectUpdateOptions): void;
 }

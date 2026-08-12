@@ -1,3 +1,4 @@
+import { addAriaReferenceId, removeAriaReferenceId } from "../../../core/src/aria";
 import { restoreAttribute } from "../../../core/src/dom";
 import { createId } from "../../../core/src/id";
 import { createTooltip, type Tooltip } from "../tooltip/createTooltip";
@@ -51,22 +52,6 @@ function visuallyHide(element: HTMLElement): void {
     element.style.clip = "rect(0 0 0 0)";
     element.style.clipPath = "inset(50%)";
     element.style.whiteSpace = "nowrap";
-}
-
-function removeIdReference(value: string | null, id: string): string | null {
-    const nextValue = (value ?? "")
-        .split(/\s+/)
-        .filter((item) => item && item !== id)
-        .join(" ");
-
-    return nextValue || null;
-}
-
-function joinIdReferences(value: string | null, id: string): string {
-    const ids = new Set((value ?? "").split(/\s+/).filter(Boolean));
-    ids.add(id);
-
-    return Array.from(ids).join(" ");
 }
 
 /**
@@ -139,18 +124,18 @@ export function createControlHint(
     function syncDescription(): void {
         if (shouldUseDescription() && hint) {
             const description = ensureDescriptionElement();
-            const current = removeIdReference(
+            const current = removeAriaReferenceId(
                 element.getAttribute("aria-describedby"),
                 description.id
             );
 
             description.textContent = hint;
-            element.setAttribute("aria-describedby", joinIdReferences(current, description.id));
+            element.setAttribute("aria-describedby", addAriaReferenceId(current, description.id));
             return;
         }
 
         if (descriptionElement) {
-            const current = removeIdReference(
+            const current = removeAriaReferenceId(
                 element.getAttribute("aria-describedby"),
                 descriptionElement.id
             );

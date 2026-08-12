@@ -22,7 +22,13 @@ import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 import { createScrollLock } from "../../../core/src/scroll";
-import type { Dialog, DialogOptions, DialogSize, DialogVariant } from "./types";
+import type {
+    Dialog,
+    DialogOptions,
+    DialogSize,
+    DialogUpdateOptions,
+    DialogVariant
+} from "./types";
 
 function isHTMLElement(value: Element | null): value is HTMLElement {
     return value instanceof HTMLElement;
@@ -341,7 +347,7 @@ export function createDialog(
             return behavior.isOpen();
         },
 
-        update(nextOptions): void {
+        update(nextOptions: DialogUpdateOptions): void {
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }

@@ -2,6 +2,7 @@ import { createId } from "../../../core/src/id";
 import {
     applyCompositionElementOptions,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     type BaseCompositionOptions
 } from "../composition";
@@ -115,10 +116,6 @@ interface SelectItemNode {
     value: string;
     option: HTMLOptionElement;
     disabled: boolean;
-}
-
-function getElementText(element: HTMLElement, fallback: string): string {
-    return element.textContent?.trim() || fallback;
 }
 
 function getUniqueValue(

@@ -8,7 +8,8 @@ import {
 import {
     Dialog,
     type ComposedDialog,
-    type DialogCompositionOptions
+    type DialogCompositionOptions,
+    type DialogCompositionUpdateOptions
 } from "../dialog";
 
 /**
@@ -76,6 +77,25 @@ export interface AlertDialogCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedAlertDialog.update().
+ *
+ * defaultOpen, trapFocus, restoreFocus, fallbackFocus, and overlay stack wiring
+ * are creation-time options inherited from Dialog.
+ */
+export interface AlertDialogCompositionUpdateOptions
+    extends Partial<
+        Omit<
+            AlertDialogCompositionOptions,
+            | "defaultOpen"
+            | "trapFocus"
+            | "restoreFocus"
+            | "fallbackFocus"
+            | "useOverlayStack"
+            | "overlayStack"
+        >
+    > {}
+
+/**
  * Alert dialog created by the composition API.
  *
  * It exposes the underlying dialog controller plus direct access to the cancel
@@ -89,7 +109,7 @@ export interface ComposedAlertDialog
     setConfirmText(text: string): void;
     setCancelDisabled(disabled: boolean): void;
     setConfirmDisabled(disabled: boolean): void;
-    update(options: Partial<AlertDialogCompositionOptions>): void;
+    update(options: AlertDialogCompositionUpdateOptions): void;
     destroy(): void;
 }
 
@@ -177,6 +197,47 @@ function assignDialogOptions(
     }
 }
 
+function assignDialogUpdateOptions(
+    target: DialogCompositionUpdateOptions,
+    options: AlertDialogCompositionUpdateOptions
+): void {
+    if (options.id !== undefined) target.id = options.id;
+    if (options.className !== undefined) target.className = options.className;
+    if (options.attributes !== undefined) target.attributes = options.attributes;
+    if (options.trigger !== undefined) target.trigger = options.trigger;
+    if (options.title !== undefined) target.title = options.title;
+    if (options.description !== undefined) target.description = options.description;
+    if (options.titleId !== undefined) target.titleId = options.titleId;
+    if (options.descriptionId !== undefined) target.descriptionId = options.descriptionId;
+    if (options.children !== undefined) target.children = options.children;
+    if (options.open !== undefined) target.open = options.open;
+    if (options.modal !== undefined) target.modal = options.modal;
+    if (options.lockScroll !== undefined) target.lockScroll = options.lockScroll;
+    if (options.closeOnEscape !== undefined) target.closeOnEscape = options.closeOnEscape;
+    if (options.dismissOnPointerDownOutside !== undefined) {
+        target.dismissOnPointerDownOutside = options.dismissOnPointerDownOutside;
+    }
+    if (options.dismissOnFocusOutside !== undefined) {
+        target.dismissOnFocusOutside = options.dismissOnFocusOutside;
+    }
+    if (options.variant !== undefined) target.variant = options.variant;
+    if (options.size !== undefined) target.size = options.size;
+    if (options.triggerVariant !== undefined) target.triggerVariant = options.triggerVariant;
+    if (options.triggerSize !== undefined) target.triggerSize = options.triggerSize;
+
+    if ("onEscapeKeyDown" in options) {
+        target.onEscapeKeyDown = options.onEscapeKeyDown ?? null;
+    }
+
+    if ("onPointerDownOutside" in options) {
+        target.onPointerDownOutside = options.onPointerDownOutside ?? null;
+    }
+
+    if ("onFocusOutside" in options) {
+        target.onFocusOutside = options.onFocusOutside ?? null;
+    }
+}
+
 function getDialogOptions(
     options: AlertDialogCompositionOptions,
     cancelButton: ComposedButton,
@@ -203,12 +264,12 @@ function getDialogOptions(
 }
 
 function getDialogUpdateOptions(
-    options: Partial<AlertDialogCompositionOptions>,
+    options: AlertDialogCompositionUpdateOptions,
     onOpenChange: (open: boolean) => void
-): Partial<DialogCompositionOptions> {
-    const dialogOptions: Partial<DialogCompositionOptions> = {};
+): DialogCompositionUpdateOptions {
+    const dialogOptions: DialogCompositionUpdateOptions = {};
 
-    assignDialogOptions(dialogOptions, options);
+    assignDialogUpdateOptions(dialogOptions, options);
 
     if ("onOpenChange" in options) {
         dialogOptions.onOpenChange = onOpenChange;
@@ -218,7 +279,7 @@ function getDialogUpdateOptions(
 }
 
 function getCancelButtonUpdateOptions(
-    options: Partial<AlertDialogCompositionOptions>
+    options: AlertDialogCompositionUpdateOptions
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {};
 
@@ -231,7 +292,7 @@ function getCancelButtonUpdateOptions(
 }
 
 function getConfirmButtonUpdateOptions(
-    options: Partial<AlertDialogCompositionOptions>
+    options: AlertDialogCompositionUpdateOptions
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {};
 
@@ -314,7 +375,7 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
             confirmButton.setDisabled(disabled);
         },
 
-        update(nextOptions: Partial<AlertDialogCompositionOptions>): void {
+        update(nextOptions: AlertDialogCompositionUpdateOptions): void {
             if ("onConfirm" in nextOptions) {
                 onConfirm = nextOptions.onConfirm ?? null;
             }

@@ -48,6 +48,12 @@ export interface IconButtonCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedIconButton.update().
+ */
+export interface IconButtonCompositionUpdateOptions
+    extends Partial<IconButtonCompositionOptions> {}
+
+/**
  * An icon button created by IconButton().
  * Includes accessible-name controls, pressed state, content updates, and cleanup.
  */
@@ -59,7 +65,7 @@ export interface ComposedIconButton extends Omit<IconButtonInstance, "element" |
     setSelected(selected: boolean): void;
     isSelected(): boolean;
     toggleSelected(force?: boolean): boolean;
-    update(options: Partial<IconButtonCompositionOptions>): void;
+    update(options: IconButtonCompositionUpdateOptions): void;
     destroy(): void;
 }
 
@@ -109,7 +115,7 @@ function getInitialControlHintOptions(
 }
 
 function getIconButtonOptions(
-    options: Partial<IconButtonCompositionOptions>,
+    options: IconButtonCompositionUpdateOptions,
     onPress: (event: Event) => void
 ): IconButtonOptions {
     const iconButtonOptions: IconButtonOptions = {
@@ -226,7 +232,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         }
     }
 
-    function updateControlHint(nextOptions: Partial<IconButtonCompositionOptions>): void {
+    function updateControlHint(nextOptions: IconButtonCompositionUpdateOptions): void {
         const hintOptions: ControlHintOptions = {};
 
         if ("hint" in nextOptions) {
@@ -272,7 +278,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         isSelected: selectedState.isSelected,
         toggleSelected: selectedState.toggleSelected,
 
-        update(nextOptions: Partial<IconButtonCompositionOptions>): void {
+        update(nextOptions: IconButtonCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {

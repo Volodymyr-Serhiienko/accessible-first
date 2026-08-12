@@ -2,6 +2,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -85,10 +86,6 @@ interface DescriptionListItemNode {
     details: HTMLElement;
     termSlot: ReturnType<typeof createContentSlot>;
     detailsSlot: ReturnType<typeof createContentSlot>;
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
 }
 
 function createItemNode(item: DescriptionListItem): DescriptionListItemNode {

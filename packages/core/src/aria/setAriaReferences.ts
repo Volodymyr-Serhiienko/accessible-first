@@ -26,6 +26,57 @@ function resolveReferenceId(reference: AriaReference, prefix: string): string | 
 }
 
 /**
+ * Splits a space-separated ARIA reference attribute value into stable ids.
+ */
+export function splitAriaReferenceIds(value: string | null | undefined): string[] {
+    return (value ?? "").split(/\s+/).filter(Boolean);
+}
+
+/**
+ * Adds one id to an existing ARIA reference attribute value.
+ */
+export function addAriaReferenceId(value: string | null | undefined, id: string): string {
+    const ids = new Set(splitAriaReferenceIds(value));
+    ids.add(id);
+
+    return Array.from(ids).join(" ");
+}
+
+/**
+ * Removes one id from an existing ARIA reference attribute value.
+ */
+export function removeAriaReferenceId(
+    value: string | null | undefined,
+    id: string
+): string | null {
+    const nextValue = splitAriaReferenceIds(value)
+        .filter((item) => item !== id)
+        .join(" ");
+
+    return nextValue || null;
+}
+
+/**
+ * Reads text from elements referenced by an ARIA relationship attribute.
+ */
+export function getAriaReferencedText(
+    element: HTMLElement,
+    attribute: AriaAttributeName
+): string {
+    const value = element.getAttribute(attribute);
+
+    if (!value) {
+        return "";
+    }
+
+    return splitAriaReferenceIds(value)
+        .map((id) => element.ownerDocument.getElementById(id)?.textContent?.trim() ?? "")
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+}
+
+/**
  * Sets an ARIA attribute that references other elements (e.g., aria-labelledby, aria-controls) 
  * by combining their IDs into a space-separated string.
  *

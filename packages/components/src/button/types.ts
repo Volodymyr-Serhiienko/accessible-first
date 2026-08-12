@@ -29,6 +29,11 @@ export interface ButtonOptions {
 }
 
 /**
+ * Options accepted by button.update().
+ */
+export interface ButtonUpdateOptions extends Partial<ButtonOptions> {}
+
+/**
  * Button behavior controller returned by createButton().
  */
 export interface Button extends Component {
@@ -36,5 +41,5 @@ export interface Button extends Component {
     isDisabled(): boolean;
     setPressed(pressed: ButtonPressedState): void;
     getPressed(): ButtonPressedState;
-    update(options: Partial<ButtonOptions>): void;
+    update(options: ButtonUpdateOptions): void;
 }

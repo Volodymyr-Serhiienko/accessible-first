@@ -11,7 +11,7 @@ import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 
 import type { ButtonPressedState } from "../button";
-import type { IconButton, IconButtonOptions } from "./types";
+import type { IconButton, IconButtonOptions, IconButtonUpdateOptions } from "./types";
 
 function isNativeButton(element: HTMLElement): element is HTMLButtonElement {
     return element.localName === "button";
@@ -228,7 +228,7 @@ export function createIconButton(
         setLabel,
         setLabelledBy,
 
-        update(nextOptions: Partial<IconButtonOptions>): void {
+        update(nextOptions: IconButtonUpdateOptions): void {
             if (nextOptions.disabled !== undefined) {
                 setDisabled(nextOptions.disabled);
             }

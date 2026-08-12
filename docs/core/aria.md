@@ -34,7 +34,20 @@ Sets an ARIA attribute that references other elements (e.g., aria-labelledby, ar
 by combining their IDs into a space-separated string.
 
 ```ts
-setAriaReferences(element: HTMLElement, name: AriaAttributeName, references: AriaReferences,prefix = "af"): void
+setAriaReferences(element: HTMLElement, name: AriaAttributeName, references: AriaReferences, prefix = "af"): void
+```
+
+---
+
+### Reference value helpers
+
+These helpers manipulate space-separated ARIA reference attribute values while preserving unrelated ids.
+
+```ts
+splitAriaReferenceIds(value: string | null | undefined): string[]
+addAriaReferenceId(value: string | null | undefined, id: string): string
+removeAriaReferenceId(value: string | null | undefined, id: string): string | null
+getAriaReferencedText(element: HTMLElement, attribute: AriaAttributeName): string
 ```
 
 ---

@@ -7,6 +7,7 @@ export type {
     LinkOptions,
     LinkSize,
     LinkTarget,
+    LinkUpdateOptions,
     LinkVariant
 } from "./types";
-export type { ComposedLink, LinkCompositionOptions } from "./composeLink";
+export type { ComposedLink, LinkCompositionOptions, LinkCompositionUpdateOptions } from "./composeLink";

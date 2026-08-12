@@ -1,6 +1,28 @@
-import { Breadcrumbs, Grid, H3, P, Panel, Section, Stack, type ComposedNode } from "../af";
+import { Breadcrumbs, Button, Grid, H3, P, Panel, Section, Stack, type ComposedNode } from "../af";
+import { announce } from "../status";
 
 export function BreadcrumbsDemo(): ComposedNode {
+    let compactSeparator = false;
+    const liveBreadcrumbs = Breadcrumbs({
+        items: [
+            { label: "Settings", href: "#" },
+            { label: "Account", href: "#" },
+            { label: "Security" }
+        ]
+    });
+    const separatorButton = Button({
+        text: "Use arrow separator",
+        variant: "secondary",
+        onPress() {
+            compactSeparator = !compactSeparator;
+            const separator = compactSeparator ? ">" : "/";
+
+            liveBreadcrumbs.update({ separator });
+            separatorButton.setText(compactSeparator ? "Use slash separator" : "Use arrow separator");
+            announce(`Breadcrumb separator changed to ${separator}.`);
+        }
+    });
+
     return Section({
         id: "breadcrumbs",
         title: "Breadcrumbs",
@@ -38,15 +60,9 @@ export function BreadcrumbsDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Custom separator"),
-                        P("Separators are visible but hidden from assistive technologies."),
-                        Breadcrumbs({
-                            separator: ">",
-                            items: [
-                                { label: "Settings", href: "#" },
-                                { label: "Account", href: "#" },
-                                { label: "Security" }
-                            ]
-                        })
+                        P("Separators are visible but hidden from assistive technologies. This example updates separators without rebuilding breadcrumb items."),
+                        liveBreadcrumbs,
+                        separatorButton
                     )
                 )
             )

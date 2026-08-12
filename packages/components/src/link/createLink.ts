@@ -5,7 +5,7 @@ import { isEnterKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 
-import type { Link, LinkCurrent, LinkOptions, LinkTarget } from "./types";
+import type { Link, LinkCurrent, LinkOptions, LinkTarget, LinkUpdateOptions } from "./types";
 
 function isAnchorElement(element: HTMLElement): element is HTMLAnchorElement {
     return element.localName === "a";
@@ -258,7 +258,7 @@ export function createLink(
         setExternal,
         setCurrent,
 
-        update(nextOptions: Partial<LinkOptions>): void {
+        update(nextOptions: LinkUpdateOptions): void {
             if ("href" in nextOptions) {
                 setHref(nextOptions.href ?? null);
             }

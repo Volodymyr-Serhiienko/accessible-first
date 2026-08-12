@@ -62,6 +62,14 @@ export interface DisclosureOptions {
 }
 
 /**
+ * Options accepted by disclosure.update().
+ *
+ * trigger, panel, and defaultOpen are creation-time options.
+ */
+export interface DisclosureUpdateOptions
+    extends Partial<Omit<DisclosureOptions, "trigger" | "panel" | "defaultOpen">> {}
+
+/**
  * Disclosure behavior controller returned by createDisclosure().
  */
 export interface Disclosure extends Component {
@@ -74,5 +82,5 @@ export interface Disclosure extends Component {
     isOpen(): boolean;
     setDisabled(disabled: boolean): void;
     isDisabled(): boolean;
-    update(options: Partial<DisclosureOptions>): void;
+    update(options: DisclosureUpdateOptions): void;
 }

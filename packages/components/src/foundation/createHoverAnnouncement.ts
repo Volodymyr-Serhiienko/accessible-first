@@ -1,3 +1,4 @@
+import { getAriaReferencedText } from "../../../core/src/aria";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
 
@@ -33,23 +34,10 @@ function normalizeMessage(message: string | null | undefined): string | null {
     return trimmed ? trimmed : null;
 }
 
-function getReferencedText(element: HTMLElement, attribute: string): string {
-    const value = element.getAttribute(attribute);
-
-    if (!value) return "";
-
-    return value
-        .split(/\s+/)
-        .map((id) => element.ownerDocument.getElementById(id)?.textContent?.trim() ?? "")
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-}
-
 function getElementAnnouncementText(element: HTMLElement): string | null {
     return normalizeMessage(
         element.getAttribute("aria-label")
-        || getReferencedText(element, "aria-labelledby")
+        || getAriaReferencedText(element, "aria-labelledby")
         || element.textContent
     );
 }

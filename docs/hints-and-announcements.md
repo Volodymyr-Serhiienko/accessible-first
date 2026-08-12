@@ -75,17 +75,16 @@ For simple controls, `hintDisplay` supports:
 - `"both"` - `aria-describedby` plus visual tooltip.
 - `"none"` - stores no hint output.
 
-Components with a visible layout wrapper, such as future fields and settings groups, should support visible helper text:
+Components with a visible layout wrapper, such as fields and settings groups, should expose visible helper text through component-specific description options:
 
 ```ts
 Checkbox({
     label: "Email updates",
-    hint: "We send product updates no more than once a week.",
-    hintDisplay: "visible"
+    description: "We send product updates no more than once a week."
 });
 ```
 
-This keeps the common mental model stable while allowing each component to choose the safest visual rendering it can support.
+This keeps the common mental model stable without adding unsupported global hint modes. If a future component needs a dedicated visible hint alias, it should document that component-specific option explicitly.
 
 ## Tooltip Rules
 

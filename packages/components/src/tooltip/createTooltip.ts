@@ -1,3 +1,4 @@
+import { addAriaReferenceId, getAriaReferencedText } from "../../../core/src/aria";
 import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
@@ -29,25 +30,6 @@ export interface Tooltip {
 function normalizeText(text: string | null | undefined): string | null {
     const trimmed = text?.trim();
     return trimmed ? trimmed : null;
-}
-
-function getReferencedText(element: HTMLElement, attribute: string): string {
-    const value = element.getAttribute(attribute);
-    if (!value) return "";
-
-    return value
-        .split(/\s+/)
-        .map((id) => element.ownerDocument.getElementById(id)?.textContent?.trim() ?? "")
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-}
-
-function joinIdReferences(current: string | null, id: string): string {
-    const ids = new Set((current ?? "").split(/\s+/).filter(Boolean));
-    ids.add(id);
-
-    return Array.from(ids).join(" ");
 }
 
 /**
@@ -133,7 +115,7 @@ export function createTooltip(
         return (
             text
             || element.getAttribute("aria-label")?.trim()
-            || getReferencedText(element, "aria-labelledby")
+            || getAriaReferencedText(element, "aria-labelledby")
             || element.textContent?.trim()
             || ""
         );
@@ -186,7 +168,7 @@ export function createTooltip(
             content.textContent = text;
             element.setAttribute(
                 "aria-describedby",
-                joinIdReferences(originalDescribedBy, content.id)
+                addAriaReferenceId(originalDescribedBy, content.id)
             );
 
             return;

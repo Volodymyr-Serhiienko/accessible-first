@@ -20,7 +20,8 @@ import { createDialog } from "./createDialog";
 import { createId } from "../../../core/src/id";
 import type {
     Dialog as DialogInstance,
-    DialogOptions
+    DialogOptions,
+    DialogUpdateOptions
 } from "./types";
 
 /**
@@ -78,6 +79,27 @@ export interface DialogCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedDialog.update().
+ *
+ * Focus-trap setup, initial focus presets, defaultOpen, and overlay stack
+ * wiring are creation-time options.
+ */
+export interface DialogCompositionUpdateOptions
+    extends Partial<
+        Omit<
+            DialogCompositionOptions,
+            | "defaultOpen"
+            | "trapFocus"
+            | "restoreFocus"
+            | "initialFocus"
+            | "fallbackFocus"
+            | "initialFocusTarget"
+            | "useOverlayStack"
+            | "overlayStack"
+        >
+    > {}
+
+/**
  * Dialog created by the composition API.
  */
 export interface ComposedDialog
@@ -91,7 +113,7 @@ export interface ComposedDialog
     setDescription(description: string | null): void;
     setContent(children: CompositionChild[]): void;
     setActions(actions: DialogCompositionContent | null): void;
-    update(options: Partial<DialogCompositionOptions>): void;
+    update(options: DialogCompositionUpdateOptions): void;
     destroy(): void;
 }
 
@@ -210,7 +232,7 @@ function getTriggerButtonOptions(
 }
 
 function getTriggerButtonUpdateOptions(
-    options: Partial<DialogCompositionOptions>
+    options: DialogCompositionUpdateOptions
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {};
 
@@ -230,12 +252,12 @@ function getTriggerButtonUpdateOptions(
 }
 
 function getDialogUpdateOptions(
-    options: Partial<DialogCompositionOptions>,
+    options: DialogCompositionUpdateOptions,
     description: HTMLElement,
     descriptionMode: DialogDescriptionMode,
     onOpenChange: (open: boolean) => void
-): Partial<DialogOptions> {
-    const dialogOptions: Partial<DialogOptions> = {};
+): DialogUpdateOptions {
+    const dialogOptions: DialogUpdateOptions = {};
 
     if ("onOpenChange" in options) {
         dialogOptions.onOpenChange = onOpenChange;

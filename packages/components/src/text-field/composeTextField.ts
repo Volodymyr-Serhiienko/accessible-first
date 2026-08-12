@@ -5,6 +5,7 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type CompositionContent,
@@ -135,7 +136,7 @@ export interface TextFieldCompositionOptions
     type?: TextFieldInputType;
     variant?: TextFieldVariant;
     size?: TextFieldSize;
-        validateOnBlur?: boolean;
+    validateOnBlur?: boolean;
     validateOnInput?: boolean;
     showValidState?: boolean;
     announceValidation?: boolean;
@@ -178,14 +179,6 @@ export interface ComposedTextField
 
 function isTextAreaElement(element: TextFieldElement): element is HTMLTextAreaElement {
     return element.localName === "textarea";
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
 }
 
 function getControlAttributes(options: TextFieldCompositionOptions): ElementAttributes {

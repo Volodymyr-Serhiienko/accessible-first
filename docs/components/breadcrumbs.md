@@ -102,6 +102,10 @@ breadcrumbs.update({
 });
 ```
 
+Updating `separator` changes existing separators in place. It does not rebuild the item list, so existing item DOM nodes and links remain stable.
+
+Updating `items` or calling `setItems()` replaces the breadcrumb item list.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="breadcrumbs"]`, `[data-af-breadcrumbs-list]`, `[data-af-breadcrumbs-item]`, `[data-af-breadcrumbs-content]`, `[data-af-breadcrumbs-link]`, `[data-af-breadcrumbs-separator]`, `[aria-current]`, `[data-af-variant]`, and `[data-af-size]`.

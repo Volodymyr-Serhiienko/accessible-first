@@ -96,6 +96,12 @@ Use `description` for a short explanation that helps the user understand the dia
 
 Use `descriptionMode: "content"` when the description is long, when it is repeated in the main body, or when screen reader testing shows that the same text is being spoken twice.
 
+## Update Notes
+
+`dialog.update()` accepts runtime content, visual, and behavior options such as `open`, `modal`, `lockScroll`, `closeOnEscape`, outside-dismiss options, `title`, `description`, `children`, `actions`, `variant`, and `size`.
+
+Creation-time focus and stack wiring options are intentionally not updateable: `defaultOpen`, `trapFocus`, `restoreFocus`, `initialFocus`, `fallbackFocus`, `initialFocusTarget`, `useOverlayStack`, and `overlayStack`. Create a new dialog when those contracts need to change.
+
 ## Styling
 
 Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, `[data-af-dialog-actions]`, and the shared ActionsBar hooks `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, and `[data-af-actions-bar-primary]`.

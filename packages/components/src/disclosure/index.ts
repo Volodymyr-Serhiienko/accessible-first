@@ -9,11 +9,13 @@ export type {
     DisclosureAnnouncementOptions,
     DisclosureOptions,
     DisclosureSize,
+    DisclosureUpdateOptions,
     DisclosureVariant
 } from "./types";
 export type {
     ComposedDisclosure,
     DisclosureCompositionContent,
     DisclosureCompositionOptions,
+    DisclosureCompositionUpdateOptions,
     DisclosureDescriptionMode
 } from "./composeDisclosure";

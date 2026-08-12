@@ -5,6 +5,7 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type CompositionContent
@@ -77,14 +78,6 @@ export interface ComposedSwitch
     setErrorMessage(content: SwitchCompositionContent | null): void;
     update(options: SwitchCompositionUpdateOptions): void;
     destroy(): void;
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
 }
 
 function getSwitchOptions(

@@ -91,6 +91,41 @@ section.setActions(Button({ text: "Save profile", variant: "primary" }));
 
 `headingLevel` is creation-time only. Create a new section if the document outline changes.
 
+## Validation Actions
+
+`FormSection` does not collect or submit validation results by itself. For small demos or local settings panels, keep references to the fields that should be checked and call their `validate()` methods from the section action.
+
+```ts
+const displayName = TextField({
+    label: "Display name",
+    required: true
+});
+
+const email = TextField({
+    label: "Email",
+    type: "email"
+});
+
+FormSection({
+    title: "Profile",
+    children: [displayName, email],
+    actions: Button({
+        text: "Save profile",
+        variant: "primary",
+        onPress() {
+            const results = [displayName, email].map((field) => field.validate());
+            const firstInvalid = results.findIndex((result) => !result.valid);
+
+            if (firstInvalid >= 0) {
+                [displayName, email][firstInvalid]?.control.focus();
+            }
+        }
+    })
+});
+```
+
+A future `Form` composition layer should provide this collection and submit-validation behavior as a reusable pattern.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="form-section"]`, `[data-af-form-section-header]`, `[data-af-form-section-heading]`, `[data-af-form-section-description]`, `[data-af-form-section-body]`, `[data-af-form-section-actions]`, `[data-af-variant]`, `[data-af-size]`, and the shared ActionsBar hooks `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, and `[data-af-actions-bar-primary]`.

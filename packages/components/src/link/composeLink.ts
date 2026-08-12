@@ -40,6 +40,11 @@ export interface LinkCompositionOptions
 }
 
 /**
+ * Options accepted by ComposedLink.update().
+ */
+export interface LinkCompositionUpdateOptions extends Partial<LinkCompositionOptions> {}
+
+/**
  * A link created by Link().
  * Includes the enhanced link behavior plus content and lifecycle helpers.
  */
@@ -47,12 +52,12 @@ export interface ComposedLink extends Omit<LinkInstance, "element" | "update" | 
     readonly element: HTMLAnchorElement;
     setText(text: string): void;
     setHint(hint: string | null): void;
-    update(options: Partial<LinkCompositionOptions>): void;
+    update(options: LinkCompositionUpdateOptions): void;
     destroy(): void;
 }
 
 function getControlHintOptions(
-    options: Partial<LinkCompositionOptions>
+    options: LinkCompositionUpdateOptions
 ): ControlHintOptions {
     const hintOptions: ControlHintOptions = {};
 
@@ -79,7 +84,7 @@ function getChildren(options: LinkCompositionOptions): CompositionChild[] {
 }
 
 function getLinkOptions(
-    options: Partial<LinkCompositionOptions>,
+    options: LinkCompositionUpdateOptions,
     onNavigate: (event: Event) => void
 ): LinkOptions {
     const linkOptions: LinkOptions = {
@@ -153,7 +158,7 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
         setText,
         setHint: controlHint.setHint,
 
-        update(nextOptions: Partial<LinkCompositionOptions>): void {
+        update(nextOptions: LinkCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onNavigate" in nextOptions) {

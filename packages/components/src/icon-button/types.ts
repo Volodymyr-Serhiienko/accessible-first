@@ -23,6 +23,11 @@ export interface IconButtonOptions {
 }
 
 /**
+ * Options accepted by iconButton.update().
+ */
+export interface IconButtonUpdateOptions extends Partial<IconButtonOptions> {}
+
+/**
  * Icon button behavior controller returned by createIconButton().
  */
 export interface IconButton extends Component {
@@ -32,5 +37,5 @@ export interface IconButton extends Component {
     getPressed(): ButtonPressedState;
     setLabel(label: string | null): void;
     setLabelledBy(labelledBy: AriaReferences): void;
-    update(options: Partial<IconButtonOptions>): void;
+    update(options: IconButtonUpdateOptions): void;
 }

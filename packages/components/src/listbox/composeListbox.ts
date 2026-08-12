@@ -3,6 +3,7 @@ import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -147,10 +148,6 @@ interface ListboxItemNode {
     hoverAnnouncement: ReturnType<typeof createHoverAnnouncement>;
     announceOnHover: boolean | undefined;
     disabled: boolean;
-}
-
-function getElementText(element: HTMLElement, fallback: string): string {
-    return element.textContent?.trim() || fallback;
 }
 
 function getListboxOptionText(option: HTMLElement, itemNodes: ListboxItemNode[]): string {

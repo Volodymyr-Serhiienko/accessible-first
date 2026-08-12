@@ -16,7 +16,8 @@ import type {
     DisclosureAnnouncement,
     DisclosureAnnouncementContext,
     DisclosureAnnouncementMessage,
-    DisclosureOptions
+    DisclosureOptions,
+    DisclosureUpdateOptions
 } from "./types";
 
 function normalizeAnnouncementText(value: string): string {
@@ -246,7 +247,7 @@ export function createDisclosure(
             return behavior.isDisabled();
         },
 
-        update(nextOptions: Partial<DisclosureOptions>): void {
+        update(nextOptions: DisclosureUpdateOptions): void {
             if (nextOptions.open !== undefined) {
                 setOpen(nextOptions.open);
             }

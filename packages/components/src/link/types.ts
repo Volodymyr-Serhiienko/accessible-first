@@ -36,6 +36,11 @@ export interface LinkOptions {
 }
 
 /**
+ * Options accepted by link.update().
+ */
+export interface LinkUpdateOptions extends Partial<LinkOptions> {}
+
+/**
  * Link behavior controller returned by createLink().
  */
 export interface Link extends Component {
@@ -45,5 +50,5 @@ export interface Link extends Component {
     isDisabled(): boolean;
     setExternal(external: boolean): void;
     setCurrent(current: LinkCurrent): void;
-    update(options: Partial<LinkOptions>): void;
+    update(options: LinkUpdateOptions): void;
 }

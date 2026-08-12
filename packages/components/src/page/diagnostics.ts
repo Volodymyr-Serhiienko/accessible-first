@@ -1,3 +1,4 @@
+import { getAriaReferencedText } from "../../../core/src/aria";
 import type {
     PageDiagnosticsIssue,
     PageDiagnosticsOptions,
@@ -18,21 +19,6 @@ function createIssue(
     }
 
     return issue;
-}
-
-function getReferencedText(element: HTMLElement, attribute: string): string {
-    const value = element.getAttribute(attribute);
-
-    if (!value) {
-        return "";
-    }
-
-    return value
-        .split(/\s+/)
-        .map((id) => element.ownerDocument.getElementById(id)?.textContent?.trim() ?? "")
-        .filter(Boolean)
-        .join(" ")
-        .trim();
 }
 
 function getControlLabelText(element: HTMLElement): string {
@@ -56,7 +42,7 @@ function getControlLabelText(element: HTMLElement): string {
 function hasAccessibleName(element: HTMLElement): boolean {
     return Boolean(
         element.getAttribute("aria-label")?.trim()
-        || getReferencedText(element, "aria-labelledby")
+        || getAriaReferencedText(element, "aria-labelledby")
         || getControlLabelText(element)
         || element.textContent?.trim()
         || element.getAttribute("title")?.trim()

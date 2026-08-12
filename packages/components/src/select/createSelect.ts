@@ -1,7 +1,7 @@
 import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
-import type { Select, SelectChangeDetail, SelectOptions, SelectSize, SelectValue, SelectVariant } from "./types";
+import type { Select, SelectChangeDetail, SelectOptions, SelectSize, SelectUpdateOptions, SelectValue, SelectVariant } from "./types";
 
 function toValueArray(value: SelectValue): string[] {
     return Array.isArray(value) ? value : [value];
@@ -215,7 +215,7 @@ export function createSelect(
             return multiple;
         },
 
-        update(nextOptions): void {
+        update(nextOptions: SelectUpdateOptions): void {
             if (nextOptions.disabled !== undefined) {
                 this.setDisabled(nextOptions.disabled);
             }

@@ -1,8 +1,14 @@
-import { setAriaLabelledBy, setRole } from "../../../core/src/aria";
+import {
+    addAriaReferenceId,
+    removeAriaReferenceId,
+    setAriaLabelledBy,
+    setRole
+} from "../../../core/src/aria";
 import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
+    getElementText,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -19,7 +25,8 @@ import type {
     AccordionItemOptions,
     AccordionOpenChangeDetail,
     AccordionOptions,
-    AccordionPanelRole
+    AccordionPanelRole,
+    AccordionUpdateOptions
 } from "./types";
 
 /**
@@ -170,29 +177,13 @@ function hasDescription(value: string | null | undefined): value is string {
 }
 
 function getDescriptionText(description: HTMLElement): string {
-    return description.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    return getElementText(description);
 }
 
 function getDescriptionAnnouncement(description: HTMLElement): DisclosureAnnouncement | undefined {
     const text = getDescriptionText(description);
 
     return text || undefined;
-}
-
-function removeIdReference(value: string | null, id: string): string | null {
-    const nextValue = (value ?? "")
-        .split(/\s+/)
-        .filter((item) => item && item !== id)
-        .join(" ");
-
-    return nextValue || null;
-}
-
-function joinIdReferences(value: string | null, id: string): string {
-    const ids = new Set((value ?? "").split(/\s+/).filter(Boolean));
-    ids.add(id);
-
-    return Array.from(ids).join(" ");
 }
 
 function shouldUseAriaDescription(
@@ -206,7 +197,10 @@ function removeTriggerDescriptionReference(
     node: AccordionItemNodes,
     descriptionId = node.description.id
 ): void {
-    const current = removeIdReference(node.trigger.getAttribute("aria-describedby"), descriptionId);
+    const current = removeAriaReferenceId(
+        node.trigger.getAttribute("aria-describedby"),
+        descriptionId
+    );
 
     if (current) {
         node.trigger.setAttribute("aria-describedby", current);
@@ -217,13 +211,16 @@ function removeTriggerDescriptionReference(
 }
 
 function syncTriggerDescription(node: AccordionItemNodes): void {
-    const current = removeIdReference(
+    const current = removeAriaReferenceId(
         node.trigger.getAttribute("aria-describedby"),
         node.description.id
     );
 
     if (shouldUseAriaDescription(node.descriptionMode, node.description)) {
-        node.trigger.setAttribute("aria-describedby", joinIdReferences(current, node.description.id));
+        node.trigger.setAttribute(
+            "aria-describedby",
+            addAriaReferenceId(current, node.description.id)
+        );
         return;
     }
 
@@ -393,8 +390,8 @@ function getAccordionOptions(
 function getAccordionUpdateOptions(
     options: AccordionCompositionUpdateOptions,
     onOpenChange: (detail: AccordionOpenChangeDetail) => void
-): Partial<Omit<AccordionOptions, "items">> {
-    const accordionOptions: Partial<Omit<AccordionOptions, "items">> = {};
+): AccordionUpdateOptions {
+    const accordionOptions: AccordionUpdateOptions = {};
 
     if (options.multiple !== undefined) accordionOptions.multiple = options.multiple;
     if (options.collapsible !== undefined) accordionOptions.collapsible = options.collapsible;

@@ -18,6 +18,7 @@ import type {
     AccordionOpenChangeDetail,
     AccordionOptions,
     AccordionSize,
+    AccordionUpdateOptions,
     AccordionVariant
 } from "./types";
 
@@ -470,7 +471,7 @@ export function createAccordion(
             // All accordion triggers remain in the normal Tab sequence.
         },
 
-        update(nextOptions): void {
+        update(nextOptions: AccordionUpdateOptions): void {
             if (nextOptions.multiple !== undefined) {
                 multiple = nextOptions.multiple;
             }

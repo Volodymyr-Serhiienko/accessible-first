@@ -4,6 +4,7 @@ import {
     createContentSlot,
     createElement,
     getCompositionElementOptions,
+    hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
     type ComposedNode,
@@ -78,14 +79,6 @@ export interface ComposedFieldGroup extends ComposedNode<HTMLFieldSetElement> {
     setOrientation(orientation: FieldGroupOrientation): void;
     update(options: FieldGroupUpdateOptions): void;
     destroy(): void;
-}
-
-function getElementText(element: HTMLElement): string {
-    return element.textContent?.replace(/\s+/g, " ").trim() ?? "";
-}
-
-function hasVisibleContent(element: HTMLElement): boolean {
-    return getElementText(element).length > 0;
 }
 
 function hasInvalidState(invalid: FormFieldInvalidState): boolean {
