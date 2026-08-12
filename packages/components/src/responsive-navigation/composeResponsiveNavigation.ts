@@ -28,6 +28,11 @@ import {
 export type ResponsiveNavigationTriggerContent = CompositionContent;
 
 /**
+ * Side where the mobile trigger menu icon is shown.
+ */
+export type ResponsiveNavigationTriggerIconPosition = "start" | "end";
+
+/**
  * Options passed to the internal desktop or mobile Navigation.
  */
 export type ResponsiveNavigationListOptions = Omit<NavigationOptions, "items" | "onNavigate">;
@@ -54,6 +59,7 @@ export type ResponsiveNavigationOnNavigate = (
 export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
     items: NavigationItem[];
     trigger?: ResponsiveNavigationTriggerContent;
+    triggerIconPosition?: ResponsiveNavigationTriggerIconPosition;
     current?: string | null;
     variant?: NavigationVariant;
     mobileVariant?: NavigationVariant;
@@ -145,7 +151,8 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     let composed!: ComposedResponsiveNavigation;
     let items = options.items;
     let variant: NavigationVariant = options.variant ?? "pills";
-    let mobileVariant: NavigationVariant = options.mobileVariant ?? "plain";
+    let mobileVariant: NavigationVariant = options.mobileVariant ?? "pills";
+    let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "end";
     let size: NavigationSize = options.size ?? "md";
     let closeOnNavigate = options.closeOnNavigate ?? true;
     let onNavigate = options.onNavigate ?? null;
@@ -193,6 +200,15 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     mobileDisclosure.panel.setAttribute("data-af-responsive-navigation-panel", "");
     mobileNavigation.element.setAttribute("data-af-responsive-navigation-mobile-list", "");
 
+    function syncTriggerIconPosition(): void {
+        mobileDisclosure.trigger.setAttribute(
+            "data-af-trigger-icon-position",
+            triggerIconPosition
+        );
+    }
+
+    syncTriggerIconPosition();
+
     element.append(desktopNavigation.element, mobileDisclosure.element);
 
     function syncCurrent(): void {
@@ -230,6 +246,9 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
 
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.mobileVariant !== undefined) mobileVariant = nextOptions.mobileVariant;
+            if (nextOptions.triggerIconPosition !== undefined) {
+                triggerIconPosition = nextOptions.triggerIconPosition;
+            }
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if (nextOptions.closeOnNavigate !== undefined) closeOnNavigate = nextOptions.closeOnNavigate;
 
@@ -266,6 +285,8 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             if ("trigger" in nextOptions) {
                 mobileDisclosure.setTriggerContent(getTriggerContent(nextOptions.trigger));
             }
+
+            syncTriggerIconPosition();
 
             if ("current" in nextOptions) {
                 setCurrent(nextOptions.current ?? null);

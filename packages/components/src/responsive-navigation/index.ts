@@ -7,5 +7,6 @@ export type {
     ResponsiveNavigationOnNavigate,
     ResponsiveNavigationOptions,
     ResponsiveNavigationTriggerContent,
+    ResponsiveNavigationTriggerIconPosition,
     ResponsiveNavigationUpdateOptions
 } from "./composeResponsiveNavigation";

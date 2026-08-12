@@ -3,7 +3,28 @@
 }
 
 [data-af-responsive-navigation-desktop] {
+    --af-responsive-navigation-focus-space: calc(
+        var(--af-focus-ring-width) + var(--af-focus-ring-offset)
+    );
+
     display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block-start: var(--af-responsive-navigation-focus-space);
+    padding-block-end: calc(var(--af-responsive-navigation-focus-space) + var(--af-space-2));
+    padding-inline: var(--af-responsive-navigation-focus-space);
+    scrollbar-gutter: stable;
+    scroll-padding-inline: var(--af-responsive-navigation-focus-space);
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-af-responsive-navigation-desktop] [data-af-navigation-item] {
+    flex: 0 0 auto;
+}
+
+[data-af-responsive-navigation-desktop] [data-af-navigation-link] {
+    white-space: nowrap;
 }
 
 [data-af-responsive-navigation-mobile] {
@@ -24,6 +45,18 @@
         linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
         linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat;
     transform: none;
+}
+
+[data-af-responsive-navigation-trigger][data-af-trigger-icon-position="end"] {
+    justify-content: space-between;
+}
+
+[data-af-responsive-navigation-trigger][data-af-trigger-icon-position="start"] {
+    justify-content: flex-start;
+}
+
+[data-af-responsive-navigation-trigger][data-af-trigger-icon-position="start"]::after {
+    order: -1;
 }
 
 [data-af-responsive-navigation-trigger][aria-expanded="true"]::after {

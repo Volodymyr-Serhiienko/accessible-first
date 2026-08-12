@@ -59,7 +59,7 @@ const navigation = ResponsiveNavigation({
 ## Behavior
 
 - Uses the same `items` for desktop and mobile layouts.
-- Shows normal navigation on wider screens.
+- Shows normal navigation on wider screens and keeps long desktop navigation in one horizontal scroll line.
 - Shows a disclosure-style menu trigger on small screens.
 - Closes the mobile menu after a navigation item is activated by default.
 - Keeps links as real anchors, so multi-page navigation works without a router.
@@ -70,9 +70,10 @@ const navigation = ResponsiveNavigation({
 
 - `items` - Required navigation items.
 - `trigger` - Mobile trigger content. Defaults to `"Menu"`.
+- `triggerIconPosition` - Mobile trigger icon side: `"end"` or `"start"`. Defaults to `"end"`.
 - `current` - Optional current item match by item `id` or `href`.
 - `variant` - Desktop navigation variant. Defaults to `"pills"`.
-- `mobileVariant` - Mobile navigation variant. Defaults to `"plain"`.
+- `mobileVariant` - Mobile navigation variant. Defaults to `"pills"`.
 - `size` - `"md"`.
 - `closeOnNavigate` - Closes the mobile disclosure after navigation. Defaults to `true`.
 - `desktopNavigationOptions` - Options passed to the desktop `Navigation`.
@@ -100,7 +101,7 @@ Updating `items` updates both desktop and mobile navigation lists.
 
 ## Styling
 
-Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, and `[data-af-responsive-navigation-panel]`.
+Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, `[data-af-trigger-icon-position]`, and `[data-af-responsive-navigation-panel]`.
 
 The default breakpoint is intentionally conservative. Application shells can override layout with their own CSS when they need a different breakpoint.
 
@@ -110,6 +111,7 @@ The default breakpoint is intentionally conservative. Application shells can ove
 - Mobile layout exposes one trigger and then links after opening.
 - Trigger announces expanded/collapsed state.
 - Links remain reachable with Tab.
+- Focus indicators are not clipped by the horizontal desktop scroller.
 - Mobile menu closes after link activation unless `closeOnNavigate` is false.
 - Current item is announced consistently in both layouts.
 - Hidden desktop/mobile duplicate links are not reachable by keyboard.

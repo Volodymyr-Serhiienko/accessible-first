@@ -100,6 +100,7 @@ Next:
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Replace the playground section-link strip with ResponsiveNavigation when the component is in place
+- Consider a reusable overflow scroller with optional arrow controls for long Navigation, Tabs, and Toolbar patterns after real examples prove the API shape
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
 - Icon, Image, and Logo composition review
 - Popover screen reader refinement after playground checks

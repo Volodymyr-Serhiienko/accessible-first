@@ -39,6 +39,7 @@ export function NavigationDemo(): ComposedNode {
     return ResponsiveNavigation({
         className: "playground-nav__inner",
         trigger: "Sections",
+        triggerIconPosition: "start",
         variant: "pills",
         items: playgroundNavigationItems
     });
