@@ -1,0 +1,64 @@
+[data-af-composition="brand"] {
+    min-inline-size: 0;
+    display: inline-flex;
+    align-items: center;
+    color: var(--af-color-fg);
+    border-radius: var(--af-radius-md);
+    font-family: var(--af-font-family);
+    text-decoration: none;
+}
+
+a[data-af-composition="brand"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-brand-content] {
+    min-inline-size: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--af-space-3);
+}
+
+[data-af-brand-logo] {
+    inline-size: var(--af-brand-logo-size, 2rem);
+    block-size: var(--af-brand-logo-size, 2rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: var(--af-color-primary);
+}
+
+[data-af-brand-logo][hidden],
+[data-af-brand-tagline][hidden] {
+    display: none;
+}
+
+[data-af-brand-logo] :is(img, svg) {
+    inline-size: 100%;
+    block-size: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+[data-af-brand-text] {
+    min-inline-size: 0;
+    display: grid;
+    gap: 0.125rem;
+}
+
+[data-af-brand-name] {
+    margin: 0;
+    color: var(--af-color-fg);
+    font: inherit;
+    font-size: 1.125rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+[data-af-brand-tagline] {
+    color: var(--af-color-muted);
+    font-size: 0.875rem;
+    line-height: 1.2;
+}

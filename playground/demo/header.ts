@@ -1,10 +1,24 @@
-import { Button, H1, Row, type ComposedNode } from "./af";
+import { Brand, Button, Img, Row, type ComposedNode } from "./af";
 import { announce } from "./status";
 
 export function HeaderDemo(): ComposedNode {
     return Row(
         { className: "playground-header__inner" },
-        H1({ className: "playground-title" }, "Accessible First Playground"),
+        Brand({
+            className: "playground-brand",
+            href: "#main",
+            label: "Accessible First Playground home",
+            logo: Img({
+                src: "./assets/af-logo.svg",
+                alt: "",
+                decorative: true,
+                width: 48,
+                height: 48
+            }),
+            name: "Accessible First Playground",
+            nameTag: "h1",
+            tagline: "WCAG-first components and page composition"
+        }),
         Button({
             text: "Dark theme",
             variant: "secondary",

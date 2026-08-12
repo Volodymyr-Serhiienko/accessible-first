@@ -41,6 +41,17 @@ This keeps structure visible without forcing developers into one large nested tr
 
 Sections added with `page.section(...)` are mounted into the main landmark.
 
+## Header Composition
+
+`Page.header(...)` owns the native header landmark. Keep reusable header parts small and composable:
+
+- use `Brand` for logo, product name, home link, and optional tagline;
+- use `Navigation` or `ResponsiveNavigation` for page and app navigation;
+- use `ActionsBar` or individual controls for theme, account, language, and similar actions;
+- add larger header patterns later only when repeated real pages prove the shape.
+
+Backgrounds, spacing, sticky behavior, and responsive shell layout should live in page or app patterns rather than in the low-level header landmark itself.
+
 ## Layout Primitives
 
 Current primitives are intentionally small:

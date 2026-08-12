@@ -38,6 +38,14 @@ body {
     padding-block: 1rem;
 }
 
+.playground-brand {
+    --af-brand-logo-size: 2.25rem;
+}
+
+.playground-brand [data-af-brand-name] {
+    font-size: 1.25rem;
+}
+
 .playground-nav__inner {
     padding-block: 0.75rem;
 }

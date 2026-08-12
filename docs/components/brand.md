@@ -41,6 +41,7 @@ Static brand:
 ```ts
 Brand({
     name: "Settings",
+    nameTag: "h1",
     tagline: "Account workspace"
 });
 ```
@@ -56,11 +57,12 @@ Brand({
 - Uses a real link when `href` is provided, so multi-page navigation works without a router.
 - Allows SPA-style navigation by cancelling the event in `onNavigate`.
 - Keeps logo images decorative when the adjacent brand name already provides the accessible name.
-- Does not create a heading automatically. Page heading structure remains under developer control.
+- Does not create a heading automatically. Page heading structure remains under developer control through `nameTag`.
 
 ## Options
 
 - `name` - Required brand name content.
+- `nameTag` - Native element for the brand name: `"span"`, `"p"`, `"h1"`, `"h2"`, or `"h3"`. Defaults to `"span"`. Creation-time option.
 - `href` - Optional destination. Creation-time option.
 - `logo` - Optional logo content, usually `Img(...)`, `Icon(...)`, or trusted inline SVG.
 - `tagline` - Optional supporting brand text.
@@ -79,7 +81,7 @@ Brand({
 
 ## Update Notes
 
-`href` is creation-time. If a brand needs to switch between linked and static modes, create a new `Brand`.
+`href` and `nameTag` are creation-time. If a brand needs to switch between linked/static modes or change the native name element, create a new `Brand`.
 
 ```ts
 const brand = Brand({
