@@ -9,7 +9,7 @@ export function HeaderDemo(): ComposedNode {
             href: "#main",
             label: "Accessible First Playground home",
             logo: Img({
-                src: "./assets/af-logo.svg",
+                src: "./assets/accessible-first-logo-transparent.svg",
                 alt: "",
                 decorative: true,
                 width: 48,
