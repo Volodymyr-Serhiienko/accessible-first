@@ -33,6 +33,7 @@ Each component document should contain:
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
 - [Navigation](./navigation.md)
+- [OverflowScroller](./overflow-scroller.md)
 - [Popover](./popover.md)
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)

@@ -2,7 +2,7 @@
 
 ResponsiveNavigation provides one navigation item model with two accessible layouts: a normal link list on wider screens and a collapsible menu on small screens.
 
-It is built on `Navigation` and `Disclosure`, so links remain real links. This keeps it useful for multi-page apps, static pages, server-rendered pages, and SPA-style shells.
+It is built on `Navigation`, `Disclosure`, and `OverflowScroller`, so links remain real links. This keeps it useful for multi-page apps, static pages, server-rendered pages, and SPA-style shells.
 
 ## When To Use
 
@@ -54,12 +54,12 @@ const navigation = ResponsiveNavigation({
 ## Layers
 
 - Composition API: `ResponsiveNavigation(options)`
-- Reuses: `Navigation`, `Disclosure`, native links, `aria-current`, and native button behavior
+- Reuses: `Navigation`, `Disclosure`, `OverflowScroller`, native links, `aria-current`, and native button behavior
 
 ## Behavior
 
 - Uses the same `items` for desktop and mobile layouts.
-- Shows normal navigation on wider screens and keeps long desktop navigation in one horizontal scroll line.
+- Shows normal navigation on wider screens and keeps long desktop navigation in one controlled horizontal scroll line.
 - Shows a disclosure-style menu trigger on small screens.
 - Closes the mobile menu after a navigation item is activated by default.
 - Keeps links as real anchors, so multi-page navigation works without a router.
@@ -77,6 +77,7 @@ const navigation = ResponsiveNavigation({
 - `size` - `"md"`.
 - `closeOnNavigate` - Closes the mobile disclosure after navigation. Defaults to `true`.
 - `desktopNavigationOptions` - Options passed to the desktop `Navigation`.
+- `overflowScrollerOptions` - Options passed to the desktop `OverflowScroller`.
 - `mobileNavigationOptions` - Options passed to the mobile `Navigation`.
 - `disclosureOptions` - Options passed to the mobile `Disclosure`.
 - `onNavigate` - Called when any item link is activated.
@@ -101,7 +102,7 @@ Updating `items` updates both desktop and mobile navigation lists.
 
 ## Styling
 
-Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, `[data-af-trigger-icon-position]`, and `[data-af-responsive-navigation-panel]`.
+Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-desktop-list]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, `[data-af-trigger-icon-position]`, and `[data-af-responsive-navigation-panel]`.
 
 The default breakpoint is intentionally conservative. Application shells can override layout with their own CSS when they need a different breakpoint.
 

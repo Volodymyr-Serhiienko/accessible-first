@@ -19,6 +19,7 @@ export * from "./link";
 export * from "./listbox";
 export * from "./menu";
 export * from "./navigation";
+export * from "./overflow-scroller";
 export * from "./page";
 export * from "./popover";
 export * from "./radio-group";

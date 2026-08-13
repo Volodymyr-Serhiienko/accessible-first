@@ -12,6 +12,11 @@ import {
     type DisclosureCompositionOptions
 } from "../disclosure";
 import {
+    OverflowScroller,
+    type ComposedOverflowScroller,
+    type OverflowScrollerOptions
+} from "../overflow-scroller";
+import {
     Navigation,
     type ComposedNavigation,
     type NavigationItem,
@@ -54,6 +59,11 @@ export type ResponsiveNavigationOnNavigate = (
 ) => void;
 
 /**
+ * Options passed to the internal desktop OverflowScroller.
+ */
+export type ResponsiveNavigationOverflowScrollerOptions = Omit<OverflowScrollerOptions, "children">;
+
+/**
  * Options for ResponsiveNavigation().
  */
 export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
@@ -68,6 +78,7 @@ export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
     desktopNavigationOptions?: ResponsiveNavigationListOptions;
     mobileNavigationOptions?: ResponsiveNavigationListOptions;
     disclosureOptions?: ResponsiveNavigationDisclosureOptions;
+    overflowScrollerOptions?: ResponsiveNavigationOverflowScrollerOptions;
     onNavigate?: ResponsiveNavigationOnNavigate | null;
 }
 
@@ -84,6 +95,7 @@ export interface ComposedResponsiveNavigation extends ComposedNode<HTMLElement> 
     readonly desktopNavigation: ComposedNavigation;
     readonly mobileNavigation: ComposedNavigation;
     readonly mobileDisclosure: ComposedDisclosure;
+    readonly desktopScroller: ComposedOverflowScroller;
     setItems(items: NavigationItem[]): void;
     setCurrent(match: string | null): void;
     update(options: ResponsiveNavigationUpdateOptions): void;
@@ -177,6 +189,11 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         false
     ));
 
+    const desktopScroller = OverflowScroller({
+        ...(options.overflowScrollerOptions ?? {}),
+        children: [desktopNavigation]
+    });
+
     const mobileNavigation = Navigation(getNavigationOptions(
         options.mobileNavigationOptions,
         items,
@@ -194,7 +211,8 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         announcement: options.disclosureOptions?.announcement ?? false
     });
 
-    desktopNavigation.element.setAttribute("data-af-responsive-navigation-desktop", "");
+    desktopScroller.element.setAttribute("data-af-responsive-navigation-desktop", "");
+    desktopNavigation.element.setAttribute("data-af-responsive-navigation-desktop-list", "");
     mobileDisclosure.element.setAttribute("data-af-responsive-navigation-mobile", "");
     mobileDisclosure.trigger.setAttribute("data-af-responsive-navigation-trigger", "");
     mobileDisclosure.panel.setAttribute("data-af-responsive-navigation-panel", "");
@@ -209,7 +227,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
 
     syncTriggerIconPosition();
 
-    element.append(desktopNavigation.element, mobileDisclosure.element);
+    element.append(desktopScroller.element, mobileDisclosure.element);
 
     function syncCurrent(): void {
         if (!hasCurrent) return;
@@ -236,6 +254,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     composed = {
         element,
         desktopNavigation,
+        desktopScroller,
         mobileNavigation,
         mobileDisclosure,
         setItems,
@@ -269,6 +288,12 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
                 false
             ));
 
+            if (nextOptions.overflowScrollerOptions !== undefined) {
+                desktopScroller.update(nextOptions.overflowScrollerOptions);
+            }
+
+            desktopScroller.refresh();
+
             mobileNavigation.update(getNavigationUpdateOptions(
                 nextOptions.mobileNavigationOptions,
                 nextOptions.items,
@@ -299,7 +324,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             if (destroyed) return;
 
             destroyed = true;
-            desktopNavigation.destroy();
+            desktopScroller.destroy();
             mobileDisclosure.destroy();
             element.remove();
         }

@@ -8,6 +8,7 @@
 @import "./components/popover.css";
 @import "./components/link.css";
 @import "./components/navigation.css";
+@import "./components/overflow-scroller.css";
 @import "./components/disclosure.css";
 @import "./components/responsive-navigation.css";
 @import "./components/brand.css";

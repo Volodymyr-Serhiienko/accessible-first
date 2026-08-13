@@ -1,0 +1,79 @@
+[data-af-composition="overflow-scroller"] {
+    --af-overflow-scroller-focus-space: calc(
+        var(--af-focus-ring-width) + var(--af-focus-ring-offset)
+    );
+
+    min-inline-size: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--af-space-2);
+}
+
+[data-af-composition="overflow-scroller"][data-af-overflow-scroller-controls="none"],
+[data-af-composition="overflow-scroller"][data-af-overflow-scroller-controls="auto"][data-af-overflow-scroller-overflowing="false"] {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+[data-af-overflow-scroller-viewport] {
+    min-inline-size: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: var(--af-overflow-scroller-focus-space);
+    scroll-padding-inline: var(--af-overflow-scroller-focus-space);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-af-overflow-scroller-viewport]::-webkit-scrollbar {
+    display: none;
+}
+
+[data-af-overflow-scroller-content] {
+    min-inline-size: max-content;
+    display: inline-flex;
+    align-items: center;
+}
+
+[data-af-overflow-scroller-button] {
+    inline-size: var(--af-target-size);
+    block-size: var(--af-target-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--af-color-border);
+    border-radius: var(--af-radius-md);
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+    cursor: pointer;
+}
+
+[data-af-overflow-scroller-button]:hover {
+    background: var(--af-color-surface-hover);
+}
+
+[data-af-overflow-scroller-button]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
+[data-af-overflow-scroller-button]:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+[data-af-overflow-scroller-button]::before {
+    content: "";
+    inline-size: 0.55rem;
+    block-size: 0.55rem;
+    border-block-start: 2px solid currentColor;
+    border-inline-start: 2px solid currentColor;
+}
+
+[data-af-overflow-scroller-button="previous"]::before {
+    transform: rotate(-45deg);
+}
+
+[data-af-overflow-scroller-button="next"]::before {
+    transform: rotate(135deg);
+}

@@ -3,27 +3,18 @@
 }
 
 [data-af-responsive-navigation-desktop] {
-    --af-responsive-navigation-focus-space: calc(
-        var(--af-focus-ring-width) + var(--af-focus-ring-offset)
-    );
-
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-block-start: var(--af-responsive-navigation-focus-space);
-    padding-block-end: calc(var(--af-responsive-navigation-focus-space) + var(--af-space-2));
-    padding-inline: var(--af-responsive-navigation-focus-space);
-    scrollbar-gutter: stable;
-    scroll-padding-inline: var(--af-responsive-navigation-focus-space);
-    -webkit-overflow-scrolling: touch;
+    inline-size: 100%;
 }
 
-[data-af-responsive-navigation-desktop] [data-af-navigation-item] {
+[data-af-responsive-navigation-desktop-list] {
+    flex-wrap: nowrap;
+}
+
+[data-af-responsive-navigation-desktop-list] [data-af-navigation-item] {
     flex: 0 0 auto;
 }
 
-[data-af-responsive-navigation-desktop] [data-af-navigation-link] {
+[data-af-responsive-navigation-desktop-list] [data-af-navigation-link] {
     white-space: nowrap;
 }
 
