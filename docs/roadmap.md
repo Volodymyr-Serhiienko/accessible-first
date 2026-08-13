@@ -89,22 +89,27 @@ Completed:
 - Brand component and Img helper for real page headers
 - OverflowScroller component for long inline navigation, tab, and toolbar patterns
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
+- PageOutlet component for replacing active application screens inside stable page shells
 
 In progress:
 
 - Unified hint, tooltip, description, announcement, and toast model
 - Playground as living documentation
 - Responsive playground refinement
+- Playground migration to PageOutlet-based demo screens
 - Navigation patterns and responsive navigation
 - Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
-- Page outlet foundation for replacing main content inside stable page shells
 - Component examples and manual checklists
 - Documentation alignment with current architecture
 - Form composition layer
+- First reference application planning: accessible foreign-language learning app
 
 Next:
 
+- Page outlet and lightweight content switching foundation
+- Application shell direction for real single-page and multi-page apps
+- Playground search over registered demo screens and component keywords
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -199,6 +204,7 @@ Planned:
 - Mobile navigation
 - Multi-page application shell patterns
 - Lightweight client-side page routing / content switching pattern
+- Foreign-language learning reference app as the first real application built with Accessible First
 - Command menu
 - Settings panels
 - Dashboard patterns
@@ -259,6 +265,7 @@ Planned:
 - Mobile device testing workflow
 - Accessibility checklist per component
 - Real page demos such as settings page or application shell
+- Reference-app validation flow for the foreign-language learning application
 - Automated unit tests for behavior utilities after APIs settle
 - Playwright smoke tests for core component interactions after the playground stabilizes
 

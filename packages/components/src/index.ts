@@ -21,6 +21,7 @@ export * from "./menu";
 export * from "./navigation";
 export * from "./overflow-scroller";
 export * from "./page";
+export * from "./page-outlet";
 export * from "./popover";
 export * from "./radio-group";
 export * from "./responsive-navigation";

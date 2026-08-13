@@ -33,6 +33,12 @@ body {
     margin-inline: auto;
 }
 
+.playground-route-outlet {
+    min-inline-size: 0;
+    display: grid;
+    gap: 1rem;
+}
+
 .playground-header__inner {
     justify-content: space-between;
     padding-block: 1rem;

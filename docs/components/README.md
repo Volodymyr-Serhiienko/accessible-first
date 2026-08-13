@@ -34,6 +34,7 @@ Each component document should contain:
 - [Menu](./menu.md)
 - [Navigation](./navigation.md)
 - [OverflowScroller](./overflow-scroller.md)
+- [PageOutlet](./page-outlet.md)
 - [Popover](./popover.md)
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)

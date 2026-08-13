@@ -1,0 +1,8 @@
+[data-af-composition="page-outlet"] {
+    min-inline-size: 0;
+}
+
+[data-af-composition="page-outlet"]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}

@@ -1,46 +1,44 @@
 import {
     ResponsiveNavigation,
-    type ComposedNode,
-    type NavigationItem
+    type ComposedResponsiveNavigation,
+    type NavigationItem,
+    type NavigationNavigateDetail
 } from "./af";
+import {
+    getPlaygroundRouteById,
+    playgroundNavigationItems,
+    type PlaygroundRoute
+} from "./routes";
 
-const playgroundNavigationItems: NavigationItem[] = [
-    { label: "Buttons", href: "#buttons" },
-    { label: "Checkbox", href: "#checkbox" },
-    { label: "RadioGroup", href: "#radio-group" },
-    { label: "Switch", href: "#switch" },
-    { label: "TextField", href: "#text-field" },
-    { label: "FieldGroup", href: "#field-group" },
-    { label: "FormSection", href: "#form-section" },
-    { label: "Form", href: "#form" },
-    { label: "DescriptionList", href: "#description-list" },
-    { label: "Breadcrumbs", href: "#breadcrumbs" },
-    { label: "ActionsBar", href: "#actions-bar" },
-    { label: "Icon buttons", href: "#icon-buttons" },
-    { label: "Tooltip", href: "#tooltip" },
-    { label: "Toast", href: "#toast" },
-    { label: "Links", href: "#links" },
-    { label: "Disclosure", href: "#disclosure" },
-    { label: "Accordion", href: "#accordion" },
-    { label: "Dialog", href: "#dialog" },
-    { label: "Alert dialog", href: "#alert-dialog" },
-    { label: "Tabs", href: "#tabs" },
-    { label: "Listbox", href: "#listbox" },
-    { label: "Menu", href: "#menu" },
-    { label: "Select", href: "#select" },
-    { label: "Combobox", href: "#combobox" },
-    { label: "Popover", href: "#popover" },
-    { label: "Layout", href: "#layout" },
-    { label: "Markup", href: "#markup" },
-    { label: "Manual checks", href: "#checks" }
-];
+export type PlaygroundRouteNavigateHandler = (
+    route: PlaygroundRoute,
+    detail: NavigationNavigateDetail,
+    navigation: ComposedResponsiveNavigation
+) => void;
 
-export function NavigationDemo(): ComposedNode {
+export interface NavigationDemoOptions {
+    current?: string | null;
+    onRouteNavigate?: PlaygroundRouteNavigateHandler | null;
+}
+
+function getRouteFromNavigationItem(item: NavigationItem): PlaygroundRoute | null {
+    return getPlaygroundRouteById(item.id ?? item.href ?? null);
+}
+
+export function NavigationDemo(options: NavigationDemoOptions = {}): ComposedResponsiveNavigation {
     return ResponsiveNavigation({
         className: "playground-nav__inner",
         trigger: "Sections",
         triggerIconPosition: "start",
         variant: "pills",
-        items: playgroundNavigationItems
+        current: options.current ?? null,
+        items: playgroundNavigationItems,
+        onNavigate(detail, navigation) {
+            const route = getRouteFromNavigationItem(detail.item);
+
+            if (!route) return;
+
+            options.onRouteNavigate?.(route, detail, navigation);
+        }
     });
 }

@@ -1,6 +1,7 @@
 @import "./tokens.css";
 @import "./page.css";
 @import "./composition.css";
+@import "./components/page-outlet.css";
 @import "./components/button.css";
 @import "./components/icon-button.css";
 @import "./components/tooltip.css";
