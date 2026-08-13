@@ -90,6 +90,7 @@ Completed:
 - OverflowScroller component for long inline navigation, tab, and toolbar patterns
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells
+- HashRouter helper for lightweight PageOutlet-based screen switching
 
 In progress:
 
@@ -107,7 +108,6 @@ In progress:
 
 Next:
 
-- Page outlet and lightweight content switching foundation
 - Application shell direction for real single-page and multi-page apps
 - Playground search over registered demo screens and component keywords
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review

@@ -28,6 +28,7 @@ Each component document should contain:
 - [FieldGroup](./field-group.md)
 - [Form](./form.md)
 - [FormSection](./form-section.md)
+- [HashRouter](./hash-router.md)
 - [IconButton](./icon-button.md)
 - [Link](./link.md)
 - [Listbox](./listbox.md)
