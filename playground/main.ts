@@ -14,6 +14,8 @@ import {
     type PlaygroundRoute
 } from "./demo/routes";
 import { notifications } from "./demo/status";
+import { ReturnToNavigationLink } from "./demo/returnToNavigation";
+
 import "../packages/components/src/styles/index.css";
 
 interface RenderRouteOptions {
@@ -26,6 +28,8 @@ interface RenderRouteOptions {
 const page = createPage({
     title: "Accessible First Playground",
     mainId: "main",
+    skipLink: "Skip to section navigation",
+    skipLinkTargetId: "playground-navigation",
     navigationLabel: "Playground sections",
     theme: "system"
 });
@@ -117,8 +121,11 @@ navigation = NavigationDemo({
 });
 
 page.navigation(navigation);
-page.setMainContent(outlet);
-page.appendToMain(notifications);
+page.setMainContent(
+    outlet,
+    ReturnToNavigationLink(() => navigation),
+    notifications
+);
 page.footer(FooterDemo());
 
 window.addEventListener("popstate", renderRouteFromLocation);

@@ -99,7 +99,7 @@ export function createPage(options: PageOptions = {}): Page {
             className: "skip-link",
             text: skipText,
             attributes: {
-                href: `#${main.id}`,
+                href: `#${options.skipLinkTargetId ?? main.id}`,
                 "data-af-skip-link": ""
             }
         }));

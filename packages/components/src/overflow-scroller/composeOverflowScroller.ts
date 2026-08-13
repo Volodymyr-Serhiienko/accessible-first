@@ -69,6 +69,23 @@ function getScrollBehavior(ownerWindow: Window): ScrollBehavior {
     return "smooth";
 }
 
+function parseCssPixelValue(value: string): number {
+    const parsed = Number.parseFloat(value);
+
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function getViewportFocusInset(viewport: HTMLElement, ownerWindow: Window): number {
+    const style = ownerWindow.getComputedStyle(viewport);
+
+    return Math.max(
+        parseCssPixelValue(style.getPropertyValue("padding-inline-start")),
+        parseCssPixelValue(style.getPropertyValue("padding-inline-end")),
+        parseCssPixelValue(style.paddingLeft),
+        parseCssPixelValue(style.paddingRight)
+    );
+}
+
 /**
  * Creates a controlled horizontal scroller for long inline content.
  */
@@ -98,6 +115,7 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     let controls: OverflowScrollerControls = options.controls ?? "auto";
     let scrollAmount: OverflowScrollerScrollAmount = options.scrollAmount ?? "page";
     let updateTimer: number | null = null;
+    let focusScrollFrame: number | null = null;
     let destroyed = false;
 
     function applyButtonOptions(
@@ -163,6 +181,52 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
         }, 0);
     }
 
+    function scrollElementIntoView(target: HTMLElement): void {
+        if (!content.contains(target)) return;
+
+        const targetRect = target.getBoundingClientRect();
+        const viewportRect = viewport.getBoundingClientRect();
+        const focusInset = getViewportFocusInset(viewport, ownerWindow);
+        const safeLeft = viewportRect.left + focusInset;
+        const safeRight = viewportRect.right - focusInset;
+
+        let scrollDelta = 0;
+
+        if (targetRect.left < safeLeft) {
+            scrollDelta = targetRect.left - safeLeft;
+        } else if (targetRect.right > safeRight) {
+            scrollDelta = targetRect.right - safeRight;
+        }
+
+        if (scrollDelta === 0) return;
+
+        viewport.scrollBy({
+            left: scrollDelta,
+            behavior: "auto"
+        });
+
+        updateState();
+    }
+
+    function scheduleFocusedElementScroll(target: HTMLElement): void {
+        if (focusScrollFrame !== null) {
+            ownerWindow.cancelAnimationFrame(focusScrollFrame);
+        }
+
+        focusScrollFrame = ownerWindow.requestAnimationFrame(() => {
+            focusScrollFrame = null;
+            scrollElementIntoView(target);
+        });
+    }
+
+    function handleFocusIn(event: FocusEvent): void {
+        const target = event.target;
+
+        if (!(target instanceof ownerWindow.HTMLElement)) return;
+
+        scheduleFocusedElementScroll(target);
+    }
+
     function scrollPrevious(): void {
         viewport.scrollBy({
             left: -getScrollDistance(),
@@ -190,6 +254,7 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     cleanups.push(
         () => previousButton.removeEventListener("click", scrollPrevious),
         () => nextButton.removeEventListener("click", scrollNext),
+        addEventListener<FocusEvent>(content, "focusin", handleFocusIn),
         addEventListener<Event>(viewport, "scroll", scheduleStateUpdate, { passive: true }),
         addEventListener<Event>(ownerWindow, "resize", scheduleStateUpdate)
     );
@@ -258,6 +323,11 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             if (updateTimer !== null) {
                 ownerWindow.clearTimeout(updateTimer);
                 updateTimer = null;
+            }
+            
+            if (focusScrollFrame !== null) {
+                ownerWindow.cancelAnimationFrame(focusScrollFrame);
+                focusScrollFrame = null;
             }
 
             resizeObserver?.disconnect();

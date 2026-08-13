@@ -2,6 +2,9 @@
     --af-overflow-scroller-focus-space: calc(
         var(--af-focus-ring-width) + var(--af-focus-ring-offset)
     );
+    --af-overflow-scroller-safe-inline-space: calc(
+        var(--af-overflow-scroller-focus-space) + var(--af-space-2)
+    );
 
     min-inline-size: 0;
     display: grid;
@@ -19,8 +22,9 @@
     min-inline-size: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: var(--af-overflow-scroller-focus-space);
-    scroll-padding-inline: var(--af-overflow-scroller-focus-space);
+    padding-block: var(--af-overflow-scroller-focus-space);
+    padding-inline: var(--af-overflow-scroller-safe-inline-space);
+    scroll-padding-inline: var(--af-overflow-scroller-safe-inline-space);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }

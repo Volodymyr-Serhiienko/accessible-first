@@ -23,6 +23,7 @@ export interface PageOptions {
     title?: string;
     mainId?: string;
     skipLink?: boolean | string;
+    skipLinkTargetId?: string;
     navigationLabel?: string;
     theme?: PageTheme;
 }

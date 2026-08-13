@@ -39,6 +39,7 @@ OverflowScroller({
 - Disables the previous control at the start and the next control at the end.
 - Preserves keyboard access to focusable content inside the scroller.
 - Gives focus indicators extra scroll padding so edge items are not clipped.
+- Keeps focused descendants fully visible when users tab through long content.
 - Updates control state on scroll, resize, and content changes.
 
 ## Options
@@ -68,4 +69,5 @@ The default styles hide the browser scrollbar and expose arrow buttons when scro
 - Buttons are disabled at the correct edges.
 - Tab reaches links, tabs, or toolbar controls inside the scroller.
 - Focus indicators are not clipped on the first and last item.
+- Focused edge items are fully visible and do not remain hidden near scroll controls.
 - Touch scrolling still works on mobile and tablet devices.

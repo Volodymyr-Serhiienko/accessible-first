@@ -77,6 +77,10 @@ body {
     padding-block: 1rem 2rem;
 }
 
+.playground-return-link {
+    justify-self: start;
+}
+
 [data-af-composition="panel"] h3 {
     margin-block: 0;
     font-size: 1rem;

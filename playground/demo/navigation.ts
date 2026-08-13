@@ -27,6 +27,7 @@ function getRouteFromNavigationItem(item: NavigationItem): PlaygroundRoute | nul
 
 export function NavigationDemo(options: NavigationDemoOptions = {}): ComposedResponsiveNavigation {
     return ResponsiveNavigation({
+        id: "playground-navigation",
         className: "playground-nav__inner",
         trigger: "Sections",
         triggerIconPosition: "start",
