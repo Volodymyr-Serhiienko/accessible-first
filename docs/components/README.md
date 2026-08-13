@@ -41,6 +41,7 @@ Each component document should contain:
 - [Switch](./switch.md)
 - [Tabs](./tabs.md)
 - [TextField](./text-field.md)
+- [ThemeToggle](./theme-toggle.md)
 - [Toast](./toast.md)
 - [Tooltip](./tooltip.md)
 

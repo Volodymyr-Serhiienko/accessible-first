@@ -28,5 +28,6 @@ export * from "./select";
 export * from "./switch";
 export * from "./tabs";
 export * from "./text-field";
+export * from "./theme";
 export * from "./toast";
 export * from "./tooltip";

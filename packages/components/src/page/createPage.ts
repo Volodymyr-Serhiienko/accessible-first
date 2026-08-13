@@ -6,15 +6,20 @@ import {
 } from "../composition";
 import { inspectPage } from "./diagnostics";
 import { restoreAttribute } from "../../../core/src/dom";
-import type { Page, PageDiagnosticsOptions, PageDiagnosticsReport, PageOptions } from "./types";
+import {
+    applyResolvedTheme,
+    getSystemTheme,
+    type ResolvedTheme
+} from "../theme/theme";
+import type {
+    Page,
+    PageDiagnosticsOptions,
+    PageDiagnosticsReport,
+    PageOptions
+} from "./types";
 
-function applyTheme(theme: "light" | "dark"): void {
-    if (theme === "dark") {
-        document.documentElement.setAttribute("data-af-theme", "dark");
-        return;
-    }
-
-    document.documentElement.removeAttribute("data-af-theme");
+function applyTheme(theme: ResolvedTheme): void {
+    applyResolvedTheme(theme);
 }
 
 function setupPageTheme(options: PageOptions): () => void {
@@ -33,7 +38,7 @@ function setupPageTheme(options: PageOptions): () => void {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     function syncSystemTheme(): void {
-        applyTheme(media.matches ? "dark" : "light");
+        applyTheme(getSystemTheme());
     }
 
     syncSystemTheme();

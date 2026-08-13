@@ -1,5 +1,4 @@
-import { Brand, Button, Img, Row, type ComposedNode } from "./af";
-import { announce } from "./status";
+import { Brand, Img, Row, ThemeToggle, type ComposedNode } from "./af";
 
 export function HeaderDemo(): ComposedNode {
     return Row(
@@ -20,21 +19,8 @@ export function HeaderDemo(): ComposedNode {
             nameTag: "h1",
             tagline: "WCAG-first components and page composition"
         }),
-        Button({
-            text: "Dark theme",
-            variant: "secondary",
-            onPress(_event, button) {
-                const isDark = document.documentElement.dataset.afTheme !== "dark";
-
-                if (isDark) {
-                    document.documentElement.dataset.afTheme = "dark";
-                } else {
-                    delete document.documentElement.dataset.afTheme;
-                }
-
-                button.setText(isDark ? "Light theme" : "Dark theme");
-                announce(`${isDark ? "Dark" : "Light"} theme enabled.`);
-            }
+        ThemeToggle({
+            variant: "secondary"
         })
     );
 }
