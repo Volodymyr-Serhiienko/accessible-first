@@ -54,6 +54,9 @@ export interface BrandOptions extends BaseCompositionOptions {
     nameTag?: BrandNameTagName;
     href?: string | null;
     logo?: BrandCompositionContent | null;
+    logoAspectRatio?: string | null;
+    logoScale?: number | null;
+    logoOffsetY?: string | null;
     tagline?: BrandCompositionContent | null;
     logoPosition?: BrandLogoPosition;
     label?: string | null;
@@ -141,6 +144,9 @@ export function Brand(options: BrandOptions): ComposedBrand {
 
     let composed!: ComposedBrand;
     let logoContent = options.logo;
+    let logoAspectRatio = options.logoAspectRatio ?? null;
+    let logoScale = options.logoScale ?? null;
+    let logoOffsetY = options.logoOffsetY ?? null;
     let taglineContent = options.tagline;
     let logoPosition: BrandLogoPosition = options.logoPosition ?? "start";
     let label = options.label;
@@ -168,6 +174,27 @@ export function Brand(options: BrandOptions): ComposedBrand {
         text.replaceChildren(name, tagline);
     }
 
+    function syncLogoTuning(): void {
+        if (logoAspectRatio === null || !logoAspectRatio.trim()) {
+            element.style.removeProperty("--af-brand-logo-aspect-ratio");
+        } else {
+            element.style.setProperty("--af-brand-logo-aspect-ratio", logoAspectRatio);
+        }
+
+        if (logoScale === null) {
+            element.style.removeProperty("--af-brand-logo-scale");
+        } else {
+            element.style.setProperty("--af-brand-logo-scale", String(logoScale));
+        }
+
+        if (logoOffsetY === null || !logoOffsetY.trim()) {
+            element.style.removeProperty("--af-brand-logo-offset-y");
+            return;
+        }
+
+        element.style.setProperty("--af-brand-logo-offset-y", logoOffsetY);
+    }
+
     function sync(): void {
         element.setAttribute("data-af-composition", "brand");
         element.setAttribute("data-af-logo-position", logoPosition);
@@ -176,6 +203,7 @@ export function Brand(options: BrandOptions): ComposedBrand {
 
         logo.hidden = !hasCompositionContent(logoContent);
         tagline.hidden = !hasCompositionContent(taglineContent);
+        syncLogoTuning();
 
         if (label === undefined || label === null || !label.trim()) {
             element.removeAttribute("aria-label");
@@ -236,6 +264,18 @@ export function Brand(options: BrandOptions): ComposedBrand {
             if (nextOptions.logoPosition !== undefined) {
                 logoPosition = nextOptions.logoPosition;
                 syncStructure();
+            }
+
+            if ("logoAspectRatio" in nextOptions) {
+                logoAspectRatio = nextOptions.logoAspectRatio ?? null;
+            }
+
+            if ("logoScale" in nextOptions) {
+                logoScale = nextOptions.logoScale ?? null;
+            }
+
+            if ("logoOffsetY" in nextOptions) {
+                logoOffsetY = nextOptions.logoOffsetY ?? null;
             }
 
             if ("label" in nextOptions) label = nextOptions.label ?? null;

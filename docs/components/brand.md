@@ -31,6 +31,7 @@ Brand({
         alt: "",
         decorative: true
     }),
+    logoScale: 1.1,
     name: "Accessible First",
     tagline: "Accessible UI by default"
 });
@@ -57,6 +58,7 @@ Brand({
 - Uses a real link when `href` is provided, so multi-page navigation works without a router.
 - Allows SPA-style navigation by cancelling the event in `onNavigate`.
 - Keeps logo images decorative when the adjacent brand name already provides the accessible name.
+- Sizes the logo slot to the visible brand text block by default, so the logo aligns with the name and tagline.
 - Does not create a heading automatically. Page heading structure remains under developer control through `nameTag`.
 
 ## Options
@@ -65,6 +67,9 @@ Brand({
 - `nameTag` - Native element for the brand name: `"span"`, `"p"`, `"h1"`, `"h2"`, or `"h3"`. Defaults to `"span"`. Creation-time option.
 - `href` - Optional destination. Creation-time option.
 - `logo` - Optional logo content, usually `Img(...)`, `Icon(...)`, or trusted inline SVG.
+- `logoAspectRatio` - Optional logo slot ratio, such as `"1 / 1"` or `"3 / 1"`. Defaults to `"1 / 1"`.
+- `logoScale` - Optional optical scale for the logo image inside the auto-sized logo slot. Defaults to `1.1`.
+- `logoOffsetY` - Optional CSS length that nudges the logo slot vertically, such as `"0.08rem"` or `"-2px"`.
 - `tagline` - Optional supporting brand text.
 - `logoPosition` - `"start"` or `"end"`. Defaults to `"start"`.
 - `label` - Optional accessible label for the brand link.
@@ -97,6 +102,14 @@ brand.setLogo(null);
 ## Styling
 
 Useful hooks include `[data-af-composition="brand"]`, `[data-af-brand-link]`, `[data-af-brand-content]`, `[data-af-brand-logo]`, `[data-af-brand-text]`, `[data-af-brand-name]`, `[data-af-brand-tagline]`, `[data-af-logo-position]`, `[data-af-variant]`, and `[data-af-size]`.
+
+Logo sizing variables:
+
+- `--af-brand-logo-aspect-ratio` - logo slot ratio. Defaults to `1 / 1` for square logos.
+- `--af-brand-logo-min-size` - minimum logo size. Defaults to `2rem`.
+- `--af-brand-logo-size` - optional fixed logo size override.
+- `--af-brand-logo-scale` - inner logo image scale. Defaults to `1.1`.
+- `--af-brand-logo-offset-y` - optional vertical nudge for the logo slot when a specific asset needs optical adjustment.
 
 ```ts
 Brand({

@@ -8,12 +8,13 @@ export function HeaderDemo(): ComposedNode {
             className: "playground-brand",
             href: "#main",
             label: "Accessible First Playground home",
+            logoAspectRatio: "1 / 1",
+            logoScale: 1.6,
+            logoOffsetY: "0.2rem",
             logo: Img({
-                src: "./assets/accessible-first-logo-no-text.svg",
+                src: "./assets/logo.svg",
                 alt: "",
-                decorative: true,
-                width: 80,
-                height: 80
+                decorative: true
             }),
             name: "Accessible First Playground",
             nameTag: "h1",

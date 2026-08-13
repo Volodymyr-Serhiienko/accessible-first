@@ -16,18 +16,21 @@ a[data-af-composition="brand"]:focus-visible {
 [data-af-brand-content] {
     min-inline-size: 0;
     display: inline-flex;
-    align-items: center;
+    align-items: stretch;
     gap: var(--af-space-3);
 }
 
 [data-af-brand-logo] {
-    inline-size: var(--af-brand-logo-size, 2rem);
-    block-size: var(--af-brand-logo-size, 2rem);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
+    align-self: stretch;
+    aspect-ratio: var(--af-brand-logo-aspect-ratio, 1 / 1);
+    inline-size: var(--af-brand-logo-size, auto);
+    min-inline-size: var(--af-brand-logo-min-size, 2rem);
+    min-block-size: var(--af-brand-logo-min-size, 2rem);
+    display: block;
     flex: 0 0 auto;
     color: var(--af-color-primary);
+    transform: translateY(var(--af-brand-logo-offset-y, 0));
 }
 
 [data-af-brand-logo][hidden],
@@ -36,10 +39,14 @@ a[data-af-composition="brand"]:focus-visible {
 }
 
 [data-af-brand-logo] :is(img, svg) {
+    position: absolute;
+    inset: 0;
     inline-size: 100%;
     block-size: 100%;
     display: block;
     object-fit: contain;
+    transform: scale(var(--af-brand-logo-scale, 1.1));
+    transform-origin: center;
 }
 
 [data-af-brand-text] {

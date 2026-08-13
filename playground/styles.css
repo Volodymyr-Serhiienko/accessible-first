@@ -39,11 +39,7 @@ body {
 }
 
 .playground-brand {
-    --af-brand-logo-size: 3.5rem;
-}
-
-.playground-brand [data-af-brand-logo] {
-    transform: translateY(0.2rem);
+    --af-brand-logo-min-size: 3rem;
 }
 
 .playground-brand [data-af-brand-name] {
@@ -63,12 +59,6 @@ body {
 
 .playground-footer__inner {
     padding-block: 1rem;
-}
-
-.playground-title {
-    margin: 0;
-    font-size: 1.35rem;
-    line-height: 1.2;
 }
 
 .playground-main {
@@ -144,6 +134,11 @@ body {
         min-inline-size: 0;
     }
 
+    /* .playground-brand [data-af-brand-logo] {
+        --af-brand-logo-scale: 1.45;
+        --af-brand-logo-offset-y: 0.12rem;
+    } */
+
     [data-af-composition="navigation"].playground-nav__inner {
         align-items: center;
         flex-wrap: nowrap;
@@ -184,10 +179,6 @@ body {
 @media (max-width: 380px) {
     :root {
         --playground-gutter: 0.75rem;
-    }
-
-    .playground-title {
-        font-size: 1.2rem;
     }
 
     [data-af-composition="panel"] {
