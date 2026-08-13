@@ -12,6 +12,9 @@ body {
 
 .playground-shell {
     min-block-size: 100vh;
+    min-block-size: 100dvh;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
 }
 
 [data-af-page-header],
@@ -69,6 +72,7 @@ body {
 
 .playground-main {
     display: grid;
+    align-content: start;
     gap: 1rem;
     padding-block: 1rem 2rem;
 }
