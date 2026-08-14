@@ -115,6 +115,7 @@ Item options:
 
 - `value` - Stable option value.
 - `label` - Required option label content.
+- `textValue` - Optional plain text used for filtering and the selected input value when the visual label contains richer content.
 - `disabled` - Disables one option.
 - `optionOptions` - Common DOM options for the option element.
 

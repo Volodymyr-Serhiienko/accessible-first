@@ -91,6 +91,7 @@ Completed:
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells
 - HashRouter helper for lightweight PageOutlet-based screen switching
+- SearchBox component built on Combobox for local result search
 
 In progress:
 
@@ -109,7 +110,7 @@ In progress:
 Next:
 
 - Application shell direction for real single-page and multi-page apps
-- Playground search over registered demo screens and component keywords
+- Playground SearchBox over registered demo screens and component keywords
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

@@ -1,0 +1,19 @@
+[data-af-search-box] {
+    inline-size: min(100%, var(--af-search-box-width, 24rem));
+}
+
+[data-af-search-box-result] {
+    min-inline-size: 0;
+    display: grid;
+    gap: 0.125rem;
+    line-height: 1.25;
+}
+
+[data-af-search-box-result-label] {
+    font-weight: 600;
+}
+
+[data-af-search-box-result-description] {
+    color: var(--af-color-muted);
+    font-size: 0.875em;
+}

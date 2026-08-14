@@ -11,6 +11,8 @@ import { NavigationDemo } from "./demo/navigation";
 import { getPlaygroundRouteDocumentTitle, playgroundRoutes } from "./demo/routes";
 import { notifications } from "./demo/status";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
+import { PlaygroundSearch } from "./demo/search";
+
 import "../packages/components/src/styles/index.css";
 
 const page = createPage({
@@ -46,7 +48,14 @@ let navigation!: ComposedResponsiveNavigation;
 page.element.classList.add("playground-shell");
 page.main.classList.add("playground-main");
 
-page.header(HeaderDemo());
+page.header(HeaderDemo({
+    actions: [
+        PlaygroundSearch({
+            router,
+            routes: playgroundRoutes
+        })
+    ]
+}));
 
 navigation = NavigationDemo({
     current: router.getCurrentRoute().id,

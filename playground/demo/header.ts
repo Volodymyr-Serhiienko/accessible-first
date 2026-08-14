@@ -1,6 +1,17 @@
-import { Brand, Img, Row, ThemeToggle, type ComposedNode } from "./af";
+import {
+    Brand,
+    Img,
+    Row,
+    ThemeToggle,
+    type ComposedNode,
+    type CompositionChild
+} from "./af";
 
-export function HeaderDemo(): ComposedNode {
+export interface HeaderDemoOptions {
+    actions?: CompositionChild[];
+}
+
+export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
     return Row(
         { className: "playground-header__inner" },
         Brand({
@@ -19,8 +30,12 @@ export function HeaderDemo(): ComposedNode {
             nameTag: "h1",
             tagline: "WCAG-first components and page composition"
         }),
-        ThemeToggle({
-            variant: "secondary"
-        })
+        Row(
+            { className: "playground-header-actions" },
+            ...(options.actions ?? []),
+            ThemeToggle({
+                variant: "secondary"
+            })
+        )
     );
 }

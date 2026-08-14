@@ -39,6 +39,7 @@ Each component document should contain:
 - [Popover](./popover.md)
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
+- [SearchBox](./search-box.md)
 - [Select](./select.md)
 - [Switch](./switch.md)
 - [Tabs](./tabs.md)

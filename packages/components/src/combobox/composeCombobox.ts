@@ -40,6 +40,7 @@ export interface ComboboxCompositionItem {
     label: ComboboxCompositionContent;
     disabled?: boolean;
     optionOptions?: BaseCompositionOptions;
+    textValue?: string;
 }
 
 /**
@@ -49,6 +50,7 @@ export interface ComboboxCompositionItemUpdate {
     label?: ComboboxCompositionContent;
     disabled?: boolean;
     optionOptions?: BaseCompositionOptions;
+    textValue?: string | null;
 }
 
 /**
@@ -184,6 +186,7 @@ interface ComboboxItemNode {
     option: HTMLElement;
     labelContent: ReturnType<typeof createContentSlot>;
     disabled: boolean;
+    textValue: string | null;
 }
 
 function getOptionalText(value: string | null | undefined): string {
@@ -249,7 +252,8 @@ function createItemNodes(items: ComboboxCompositionItem[]): ComboboxItemNode[] {
             value,
             option,
             labelContent: createContentSlot(option, toCompositionChildren(item.label)),
-            disabled: false
+            disabled: false,
+            textValue: item.textValue ?? null,
         };
 
         syncItemDisabled(node, item.disabled ?? false);
@@ -275,7 +279,7 @@ function getComboboxOptionText(
 ): string {
     const node = itemNodes.find((candidate) => candidate.option === option);
 
-    return getElementText(option, node?.value ?? "");
+    return node?.textValue ?? getElementText(option, node?.value ?? "");
 }
 
 function isComboboxOptionDisabled(
@@ -739,6 +743,10 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
 
                     if (nextItem.disabled !== undefined) {
                         syncItemDisabled(node, nextItem.disabled);
+                    }
+
+                    if ("textValue" in nextItem) {
+                        node.textValue = nextItem.textValue ?? null;
                     }
                 });
             }
