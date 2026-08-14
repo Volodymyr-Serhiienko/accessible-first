@@ -95,6 +95,7 @@ Completed:
 - Playground SearchBox over registered demo screens and component keywords
 - EmptyState component and playground demo
 - InfoCard component and playground demo
+- Badge component for status, category, and metadata labels
 
 In progress:
 
@@ -113,7 +114,7 @@ In progress:
 
 Next:
 
-- Badge component for status, category, and metadata labels
+- Progress component for determinate and indeterminate task progress
 - Application shell direction for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
@@ -186,6 +187,7 @@ Planned:
 - InfoCard
 - EmptyState
 - Badge
+- Progress
 - SettingsGroup
 - Component composition guidelines
 - Page-building examples in the playground

@@ -1,0 +1,115 @@
+[data-af-composition="progress"] {
+    --af-progress-track: #e5e7eb;
+    --af-progress-fill: var(--af-color-primary);
+
+    display: grid;
+    gap: var(--af-space-2);
+    min-inline-size: 0;
+    color: var(--af-color-fg);
+}
+
+:root[data-af-theme="dark"] [data-af-composition="progress"] {
+    --af-progress-track: #374151;
+}
+
+[data-af-progress-header] {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--af-space-3);
+    min-inline-size: 0;
+}
+
+[data-af-progress-label] {
+    min-inline-size: 0;
+    font-weight: 650;
+}
+
+[data-af-progress-value] {
+    flex: 0 0 auto;
+    color: var(--af-color-muted);
+    font-size: 0.875rem;
+    font-weight: 650;
+}
+
+[data-af-progress-control] {
+    appearance: none;
+    -webkit-appearance: none;
+    inline-size: 100%;
+    block-size: 0.75rem;
+    overflow: hidden;
+    border: 1px solid var(--af-color-border);
+    border-radius: 999px;
+    background: var(--af-progress-track);
+    color: var(--af-progress-fill);
+    accent-color: var(--af-progress-fill);
+}
+
+[data-af-progress-control]::-webkit-progress-bar {
+    border-radius: 999px;
+    background: var(--af-progress-track);
+}
+
+[data-af-progress-control]::-webkit-progress-value {
+    border-radius: 999px;
+    background: var(--af-progress-fill);
+}
+
+[data-af-progress-control]::-moz-progress-bar {
+    border-radius: 999px;
+    background: var(--af-progress-fill);
+}
+
+[data-af-composition="progress"][data-af-variant="success"] {
+    --af-progress-fill: #15803d;
+}
+
+[data-af-composition="progress"][data-af-variant="warning"] {
+    --af-progress-fill: #b45309;
+}
+
+[data-af-composition="progress"][data-af-variant="danger"] {
+    --af-progress-fill: var(--af-color-danger);
+}
+
+:root[data-af-theme="dark"] [data-af-composition="progress"][data-af-variant="success"] {
+    --af-progress-fill: #22c55e;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="progress"][data-af-variant="warning"] {
+    --af-progress-fill: #f59e0b;
+}
+
+[data-af-composition="progress"][data-af-state="indeterminate"] [data-af-progress-control] {
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            var(--af-progress-fill) 45%,
+            transparent 90%
+        ),
+        var(--af-progress-track);
+    background-size: 200% 100%;
+    animation: af-progress-indeterminate 1.3s linear infinite;
+}
+
+[data-af-progress-description] {
+    color: var(--af-color-muted);
+    font-size: 0.875rem;
+}
+
+@keyframes af-progress-indeterminate {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-af-composition="progress"][data-af-state="indeterminate"] [data-af-progress-control] {
+        animation: none;
+    }
+}

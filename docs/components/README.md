@@ -40,6 +40,7 @@ Each component document should contain:
 - [OverflowScroller](./overflow-scroller.md)
 - [PageOutlet](./page-outlet.md)
 - [Popover](./popover.md)
+- [Progress](./progress.md)
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
 - [SearchBox](./search-box.md)
@@ -52,6 +53,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
