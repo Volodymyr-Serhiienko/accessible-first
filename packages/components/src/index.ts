@@ -16,6 +16,7 @@ export * from "./form";
 export * from "./form-section";
 export * from "./foundation";
 export * from "./icon-button";
+export * from "./info-card";
 export * from "./link";
 export * from "./listbox";
 export * from "./menu";

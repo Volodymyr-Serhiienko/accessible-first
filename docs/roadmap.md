@@ -111,6 +111,7 @@ In progress:
 
 Next:
 
+- InfoCard component and playground demo
 - EmptyState component and playground demo
 - Application shell direction for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review

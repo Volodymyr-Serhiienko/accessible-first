@@ -14,6 +14,7 @@ export { FieldGroupDemo } from "./fieldGroup";
 export { FormDemo } from "./form";
 export { FormSectionDemo } from "./formSection";
 export { IconButtonsDemo } from "./iconButtons";
+export { InfoCardDemo } from "./infoCard";
 export { LayoutDemo } from "./layout";
 export { LinksDemo } from "./links";
 export { ListboxDemo } from "./listbox";

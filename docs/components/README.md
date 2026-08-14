@@ -31,6 +31,7 @@ Each component document should contain:
 - [FormSection](./form-section.md)
 - [HashRouter](./hash-router.md)
 - [IconButton](./icon-button.md)
+- [InfoCard](./info-card.md)
 - [Link](./link.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
@@ -50,4 +51,5 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
