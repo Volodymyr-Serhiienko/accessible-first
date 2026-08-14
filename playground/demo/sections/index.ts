@@ -1,6 +1,7 @@
 export { AccordionDemo } from "./accordion";
 export { ActionsBarDemo } from "./actionsBar";
 export { AlertDialogDemo } from "./alertDialog";
+export { BadgeDemo } from "./badge";
 export { BreadcrumbsDemo } from "./breadcrumbs";
 export { ButtonsDemo } from "./buttons";
 export { CheckboxDemo } from "./checkbox";

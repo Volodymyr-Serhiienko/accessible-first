@@ -93,6 +93,8 @@ Completed:
 - HashRouter helper for lightweight PageOutlet-based screen switching
 - SearchBox component built on Combobox for local result search
 - Playground SearchBox over registered demo screens and component keywords
+- EmptyState component and playground demo
+- InfoCard component and playground demo
 
 In progress:
 
@@ -111,8 +113,7 @@ In progress:
 
 Next:
 
-- InfoCard component and playground demo
-- EmptyState component and playground demo
+- Badge component for status, category, and metadata labels
 - Application shell direction for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
@@ -184,6 +185,7 @@ Planned:
 - Small-screen control layout guidelines
 - InfoCard
 - EmptyState
+- Badge
 - SettingsGroup
 - Component composition guidelines
 - Page-building examples in the playground

@@ -1,0 +1,105 @@
+[data-af-composition="badge"] {
+    --af-badge-bg: #f1f5f9;
+    --af-badge-fg: #1f2937;
+    --af-badge-border: #94a3b8;
+
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: 1px solid var(--af-badge-border);
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    color: var(--af-badge-fg);
+    background: var(--af-badge-bg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+[data-af-composition="badge"][data-af-variant="info"] {
+    --af-badge-bg: #dbeafe;
+    --af-badge-fg: #1e3a8a;
+    --af-badge-border: #60a5fa;
+}
+
+[data-af-composition="badge"][data-af-variant="success"] {
+    --af-badge-bg: #dcfce7;
+    --af-badge-fg: #14532d;
+    --af-badge-border: #22c55e;
+}
+
+[data-af-composition="badge"][data-af-variant="warning"] {
+    --af-badge-bg: #fef3c7;
+    --af-badge-fg: #78350f;
+    --af-badge-border: #f59e0b;
+}
+
+[data-af-composition="badge"][data-af-variant="danger"] {
+    --af-badge-bg: #fee2e2;
+    --af-badge-fg: #7f1d1d;
+    --af-badge-border: #ef4444;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="badge"] {
+    --af-badge-bg: #1f2937;
+    --af-badge-fg: #f9fafb;
+    --af-badge-border: #64748b;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="info"] {
+    --af-badge-bg: #172554;
+    --af-badge-fg: #bfdbfe;
+    --af-badge-border: #3b82f6;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="success"] {
+    --af-badge-bg: #052e16;
+    --af-badge-fg: #bbf7d0;
+    --af-badge-border: #22c55e;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="warning"] {
+    --af-badge-bg: #451a03;
+    --af-badge-fg: #fde68a;
+    --af-badge-border: #f59e0b;
+}
+
+:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="danger"] {
+    --af-badge-bg: #450a0a;
+    --af-badge-fg: #fecaca;
+    --af-badge-border: #ef4444;
+}
+
+[data-af-badge-icon] {
+    inline-size: 1em;
+    block-size: 1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+[data-af-badge-icon] > [data-af-composition="icon"] {
+    inline-size: 1em;
+    block-size: 1em;
+}
+
+[data-af-badge-content] {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+}
+
+[data-af-composition="badge"][data-af-icon-position="end"] [data-af-badge-icon] {
+    order: 2;
+}
+
+[data-af-badge-icon][hidden],
+[data-af-badge-accessible-label][hidden] {
+    display: none !important;
+}

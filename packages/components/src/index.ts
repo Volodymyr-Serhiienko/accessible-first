@@ -1,6 +1,7 @@
 export * from "./accordion";
 export * from "./actions-bar";
 export * from "./alert-dialog";
+export * from "./badge";
 export * from "./breadcrumbs";
 export * from "./brand";
 export * from "./button";
