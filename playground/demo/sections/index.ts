@@ -9,6 +9,7 @@ export { ComboboxDemo } from "./combobox";
 export { DescriptionListDemo } from "./descriptionList";
 export { DialogDemo } from "./dialog";
 export { DisclosureDemo } from "./disclosure";
+export { EmptyStateDemo } from "./emptyState";
 export { FieldGroupDemo } from "./fieldGroup";
 export { FormDemo } from "./form";
 export { FormSectionDemo } from "./formSection";

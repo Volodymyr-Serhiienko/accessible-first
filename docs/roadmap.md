@@ -92,6 +92,7 @@ Completed:
 - PageOutlet component for replacing active application screens inside stable page shells
 - HashRouter helper for lightweight PageOutlet-based screen switching
 - SearchBox component built on Combobox for local result search
+- Playground SearchBox over registered demo screens and component keywords
 
 In progress:
 
@@ -105,12 +106,13 @@ In progress:
 - Component examples and manual checklists
 - Documentation alignment with current architecture
 - Form composition layer
+- First app-building components such as EmptyState and InfoCard
 - First reference application planning: accessible foreign-language learning app
 
 Next:
 
+- EmptyState component and playground demo
 - Application shell direction for real single-page and multi-page apps
-- Playground SearchBox over registered demo screens and component keywords
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -294,3 +296,5 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
+
