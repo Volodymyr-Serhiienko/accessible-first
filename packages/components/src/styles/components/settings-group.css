@@ -1,0 +1,51 @@
+[data-af-composition="settings-group"] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--af-space-3);
+    border: 1px solid var(--af-color-border);
+    border-radius: 8px;
+    padding: var(--af-space-4);
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+}
+
+[data-af-composition="settings-group"][data-af-variant="plain"] {
+    border-color: transparent;
+    border-radius: 0;
+    padding: 0;
+    background: transparent;
+}
+
+[data-af-settings-group-header] {
+    display: grid;
+    gap: var(--af-space-2);
+}
+
+[data-af-settings-group-heading] {
+    margin: 0;
+    color: var(--af-color-fg);
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+[data-af-settings-group-description] {
+    color: var(--af-color-muted);
+    line-height: 1.45;
+}
+
+[data-af-settings-group-body] {
+    display: grid;
+    gap: var(--af-space-3);
+    min-inline-size: 0;
+}
+
+[data-af-settings-group-actions] {
+    margin-block-start: var(--af-space-2);
+}
+
+[data-af-settings-group-description][hidden],
+[data-af-settings-group-actions][hidden] {
+    display: none !important;
+}

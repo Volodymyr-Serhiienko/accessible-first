@@ -114,7 +114,7 @@ In progress:
 
 Next:
 
-- Progress component for determinate and indeterminate task progress
+- SettingsGroup component for application preferences and configuration screens
 - Application shell direction for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
@@ -301,5 +301,6 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 

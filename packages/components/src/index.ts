@@ -32,6 +32,7 @@ export * from "./responsive-navigation";
 export * from "./routing";
 export * from "./search-box";
 export * from "./select";
+export * from "./settings-group";
 export * from "./switch";
 export * from "./tabs";
 export * from "./text-field";

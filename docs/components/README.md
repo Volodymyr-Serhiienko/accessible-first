@@ -44,6 +44,7 @@ Each component document should contain:
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
 - [SearchBox](./search-box.md)
+- [SettingsGroup](./settings-group.md)
 - [Select](./select.md)
 - [Switch](./switch.md)
 - [Tabs](./tabs.md)
@@ -53,6 +54,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
