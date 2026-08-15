@@ -13,6 +13,7 @@
 @import "./components/disclosure.css";
 @import "./components/responsive-navigation.css";
 @import "./components/brand.css";
+@import "./components/header-bar.css";
 @import "./components/accordion.css";
 @import "./components/tabs.css";
 @import "./components/listbox.css";

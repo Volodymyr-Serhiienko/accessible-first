@@ -54,7 +54,7 @@ applyPageLayout(page, {
 });
 
 page.header(HeaderDemo({
-    actions: [
+    content: [
         PlaygroundSearch({
             router,
             routes: playgroundRoutes

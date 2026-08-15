@@ -1,0 +1,87 @@
+[data-af-composition="header-bar"] {
+    --af-header-bar-gap: var(--af-space-4);
+    --af-header-bar-padding-block: var(--af-space-4);
+    --af-header-bar-brand-width: 22rem;
+    --af-header-bar-content-width: 18rem;
+    --af-header-bar-content-max-width: 22rem;
+    --af-header-bar-actions-gap: var(--af-space-3);
+
+    box-sizing: border-box;
+    min-inline-size: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--af-header-bar-gap);
+    padding-block: var(--af-header-bar-padding-block);
+    color: var(--af-color-fg);
+    background: var(--af-color-bg);
+}
+
+[data-af-composition="header-bar"][data-af-variant="plain"] {
+    padding-block: 0;
+    background: transparent;
+}
+
+[data-af-header-bar-brand] {
+    min-inline-size: 0;
+    flex: 1 1 var(--af-header-bar-brand-width);
+    display: flex;
+    align-items: center;
+}
+
+[data-af-header-bar-content] {
+    min-inline-size: 0;
+    max-inline-size: var(--af-header-bar-content-max-width);
+    flex: 1 1 var(--af-header-bar-content-width);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+[data-af-header-bar-content] > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+[data-af-header-bar-actions] {
+    min-inline-size: 0;
+    flex: 0 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--af-header-bar-actions-gap);
+}
+
+[data-af-header-bar-brand][hidden],
+[data-af-header-bar-content][hidden],
+[data-af-header-bar-actions][hidden] {
+    display: none !important;
+}
+
+@media (max-width: 40rem) {
+    [data-af-composition="header-bar"] {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    [data-af-header-bar-brand],
+    [data-af-header-bar-content],
+    [data-af-header-bar-actions] {
+        inline-size: 100%;
+        max-inline-size: 100%;
+        flex: 0 1 auto;
+    }
+
+    [data-af-header-bar-content] {
+        justify-content: flex-start;
+    }
+
+    [data-af-header-bar-content] > * {
+        inline-size: 100%;
+    }
+
+    [data-af-header-bar-actions] {
+        justify-content: flex-start;
+    }
+}

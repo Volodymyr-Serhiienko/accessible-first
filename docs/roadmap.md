@@ -92,6 +92,7 @@ Completed:
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells
 - PageLayout helper for sticky footer, contained regions, gutters, and page separators
+- HeaderBar component for brand, search, and header actions layout
 - HashRouter helper for lightweight PageOutlet-based screen switching
 - SearchBox component built on Combobox for local result search
 - Playground SearchBox over registered demo screens and component keywords
@@ -304,6 +305,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

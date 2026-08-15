@@ -21,7 +21,6 @@ body {
     border-block-end: 0;
 }
 
-.playground-header__inner,
 .playground-nav__inner,
 .playground-footer__inner {
     box-sizing: border-box;
@@ -38,11 +37,6 @@ body {
     gap: 1rem;
 }
 
-.playground-header__inner {
-    justify-content: space-between;
-    padding-block: 1rem;
-}
-
 .playground-brand {
     --af-brand-logo-min-size: 3rem;
 }
@@ -51,26 +45,10 @@ body {
     font-size: 1.25rem;
 }
 
-.playground-header__inner[data-af-layout="row"] {
-    align-items: center;
-    gap: 1rem;
-}
-
 .playground-brand {
     --af-brand-logo-min-size: 3rem;
     flex: 1 1 22rem;
     min-inline-size: 0;
-}
-
-.playground-header-actions[data-af-layout="row"] {
-    min-inline-size: 0;
-    flex: 0 1 34rem;
-    align-items: center;
-    justify-content: flex-end;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 0.75rem;
-    margin-inline-start: auto;
 }
 
 .playground-search[data-af-search-box] {
@@ -104,10 +82,6 @@ body {
     padding-inline-start: calc(
         var(--af-space-3) + var(--playground-search-icon-size) + var(--af-space-2)
     );
-}
-
-.playground-header-actions > [data-af-component="button"] {
-    flex: 0 0 auto;
 }
 
 .playground-nav__inner {
@@ -190,10 +164,6 @@ body {
         --playground-gutter: 0.875rem;
     }
 
-    .playground-header__inner > [data-af-layout="stack"] {
-        min-inline-size: 0;
-    }
-
     /* .playground-brand [data-af-brand-logo] {
         --af-brand-logo-scale: 1.45;
         --af-brand-logo-offset-y: 0.12rem;
@@ -231,35 +201,10 @@ body {
         white-space: normal;
     }
 
-    .playground-header__inner[data-af-layout="row"] {
-        align-items: stretch;
-        flex-direction: column;
-        flex-wrap: nowrap;
-    }
-
-    .playground-header__inner > * {
-        min-inline-size: 0;
-        max-inline-size: 100%;
-    }
-
     .playground-brand {
         flex: 0 1 auto;
         inline-size: 100%;
         max-inline-size: 100%;
-    }
-
-    .playground-header-actions[data-af-layout="row"] {
-        box-sizing: border-box;
-        inline-size: 100%;
-        max-inline-size: 100%;
-        min-inline-size: 0;
-        flex: 0 1 auto;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 0.75rem;
-        margin-inline-start: 0;
     }
 
     .playground-search[data-af-search-box] {
@@ -277,12 +222,6 @@ body {
     .playground-search [data-af-component="combobox"] {
         inline-size: 100%;
         min-inline-size: 0;
-        max-inline-size: 100%;
-    }
-
-    .playground-header-actions > [data-af-component="button"] {
-        align-self: flex-start;
-        inline-size: auto;
         max-inline-size: 100%;
     }
 
