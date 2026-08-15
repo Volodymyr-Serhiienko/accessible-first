@@ -25,21 +25,19 @@
     text-align: center;
     white-space: normal;
     overflow-wrap: break-word;
-    opacity: 0;
-    visibility: hidden;
+    display: none;
     pointer-events: none;
     transform: translateX(-50%);
 }
 
 [data-af-tooltip]:hover > [data-af-tooltip-visual],
-[data-af-tooltip]:focus-visible > [data-af-tooltip-visual] {
-    opacity: 1;
-    visibility: visible;
+[data-af-tooltip]:focus-visible > [data-af-tooltip-visual],
+[data-af-tooltip]:focus-within > [data-af-tooltip-visual] {
+    display: block;
 }
 
 [data-af-tooltip][data-af-tooltip-dismissed="true"] > [data-af-tooltip-visual] {
-    opacity: 0;
-    visibility: hidden;
+    display: none;
 }
 
 [data-af-tooltip-content] {
