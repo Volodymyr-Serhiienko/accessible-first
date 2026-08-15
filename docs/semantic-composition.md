@@ -73,6 +73,8 @@ Current primitives are intentionally small:
 - `Group` groups related content or controls.
 - `Toolbar` creates a labelled toolbar region.
 
+Container is useful for header, navigation, main, footer, and app screen interiors that should align to the same readable width.
+
 Grid is a responsive flow helper, not a full CSS Grid DSL. If real pages need explicit placement, a future `Cell` or `GridCell` primitive can add row, column, span, or named area control.
 
 ## Tag Helpers
@@ -150,3 +152,5 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
+

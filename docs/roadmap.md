@@ -47,6 +47,7 @@ Completed:
 - Page object API
 - Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar
 - Responsive Grid primitive
+- Container layout primitive for aligned page regions and responsive gutters
 - Tag helpers
 - Trusted Html composition helper
 - System/light/dark page theme support
@@ -90,12 +91,15 @@ Completed:
 - OverflowScroller component for long inline navigation, tab, and toolbar patterns
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells
+- PageLayout helper for sticky footer, contained regions, gutters, and page separators
 - HashRouter helper for lightweight PageOutlet-based screen switching
 - SearchBox component built on Combobox for local result search
 - Playground SearchBox over registered demo screens and component keywords
 - EmptyState component and playground demo
 - InfoCard component and playground demo
 - Badge component for status, category, and metadata labels
+- Progress component for determinate and indeterminate task progress
+- SettingsGroup component for application preferences and configuration screens
 
 In progress:
 
@@ -114,7 +118,6 @@ In progress:
 
 Next:
 
-- SettingsGroup component for application preferences and configuration screens
 - Application shell direction for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
@@ -301,6 +304,9 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
+
+
 
 
 

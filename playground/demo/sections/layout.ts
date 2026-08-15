@@ -1,4 +1,4 @@
-import { Button, Div, Grid, H3, P, Panel, Row, Section, Stack, type ComposedNode } from "../af";
+import { Button, Container, Div, Grid, H3, P, Panel, Row, Section, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function LayoutDemo(): ComposedNode {
@@ -59,6 +59,15 @@ export function LayoutDemo(): ComposedNode {
                     Stack(
                         H3("Another cell"),
                         P("Empty cells make the grid shape visible without adding semantic noise.")
+                    )
+                )
+            ),
+            Container(
+                { maxWidth: "42rem" },
+                Panel(
+                    Stack(
+                        H3("Container"),
+                        P("Container constrains readable width and applies responsive page gutters without adding landmark semantics.")
                     )
                 )
             )

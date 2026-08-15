@@ -16,6 +16,20 @@ export interface LayoutPrimitiveOptions extends BaseCompositionOptions {
 }
 
 /**
+ * Horizontal alignment for Container().
+ */
+export type ContainerAlign = "start" | "center" | "end";
+
+/**
+ * Options for Container().
+ */
+export interface ContainerOptions extends LayoutPrimitiveOptions {
+    maxWidth?: string;
+    gutter?: string;
+    align?: ContainerAlign;
+}
+
+/**
  * Options for Section().
  */
 export interface SectionOptions extends BaseCompositionOptions {
@@ -93,6 +107,31 @@ function isLayoutPrimitiveOptions(value: unknown): value is LayoutPrimitiveOptio
 
 function isGroupOptions(value: unknown): value is GroupOptions {
     return isOptionsObject(value) && (hasLayoutOption(value) || "label" in value);
+}
+
+function isContainerOptions(value: unknown): value is ContainerOptions {
+    return isOptionsObject(value);
+}
+
+function resolveContainerArgs(
+    args: Array<CompositionChild | ContainerOptions>
+): { options: ContainerOptions; children: CompositionChild[] } {
+    const [first, ...rest] = args;
+
+    if (isContainerOptions(first)) {
+        return {
+            options: first,
+            children: [
+                ...(first.children ?? []),
+                ...(rest as CompositionChild[])
+            ]
+        };
+    }
+
+    return {
+        options: {},
+        children: args as CompositionChild[]
+    };
 }
 
 function resolveLayoutArgs(
@@ -304,6 +343,34 @@ export function Grid(options: GridOptions, ...children: CompositionChild[]): Com
 
     if (options.gap !== undefined) {
         node.element.style.setProperty("--af-grid-gap", options.gap);
+    }
+
+    return node;
+}
+
+/**
+ * Creates a centered, width-constrained layout container.
+ *
+ * Container is semantic-neutral. Use it to align header, navigation, main,
+ * footer, or app screen content without creating extra landmarks.
+ */
+export function Container(...children: CompositionChild[]): ComposedNode;
+export function Container(options: ContainerOptions, ...children: CompositionChild[]): ComposedNode;
+export function Container(...args: Array<CompositionChild | ContainerOptions>): ComposedNode {
+    const { options, children } = resolveContainerArgs(args);
+    const align = options.align ?? "center";
+
+    const node = createComposedElement("div", options, {
+        "data-af-layout": "container",
+        "data-af-container-align": align
+    }, children);
+
+    if (options.maxWidth !== undefined) {
+        node.element.style.setProperty("--af-container-max-width", options.maxWidth);
+    }
+
+    if (options.gutter !== undefined) {
+        node.element.style.setProperty("--af-container-gutter", options.gutter);
     }
 
     return node;

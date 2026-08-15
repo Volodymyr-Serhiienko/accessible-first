@@ -38,6 +38,7 @@ Each component document should contain:
 - [Menu](./menu.md)
 - [Navigation](./navigation.md)
 - [OverflowScroller](./overflow-scroller.md)
+- [PageLayout](./page-layout.md)
 - [PageOutlet](./page-outlet.md)
 - [Popover](./popover.md)
 - [Progress](./progress.md)
@@ -54,6 +55,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
