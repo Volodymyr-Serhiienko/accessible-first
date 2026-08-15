@@ -5,6 +5,12 @@ export {
     type FocusTrap,
     type FocusTrapOptions
 } from "./createFocusTrap";
+export {
+    dismissVirtualKeyboard,
+    getActiveVirtualKeyboardElement,
+    isVirtualKeyboardElement,
+    type DismissVirtualKeyboardTarget
+} from "./dismissVirtualKeyboard";
 export { focusElement } from "./focusElement";
 export { focusFirst } from "./focusFirst";
 export { focusLast } from "./focusLast";

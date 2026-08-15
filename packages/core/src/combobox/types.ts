@@ -107,6 +107,7 @@ export interface ComboboxOptions extends PopoverPositionOptions {
     closeOnBlur?: boolean;
     closeOnEmpty?: boolean;
     loop?: boolean;
+    dismissKeyboardOnSelection?: boolean;
     onOpenChange?: ((detail: ComboboxOpenChangeDetail, combobox: Combobox) => void) | null;
     onValueChange?: ((detail: ComboboxValueChangeDetail, combobox: Combobox) => void) | null;
     onActiveOptionChange?: ((detail: ComboboxActiveOptionChangeDetail, combobox: Combobox) => void) | null;

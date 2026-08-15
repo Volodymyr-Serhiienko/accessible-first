@@ -44,6 +44,9 @@ function applyCoreOptions(
     if (source.shift !== undefined) target.shift = source.shift;
     if (source.matchAnchorWidth !== undefined) target.matchAnchorWidth = source.matchAnchorWidth;
     if (source.autoUpdate !== undefined) target.autoUpdate = source.autoUpdate;
+    if (source.dismissKeyboardOnSelection !== undefined) {
+        target.dismissKeyboardOnSelection = source.dismissKeyboardOnSelection;
+    }
 }
 
 function getCoreComboboxOptions(

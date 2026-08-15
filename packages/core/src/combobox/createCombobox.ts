@@ -13,6 +13,7 @@ import {
     getOwnerDocument
 } from "../dom";
 import { addEventListener, type Cleanup } from "../events";
+import { dismissVirtualKeyboard } from "../focus";
 import { createId } from "../id";
 import {
     isArrowDownKey,
@@ -100,6 +101,7 @@ export function createCombobox(
     let closeOnBlur = options.closeOnBlur ?? true;
     let closeOnEmpty = options.closeOnEmpty ?? true;
     let loop = options.loop ?? true;
+    let dismissKeyboardOnSelection = options.dismissKeyboardOnSelection ?? false;
 
     let getOptions = options.getOptions;
     let getOptionText = options.getOptionText;
@@ -387,6 +389,10 @@ export function createCombobox(
         syncAttributes();
         notifyValueChange("selection", event);
 
+        if (dismissKeyboardOnSelection) {
+            dismissVirtualKeyboard(input);
+        }
+
         return true;
     }
 
@@ -512,8 +518,12 @@ export function createCombobox(
         }
 
         event.preventDefault();
-        commitOption(option, event);
-        input.focus();
+        
+        const committed = commitOption(option, event);
+
+        if (committed && !dismissKeyboardOnSelection) {
+            input.focus();
+        }
     }
 
     function handleDocumentPointerDown(event: PointerEvent): void {
@@ -732,6 +742,10 @@ export function createCombobox(
                 setOpenState(nextOptions.open, "programmatic");
             } else {
                 refresh();
+            }
+
+            if (nextOptions.dismissKeyboardOnSelection !== undefined) {
+                dismissKeyboardOnSelection = nextOptions.dismissKeyboardOnSelection;
             }
         },
 

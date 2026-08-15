@@ -384,6 +384,9 @@ function getComboboxOptions(
     if (options.autoUpdate !== undefined) comboboxOptions.autoUpdate = options.autoUpdate;
     if (options.variant !== undefined) comboboxOptions.variant = options.variant;
     if (options.size !== undefined) comboboxOptions.size = options.size;
+    if (options.dismissKeyboardOnSelection !== undefined) {
+        comboboxOptions.dismissKeyboardOnSelection = options.dismissKeyboardOnSelection;
+    }
 
     return comboboxOptions;
 }
@@ -424,6 +427,9 @@ function getComboboxUpdateOptions(
     if (options.autoUpdate !== undefined) comboboxOptions.autoUpdate = options.autoUpdate;
     if (options.variant !== undefined) comboboxOptions.variant = options.variant;
     if (options.size !== undefined) comboboxOptions.size = options.size;
+    if (options.dismissKeyboardOnSelection !== undefined) {
+        comboboxOptions.dismissKeyboardOnSelection = options.dismissKeyboardOnSelection;
+    }
 
     return comboboxOptions;
 }

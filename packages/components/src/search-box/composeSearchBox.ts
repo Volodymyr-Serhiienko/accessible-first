@@ -345,12 +345,18 @@ export function SearchBox<TItem extends SearchBoxItem>(
             ...comboboxOptions
         } = options;
 
-        return {
+        const initialOptions: ComboboxCompositionOptions = {
             ...comboboxOptions,
             items: itemStates.map(toComboboxItem),
             filterOption: filterComboboxOption,
             onValueChange: handleValueChange
         };
+
+        if (initialOptions.dismissKeyboardOnSelection === undefined) {
+            initialOptions.dismissKeyboardOnSelection = true;
+        }
+
+        return initialOptions;
     }
 
     function getComboboxUpdateOptions(
