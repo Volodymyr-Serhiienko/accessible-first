@@ -10,13 +10,6 @@ body {
     font-family: var(--af-font-family);
 }
 
-.playground-shell {
-    min-block-size: 100vh;
-    min-block-size: 100dvh;
-    display: grid;
-    grid-template-rows: auto auto 1fr auto;
-}
-
 [data-af-page-header],
 [data-af-page-navigation],
 [data-af-page-footer] {
@@ -30,8 +23,7 @@ body {
 
 .playground-header__inner,
 .playground-nav__inner,
-.playground-footer__inner,
-.playground-main {
+.playground-footer__inner {
     box-sizing: border-box;
     inline-size: min(
         calc(100% - var(--playground-gutter) - var(--playground-gutter)),
@@ -134,13 +126,6 @@ body {
 
 .playground-footer__inner {
     padding-block: 1rem;
-}
-
-.playground-main {
-    display: grid;
-    align-content: start;
-    gap: 1rem;
-    padding-block: 1rem 2rem;
 }
 
 .playground-return-link {

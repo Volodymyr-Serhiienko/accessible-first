@@ -24,6 +24,7 @@ export * from "./menu";
 export * from "./navigation";
 export * from "./overflow-scroller";
 export * from "./page";
+export * from "./page-layout";
 export * from "./page-outlet";
 export * from "./popover";
 export * from "./progress";

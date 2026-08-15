@@ -1,4 +1,5 @@
 import {
+    applyPageLayout,
     createHashRouter,
     createPage,
     mount,
@@ -45,8 +46,12 @@ const router = createHashRouter({
 
 let navigation!: ComposedResponsiveNavigation;
 
-page.element.classList.add("playground-shell");
-page.main.classList.add("playground-main");
+applyPageLayout(page, {
+    maxWidth: "var(--playground-max-width)",
+    gutter: "var(--playground-gutter)",
+    mainGap: "1rem",
+    mainPaddingBlock: "1rem 2rem"
+});
 
 page.header(HeaderDemo({
     actions: [
