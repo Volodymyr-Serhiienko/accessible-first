@@ -1,8 +1,8 @@
 # App Routes
 
-App route helpers turn one route list into shared navigation and search data.
+App route helpers turn one route list into shared navigation, search, and breadcrumb data.
 
-Use them when an application has screens, pages, or demo sections that should appear in navigation, search, or routing from the same source of truth.
+Use them when an application has screens, pages, or demo sections that should appear in navigation, search, breadcrumbs, or routing from the same source of truth.
 
 ## Quick Start
 
@@ -23,6 +23,7 @@ const routes = [
 
 const navigationItems = createAppRouteNavigationItems(routes);
 const searchItems = createAppRouteSearchItems(routes);
+const breadcrumbItems = createAppRouteBreadcrumbItems([routes[0], routes[1]]);
 ```
 
 ## Purpose
@@ -34,7 +35,7 @@ Application screens are often described several times:
 - once for search;
 - sometimes again for breadcrumbs or command menus.
 
-App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `SearchBox`, and app-level routing code.
+App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `SearchBox`, `Breadcrumbs`, and app-level routing code.
 
 ## Route Descriptor
 
@@ -113,10 +114,40 @@ createAppRouteSearchItems(routes, {
 });
 ```
 
+## Breadcrumb Items
+
+```ts
+const items = createAppRouteBreadcrumbItems([
+    { id: "home", title: "Home" },
+    { id: "settings", title: "Settings" }
+]);
+
+Breadcrumbs({ items });
+```
+
+By default, the last route in the trail becomes the current page and is not linked. Use `linkCurrent` only when the current breadcrumb should remain a link.
+
+Customize generated breadcrumb data with resolvers:
+
+```ts
+createAppRouteBreadcrumbItems(routeTrail, {
+    getLabel(route) {
+        return route.label ?? route.title;
+    },
+    getHref(route) {
+        return `/docs/${route.id}`;
+    },
+    getCurrent(route, index, routes) {
+        return index === routes.length - 1 ? "page" : false;
+    }
+});
+```
+
 ## Helpers
 
 - `createAppRouteNavigationItems(routes, options)` - creates `NavigationItem[]`.
 - `createAppRouteSearchItems(routes, options)` - creates `SearchBoxItem[]` with route data attached.
+- `createAppRouteBreadcrumbItems(routes, options)` - creates `BreadcrumbsItem[]` from a route trail.
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
 - `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
 - `getAppRouteDescription(route)` - returns route description or a default open message.
@@ -125,13 +156,13 @@ createAppRouteSearchItems(routes, {
 
 ## Accessibility
 
-App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, and disabled states consistent across navigation and search.
+App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, current-page state, and disabled states consistent across navigation, search, and breadcrumbs.
 
 Good route metadata should be clear enough for both visible navigation and assistive technology output.
 
 ## AppShell Pairing
 
-`AppShell` creates the stable application frame. App route helpers create consistent data for the frame's navigation and search controls.
+`AppShell` creates the stable application frame. App route helpers create consistent data for the frame's navigation, search controls, and route breadcrumbs.
 
 ```ts
 const shell = AppShell({
@@ -151,3 +182,5 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Current navigation state still updates after route changes.
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
+
+

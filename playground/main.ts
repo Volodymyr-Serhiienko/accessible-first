@@ -4,6 +4,7 @@ import {
     mount,
     type ComposedResponsiveNavigation
 } from "./demo/af";
+import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
@@ -35,6 +36,9 @@ const shell = AppShell({
     }
 });
 
+let navigation!: ComposedResponsiveNavigation;
+let routeBreadcrumbs: ReturnType<typeof PlaygroundBreadcrumbs> | null = null;
+
 const router = createHashRouter({
     routes: playgroundRoutes,
     outlet: shell.outlet,
@@ -42,12 +46,15 @@ const router = createHashRouter({
     getAnnouncement(route) {
         return `${route.title} demo loaded.`;
     },
+    onRouteChange(route) {
+        routeBreadcrumbs?.setRoute(route);
+    },
     inspect() {
         shell.inspect();
     }
 });
 
-let navigation!: ComposedResponsiveNavigation;
+routeBreadcrumbs = PlaygroundBreadcrumbs(router.getCurrentRoute());
 
 shell.setHeader(HeaderDemo({
     content: [
@@ -74,6 +81,7 @@ navigation = NavigationDemo({
 router.setNavigation(navigation);
 
 shell.setNavigation(navigation);
+shell.setBeforeOutlet(routeBreadcrumbs);
 shell.setAfterOutlet([
     ReturnToNavigationLink(() => navigation),
     notifications
