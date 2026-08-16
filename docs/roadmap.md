@@ -101,6 +101,7 @@ Completed:
 - Badge component for status, category, and metadata labels
 - Progress component for determinate and indeterminate task progress
 - SettingsGroup component for application preferences and configuration screens
+- AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
 
 In progress:
 
@@ -115,11 +116,12 @@ In progress:
 - Documentation alignment with current architecture
 - Form composition layer
 - First app-building components such as EmptyState and InfoCard
+- Playground migration to AppShell after the scaffold is verified
 - First reference application planning: accessible foreign-language learning app
 
 Next:
 
-- Application shell direction for real single-page and multi-page apps
+- Application shell refinement for real single-page and multi-page apps
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -210,7 +212,7 @@ Goal: provide reusable patterns for full application screens.
 
 Planned:
 
-- Application shell
+- AppShell integration with playground and reference app examples
 - Sidebar navigation
 - Top navigation
 - Mobile navigation
@@ -305,6 +307,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

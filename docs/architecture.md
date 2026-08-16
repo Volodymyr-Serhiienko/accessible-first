@@ -55,6 +55,20 @@ Use composition APIs when building pages directly with Accessible First.
 
 The two surfaces should reuse the same behavior engine.
 
+Application shell API:
+
+```ts
+const shell = AppShell({
+    header: Header(),
+    navigation: Navigation(),
+    footer: Footer()
+});
+
+shell.render(HomeScreen());
+```
+
+Use shell APIs when building full applications with stable page regions and changing screen content.
+
 ## Architecture Rules
 
 - Prefer native HTML semantics before custom roles.
@@ -71,6 +85,7 @@ The two surfaces should reuse the same behavior engine.
 - Design principles: [principles.md](./principles.md)
 - Hints and announcements: [hints-and-announcements.md](./hints-and-announcements.md)
 - Page-building API: [semantic-composition.md](./semantic-composition.md)
+- Application shell: [components/app-shell.md](./components/app-shell.md)
 - Component reference: [components/README.md](./components/README.md)
 - Development plan: [roadmap.md](./roadmap.md)
 
@@ -86,3 +101,4 @@ Each module should move through the same cycle:
 6. Playground integration where useful
 
 This keeps the framework understandable while it grows.
+

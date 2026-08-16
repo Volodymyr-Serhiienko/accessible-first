@@ -16,16 +16,17 @@ Each component document should contain:
 
 - [Accordion](./accordion.md)
 - [ActionsBar](./actions-bar.md)
-- [Badge](./badge.md)
 - [AlertDialog](./alert-dialog.md)
+- [AppShell](./app-shell.md)
+- [Badge](./badge.md)
 - [Breadcrumbs](./breadcrumbs.md)
 - [Brand](./brand.md)
 - [Button](./button.md)
 - [Checkbox](./checkbox.md)
 - [Combobox](./combobox.md)
+- [DescriptionList](./description-list.md)
 - [Dialog](./dialog.md)
 - [Disclosure](./disclosure.md)
-- [DescriptionList](./description-list.md)
 - [EmptyState](./empty-state.md)
 - [FieldGroup](./field-group.md)
 - [Form](./form.md)
@@ -46,8 +47,8 @@ Each component document should contain:
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
 - [SearchBox](./search-box.md)
-- [SettingsGroup](./settings-group.md)
 - [Select](./select.md)
+- [SettingsGroup](./settings-group.md)
 - [Switch](./switch.md)
 - [Tabs](./tabs.md)
 - [TextField](./text-field.md)
@@ -56,10 +57,3 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
-
-
-
-
-
-
-

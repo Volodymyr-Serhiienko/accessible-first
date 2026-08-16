@@ -50,6 +50,20 @@ page.focusMain();
 
 `setMainContent(...)` is the first page outlet primitive. It does not implement routing. It gives routing, multi-page demos, and app shells a safe place to render changing content while preserving the semantic page frame.
 
+For real applications, prefer `AppShell` once a stable header, navigation, outlet, and footer are needed:
+
+```ts
+const shell = AppShell({
+    header: Header(),
+    navigation: Navigation(),
+    footer: Footer()
+});
+
+shell.render(SettingsPage());
+```
+
+`AppShell` is intentionally thin. It reuses `createPage`, `PageOutlet`, and `PageLayout` instead of replacing them.
+
 ## Header Composition
 
 `Page.header(...)` owns the native header landmark. Keep reusable header parts small and composable:
@@ -152,5 +166,6 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 

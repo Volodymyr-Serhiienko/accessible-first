@@ -1,59 +1,55 @@
 import {
-    applyPageLayout,
+    AppShell,
     createHashRouter,
-    createPage,
     mount,
-    PageOutlet,
     type ComposedResponsiveNavigation
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
-import { getPlaygroundRouteDocumentTitle, playgroundRoutes } from "./demo/routes";
-import { notifications } from "./demo/status";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
+import { getPlaygroundRouteDocumentTitle, playgroundRoutes } from "./demo/routes";
 import { PlaygroundSearch } from "./demo/search";
+import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
 
-const page = createPage({
+const shell = AppShell({
     title: "Accessible First Playground",
     mainId: "main",
     skipLink: "Skip to section navigation",
     skipLinkTargetId: "playground-navigation",
     navigationLabel: "Playground sections",
-    theme: "system"
-});
-
-const outlet = PageOutlet({
-    className: "playground-route-outlet",
-    label: "Playground demo content",
-    announcement: false,
-    scrollOnRender: true
+    theme: "system",
+    outletOptions: {
+        className: "playground-route-outlet",
+        label: "Playground demo content",
+        announcement: false,
+        scrollOnRender: true
+    },
+    layout: {
+        maxWidth: "var(--playground-max-width)",
+        gutter: "var(--playground-gutter)",
+        mainGap: "1rem",
+        mainPaddingBlock: "1rem 2rem"
+    }
 });
 
 const router = createHashRouter({
     routes: playgroundRoutes,
-    outlet,
+    outlet: shell.outlet,
     getDocumentTitle: getPlaygroundRouteDocumentTitle,
     getAnnouncement(route) {
         return `${route.title} demo loaded.`;
     },
     inspect() {
-        page.inspect();
+        shell.inspect();
     }
 });
 
 let navigation!: ComposedResponsiveNavigation;
 
-applyPageLayout(page, {
-    maxWidth: "var(--playground-max-width)",
-    gutter: "var(--playground-gutter)",
-    mainGap: "1rem",
-    mainPaddingBlock: "1rem 2rem"
-});
-
-page.header(HeaderDemo({
+shell.setHeader(HeaderDemo({
     content: [
         PlaygroundSearch({
             router,
@@ -77,19 +73,19 @@ navigation = NavigationDemo({
 
 router.setNavigation(navigation);
 
-page.navigation(navigation);
-page.setMainContent(
-    outlet,
+shell.setNavigation(navigation);
+shell.setAfterOutlet([
     ReturnToNavigationLink(() => navigation),
     notifications
-);
-page.footer(FooterDemo());
+]);
+shell.setFooter(FooterDemo());
 
-mount(page, "#app");
+mount(shell, "#app");
 
 router.start({
     announcement: false,
     scroll: true,
     focusTarget: null
 });
-page.inspect();
+
+shell.inspect();
