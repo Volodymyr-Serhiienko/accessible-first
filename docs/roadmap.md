@@ -102,13 +102,15 @@ Completed:
 - Progress component for determinate and indeterminate task progress
 - SettingsGroup component for application preferences and configuration screens
 - AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
+- App route helpers for deriving navigation and search items from route metadata
+- Playground main migrated to AppShell
 
 In progress:
 
 - Unified hint, tooltip, description, announcement, and toast model
 - Playground as living documentation
 - Responsive playground refinement
-- Playground migration to PageOutlet-based demo screens
+- Playground AppShell and PageOutlet refinement
 - Navigation patterns and responsive navigation
 - Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
@@ -116,12 +118,12 @@ In progress:
 - Documentation alignment with current architecture
 - Form composition layer
 - First app-building components such as EmptyState and InfoCard
-- Playground migration to AppShell after the scaffold is verified
 - First reference application planning: accessible foreign-language learning app
 
 Next:
 
 - Application shell refinement for real single-page and multi-page apps
+- Route metadata model for navigation, search, breadcrumbs, and command patterns
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -307,6 +309,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

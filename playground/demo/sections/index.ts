@@ -24,6 +24,7 @@ export { MenuDemo } from "./menu";
 export { PopoverDemo } from "./popover";
 export { ProgressDemo } from "./progress";
 export { RadioGroupDemo } from "./radioGroup";
+export { ScreenDemo } from "./screen";
 export { SelectDemo } from "./select";
 export { SettingsGroupDemo } from "./settingsGroup";
 export { SwitchDemo } from "./switch";

@@ -9,6 +9,8 @@ The architecture starts with small behavior modules and builds upward into enhan
 ```text
 Applications and demos
     |
+Application shells and route helpers
+    |
 Page and app patterns
     |
 Semantic composition
@@ -69,6 +71,15 @@ shell.render(HomeScreen());
 
 Use shell APIs when building full applications with stable page regions and changing screen content.
 
+Application route helpers:
+
+```ts
+const navigationItems = createAppRouteNavigationItems(routes);
+const searchItems = createAppRouteSearchItems(routes);
+```
+
+Use route helpers when one route list should feed navigation, search, and routing metadata.
+
 ## Architecture Rules
 
 - Prefer native HTML semantics before custom roles.
@@ -86,6 +97,7 @@ Use shell APIs when building full applications with stable page regions and chan
 - Hints and announcements: [hints-and-announcements.md](./hints-and-announcements.md)
 - Page-building API: [semantic-composition.md](./semantic-composition.md)
 - Application shell: [components/app-shell.md](./components/app-shell.md)
+- App route helpers: [components/app-routes.md](./components/app-routes.md)
 - Component reference: [components/README.md](./components/README.md)
 - Development plan: [roadmap.md](./roadmap.md)
 
@@ -101,4 +113,7 @@ Each module should move through the same cycle:
 6. Playground integration where useful
 
 This keeps the framework understandable while it grows.
+
+
+
 

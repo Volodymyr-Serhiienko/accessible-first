@@ -64,6 +64,17 @@ shell.render(SettingsPage());
 
 `AppShell` is intentionally thin. It reuses `createPage`, `PageOutlet`, and `PageLayout` instead of replacing them.
 
+## Route Metadata
+
+For applications with multiple screens, keep route metadata in one list and derive navigation or search data from it:
+
+```ts
+const navigationItems = createAppRouteNavigationItems(routes);
+const searchItems = createAppRouteSearchItems(routes);
+```
+
+This keeps screen titles, labels, links, descriptions, and keywords consistent across the app.
+
 ## Header Composition
 
 `Page.header(...)` owns the native header landmark. Keep reusable header parts small and composable:
@@ -166,6 +177,7 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 

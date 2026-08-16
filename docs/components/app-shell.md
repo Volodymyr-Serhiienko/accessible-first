@@ -31,6 +31,12 @@ AppShell is a thin composition helper. It combines:
 
 It does not own routing. Use `HashRouter` or native links on top of AppShell depending on the app model.
 
+## Routing And Search
+
+Use [App Routes](./app-routes.md) when one route list should feed navigation, search, and routing metadata.
+
+`AppShell` owns the stable page frame. Route helpers own shared route data. `HashRouter` or native links own navigation behavior.
+
 This keeps the framework flexible for:
 
 - single-page applications;
@@ -117,3 +123,4 @@ Use `layout: false` when an app wants to own all page layout styles manually.
 - Screen changes scroll to the expected start position.
 - Screen changes move focus to a useful target.
 - Page diagnostics do not report missing names, duplicate ids, or broken ARIA references.
+
