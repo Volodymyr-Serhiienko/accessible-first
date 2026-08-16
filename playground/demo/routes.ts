@@ -1,4 +1,7 @@
-import type { ComposedNode, NavigationItem } from "./af";
+import {
+    createAppRouteNavigationItems,
+    type ComposedNode
+} from "./af";
 import {
     AccordionDemo,
     ActionsBarDemo,
@@ -87,18 +90,10 @@ export const playgroundRoutes: PlaygroundRoute[] = [
 
 export const initialPlaygroundRoute = buttonsRoute;
 
-export const playgroundNavigationItems: NavigationItem[] = playgroundRoutes.map((route) => ({
-    id: route.id,
-    label: route.label,
-    href: getPlaygroundRouteHref(route)
-}));
+export const playgroundNavigationItems = createAppRouteNavigationItems(playgroundRoutes);
 
 function normalizeRouteId(value: string): string {
     return value.replace(/^#/, "").trim();
-}
-
-export function getPlaygroundRouteHref(route: PlaygroundRoute): string {
-    return `#${route.id}`;
 }
 
 export function getPlaygroundRouteDocumentTitle(route: PlaygroundRoute): string {
