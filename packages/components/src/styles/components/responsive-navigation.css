@@ -22,6 +22,27 @@
     display: none;
 }
 
+[data-af-responsive-navigation-mobile],
+[data-af-responsive-navigation-panel],
+[data-af-responsive-navigation-mobile-list] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    inline-size: 100%;
+}
+
+[data-af-responsive-navigation-mobile-list] [data-af-navigation-item],
+[data-af-responsive-navigation-mobile-list] [data-af-navigation-link] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+[data-af-responsive-navigation-mobile-list] [data-af-navigation-link] {
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
 [data-af-responsive-navigation-mobile][data-af-component="disclosure"] {
     border-color: transparent;
     background: transparent;

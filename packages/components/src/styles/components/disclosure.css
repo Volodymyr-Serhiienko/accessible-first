@@ -1,4 +1,7 @@
 [data-af-component="disclosure"] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     display: grid;
     gap: var(--af-space-2);
     border: 1px solid var(--af-color-border);
@@ -29,6 +32,13 @@
     cursor: pointer;
 }
 
+[data-af-disclosure-trigger],
+[data-af-disclosure-panel] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
 [data-af-disclosure-trigger]::after {
     content: "";
     inline-size: 0.55rem;
@@ -57,6 +67,7 @@
 [data-af-disclosure-panel] {
     padding: 0 var(--af-space-4) var(--af-space-4);
     color: var(--af-color-fg);
+    overflow-wrap: break-word;
 }
 
 [data-af-disclosure-panel][hidden] {
@@ -69,6 +80,7 @@
 }
 
 [data-af-component="disclosure"] [data-af-disclosure-body] {
+    min-inline-size: 0;
     display: grid;
     gap: var(--af-space-3);
 }
