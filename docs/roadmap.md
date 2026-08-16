@@ -103,6 +103,7 @@ Completed:
 - SettingsGroup component for application preferences and configuration screens
 - AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
 - App route helpers for deriving navigation and search items from route metadata
+- Screen component for top-level application views
 - Playground main migrated to AppShell
 
 In progress:
@@ -124,6 +125,7 @@ Next:
 
 - Application shell refinement for real single-page and multi-page apps
 - Route metadata model for navigation, search, breadcrumbs, and command patterns
+- Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -309,6 +311,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

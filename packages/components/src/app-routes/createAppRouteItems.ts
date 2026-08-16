@@ -1,3 +1,4 @@
+import type { BreadcrumbsCurrent, BreadcrumbsItem } from "../breadcrumbs";
 import type { NavigationItem } from "../navigation";
 import type { SearchBoxItem } from "../search-box";
 
@@ -22,6 +23,15 @@ export interface AppRouteSearchItem<TRoute extends AppRouteDescriptor = AppRoute
     extends SearchBoxItem<TRoute> {
     data: TRoute;
 }
+
+/**
+ * Resolves aria-current for a breadcrumb route.
+ */
+export type AppRouteCurrentResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute,
+    index: number,
+    routes: readonly TRoute[]
+) => BreadcrumbsCurrent | undefined;
 
 /**
  * Resolves display text for a route.
@@ -83,6 +93,16 @@ export interface AppRouteSearchItemsOptions<TRoute extends AppRouteDescriptor> {
     getDescription?: AppRouteDescriptionResolver<TRoute>;
     getKeywords?: AppRouteKeywordsResolver<TRoute>;
     isDisabled?: AppRouteDisabledResolver<TRoute>;
+}
+
+/**
+ * Options for createAppRouteBreadcrumbItems().
+ */
+export interface AppRouteBreadcrumbItemsOptions<TRoute extends AppRouteDescriptor> {
+    getLabel?: AppRouteLabelResolver<TRoute>;
+    getHref?: AppRouteHrefResolver<TRoute>;
+    getCurrent?: AppRouteCurrentResolver<TRoute>;
+    linkCurrent?: boolean;
 }
 
 /**
@@ -194,6 +214,37 @@ export function createAppRouteSearchItems<TRoute extends AppRouteDescriptor>(
 
         if (description !== null) item.description = description;
         if (disabled !== undefined) item.disabled = disabled;
+
+        return item;
+    });
+}
+
+/**
+ * Creates Breadcrumbs items from a route trail.
+ */
+export function createAppRouteBreadcrumbItems<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: AppRouteBreadcrumbItemsOptions<TRoute> = {}
+): BreadcrumbsItem[] {
+    const lastIndex = routes.length - 1;
+
+    return routes.map((route, index) => {
+        const current = options.getCurrent?.(route, index, routes)
+            ?? (index === lastIndex ? "page" : false);
+
+        const item: BreadcrumbsItem = {
+            label: options.getLabel?.(route) ?? getAppRouteLabel(route)
+        };
+
+        const href = options.getHref?.(route) ?? getAppRouteHref(route);
+
+        if (current) {
+            item.current = current;
+        }
+
+        if (href !== null && (options.linkCurrent || !current)) {
+            item.href = href;
+        }
 
         return item;
     });

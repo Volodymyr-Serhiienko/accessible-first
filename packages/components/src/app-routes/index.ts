@@ -1,4 +1,5 @@
 export {
+    createAppRouteBreadcrumbItems,
     createAppRouteNavigationItems,
     createAppRouteSearchItems,
     getAppRouteDescription,
@@ -9,6 +10,8 @@ export {
 } from "./createAppRouteItems";
 
 export type {
+    AppRouteBreadcrumbItemsOptions,
+    AppRouteCurrentResolver,
     AppRouteDescriptionResolver,
     AppRouteDescriptor,
     AppRouteDisabledResolver,

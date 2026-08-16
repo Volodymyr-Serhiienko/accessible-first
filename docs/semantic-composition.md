@@ -75,6 +75,20 @@ const searchItems = createAppRouteSearchItems(routes);
 
 This keeps screen titles, labels, links, descriptions, and keywords consistent across the app.
 
+## Screens
+
+Use `Screen` for one complete application view inside `AppShell` or `PageOutlet`.
+
+Use `Section` for meaningful document sections inside a screen or page. This keeps app-level structure and document-level structure separate.
+
+```ts
+shell.render(Screen({
+    title: "Lessons",
+    description: "Practice vocabulary and grammar.",
+    children: LessonsList()
+}));
+```
+
 ## Header Composition
 
 `Page.header(...)` owns the native header landmark. Keep reusable header parts small and composable:
@@ -177,6 +191,7 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 

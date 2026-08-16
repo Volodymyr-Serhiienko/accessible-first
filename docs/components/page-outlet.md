@@ -4,6 +4,8 @@ PageOutlet is a managed content region for application screens.
 
 It lets an app keep a stable page shell - header, navigation, footer, theme controls - while replacing only the active screen inside `main`.
 
+Screen pairs well with PageOutlet when each routed view needs a consistent title, description, actions, body, and footer structure.
+
 ## When To Use
 
 Use `PageOutlet` for SPA-style screens, lightweight route switching, multi-page-like demos, settings pages, lessons, dashboards, and other application content that changes inside a stable shell.
@@ -77,3 +79,4 @@ outlet.render([
 - Screen reader users hear the screen change.
 - Browser scroll returns to the new content start.
 - Header, navigation, footer, and theme controls are not recreated.
+

@@ -1,0 +1,133 @@
+# Screen
+
+Screen creates a top-level application view for `AppShell` and `PageOutlet` content.
+
+Use it for complete app screens such as dashboards, settings pages, lesson lists, vocabulary views, profile pages, search results, and future reference application screens.
+
+## Quick Start
+
+```ts
+Screen({
+    title: "Lessons",
+    description: "Practice vocabulary, grammar, and listening skills.",
+    actions: Button({
+        text: "New lesson",
+        variant: "primary"
+    }),
+    children: LessonsList()
+});
+```
+
+## Purpose
+
+`Screen` is not a replacement for `Section`.
+
+Use `Section` for document sections inside a page. Use `Screen` for the whole active application view rendered inside a `PageOutlet`.
+
+A screen provides a predictable structure:
+
+- labelled root section;
+- title;
+- optional description;
+- optional action area;
+- body content;
+- optional footer.
+
+## AppShell And PageOutlet
+
+`Screen` pairs naturally with `AppShell`:
+
+```ts
+const shell = AppShell({
+    header: Header(),
+    navigation: Navigation()
+});
+
+shell.render(Screen({
+    title: "Settings",
+    description: "Manage account and learning preferences.",
+    children: SettingsContent()
+}));
+```
+
+`PageOutlet` can focus and announce a screen change while the screen itself provides the visible and semantic structure.
+
+## Options
+
+- `title` - required screen title content.
+- `description` - optional short explanation for the screen.
+- `children` - main body content.
+- `actions` - primary screen actions, usually shown near the title.
+- `footer` - low-priority footer content inside the screen.
+- `headingLevel` - heading level for the title. Default is `2`.
+- `variant` - `"default"` or `"plain"`.
+- `size` - size token. Currently `"md"`.
+- `actionsLabel` - accessible label for the action group.
+- `actionsAlign` - alignment passed to the internal `ActionsBar`.
+- `headerOptions` - DOM options for the screen header.
+- `titleOptions` - DOM options for the title element.
+- `descriptionOptions` - DOM options for the description element.
+- `bodyOptions` - DOM options for the body element.
+- `actionsOptions` - DOM options for the actions container.
+- `footerOptions` - DOM options for the screen footer.
+
+## Methods
+
+- `getTitleText()` - returns normalized title text.
+- `getDescriptionText()` - returns normalized description text.
+- `setTitle(content)` - updates the screen title.
+- `setDescription(content)` - updates the description.
+- `setBody(content)` - updates body content.
+- `setActions(content)` - updates screen actions.
+- `setFooter(content)` - updates footer content.
+- `update(options)` - updates mutable options.
+- `destroy()` - disposes slots and actions.
+
+## Accessibility
+
+`Screen` renders a native `section` and connects it to its title with `aria-labelledby`.
+
+When a description is present, it is connected with `aria-describedby`. Keep descriptions short and useful. Long instructions usually belong in the body.
+
+The default heading level is `2`, which works well when the application header already contains the main `h1`. Use `headingLevel: 1` only when the screen is the primary document title.
+
+Screen actions are grouped through `ActionsBar`. Use `actionsLabel` when the purpose of the actions is not obvious from the title.
+
+## Actions Placement
+
+The default action placement is in the screen header, next to the title and description. This matches common app screens where page-level actions such as Create, Save, Export, or Start are visible before the main content.
+
+Future screen templates may add alternative placements such as footer actions after repeated real application use proves the need.
+
+## Styling
+
+Screen sets:
+
+```html
+data-af-composition="screen"
+data-af-screen-header
+data-af-screen-title
+data-af-screen-description
+data-af-screen-body
+data-af-screen-actions
+data-af-screen-footer
+```
+
+Customize spacing and title size with CSS variables:
+
+```css
+.my-screen {
+    --af-screen-gap: 1.25rem;
+    --af-screen-title-size: 1.75rem;
+    --af-screen-description-width: 44rem;
+}
+```
+
+## Manual Checks
+
+- The screen has one clear title.
+- The title is announced as the screen label.
+- The description is short and useful when announced.
+- Header actions wrap cleanly on small screens.
+- Body content does not create horizontal overflow.
+- Footer content remains secondary and does not hide primary actions.
