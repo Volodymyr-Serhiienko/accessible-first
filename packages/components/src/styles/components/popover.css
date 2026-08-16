@@ -19,6 +19,7 @@
     background: var(--af-color-bg);
     box-shadow: var(--af-shadow-overlay);
     overscroll-behavior: contain;
+    min-inline-size: 0;
 }
 
 [data-af-component="popover"][hidden] {
@@ -63,6 +64,7 @@
 
 @media (max-width: 640px) {
     [data-af-component="popover"] {
+        inline-size: min(var(--af-popover-mobile-width, 100%), calc(100vw - 1rem));
         max-inline-size: calc(100vw - 1rem);
     }
 }

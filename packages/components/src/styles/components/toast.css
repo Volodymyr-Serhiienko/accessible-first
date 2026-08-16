@@ -106,18 +106,20 @@
 }
 
 @media (max-width: 640px) {
-    [data-af-component="toast-viewport"] {
-        inline-size: auto;
-        inset-inline: var(--af-space-3);
+    [data-af-toast] {
+        inline-size: min(100%, calc(100vw - 1rem));
     }
 
     [data-af-toast-actions] {
-        align-items: stretch;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
     }
 
     [data-af-toast-action],
     [data-af-toast-close] {
-        inline-size: 100%;
+        inline-size: auto;
+        max-inline-size: 100%;
     }
 }

@@ -52,20 +52,38 @@
 
 @media (max-width: 38rem) {
     [data-af-composition="actions-bar"] {
-        align-items: stretch;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    [data-af-composition="actions-bar"][data-af-align="end"] {
+        justify-content: flex-end;
+    }
+
+    [data-af-composition="actions-bar"][data-af-align="between"] {
+        justify-content: space-between;
     }
 
     [data-af-actions-bar-secondary],
     [data-af-actions-bar-primary] {
-        inline-size: 100%;
+        max-inline-size: 100%;
     }
 
     [data-af-actions-bar-primary] {
-        justify-content: stretch;
+        justify-content: flex-end;
     }
 
-    [data-af-actions-bar-primary] > *,
-    [data-af-actions-bar-secondary] > * {
+    [data-af-composition="actions-bar"][data-af-align="stretch"] {
+        align-items: stretch;
+    }
+
+    [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-secondary],
+    [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-primary] {
+        inline-size: 100%;
+    }
+
+    [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-primary] > *,
+    [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-secondary] > * {
         flex: 1 1 min(100%, 10rem);
     }
 }

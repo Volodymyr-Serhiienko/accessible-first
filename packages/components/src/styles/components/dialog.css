@@ -12,6 +12,8 @@
     color: var(--af-color-fg);
     background: var(--af-color-backdrop);
     overflow: auto;
+    box-sizing: border-box;
+    overscroll-behavior: contain;
 }
 
 [data-af-component="dialog"][hidden] {
@@ -29,6 +31,10 @@
     padding: var(--af-space-4);
     background: var(--af-color-bg);
     box-shadow: var(--af-shadow-overlay);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overscroll-behavior: contain;
 }
 
 [data-af-dialog-surface]:focus-visible,
@@ -69,7 +75,8 @@
     }
 
     [data-af-dialog-surface] {
-        inline-size: 100%;
-        max-block-size: calc(100vh - 1.5rem);
+        inline-size: min(100%, calc(100vw - var(--af-space-3) - var(--af-space-3)));
+        max-inline-size: 100%;
+        max-block-size: calc(100dvh - var(--af-space-3) - var(--af-space-3));
     }
 }

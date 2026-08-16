@@ -68,7 +68,9 @@ navigation = NavigationDemo({
         detail.event.preventDefault();
 
         router.navigate(route, {
-            updateHistory: true
+            updateHistory: true,
+            scroll: true,
+            focusTarget: "outlet"
         });
     }
 });

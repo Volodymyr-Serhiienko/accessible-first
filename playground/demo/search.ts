@@ -63,7 +63,9 @@ export function PlaygroundSearch(
         items: options.routes.map(toSearchItem),
         onSelect(detail) {
             options.router.navigate(detail.item.data, {
-                updateHistory: true
+                updateHistory: true,
+                scroll: true,
+                focusTarget: "outlet"
             });
         }
     });

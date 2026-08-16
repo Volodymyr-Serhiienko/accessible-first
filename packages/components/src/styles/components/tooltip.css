@@ -12,7 +12,7 @@
     inset-inline-start: 50%;
     z-index: 20;
     inline-size: max-content;
-    max-inline-size: min(24rem, calc(100vw - 2rem));
+    max-inline-size: min(16rem, calc(100vw - 2rem));
     padding: 0.4rem 0.625rem;
     color: var(--af-color-tooltip-fg);
     background: var(--af-color-tooltip-bg);
@@ -27,7 +27,7 @@
     overflow-wrap: break-word;
     display: none;
     pointer-events: none;
-    transform: translateX(-50%);
+    transform: translateX(calc(-50% + var(--af-tooltip-shift-x, 0px)));
 }
 
 [data-af-tooltip]:hover > [data-af-tooltip-visual],
