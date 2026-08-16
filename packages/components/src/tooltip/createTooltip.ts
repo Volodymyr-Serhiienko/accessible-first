@@ -1,5 +1,5 @@
 import { addAriaReferenceId, getAriaReferencedText } from "../../../core/src/aria";
-import { restoreAttribute } from "../../../core/src/dom";
+import { getOwnerWindow, restoreAttribute } from "../../../core/src/dom";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
 import { isEscapeKey } from "../../../core/src/keyboard";
@@ -55,6 +55,7 @@ export function createTooltip(
     let cleanups: Cleanup[] = [];
     let destroyed = false;
     let dismissed = false;
+    let positionFrame = 0;
 
     function getTooltipId(): string {
         if (!tooltipId) {
@@ -66,6 +67,46 @@ export function createTooltip(
 
     function getContainer(): HTMLElement {
         return ownerDocument.body ?? ownerDocument.documentElement;
+    }
+
+    function cancelPositionUpdate(): void {
+        if (!positionFrame) return;
+
+        getOwnerWindow(element).cancelAnimationFrame(positionFrame);
+        positionFrame = 0;
+    }
+
+    function updateVisualPosition(): void {
+        if (!visualContent || !text) return;
+
+        visualContent.style.setProperty("--af-tooltip-shift-x", "0px");
+
+        const ownerWindow = getOwnerWindow(element);
+        const viewportPadding = 8;
+        const rect = visualContent.getBoundingClientRect();
+        const minLeft = viewportPadding;
+        const maxRight = ownerWindow.innerWidth - viewportPadding;
+
+        let shift = 0;
+
+        if (rect.left < minLeft) {
+            shift = minLeft - rect.left;
+        } else if (rect.right > maxRight) {
+            shift = maxRight - rect.right;
+        }
+
+        visualContent.style.setProperty("--af-tooltip-shift-x", `${shift}px`);
+    }
+
+    function scheduleVisualPositionUpdate(): void {
+        if (!visualContent || !text) return;
+
+        cancelPositionUpdate();
+
+        positionFrame = getOwnerWindow(element).requestAnimationFrame(() => {
+            positionFrame = 0;
+            updateVisualPosition();
+        });
     }
 
     function ensureDescriptionContent(): HTMLElement {
@@ -107,6 +148,7 @@ export function createTooltip(
     }
 
     function removeVisualContent(): void {
+        cancelPositionUpdate();
         visualContent?.remove();
         visualContent = null;
     }
@@ -149,7 +191,10 @@ export function createTooltip(
     function syncText(): void {
         if (text) {
             element.setAttribute("data-af-tooltip", "");
-            ensureVisualContent().textContent = text;
+
+            const visual = ensureVisualContent();
+            visual.textContent = text;
+            scheduleVisualPositionUpdate();
         } else {
             element.removeAttribute("data-af-tooltip");
             element.removeAttribute("data-af-tooltip-dismissed");
@@ -186,6 +231,7 @@ export function createTooltip(
 
     function handlePointerEnter(event: PointerEvent): void {
         resetDismissal();
+        scheduleVisualPositionUpdate();
 
         if (event.pointerType && event.pointerType !== "mouse") {
             return;
@@ -216,7 +262,10 @@ export function createTooltip(
             announcer?.clear();
             resetDismissal();
         }),
-        addEventListener<FocusEvent>(element, "focusin", () => resetDismissal()),
+        addEventListener<FocusEvent>(element, "focusin", () => {
+            resetDismissal();
+            scheduleVisualPositionUpdate();
+        }),
         addEventListener<FocusEvent>(element, "focusout", () => {
             announcer?.clear();
             resetDismissal();
@@ -269,6 +318,7 @@ export function createTooltip(
             if (destroyed) return;
 
             destroyed = true;
+            cancelPositionUpdate();
             disposeListeners();
             announcer?.destroy();
             removeDescriptionContent();

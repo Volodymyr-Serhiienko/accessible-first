@@ -42,7 +42,7 @@
 
 [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-primary] > *,
 [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-secondary] > * {
-    flex: 1 1 min(100%, 10rem);
+    flex: 1 1 min(100%, 7rem);
 }
 
 [data-af-actions-bar-secondary][hidden],
@@ -84,6 +84,6 @@
 
     [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-primary] > *,
     [data-af-composition="actions-bar"][data-af-align="stretch"] [data-af-actions-bar-secondary] > * {
-        flex: 1 1 min(100%, 10rem);
+        flex: 1 1 min(100%, 7rem);
     }
 }

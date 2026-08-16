@@ -175,6 +175,24 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         return element;
     }
 
+    function scrollToStart(): void {
+        element.scrollIntoView({
+            block: "start",
+            inline: "nearest",
+            behavior: "auto"
+        });
+    }
+
+    function scheduleScrollToStart(): void {
+        const ownerWindow = element.ownerDocument.defaultView ?? window;
+
+        ownerWindow.requestAnimationFrame(() => {
+            if (destroyed) return;
+
+            scrollToStart();
+        });
+    }
+
     function focus(target: PageOutletFocusTarget = focusTarget): boolean {
         const targetElement = resolveFocusTarget(target);
 
@@ -223,15 +241,15 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
             : announcement;
 
         if (shouldScroll) {
-            element.scrollIntoView({
-                block: "start",
-                inline: "nearest",
-                behavior: "auto"
-            });
+            scrollToStart();
         }
 
         focus(nextFocusTarget);
         announceRender(nextAnnouncement);
+
+        if (shouldScroll) {
+            scheduleScrollToStart();
+        }
     }
 
     function setContent(children: CompositionChild[], renderOptions: PageOutletRenderOptions = {}): void {

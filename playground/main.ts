@@ -89,8 +89,7 @@ mount(page, "#app");
 
 router.start({
     announcement: false,
-    scroll: false,
+    scroll: true,
     focusTarget: null
 });
-
 page.inspect();
