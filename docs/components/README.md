@@ -48,6 +48,7 @@ Each component document should contain:
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
 - [RouteBreadcrumbs](./route-breadcrumbs.md)
+- [RouteResponsiveNavigation](./route-responsive-navigation.md)
 - [RouteSearchBox](./route-search-box.md)
 - [SearchBox](./search-box.md)
 - [Screen](./screen.md)
@@ -61,6 +62,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 

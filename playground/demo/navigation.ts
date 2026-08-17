@@ -1,19 +1,17 @@
 import {
-    ResponsiveNavigation,
-    type ComposedResponsiveNavigation,
-    type NavigationItem,
-    type NavigationNavigateDetail
+    RouteResponsiveNavigation,
+    type ComposedRouteResponsiveNavigation,
+    type RouteResponsiveNavigationNavigateDetail
 } from "./af";
 import {
-    getPlaygroundRouteById,
-    playgroundNavigationItems,
+    playgroundRoutes,
     type PlaygroundRoute
 } from "./routes";
 
 export type PlaygroundRouteNavigateHandler = (
     route: PlaygroundRoute,
-    detail: NavigationNavigateDetail,
-    navigation: ComposedResponsiveNavigation
+    detail: RouteResponsiveNavigationNavigateDetail<PlaygroundRoute>,
+    navigation: ComposedRouteResponsiveNavigation<PlaygroundRoute>
 ) => void;
 
 export interface NavigationDemoOptions {
@@ -21,25 +19,19 @@ export interface NavigationDemoOptions {
     onRouteNavigate?: PlaygroundRouteNavigateHandler | null;
 }
 
-function getRouteFromNavigationItem(item: NavigationItem): PlaygroundRoute | null {
-    return getPlaygroundRouteById(item.id ?? item.href ?? null);
-}
-
-export function NavigationDemo(options: NavigationDemoOptions = {}): ComposedResponsiveNavigation {
-    return ResponsiveNavigation({
+export function NavigationDemo(
+    options: NavigationDemoOptions = {}
+): ComposedRouteResponsiveNavigation<PlaygroundRoute> {
+    return RouteResponsiveNavigation<PlaygroundRoute>({
         id: "playground-navigation",
         className: "playground-nav__inner",
         trigger: "Sections",
         triggerIconPosition: "start",
         variant: "pills",
         current: options.current ?? null,
-        items: playgroundNavigationItems,
-        onNavigate(detail, navigation) {
-            const route = getRouteFromNavigationItem(detail.item);
-
-            if (!route) return;
-
-            options.onRouteNavigate?.(route, detail, navigation);
+        routes: playgroundRoutes,
+        onRouteNavigate(detail, navigation) {
+            options.onRouteNavigate?.(detail.route, detail, navigation);
         }
     });
 }
