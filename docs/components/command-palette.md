@@ -2,7 +2,7 @@
 
 CommandPalette creates a modal searchable command picker.
 
-Use it for quick navigation, application commands, settings shortcuts, and Ctrl+K style interfaces where users should be able to search actions without leaving the current screen.
+Use it for quick navigation, application commands, settings shortcuts, and Ctrl+K style interfaces where users should be able to search actions without leaving the current screen. Use [RouteCommandPalette](./route-command-palette.md) when commands should be generated from route metadata.
 
 ## Quick Start
 
@@ -158,4 +158,5 @@ On mobile screen readers, searchable popups can be harder to explore than direct
 - Empty results show `notFoundText`.
 - Screen reader announces the dialog title, description, search input, result count behavior, and selected result.
 - On mobile, the dialog fits inside the viewport and the keyboard does not create horizontal overflow.
+
 

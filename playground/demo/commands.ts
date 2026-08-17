@@ -22,8 +22,8 @@ export function PlaygroundCommands(
         placeholder: "Search commands",
         notFoundText: "No commands found.",
         shortcut: [
-            { key: "k", ctrlKey: true, allowInEditable: true },
-            { key: "k", metaKey: true, allowInEditable: true }
+            { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
+            { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
         ],
         routes: options.routes,
         searchItemsOptions: {

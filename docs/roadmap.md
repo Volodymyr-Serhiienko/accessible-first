@@ -111,6 +111,7 @@ Completed:
 - RouteResponsiveNavigation component for deriving responsive navigation UI from route metadata
 - HashRouter route activation and binding helpers for route-aware navigation, search, and breadcrumbs
 - CommandPalette component for searchable application commands and quick navigation
+- RouteCommandPalette component for route-derived command search
 
 In progress:
 
@@ -131,7 +132,6 @@ In progress:
 Next:
 
 - Application shell refinement for real single-page and multi-page apps
-- Route-aware command palette wrapper after CommandPalette is validated in the playground
 - Route metadata model expansion for multi-page app patterns
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
@@ -320,6 +320,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

@@ -24,10 +24,9 @@ const DEFAULT_PLACEHOLDER = "Search commands";
 const DEFAULT_NOT_FOUND_TEXT = "No commands found.";
 
 /**
- * Keyboard shortcut configuration for opening CommandPalette.
+ * Keyboard shortcut modifier configuration for opening CommandPalette.
  */
-export interface CommandPaletteShortcutOptions {
-    key: string;
+export interface CommandPaletteShortcutModifierOptions {
     ctrlKey?: boolean;
     metaKey?: boolean;
     altKey?: boolean;
@@ -35,6 +34,16 @@ export interface CommandPaletteShortcutOptions {
     preventDefault?: boolean;
     allowInEditable?: boolean;
 }
+
+/**
+ * Keyboard shortcut configuration for opening CommandPalette.
+ *
+ * key matches the produced character, code matches the physical key.
+ */
+export type CommandPaletteShortcutOptions = CommandPaletteShortcutModifierOptions & (
+    | { key: string; code?: string }
+    | { key?: string; code: string }
+);
 
 /**
  * Keyboard shortcut or shortcut list accepted by CommandPalette().
@@ -201,11 +210,17 @@ function isShortcutMatch(
     event: KeyboardEvent,
     shortcut: CommandPaletteShortcutOptions
 ): boolean {
-    const keyMatches = shortcut.key.length === 1
-        ? event.key.toLowerCase() === shortcut.key.toLowerCase()
-        : event.key === shortcut.key;
+    const keyMatches = shortcut.key === undefined
+        ? false
+        : shortcut.key.length === 1
+            ? event.key.toLowerCase() === shortcut.key.toLowerCase()
+            : event.key === shortcut.key;
 
-    return keyMatches
+    const codeMatches = shortcut.code === undefined
+        ? false
+        : event.code === shortcut.code;
+
+    return (keyMatches || codeMatches)
         && event.ctrlKey === (shortcut.ctrlKey ?? false)
         && event.metaKey === (shortcut.metaKey ?? false)
         && event.altKey === (shortcut.altKey ?? false)
