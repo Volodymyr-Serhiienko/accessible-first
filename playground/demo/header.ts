@@ -5,6 +5,7 @@ import { Brand, HeaderBar, Img, ThemeToggle,
 
 export interface HeaderDemoOptions {
     content?: CompositionChild[];
+    actions?: CompositionChild[];
 }
 
 export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
@@ -26,8 +27,11 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             tagline: "WCAG-first components and page composition"
         }),
         content: options.content ?? null,
-        actions: ThemeToggle({
-            variant: "secondary"
-        })
+        actions: [
+            ...(options.actions ?? []),
+            ThemeToggle({
+                variant: "secondary"
+            })
+        ]
     });
 }

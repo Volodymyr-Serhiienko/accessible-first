@@ -1,0 +1,27 @@
+[data-af-command-palette] {
+    display: inline-block;
+}
+
+[data-af-command-palette-dialog] {
+    --af-dialog-width: var(--af-command-palette-width, 42rem);
+}
+
+[data-af-command-palette-dialog] [data-af-dialog-surface] {
+    align-self: start;
+    margin-block-start: min(8vh, var(--af-space-6));
+}
+
+[data-af-command-palette-search] {
+    --af-search-box-width: 100%;
+    --af-combobox-width: 100%;
+    --af-combobox-listbox-max-width: var(--af-command-palette-results-width, 42rem);
+    --af-combobox-listbox-max-block-size: var(--af-command-palette-results-max-block-size, 22rem);
+
+    inline-size: 100%;
+}
+
+@media (max-width: 640px) {
+    [data-af-command-palette-dialog] [data-af-dialog-surface] {
+        margin-block-start: 0;
+    }
+}

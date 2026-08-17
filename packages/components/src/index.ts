@@ -9,6 +9,7 @@ export * from "./brand";
 export * from "./button";
 export * from "./checkbox";
 export * from "./combobox";
+export * from "./command-palette";
 export * from "./composition";
 export * from "./description-list";
 export * from "./dialog";

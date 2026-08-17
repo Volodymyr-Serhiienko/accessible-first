@@ -7,6 +7,7 @@ import {
     type ComposedResponsiveNavigation
 } from "./demo/af";
 import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
+import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
@@ -78,13 +79,19 @@ const router = createHashRouter({
 
 const routeBreadcrumbs = PlaygroundBreadcrumbs(router.getCurrentRoute());
 
+const playgroundCommands = PlaygroundCommands({
+    router,
+    routes: playgroundRoutes
+});
+
 shell.setHeader(HeaderDemo({
     content: [
         PlaygroundSearch({
             router,
             routes: playgroundRoutes
         })
-    ]
+    ],
+    actions: [playgroundCommands]
 }));
 
 navigation = NavigationDemo({

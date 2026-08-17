@@ -25,6 +25,7 @@ Each component document should contain:
 - [Button](./button.md)
 - [Checkbox](./checkbox.md)
 - [Combobox](./combobox.md)
+- [CommandPalette](./command-palette.md)
 - [DescriptionList](./description-list.md)
 - [Dialog](./dialog.md)
 - [Disclosure](./disclosure.md)
@@ -62,6 +63,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
