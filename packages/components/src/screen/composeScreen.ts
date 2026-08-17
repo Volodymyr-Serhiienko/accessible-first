@@ -1,4 +1,5 @@
 import { setAriaDescribedBy, setAriaLabelledBy } from "../../../core/src/aria";
+import { focusProgrammatically } from "../../../core/src/focus";
 import { ensureId } from "../../../core/src/id";
 import {
     ActionsBar,
@@ -46,6 +47,17 @@ export type ScreenSize = "md";
 export type ScreenActionsAlign = ActionsBarAlign;
 
 /**
+ * Programmatic focus target inside a Screen.
+ */
+export type ScreenFocusTarget =
+    | "screen"
+    | "title"
+    | "description"
+    | "body"
+    | "actions"
+    | "footer";
+
+/**
  * Options for Screen().
  */
 export interface ScreenOptions extends BaseCompositionOptions {
@@ -65,6 +77,7 @@ export interface ScreenOptions extends BaseCompositionOptions {
     bodyOptions?: BaseCompositionOptions;
     actionsOptions?: BaseCompositionOptions;
     footerOptions?: BaseCompositionOptions;
+    defaultFocusTarget?: ScreenFocusTarget;
 }
 
 /**
@@ -94,6 +107,8 @@ export interface ComposedScreen extends ComposedNode<HTMLElement> {
     setBody(content: ScreenCompositionContent | null): void;
     setActions(content: ScreenCompositionContent | null): void;
     setFooter(content: ScreenCompositionContent | null): void;
+    getFocusTarget(target?: ScreenFocusTarget): HTMLElement;
+    focus(target?: ScreenFocusTarget, options?: FocusOptions): boolean;
     update(options: ScreenUpdateOptions): void;
     destroy(): void;
 }
@@ -173,6 +188,7 @@ export function Screen(options: ScreenOptions): ComposedScreen {
     let size: ScreenSize = options.size ?? "md";
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: ScreenActionsAlign = options.actionsAlign ?? "end";
+    let defaultFocusTarget: ScreenFocusTarget = options.defaultFocusTarget ?? "title";
 
     let descriptionContent = normalizeSlotContent(options.description);
     let bodyContent = normalizeSlotContent(options.children);
@@ -196,6 +212,23 @@ export function Screen(options: ScreenOptions): ComposedScreen {
     header.append(headingGroup, actionsBar.element);
     element.append(header, body, footer);
 
+    function getFocusTarget(target: ScreenFocusTarget = defaultFocusTarget): HTMLElement {
+        if (target === "screen") return element;
+        if (target === "description") return description.hidden ? title : description;
+        if (target === "body") return body.hidden ? title : body;
+        if (target === "actions") return actionsBar.element.hidden ? title : actionsBar.element;
+        if (target === "footer") return footer.hidden ? (body.hidden ? title : body) : footer;
+
+        return title;
+    }
+
+    function focus(
+        target: ScreenFocusTarget = defaultFocusTarget,
+        focusOptions: FocusOptions = { preventScroll: true }
+    ): boolean {
+        return focusProgrammatically(getFocusTarget(target), focusOptions);
+    }
+    
     function sync(): void {
         ensureId(title, "af-screen-title");
 
@@ -275,6 +308,8 @@ export function Screen(options: ScreenOptions): ComposedScreen {
         setBody,
         setActions,
         setFooter,
+        getFocusTarget,
+        focus,
 
         update(nextOptions): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -301,6 +336,10 @@ export function Screen(options: ScreenOptions): ComposedScreen {
 
             if (nextOptions.footerOptions !== undefined) {
                 applyCompositionElementOptions(footer, nextOptions.footerOptions);
+            }
+
+            if (nextOptions.defaultFocusTarget !== undefined) {
+                defaultFocusTarget = nextOptions.defaultFocusTarget;
             }
 
             if ("title" in nextOptions) setTitle(nextOptions.title);

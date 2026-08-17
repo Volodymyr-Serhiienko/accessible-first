@@ -60,7 +60,8 @@ export interface PageDiagnosticsOptions {
  *
  * Page owns a root element, creates a main landmark, and exposes fluent methods
  * for header, navigation, main content, sections, footer, diagnostics, and cleanup.
- */export interface Page extends ComposedNode {
+ */
+export interface Page extends ComposedNode {
     readonly main: HTMLElement;
     header(...children: CompositionChild[]): Page;
     navigation(...children: CompositionChild[]): Page;

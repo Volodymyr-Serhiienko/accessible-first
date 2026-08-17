@@ -82,6 +82,19 @@ const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 
 Use route helpers and route-aware components when one route list should feed navigation, search, breadcrumbs, parent route trails, and routing metadata.
 
+## Interaction Scenarios
+
+Accessible First should treat interaction as a first-class design surface, not only as component behavior.
+
+For every reusable app pattern, design and test at least two related scenarios:
+
+- desktop keyboard and screen reader flow, where Tab, Shift+Tab, arrows, headings, landmarks, descriptions, and shortcuts shape the experience;
+- mobile touch screen reader flow, where users explore controls and content through touch navigation, swipe navigation, rotor/local context menus, and virtual keyboard behavior.
+
+These scenarios are related, but not identical. A good desktop Tab route does not automatically make a good mobile screen reader route. Components should provide clear names, descriptions, hints, focus targets, and visible alternatives so application patterns can be understandable in both modes.
+
+Keyboard shortcuts are useful accelerators for desktop applications, but visible controls and semantic navigation must remain available. Shortcuts should never be the only path to a core action.
+
 ## Architecture Rules
 
 - Prefer native HTML semantics before custom roles.
@@ -115,6 +128,8 @@ Each module should move through the same cycle:
 6. Playground integration where useful
 
 This keeps the framework understandable while it grows.
+
+
 
 
 

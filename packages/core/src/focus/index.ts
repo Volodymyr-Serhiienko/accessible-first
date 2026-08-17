@@ -14,6 +14,7 @@ export {
 export { focusElement } from "./focusElement";
 export { focusFirst } from "./focusFirst";
 export { focusLast } from "./focusLast";
+export { focusProgrammatically } from "./focusProgrammatically";
 export { getFocusableElements } from "./getFocusableElements";
 export { hasFocusableElements } from "./hasFocusableElements";
 export { isFocusable } from "./isFocusable";

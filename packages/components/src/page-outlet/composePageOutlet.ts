@@ -1,5 +1,5 @@
 import { restoreAttribute } from "../../../core/src/dom";
-import { focusElement, getFocusableElements } from "../../../core/src/focus";
+import { focusProgrammatically, getFocusableElements } from "../../../core/src/focus";
 import { createAnnouncer, type Announcer, type LiveRegionPoliteness } from "../../../core/src/live-region";
 import {
     applyCompositionElementOptions,
@@ -198,19 +198,9 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
 
         if (!targetElement) return false;
 
-        const previousTabIndex = targetElement.getAttribute("tabindex");
-
-        if (targetElement.tabIndex < 0) {
-            targetElement.tabIndex = -1;
-        }
-
-        const focused = focusElement(targetElement, {
+        return focusProgrammatically(targetElement, {
             preventScroll: true
         });
-
-        restoreAttribute(targetElement, "tabindex", previousTabIndex);
-
-        return focused;
     }
 
     function announceRender(nextAnnouncement: PageOutletAnnouncement): void {

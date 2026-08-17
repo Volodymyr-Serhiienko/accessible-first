@@ -6,6 +6,7 @@ import {
 } from "../composition";
 import { inspectPage } from "./diagnostics";
 import { restoreAttribute } from "../../../core/src/dom";
+import { focusProgrammatically } from "../../../core/src/focus";
 import {
     applyResolvedTheme,
     getSystemTheme,
@@ -125,14 +126,7 @@ export function createPage(options: PageOptions = {}): Page {
     }
 
     function moveFocusToMain(options: FocusOptions = {}): void {
-        const originalTabIndex = main.getAttribute("tabindex");
-
-        if (originalTabIndex === null) {
-            main.tabIndex = -1;
-        }
-
-        main.focus(options);
-        restoreAttribute(main, "tabindex", originalTabIndex);
+        focusProgrammatically(main, options);
     }
 
     function ensureHeader(): HTMLElement {

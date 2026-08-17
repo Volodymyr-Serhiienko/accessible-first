@@ -170,6 +170,36 @@ createAppRouteBreadcrumbItems(routeTrail, {
 });
 ```
 
+## Location Matching
+
+Use `getAppRouteByLocation()` when native links or multi-page applications need to determine the current route from the browser URL:
+
+```ts
+const currentRoute = getAppRouteByLocation(routes);
+
+RouteResponsiveNavigation({
+    routes,
+    current: currentRoute?.id ?? null
+});
+```
+
+By default, matching is automatic:
+
+- hash links such as `#settings` match by hash;
+- links with query strings match by pathname and search;
+- links with hashes match by pathname, search, and hash;
+- simple page links match by pathname.
+
+Use `matchMode` when an application needs stricter behavior:
+
+```ts
+getAppRouteByLocation(routes, {
+    matchMode: "pathname-search"
+});
+```
+
+This keeps the same route metadata useful for hash-routed apps, static pages, server-rendered pages, and future multi-page application shells.
+
 ## Helpers
 
 - `createAppRouteNavigationItems(routes, options)` - creates `NavigationItem[]`.
@@ -177,6 +207,7 @@ createAppRouteBreadcrumbItems(routeTrail, {
 - `createAppRouteTrail(routes, routeOrId, options)` - creates a parent-to-current route trail.
 - `createAppRouteBreadcrumbItems(routes, options)` - creates `BreadcrumbsItem[]` from a route trail.
 - `getAppRouteById(routes, id)` - finds a route by id.
+- `getAppRouteByLocation(routes, options)` - finds the route matching a URL/location.
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
 - `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
 - `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
@@ -214,6 +245,8 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
+
+
 
 
 

@@ -31,7 +31,8 @@ A screen provides a predictable structure:
 - optional description;
 - optional action area;
 - body content;
-- optional footer.
+- optional footer;
+- programmatic focus targets for predictable screen-reader and keyboard routes.
 
 ## AppShell And PageOutlet
 
@@ -52,6 +53,27 @@ shell.render(Screen({
 
 `PageOutlet` can focus and announce a screen change while the screen itself provides the visible and semantic structure.
 
+## Focus Routes
+
+Screen exposes named focus targets so application code can move users to a meaningful place after route changes, command-palette actions, form submissions, or other screen-level events.
+
+```ts
+const screen = Screen({
+    title: "Settings",
+    description: "Manage account and learning preferences.",
+    defaultFocusTarget: "title",
+    children: SettingsContent()
+});
+
+screen.focus("title");
+screen.focus("body");
+screen.focus("actions");
+```
+
+Available targets are `"screen"`, `"title"`, `"description"`, `"body"`, `"actions"`, and `"footer"`. If an optional target is hidden or empty, Screen falls back to the title or another stable visible target.
+
+These targets are not added to the regular Tab order. The framework focuses them programmatically, which keeps normal keyboard navigation clean while still allowing accessible route and workflow transitions.
+
 ## Options
 
 - `title` - required screen title content.
@@ -70,6 +92,7 @@ shell.render(Screen({
 - `bodyOptions` - DOM options for the body element.
 - `actionsOptions` - DOM options for the actions container.
 - `footerOptions` - DOM options for the screen footer.
+- `defaultFocusTarget` - default target used by `screen.focus()`. Defaults to `"title"`.
 
 ## Methods
 
@@ -80,6 +103,8 @@ shell.render(Screen({
 - `setBody(content)` - updates body content.
 - `setActions(content)` - updates screen actions.
 - `setFooter(content)` - updates footer content.
+- `getFocusTarget(target)` - returns the HTMLElement for a named focus target.
+- `focus(target, options)` - programmatically focuses a named target without adding it to the Tab order.
 - `update(options)` - updates mutable options.
 - `destroy()` - disposes slots and actions.
 
@@ -92,6 +117,8 @@ When a description is present, it is connected with `aria-describedby`. Keep des
 The default heading level is `2`, which works well when the application header already contains the main `h1`. Use `headingLevel: 1` only when the screen is the primary document title.
 
 Screen actions are grouped through `ActionsBar`. Use `actionsLabel` when the purpose of the actions is not obvious from the title.
+
+Use focus targets intentionally. A route change usually focuses the title. A completed form may focus the body, a validation summary, or the next meaningful section. A command-palette action should not leave focus behind on the command trigger when the visible screen changed.
 
 ## Actions Placement
 
@@ -131,3 +158,5 @@ Customize spacing and title size with CSS variables:
 - Header actions wrap cleanly on small screens.
 - Body content does not create horizontal overflow.
 - Footer content remains secondary and does not hide primary actions.
+- Route changes and screen-level actions move focus to a meaningful Screen target.
+

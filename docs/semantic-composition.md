@@ -77,6 +77,23 @@ const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 
 This keeps screen titles, labels, links, descriptions, keywords, and hierarchy consistent across the app. Route-aware components such as `RouteResponsiveNavigation`, `RouteSearchBox`, and `RouteBreadcrumbs` are the composed UI layer over the same metadata.
 
+## Focus Routes
+
+When composing application screens, think about the user's route through the interface.
+
+A screen should provide a predictable focus route for desktop keyboard users and a predictable exploration route for mobile screen reader users. These routes often overlap around controls, headings, descriptions, and landmarks, but they should be checked separately.
+
+Useful defaults include:
+
+- stable header, navigation, main, and footer landmarks;
+- skip links or route navigation links for large pages;
+- clear screen titles and section headings;
+- descriptions for controls whose result is not obvious;
+- focus targets after route changes, form submissions, and modal/overlay actions;
+- visible controls for actions that also have keyboard shortcuts.
+
+Future screen templates should document their intended focus route and mobile screen reader route as part of the pattern, not as an afterthought.
+
 ## Screens
 
 Use `Screen` for one complete application view inside `AppShell` or `PageOutlet`.
@@ -193,6 +210,8 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
+
 
 
 

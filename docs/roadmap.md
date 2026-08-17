@@ -113,6 +113,8 @@ Completed:
 - CommandPalette component for searchable application commands and quick navigation
 - RouteCommandPalette component for route-derived command search
 - CommandPalette shortcut matching by key and physical code for non-Latin keyboard layouts
+- App route location matching helper for native-link and multi-page current route detection
+- Shared programmatic focus helper and Screen focus targets for focus-route patterns
 
 In progress:
 
@@ -124,7 +126,9 @@ In progress:
 - Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
 - Component examples and manual checklists
+- Interaction scenario templates for desktop keyboard and mobile screen reader flows
 - Keyboard shortcut model guidance for more advanced application-wide shortcut maps
+- Shortcut patterns for desktop-first application workflows
 - Documentation alignment with current architecture
 - Form composition layer
 - First app-building components such as EmptyState and InfoCard
@@ -135,6 +139,9 @@ Next:
 - Application shell refinement for real single-page and multi-page apps
 - Route metadata model expansion for multi-page app patterns
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
+- Focus-route templates for screen reader friendly app screens
+- App diagnostics and health report model for accessibility, semantics, metadata, route state, and interaction checks
+- Document metadata helpers for title, description, icons, theme color, social previews, and SEO defaults
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
@@ -320,7 +327,10 @@ The system should provide:
 - page and application patterns;
 - theme and responsive design foundations;
 - diagnostics for development;
+- app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
+
 
 
 
