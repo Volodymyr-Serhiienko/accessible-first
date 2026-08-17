@@ -112,6 +112,7 @@ Completed:
 - HashRouter route activation and binding helpers for route-aware navigation, search, and breadcrumbs
 - CommandPalette component for searchable application commands and quick navigation
 - RouteCommandPalette component for route-derived command search
+- CommandPalette shortcut matching by key and physical code for non-Latin keyboard layouts
 
 In progress:
 
@@ -123,7 +124,7 @@ In progress:
 - Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
 - Component examples and manual checklists
-- Keyboard shortcut model for multilingual and non-Latin keyboard layouts
+- Keyboard shortcut model guidance for more advanced application-wide shortcut maps
 - Documentation alignment with current architecture
 - Form composition layer
 - First app-building components such as EmptyState and InfoCard
@@ -320,6 +321,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

@@ -10,8 +10,8 @@ Use it for quick navigation, application commands, settings shortcuts, and Ctrl+
 const palette = CommandPalette({
     trigger: "Open commands",
     shortcut: [
-        { key: "k", ctrlKey: true, allowInEditable: true },
-        { key: "k", metaKey: true, allowInEditable: true }
+        { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
+        { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
     ],
     items: [
         {
@@ -108,9 +108,18 @@ Supported fields:
 
 ## Shortcuts
 
-Shortcuts use `KeyboardEvent.key`. This is simple and readable, but single-letter shortcuts can depend on the active keyboard layout. For example, `Ctrl+K` may not match when a non-Latin layout is active.
+Shortcuts can match `KeyboardEvent.key`, `KeyboardEvent.code`, or both.
 
-For multilingual applications, provide visible triggers and avoid making shortcuts the only way to open important UI. A future keyboard-shortcut helper may add layout-aware matching based on `KeyboardEvent.code` or application-specific shortcut maps.
+- `key` matches the produced character, so it is readable but can depend on the active keyboard layout.
+- `code` matches the physical key, so `code: "KeyK"` can still match the same key when a non-Latin layout is active.
+
+For multilingual applications, prefer providing both values when a shortcut is based on a Latin letter:
+
+```ts
+shortcut: { key: "k", code: "KeyK", ctrlKey: true }
+```
+
+Always provide a visible trigger too. Shortcuts should accelerate access, not become the only way to open important UI.
 
 `allowInEditable: true` allows the shortcut to work while focus is inside inputs, textareas, selects, or editable content. Use it carefully, because it can intercept shortcuts users expect inside text fields.
 
@@ -158,5 +167,6 @@ On mobile screen readers, searchable popups can be harder to explore than direct
 - Empty results show `notFoundText`.
 - Screen reader announces the dialog title, description, search input, result count behavior, and selected result.
 - On mobile, the dialog fits inside the viewport and the keyboard does not create horizontal overflow.
+
 
 

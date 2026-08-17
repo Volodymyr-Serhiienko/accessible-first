@@ -122,6 +122,32 @@ export interface AppRouteTrailOptions<TRoute extends AppRouteDescriptor> {
 }
 
 /**
+ * URL matching strategy for finding the current route from a browser location.
+ */
+export type AppRouteLocationMatchMode =
+    | "auto"
+    | "href"
+    | "pathname"
+    | "pathname-search"
+    | "pathname-search-hash"
+    | "hash";
+
+/**
+ * Location-like value accepted by app route matching helpers.
+ */
+export type AppRouteLocationInput = string | URL | Location;
+
+/**
+ * Options for getAppRouteByLocation().
+ */
+export interface AppRouteLocationMatchOptions<TRoute extends AppRouteDescriptor> {
+    location?: AppRouteLocationInput;
+    baseUrl?: string | URL;
+    matchMode?: AppRouteLocationMatchMode;
+    getHref?: AppRouteHrefResolver<TRoute>;
+}
+
+/**
  * Normalizes route text for search keywords.
  */
 export function normalizeAppRouteText(value: string): string {
@@ -172,6 +198,115 @@ export function getAppRouteById<TRoute extends AppRouteDescriptor>(
     if (!id) return null;
 
     return routes.find((route) => route.id === id) ?? null;
+}
+
+function getDefaultBaseUrl(): string | null {
+    if (typeof document !== "undefined" && document.baseURI) {
+        return document.baseURI;
+    }
+
+    if (typeof window !== "undefined") {
+        return window.location.href;
+    }
+
+    return null;
+}
+
+function getLocationHref(location: AppRouteLocationInput | undefined): string | null {
+    if (location === undefined) {
+        return getDefaultBaseUrl();
+    }
+
+    return typeof location === "string" ? location : location.href;
+}
+
+function resolveAppRouteUrl(
+    value: string,
+    baseUrl: string | URL | undefined
+): URL | null {
+    const resolvedBaseUrl = baseUrl ?? getDefaultBaseUrl();
+
+    if (!resolvedBaseUrl) return null;
+
+    try {
+        return new URL(value, resolvedBaseUrl);
+    } catch {
+        return null;
+    }
+}
+
+function getRouteMatchMode(
+    href: string,
+    routeUrl: URL,
+    explicitMode: AppRouteLocationMatchMode | undefined
+): AppRouteLocationMatchMode {
+    if (explicitMode && explicitMode !== "auto") {
+        return explicitMode;
+    }
+
+    if (href.trim().startsWith("#")) return "hash";
+    if (routeUrl.hash) return "pathname-search-hash";
+    if (routeUrl.search) return "pathname-search";
+
+    return "pathname";
+}
+
+function getUrlMatchValue(url: URL, mode: AppRouteLocationMatchMode): string {
+    switch (mode) {
+        case "href":
+            return url.href;
+
+        case "hash":
+            return url.hash;
+
+        case "pathname-search":
+            return `${url.pathname}${url.search}`;
+
+        case "pathname-search-hash":
+            return `${url.pathname}${url.search}${url.hash}`;
+
+        case "pathname":
+        case "auto":
+        default:
+            return url.pathname;
+    }
+}
+
+function isAppRouteLocationMatch(
+    href: string,
+    locationUrl: URL,
+    options: Pick<
+        AppRouteLocationMatchOptions<AppRouteDescriptor>,
+        "baseUrl" | "matchMode"
+    >
+): boolean {
+    const routeUrl = resolveAppRouteUrl(href, options.baseUrl);
+
+    if (!routeUrl) return false;
+
+    const mode = getRouteMatchMode(href, routeUrl, options.matchMode);
+
+    return getUrlMatchValue(routeUrl, mode) === getUrlMatchValue(locationUrl, mode);
+}
+/**
+ * Finds the route that matches a location URL.
+ */
+export function getAppRouteByLocation<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: AppRouteLocationMatchOptions<TRoute> = {}
+): TRoute | null {
+    const locationHref = getLocationHref(options.location);
+    const locationUrl = locationHref
+        ? resolveAppRouteUrl(locationHref, options.baseUrl)
+        : null;
+
+    if (!locationUrl) return null;
+
+    return routes.find((route) => {
+        const href = options.getHref?.(route) ?? getAppRouteHref(route);
+
+        return href !== null && isAppRouteLocationMatch(href, locationUrl, options);
+    }) ?? null;
 }
 
 /**

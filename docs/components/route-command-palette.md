@@ -11,8 +11,8 @@ const palette = RouteCommandPalette({
     trigger: "Commands",
     routes,
     shortcut: [
-        { key: "k", ctrlKey: true, allowInEditable: true },
-        { key: "k", metaKey: true, allowInEditable: true }
+        { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
+        { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
     ],
     onRouteSelect(detail) {
         activateHashRouterRoute(router, detail, {
@@ -113,3 +113,4 @@ Provide clear route labels and descriptions. The command palette should help use
 - Focus lands on the rendered route content after navigation when used with `activateHashRouterRoute(...)` and `focusTarget: "outlet"`.
 - Breadcrumbs and navigation current state still update after command navigation.
 - Mobile screen reader users can still use visible navigation without relying on command search.
+
