@@ -66,14 +66,16 @@ shell.render(SettingsPage());
 
 ## Route Metadata
 
-For applications with multiple screens, keep route metadata in one list and derive navigation or search data from it:
+For applications with multiple screens, keep route metadata in one list and derive navigation, search, breadcrumbs, and parent route trails from it:
 
 ```ts
 const navigationItems = createAppRouteNavigationItems(routes);
 const searchItems = createAppRouteSearchItems(routes);
+const trail = createAppRouteTrail(routes, currentRoute);
+const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 ```
 
-This keeps screen titles, labels, links, descriptions, and keywords consistent across the app.
+This keeps screen titles, labels, links, descriptions, keywords, and hierarchy consistent across the app.
 
 ## Screens
 
@@ -191,6 +193,7 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 

@@ -120,7 +120,7 @@ createAppRouteSearchItems(routes, {
 
 ## Route Trails
 
-Use `createAppRouteTrail()` when breadcrumbs or page context should be derived from parent route ids:
+Use `createAppRouteTrail()` when breadcrumbs or page context should be derived from parent route ids. Use [RouteBreadcrumbs](./route-breadcrumbs.md) when you want a composed breadcrumb component instead of manually wiring `Breadcrumbs`:
 
 ```ts
 const trail = createAppRouteTrail(routes, "settings");
@@ -210,3 +210,4 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
+

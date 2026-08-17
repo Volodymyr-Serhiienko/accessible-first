@@ -1,13 +1,12 @@
 import {
-    Breadcrumbs,
-    createAppRouteBreadcrumbItems,
-    createAppRouteTrail,
+    RouteBreadcrumbs,
     type AppRouteDescriptor,
-    type ComposedBreadcrumbs
+    type ComposedRouteBreadcrumbs
 } from "./af";
 import { playgroundRoutes, type PlaygroundRoute } from "./routes";
 
-export interface ComposedPlaygroundBreadcrumbs extends ComposedBreadcrumbs {
+export interface ComposedPlaygroundBreadcrumbs
+    extends ComposedRouteBreadcrumbs<AppRouteDescriptor> {
     setRoute(route: PlaygroundRoute): void;
 }
 
@@ -29,24 +28,20 @@ function getParentId(route: AppRouteDescriptor): string | null {
     return route.parentId ?? playgroundRootRoute.id;
 }
 
-function getBreadcrumbItems(route: PlaygroundRoute) {
-    const trail = createAppRouteTrail(playgroundBreadcrumbRoutes, route, {
-        getParentId
-    });
-
-    return createAppRouteBreadcrumbItems(trail);
-}
-
 export function PlaygroundBreadcrumbs(route: PlaygroundRoute): ComposedPlaygroundBreadcrumbs {
-    const breadcrumbs = Breadcrumbs({
+    const breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>({
         className: "playground-breadcrumbs",
         label: "Current playground location",
-        items: getBreadcrumbItems(route)
+        routes: playgroundBreadcrumbRoutes,
+        current: route,
+        trailOptions: {
+            getParentId
+        }
     });
 
     return Object.assign(breadcrumbs, {
         setRoute(nextRoute: PlaygroundRoute): void {
-            breadcrumbs.setItems(getBreadcrumbItems(nextRoute));
+            breadcrumbs.setCurrent(nextRoute);
         }
     });
 }

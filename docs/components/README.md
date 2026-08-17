@@ -47,6 +47,7 @@ Each component document should contain:
 - [Progress](./progress.md)
 - [RadioGroup](./radio-group.md)
 - [ResponsiveNavigation](./responsive-navigation.md)
+- [RouteBreadcrumbs](./route-breadcrumbs.md)
 - [SearchBox](./search-box.md)
 - [Screen](./screen.md)
 - [Select](./select.md)
@@ -59,5 +60,6 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
