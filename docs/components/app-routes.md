@@ -37,7 +37,7 @@ Application screens are often described several times:
 - once for search;
 - sometimes again for breadcrumbs or command menus.
 
-App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `RouteResponsiveNavigation`, `SearchBox`, `RouteSearchBox`, `Breadcrumbs`, and app-level routing code.
+App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `RouteResponsiveNavigation`, `SearchBox`, `RouteSearchBox`, `Breadcrumbs`, `RouteBreadcrumbs`, route activation helpers, and app-level routing code.
 
 ## Route Descriptor
 
@@ -203,7 +203,7 @@ const shell = AppShell({
 });
 ```
 
-Keep routing itself separate. `HashRouter`, native links, or another router can consume the same route descriptors.
+Keep routing itself separate. `HashRouter`, native links, or another router can consume the same route descriptors. For hash-routed applications, use `activateHashRouterRoute()` and `bindHashRouterRouteControls()` to keep route navigation, route search, and breadcrumbs synchronized without duplicating callback code.
 
 ## Manual Checks
 
@@ -214,6 +214,7 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
+
 
 
 

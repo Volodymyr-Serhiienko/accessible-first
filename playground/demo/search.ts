@@ -1,4 +1,5 @@
 import {
+    activateHashRouterRoute,
     RouteSearchBox,
     type ComposedRouteSearchBox,
     type HashRouter
@@ -34,7 +35,7 @@ export function PlaygroundSearch(
             }
         },
         onRouteSelect(detail) {
-            options.router.navigate(detail.route, {
+            activateHashRouterRoute(options.router, detail, {
                 updateHistory: true,
                 scroll: true,
                 focusTarget: "outlet"

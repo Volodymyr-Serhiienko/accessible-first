@@ -1,5 +1,7 @@
 import {
+    activateHashRouterRoute,
     AppShell,
+    bindHashRouterRouteControls,
     createHashRouter,
     mount,
     type ComposedResponsiveNavigation
@@ -61,7 +63,6 @@ const shell = AppShell({
 });
 
 let navigation!: ComposedResponsiveNavigation;
-let routeBreadcrumbs: ReturnType<typeof PlaygroundBreadcrumbs> | null = null;
 
 const router = createHashRouter({
     routes: playgroundRoutes,
@@ -70,15 +71,12 @@ const router = createHashRouter({
     getAnnouncement(route) {
         return `${route.title} demo loaded.`;
     },
-    onRouteChange(route) {
-        routeBreadcrumbs?.setRoute(route);
-    },
     inspect() {
         shell.inspect();
     }
 });
 
-routeBreadcrumbs = PlaygroundBreadcrumbs(router.getCurrentRoute());
+const routeBreadcrumbs = PlaygroundBreadcrumbs(router.getCurrentRoute());
 
 shell.setHeader(HeaderDemo({
     content: [
@@ -91,10 +89,8 @@ shell.setHeader(HeaderDemo({
 
 navigation = NavigationDemo({
     current: router.getCurrentRoute().id,
-    onRouteNavigate(route, detail) {
-        detail.event.preventDefault();
-
-        router.navigate(route, {
+    onRouteNavigate(_route, detail) {
+        activateHashRouterRoute(router, detail, {
             updateHistory: true,
             scroll: true,
             focusTarget: "outlet"
@@ -102,7 +98,10 @@ navigation = NavigationDemo({
     }
 });
 
-router.setNavigation(navigation);
+bindHashRouterRouteControls(router, {
+    navigation,
+    currentRouteControls: [routeBreadcrumbs]
+});
 
 shell.setNavigation(navigation);
 shell.setBeforeOutlet(routeBreadcrumbs);

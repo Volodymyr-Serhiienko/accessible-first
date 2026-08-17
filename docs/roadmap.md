@@ -109,6 +109,7 @@ Completed:
 - Combobox and SearchBox setItems APIs for replacing dynamic result lists
 - RouteSearchBox component for deriving route search UI from route metadata
 - RouteResponsiveNavigation component for deriving responsive navigation UI from route metadata
+- HashRouter route activation and binding helpers for route-aware navigation, search, and breadcrumbs
 
 In progress:
 
@@ -315,6 +316,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 

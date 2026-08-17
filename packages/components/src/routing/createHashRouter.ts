@@ -29,6 +29,35 @@ export interface HashRouterNavigateOptions {
 }
 
 /**
+ * Route activation detail accepted by activateHashRouterRoute().
+ */
+export interface HashRouterRouteActivationDetail<TRoute extends HashRouterRoute> {
+    route: TRoute;
+    event?: Event | null;
+}
+
+/**
+ * Options for activateHashRouterRoute().
+ */
+export interface HashRouterRouteActivationOptions extends HashRouterNavigateOptions {
+    preventDefault?: boolean;
+}
+
+/**
+ * Called after HashRouter changes the active route.
+ */
+export type HashRouterRouteChangeHandler<TRoute extends HashRouterRoute> = (
+    route: TRoute,
+    previousRoute: TRoute | null,
+    router: HashRouter<TRoute>
+) => void;
+
+/**
+ * Removes a previously registered HashRouter listener.
+ */
+export type HashRouterUnsubscribe = () => void;
+
+/**
  * Options for createHashRouter().
  */
 export interface HashRouterOptions<TRoute extends HashRouterRoute> {
@@ -38,7 +67,7 @@ export interface HashRouterOptions<TRoute extends HashRouterRoute> {
     defaultRoute?: string | TRoute;
     getDocumentTitle?: ((route: TRoute) => string | null) | null;
     getAnnouncement?: ((route: TRoute, previousRoute: TRoute | null) => PageOutletAnnouncement) | null;
-    onRouteChange?: ((route: TRoute, previousRoute: TRoute | null, router: HashRouter<TRoute>) => void) | null;
+    onRouteChange?: HashRouterRouteChangeHandler<TRoute> | null;
     inspect?: (() => void) | null;
 }
 
@@ -53,6 +82,7 @@ export interface HashRouter<TRoute extends HashRouterRoute> {
     navigate(routeOrId: TRoute | string | null | undefined, options?: HashRouterNavigateOptions): boolean;
     syncFromLocation(options?: HashRouterNavigateOptions): boolean;
     setNavigation(navigation: HashRouterNavigation | null): void;
+    subscribe(handler: HashRouterRouteChangeHandler<TRoute>): HashRouterUnsubscribe;
     start(options?: HashRouterNavigateOptions): void;
     stop(): void;
 }
@@ -82,6 +112,26 @@ function getFirstRoute<TRoute extends HashRouterRoute>(routes: TRoute[]): TRoute
 }
 
 /**
+ * Activates a HashRouter route from route-aware component events.
+ */
+export function activateHashRouterRoute<TRoute extends HashRouterRoute>(
+    router: HashRouter<TRoute>,
+    detail: HashRouterRouteActivationDetail<TRoute>,
+    options: HashRouterRouteActivationOptions = {}
+): boolean {
+    const {
+        preventDefault: shouldPreventDefault = true,
+        ...navigateOptions
+    } = options;
+
+    if (shouldPreventDefault) {
+        detail.event?.preventDefault();
+    }
+
+    return router.navigate(detail.route, navigateOptions);
+}
+
+/**
  * Creates a lightweight hash-based router for PageOutlet screens.
  */
 export function createHashRouter<TRoute extends HashRouterRoute>(
@@ -90,6 +140,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
     const routes = [...options.routes];
     const firstRoute = getFirstRoute(routes);
     const ownerWindow = options.outlet.element.ownerDocument.defaultView ?? window;
+    const routeChangeHandlers = new Set<HashRouterRouteChangeHandler<TRoute>>();
 
     let router!: HashRouter<TRoute>;
     let navigation = options.navigation ?? null;
@@ -174,6 +225,14 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         options.outlet.focus();
     }
 
+    function notifyRouteChange(route: TRoute, previousRoute: TRoute | null): void {
+        options.onRouteChange?.(route, previousRoute, router);
+
+        routeChangeHandlers.forEach((handler) => {
+            handler(route, previousRoute, router);
+        });
+    }
+
     function navigate(
         routeOrId: TRoute | string | null | undefined,
         navigateOptions: HashRouterNavigateOptions = {}
@@ -210,7 +269,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         });
 
         options.inspect?.();
-        options.onRouteChange?.(route, previousRoute, router);
+        notifyRouteChange(route, previousRoute);
 
         return true;
     }
@@ -245,6 +304,14 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         setNavigation(nextNavigation): void {
             navigation = nextNavigation;
             syncNavigation(getCurrentRoute());
+        },
+
+        subscribe(handler): HashRouterUnsubscribe {
+            routeChangeHandlers.add(handler);
+
+            return () => {
+                routeChangeHandlers.delete(handler);
+            };
         },
 
         start(startOptions = {}): void {
