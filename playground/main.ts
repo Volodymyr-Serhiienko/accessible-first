@@ -15,6 +15,30 @@ import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
 
+function scrollToPageStart(): void {
+    window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto"
+    });
+}
+
+function scheduleInitialPageScroll(): void {
+    if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+    }
+
+    scrollToPageStart();
+
+    window.requestAnimationFrame(() => {
+        scrollToPageStart();
+
+        window.requestAnimationFrame(() => {
+            scrollToPageStart();
+        });
+    });
+}
+
 const shell = AppShell({
     title: "Accessible First Playground",
     mainId: "main",
@@ -92,8 +116,10 @@ mount(shell, "#app");
 
 router.start({
     announcement: false,
-    scroll: true,
+    scroll: false,
     focusTarget: null
 });
+
+scheduleInitialPageScroll();
 
 shell.inspect();
