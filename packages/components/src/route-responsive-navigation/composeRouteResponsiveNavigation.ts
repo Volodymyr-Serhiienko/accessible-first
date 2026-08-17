@@ -51,10 +51,13 @@ export interface RouteResponsiveNavigationOptions<
  */
 export interface RouteResponsiveNavigationUpdateOptions<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
-> extends ResponsiveNavigationUpdateOptions {
+> extends Partial<
+        Omit<
+            RouteResponsiveNavigationOptions<TRoute>,
+            "routes"
+        >
+    > {
     routes?: readonly TRoute[];
-    navigationItemsOptions?: AppRouteNavigationItemsOptions<TRoute>;
-    onRouteNavigate?: RouteResponsiveNavigationOnRouteNavigate<TRoute> | null;
 }
 
 /**

@@ -80,7 +80,7 @@ const trail = createAppRouteTrail(routes, "settings");
 const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 ```
 
-Use route helpers when one route list should feed navigation, search, breadcrumbs, parent route trails, and routing metadata.
+Use route helpers and route-aware components when one route list should feed navigation, search, breadcrumbs, parent route trails, and routing metadata.
 
 ## Architecture Rules
 
@@ -115,6 +115,7 @@ Each module should move through the same cycle:
 6. Playground integration where useful
 
 This keeps the framework understandable while it grows.
+
 
 
 

@@ -75,7 +75,7 @@ const trail = createAppRouteTrail(routes, currentRoute);
 const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 ```
 
-This keeps screen titles, labels, links, descriptions, keywords, and hierarchy consistent across the app.
+This keeps screen titles, labels, links, descriptions, keywords, and hierarchy consistent across the app. Route-aware components such as `RouteResponsiveNavigation`, `RouteSearchBox`, and `RouteBreadcrumbs` are the composed UI layer over the same metadata.
 
 ## Screens
 
@@ -193,6 +193,7 @@ Use it only for static or already sanitized content.
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 
