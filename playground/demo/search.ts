@@ -1,13 +1,9 @@
 import {
-    createAppRouteSearchItems,
-    SearchBox,
-    type AppRouteSearchItem,
-    type ComposedSearchBox,
+    RouteSearchBox,
+    type ComposedRouteSearchBox,
     type HashRouter
 } from "./af";
 import type { PlaygroundRoute } from "./routes";
-
-export type PlaygroundSearchItem = AppRouteSearchItem<PlaygroundRoute>;
 
 export interface PlaygroundSearchOptions {
     router: HashRouter<PlaygroundRoute>;
@@ -16,8 +12,8 @@ export interface PlaygroundSearchOptions {
 
 export function PlaygroundSearch(
     options: PlaygroundSearchOptions
-): ComposedSearchBox<PlaygroundSearchItem> {
-    return SearchBox<PlaygroundSearchItem>({
+): ComposedRouteSearchBox<PlaygroundRoute> {
+    return RouteSearchBox<PlaygroundRoute>({
         className: "playground-search",
         label: "Search demo sections",
         labelOptions: {
@@ -28,16 +24,17 @@ export function PlaygroundSearch(
         placeholder: "Search sections",
         openOnFocus: false,
         notFoundText: "No matching sections found.",
-        items: createAppRouteSearchItems(options.routes, {
+        routes: options.routes,
+        searchItemsOptions: {
             getDescription(route) {
                 return `Open the ${route.title} section.`;
             },
             getKeywords() {
                 return ["component", "demo"];
             }
-        }),
-        onSelect(detail) {
-            options.router.navigate(detail.item.data, {
+        },
+        onRouteSelect(detail) {
+            options.router.navigate(detail.route, {
                 updateHistory: true,
                 scroll: true,
                 focusTarget: "outlet"

@@ -169,6 +169,7 @@ export interface ComposedCombobox
     readonly items: ComposedComboboxItem[];
     readonly notFound: HTMLElement;
     setNotFoundText(text: string | null): void;
+    setItems(items: ComboboxCompositionItem[]): void;
     getLabelElement(): HTMLLabelElement | null;
     setLabel(label: string | null): void;
     getItem(value: string): ComposedComboboxItem | null;
@@ -434,6 +435,16 @@ function getComboboxUpdateOptions(
     return comboboxOptions;
 }
 
+function getItemSourceUpdateOptions(
+    nodes: ComboboxItemNode[]
+): ComboboxInstanceUpdateOptions {
+    return {
+        getOptions: () => nodes.map((node) => node.option),
+        getOptionText: (option) => getComboboxOptionText(option, nodes),
+        isOptionDisabled: (option) => isComboboxOptionDisabled(option, nodes)
+    };
+}
+
 /**
  * Creates an editable combobox with a labelled input and listbox popup.
  */
@@ -461,7 +472,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     notFound.textContent = getOptionalText(options.notFoundText);
     notFound.hidden = true;
 
-    const itemNodes = createItemNodes(options.items);
+    let itemNodes = createItemNodes(options.items);
 
     for (const node of itemNodes) {
         listbox.append(node.option);
@@ -481,27 +492,48 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     let announcer: Announcer | null = null;
     let notFoundAnnounced = false;
 
-    let composedItems: ComposedComboboxItem[] = itemNodes.map((node): ComposedComboboxItem => ({
-        value: node.value,
-        option: node.option,
+    function createComposedItem(node: ComboboxItemNode): ComposedComboboxItem {
+        return {
+            value: node.value,
+            option: node.option,
 
-        setLabelContent(content): void {
-            node.labelContent.set(toCompositionChildren(content));
-        },
+            setLabelContent(content): void {
+                node.labelContent.set(toCompositionChildren(content));
+            },
 
-        setDisabled(disabled): void {
-            syncItemDisabled(node, disabled);
-            combobox.refresh();
-        },
+            setDisabled(disabled): void {
+                syncItemDisabled(node, disabled);
+                combobox.refresh();
+            },
 
-        isDisabled(): boolean {
-            return node.disabled;
-        },
+            isDisabled(): boolean {
+                return node.disabled;
+            },
 
-        getText(): string {
-            return getElementText(node.option, node.value);
+            getText(): string {
+                return getElementText(node.option, node.value);
+            }
+        };
+    }
+
+    function disposeItemNodes(nodes: ComboboxItemNode[]): void {
+        for (const node of nodes) {
+            node.labelContent.dispose();
         }
-    }));
+    }
+
+    const composedItems: ComposedComboboxItem[] = itemNodes.map(createComposedItem);
+
+    function setItems(items: ComboboxCompositionItem[]): void {
+        disposeItemNodes(itemNodes);
+
+        itemNodes = createItemNodes(items);
+        composedItems.splice(0, composedItems.length, ...itemNodes.map(createComposedItem));
+        listbox.replaceChildren(...itemNodes.map((node) => node.option), notFound);
+
+        combobox.update(getItemSourceUpdateOptions(itemNodes));
+        syncNotFoundState();
+    }
 
     function ensureInputId(): string {
         if (!input.id) {
@@ -658,6 +690,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
         items: composedItems,
         notFound,
         setNotFoundText,
+        setItems,
 
         getLabelElement(): HTMLLabelElement | null {
             return labelElement;
@@ -763,11 +796,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
 
         destroy(): void {
             labelElement?.remove();
-
-            for (const node of itemNodes) {
-                node.labelContent.dispose();
-            }
-
+            disposeItemNodes(itemNodes);
             announcer?.destroy();
             announcer = null;
             combobox.destroy();

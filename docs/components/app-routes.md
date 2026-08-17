@@ -37,7 +37,7 @@ Application screens are often described several times:
 - once for search;
 - sometimes again for breadcrumbs or command menus.
 
-App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `SearchBox`, `Breadcrumbs`, and app-level routing code.
+App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `SearchBox`, `RouteSearchBox`, `Breadcrumbs`, and app-level routing code.
 
 ## Route Descriptor
 
@@ -104,6 +104,8 @@ SearchBox({
     }
 });
 ```
+
+Use [RouteSearchBox](./route-search-box.md) when you want a composed route search component instead of manually wiring `SearchBox`.
 
 Customize generated search data with resolvers:
 
@@ -210,4 +212,5 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
+
 

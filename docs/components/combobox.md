@@ -153,6 +153,15 @@ const combobox = Combobox({
 combobox.setSelectedValue("dialog");
 ```
 
+Use `setItems()` when the whole option list changes:
+
+```ts
+combobox.setItems([
+    { value: "button", label: "Button" },
+    { value: "tabs", label: "Tabs" }
+]);
+```
+
 Item updates are partial and matched by index:
 
 ```ts
@@ -196,3 +205,4 @@ Combobox({
 - Focus indicator is visible.
 - Popup stays within the viewport on small screens.
 - Touch and mobile screen reader behavior is understandable.
+

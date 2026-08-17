@@ -80,6 +80,21 @@ Item options:
 - `data` - Optional application data carried with the result.
 - `optionOptions` - Common DOM options for the result option.
 
+## Update Notes
+
+Use `setItems()` when the whole result list changes:
+
+```ts
+const search = SearchBox({
+    label: "Search",
+    items: initialItems
+});
+
+search.setItems(nextItems);
+```
+
+Use `update({ items })` only for partial item updates matched by index.
+
 ## Manual Checks
 
 - Input label is announced.
@@ -90,3 +105,4 @@ Item options:
 - Enter selects the active result.
 - Selecting a result calls `onSelect`.
 - Popup stays within the viewport on small screens.
+

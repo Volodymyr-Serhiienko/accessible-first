@@ -135,6 +135,7 @@ export interface ComposedSearchBox<TItem extends SearchBoxItem = SearchBoxItem>
     getSelectedItem(): TItem | null;
     getSelectedValue(): string | null;
     setSelectedValue(value: string | null): boolean;
+    setItems(items: TItem[]): void;
     update(options: SearchBoxUpdateOptions<TItem>): void;
     destroy(): void;
 }
@@ -336,6 +337,12 @@ export function SearchBox<TItem extends SearchBoxItem>(
         }
     };
 
+    function setItems(items: TItem[]): void {
+        itemStates = items.map(createItemState);
+        combobox.setItems(itemStates.map(toComboboxItem));
+        combobox.element.setAttribute("data-af-search-box", "");
+    }
+
     function getInitialComboboxOptions(): ComboboxCompositionOptions {
         const {
             items: _items,
@@ -399,6 +406,8 @@ export function SearchBox<TItem extends SearchBoxItem>(
         setSelectedValue(value): boolean {
             return combobox.setSelectedValue(value);
         },
+
+        setItems,
 
         update(nextOptions): void {
             if ("filterItem" in nextOptions) {

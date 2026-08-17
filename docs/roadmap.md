@@ -125,6 +125,7 @@ Next:
 
 - Application shell refinement for real single-page and multi-page apps
 - RouteBreadcrumbs component for deriving breadcrumb UI from route metadata
+- RouteSearchBox component for deriving route search UI from route metadata
 - Route metadata model expansion for command palettes and multi-page app patterns
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
@@ -312,6 +313,7 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - a playground for real-device testing and documentation.
+
 
 
 
