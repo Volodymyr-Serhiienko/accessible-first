@@ -1,12 +1,10 @@
 import {
-    CommandPalette,
-    type CommandPaletteItem,
-    type ComposedCommandPalette,
+    activateHashRouterRoute,
+    RouteCommandPalette,
+    type ComposedRouteCommandPalette,
     type HashRouter
 } from "./af";
 import type { PlaygroundRoute } from "./routes";
-
-type PlaygroundCommand = CommandPaletteItem<PlaygroundRoute>;
 
 export interface PlaygroundCommandsOptions {
     router: HashRouter<PlaygroundRoute>;
@@ -15,8 +13,8 @@ export interface PlaygroundCommandsOptions {
 
 export function PlaygroundCommands(
     options: PlaygroundCommandsOptions
-): ComposedCommandPalette<PlaygroundCommand> {
-    return CommandPalette<PlaygroundCommand>({
+): ComposedRouteCommandPalette<PlaygroundRoute> {
+    return RouteCommandPalette<PlaygroundRoute>({
         trigger: "Commands",
         title: "Playground commands",
         description: "Search demo sections and press Enter to open the selected section.",
@@ -27,19 +25,21 @@ export function PlaygroundCommands(
             { key: "k", ctrlKey: true, allowInEditable: true },
             { key: "k", metaKey: true, allowInEditable: true }
         ],
-        items: options.routes.map((route) => ({
-            id: `open-${route.id}`,
-            label: `Open ${route.label}`,
-            description: `Open the ${route.title} demo section.`,
-            keywords: ["open", "go", "section", "demo", route.id, route.title, route.label],
-            data: route,
-            run() {
-                options.router.navigate(route, {
-                    updateHistory: true,
-                    scroll: true,
-                    focusTarget: "outlet"
-                });
+        routes: options.routes,
+        searchItemsOptions: {
+            getDescription(route) {
+                return `Open the ${route.title} demo section.`;
+            },
+            getKeywords(route) {
+                return ["open", "go", "section", "demo", route.id, route.title, route.label];
             }
-        }))
+        },
+        onRouteSelect(detail) {
+            activateHashRouterRoute(options.router, detail, {
+                updateHistory: true,
+                scroll: true,
+                focusTarget: "outlet"
+            });
+        }
     });
 }

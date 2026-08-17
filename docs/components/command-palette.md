@@ -9,6 +9,10 @@ Use it for quick navigation, application commands, settings shortcuts, and Ctrl+
 ```ts
 const palette = CommandPalette({
     trigger: "Open commands",
+    shortcut: [
+        { key: "k", ctrlKey: true, allowInEditable: true },
+        { key: "k", metaKey: true, allowInEditable: true }
+    ],
     items: [
         {
             id: "open-settings",
@@ -51,8 +55,9 @@ Do not use it for critical confirmations. Use [Dialog](./dialog.md) or [AlertDia
 - Filters commands through the shared SearchBox behavior.
 - Runs the selected command's `run(...)` callback when present.
 - Calls `onSelect(...)` after item-level `run(...)`.
-- Closes after selection by default.
+- Closes before running the selected command by default, so command callbacks can move focus to their final destination.
 - Allows individual commands to opt out with `closeOnSelect: false`.
+- Lets Escape close the palette directly, even when the search result popup is open.
 - Restores focus through Dialog behavior when closed.
 
 ## Options
@@ -65,6 +70,7 @@ Do not use it for critical confirmations. Use [Dialog](./dialog.md) or [AlertDia
 - `placeholder` - search input placeholder.
 - `notFoundText` - visible and announced empty-results message.
 - `closeOnSelect` - whether commands close the palette by default.
+- `shortcut` - optional keyboard shortcut or shortcut list for opening the palette.
 - `searchBoxOptions` - SearchBox options not owned by CommandPalette.
 - `dialogOptions` - Dialog options not owned by CommandPalette.
 - `onSelect` - called when a command is selected.
@@ -100,6 +106,14 @@ Supported fields:
 - `run` - item-level command callback.
 - `closeOnSelect` - per-item closing override.
 
+## Shortcuts
+
+Shortcuts use `KeyboardEvent.key`. This is simple and readable, but single-letter shortcuts can depend on the active keyboard layout. For example, `Ctrl+K` may not match when a non-Latin layout is active.
+
+For multilingual applications, provide visible triggers and avoid making shortcuts the only way to open important UI. A future keyboard-shortcut helper may add layout-aware matching based on `KeyboardEvent.code` or application-specific shortcut maps.
+
+`allowInEditable: true` allows the shortcut to work while focus is inside inputs, textareas, selects, or editable content. Use it carefully, because it can intercept shortcuts users expect inside text fields.
+
 ## Runtime Passed To Commands
 
 Item-level `run(...)` callbacks receive a small runtime instead of the full component instance:
@@ -130,6 +144,8 @@ CommandPalette inherits modal semantics, focus trapping, scroll locking, and foc
 
 Give every command a clear label. Add descriptions when labels alone do not explain the result or action well enough.
 
+On mobile screen readers, searchable popups can be harder to explore than direct navigation or simple lists. Keep CommandPalette as an accelerator, not as the only navigation path. Test command search, SearchBox, Combobox, and similar patterns on real devices before relying on them for primary workflows.
+
 ## Manual Checks
 
 - Trigger opens the palette.
@@ -138,6 +154,8 @@ Give every command a clear label. Add descriptions when labels alone do not expl
 - Arrow keys move through results.
 - Enter selects the active command.
 - Escape closes the palette and restores focus.
+- Configured shortcuts open the palette from normal page focus and editable controls when `allowInEditable` is enabled.
 - Empty results show `notFoundText`.
 - Screen reader announces the dialog title, description, search input, result count behavior, and selected result.
 - On mobile, the dialog fits inside the viewport and the keyboard does not create horizontal overflow.
+
