@@ -14,6 +14,7 @@ export interface AppRouteDescriptor {
     keywords?: string[];
     disabled?: boolean;
     hint?: string | null;
+    parentId?: string | null;
 }
 
 /**
@@ -76,6 +77,13 @@ export type AppRouteDisabledResolver<TRoute extends AppRouteDescriptor> = (
 ) => boolean;
 
 /**
+ * Resolves parent route id for route trail helpers.
+ */
+export type AppRouteParentIdResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute
+) => string | null | undefined;
+
+/**
  * Options for createAppRouteNavigationItems().
  */
 export interface AppRouteNavigationItemsOptions<TRoute extends AppRouteDescriptor> {
@@ -106,6 +114,14 @@ export interface AppRouteBreadcrumbItemsOptions<TRoute extends AppRouteDescripto
 }
 
 /**
+ * Options for createAppRouteTrail().
+ */
+export interface AppRouteTrailOptions<TRoute extends AppRouteDescriptor> {
+    getParentId?: AppRouteParentIdResolver<TRoute>;
+    includeSelf?: boolean;
+}
+
+/**
  * Normalizes route text for search keywords.
  */
 export function normalizeAppRouteText(value: string): string {
@@ -133,6 +149,67 @@ export function getAppRouteHref(route: AppRouteDescriptor): string | null {
     }
 
     return `#${encodeURIComponent(route.id)}`;
+}
+
+/**
+ * Returns the default parent route id for a route.
+ */
+export function getAppRouteParentId(route: AppRouteDescriptor): string | null {
+    if ("parentId" in route) {
+        return route.parentId ?? null;
+    }
+
+    return null;
+}
+
+/**
+ * Finds a route by id in a route list.
+ */
+export function getAppRouteById<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    id: string | null | undefined
+): TRoute | null {
+    if (!id) return null;
+
+    return routes.find((route) => route.id === id) ?? null;
+}
+
+/**
+ * Creates a parent-to-current route trail from route metadata.
+ */
+export function createAppRouteTrail<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    routeOrId: TRoute | string | null | undefined,
+    options: AppRouteTrailOptions<TRoute> = {}
+): TRoute[] {
+    const current: TRoute | null = typeof routeOrId === "string"
+        ? getAppRouteById(routes, routeOrId)
+        : routeOrId ?? null;
+
+    if (!current) return [];
+
+    const trail: TRoute[] = options.includeSelf === false ? [] : [current];
+    const visited = new Set<string>([current.id]);
+
+    let route: TRoute | null = current;
+
+    while (route !== null) {
+        const resolvedParentId: string | null | undefined = options.getParentId?.(route);
+        const parentId: string | null = resolvedParentId ?? getAppRouteParentId(route);
+
+        if (!parentId || visited.has(parentId)) break;
+
+        visited.add(parentId);
+
+        const parent: TRoute | null = getAppRouteById(routes, parentId);
+
+        if (!parent) break;
+
+        trail.unshift(parent);
+        route = parent;
+    }
+
+    return trail;
 }
 
 /**

@@ -1,6 +1,6 @@
 # App Routes
 
-App route helpers turn one route list into shared navigation, search, and breadcrumb data.
+App route helpers turn one route list into shared navigation, search, breadcrumb, and route-trail data.
 
 Use them when an application has screens, pages, or demo sections that should appear in navigation, search, breadcrumbs, or routing from the same source of truth.
 
@@ -17,13 +17,15 @@ const routes = [
         id: "settings",
         title: "Settings",
         label: "Settings",
+        parentId: "home",
         description: "Application preferences and account settings."
     }
 ];
 
 const navigationItems = createAppRouteNavigationItems(routes);
 const searchItems = createAppRouteSearchItems(routes);
-const breadcrumbItems = createAppRouteBreadcrumbItems([routes[0], routes[1]]);
+const routeTrail = createAppRouteTrail(routes, "settings");
+const breadcrumbItems = createAppRouteBreadcrumbItems(routeTrail);
 ```
 
 ## Purpose
@@ -46,6 +48,7 @@ const route = {
     id: "lessons",
     title: "Lessons",
     label: "Lessons",
+    parentId: "learning",
     description: "Browse language lessons.",
     keywords: ["study", "practice"],
     href: "#lessons"
@@ -56,7 +59,8 @@ Supported fields:
 
 - `id` - stable route id.
 - `title` - screen or page title.
-- `label` - shorter visible label for navigation and search.
+- `label` - shorter visible label for navigation, search, and breadcrumbs.
+- `parentId` - optional parent route id used by route trail helpers.
 - `href` - link target. If omitted, the default is `#${id}`.
 - `description` - search result description.
 - `keywords` - extra search keywords.
@@ -114,13 +118,32 @@ createAppRouteSearchItems(routes, {
 });
 ```
 
+## Route Trails
+
+Use `createAppRouteTrail()` when breadcrumbs or page context should be derived from parent route ids:
+
+```ts
+const trail = createAppRouteTrail(routes, "settings");
+```
+
+The returned array is ordered from parent to current route. If a parent id is missing, unknown, or would create a cycle, the helper stops safely and returns the trail it can resolve.
+
+Use a resolver when parent relationships come from application-specific data instead of `parentId`:
+
+```ts
+const trail = createAppRouteTrail(routes, currentRoute, {
+    getParentId(route) {
+        return route.sectionId ?? null;
+    }
+});
+```
+
 ## Breadcrumb Items
 
 ```ts
-const items = createAppRouteBreadcrumbItems([
-    { id: "home", title: "Home" },
-    { id: "settings", title: "Settings" }
-]);
+const items = createAppRouteBreadcrumbItems(
+    createAppRouteTrail(routes, "settings")
+);
 
 Breadcrumbs({ items });
 ```
@@ -147,16 +170,19 @@ createAppRouteBreadcrumbItems(routeTrail, {
 
 - `createAppRouteNavigationItems(routes, options)` - creates `NavigationItem[]`.
 - `createAppRouteSearchItems(routes, options)` - creates `SearchBoxItem[]` with route data attached.
+- `createAppRouteTrail(routes, routeOrId, options)` - creates a parent-to-current route trail.
 - `createAppRouteBreadcrumbItems(routes, options)` - creates `BreadcrumbsItem[]` from a route trail.
+- `getAppRouteById(routes, id)` - finds a route by id.
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
 - `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
+- `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
 - `getAppRouteDescription(route)` - returns route description or a default open message.
 - `getAppRouteKeywords(route, extraKeywords)` - returns normalized search keywords.
 - `normalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
 
 ## Accessibility
 
-App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, current-page state, and disabled states consistent across navigation, search, and breadcrumbs.
+App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, parent relationships, current-page state, and disabled states consistent across navigation, search, and breadcrumbs.
 
 Good route metadata should be clear enough for both visible navigation and assistive technology output.
 
@@ -179,8 +205,8 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 
 - Navigation labels are short and understandable.
 - Search labels and descriptions explain what opens.
+- Breadcrumb trails match the actual screen hierarchy.
 - Current navigation state still updates after route changes.
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
-
-
+- Parent route ids do not create cycles.
