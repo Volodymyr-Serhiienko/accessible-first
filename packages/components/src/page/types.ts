@@ -17,6 +17,18 @@ export type PageDiagnosticsLevel = "info" | "warning" | "error";
 export type PageDiagnosticsStatus = "healthy" | "needs-attention" | "blocked";
 
 /**
+ * Area checked by page diagnostics.
+ */
+export type PageDiagnosticsCategory =
+    | "document"
+    | "landmark"
+    | "heading"
+    | "section"
+    | "control"
+    | "aria"
+    | "component";
+
+/**
  * Options for createPage().
  */
 export interface PageOptions {
@@ -36,6 +48,7 @@ export interface PageDiagnosticsIssue {
     code: string;
     message: string;
     element?: HTMLElement;
+    category: PageDiagnosticsCategory;
 }
 
 /**
@@ -46,6 +59,7 @@ export interface PageDiagnosticsReport {
     issues: PageDiagnosticsIssue[];
     errorCount: number;
     warningCount: number;
+    infoCount?: number;
 }
 
 /**
@@ -53,6 +67,8 @@ export interface PageDiagnosticsReport {
  */
 export interface PageDiagnosticsOptions {
     log?: boolean;
+    document?: Document;
+    categories?: PageDiagnosticsCategory[];
 }
 
 /**

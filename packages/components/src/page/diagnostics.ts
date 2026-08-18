@@ -1,5 +1,6 @@
 import { getAriaReferencedText } from "../../../core/src/aria";
 import type {
+    PageDiagnosticsCategory,
     PageDiagnosticsIssue,
     PageDiagnosticsOptions,
     PageDiagnosticsReport,
@@ -8,17 +9,53 @@ import type {
 
 function createIssue(
     level: PageDiagnosticsIssue["level"],
+    category: PageDiagnosticsIssue["category"],
     code: string,
     message: string,
     element?: HTMLElement
 ): PageDiagnosticsIssue {
-    const issue: PageDiagnosticsIssue = { level, code, message };
+    const issue: PageDiagnosticsIssue = { level, category, code, message };
 
     if (element) {
         issue.element = element;
     }
 
     return issue;
+}
+
+function shouldInspectCategory(
+    options: PageDiagnosticsOptions,
+    category: PageDiagnosticsCategory
+): boolean {
+    return options.categories === undefined || options.categories.includes(category);
+}
+
+function inspectDocument(
+    ownerDocument: Document,
+    issues: PageDiagnosticsIssue[]
+): void {
+    const title = ownerDocument.title.trim();
+    const language = ownerDocument.documentElement.getAttribute("lang")?.trim() ?? "";
+    const viewport = ownerDocument.querySelector<HTMLMetaElement>("meta[name='viewport']");
+    const description = ownerDocument.querySelector<HTMLMetaElement>("meta[name='description']");
+
+    if (!title) {
+        issues.push(createIssue("warning", "document", "document.title.missing", "Document has no title."));
+    }
+
+    if (!language) {
+        issues.push(createIssue("warning", "document", "document.lang.missing", "Document html element has no lang attribute."));
+    }
+
+    if (!viewport) {
+        issues.push(createIssue("warning", "document", "document.viewport.missing", "Document has no viewport meta tag."));
+    } else if (!viewport.content.includes("width=device-width")) {
+        issues.push(createIssue("warning", "document", "document.viewport.width", "Viewport meta tag should include width=device-width."));
+    }
+
+    if (!description?.content.trim()) {
+        issues.push(createIssue("info", "document", "document.description.missing", "Document has no meta description. This may be fine for private apps, but public pages usually need one."));
+    }
 }
 
 function getControlLabelText(element: HTMLElement): string {
@@ -85,9 +122,10 @@ export function logPageDiagnostics(report: PageDiagnosticsReport): void {
     console.log(`Status: ${report.status}`);
     console.log(`Errors: ${report.errorCount}`);
     console.log(`Warnings: ${report.warningCount}`);
+    console.log(`Info: ${report.infoCount ?? report.issues.filter((issue) => issue.level === "info").length}`);
 
     for (const issue of report.issues) {
-        const line = `[${issue.level}] ${issue.code}: ${issue.message}`;
+        const line = `[${issue.level}] ${issue.category}/${issue.code}: ${issue.message}`;
 
         if (issue.level === "error") {
             console.error(line, issue.element ?? "");
@@ -109,6 +147,11 @@ export function inspectPage(
     options: PageDiagnosticsOptions = {}
 ): PageDiagnosticsReport {
     const issues: PageDiagnosticsIssue[] = [];
+    const ownerDocument = options.document ?? root.ownerDocument;
+
+    if (shouldInspectCategory(options, "document")) {
+        inspectDocument(ownerDocument, issues);
+    }
 
     const headers = root.querySelectorAll("header");
     const mains = root.querySelectorAll("main");
@@ -117,37 +160,38 @@ export function inspectPage(
     const h1s = root.querySelectorAll("h1");
 
     if (headers.length === 0) {
-        issues.push(createIssue("warning", "page.header.missing", "Page has no header landmark."));
+        issues.push(createIssue("warning", "landmark", "page.header.missing", "Page has no header landmark."));
     }
 
     if (mains.length === 0) {
-        issues.push(createIssue("error", "page.main.missing", "Page has no main landmark."));
+        issues.push(createIssue("error", "landmark", "page.main.missing", "Page has no main landmark."));
     }
 
     if (mains.length > 1) {
-        issues.push(createIssue("error", "page.main.multiple", "Page has more than one main landmark."));
+        issues.push(createIssue("error", "landmark", "page.main.multiple", "Page has more than one main landmark."));
     }
 
     if (navs.length === 0) {
-        issues.push(createIssue("warning", "page.navigation.missing", "Page has no navigation landmark."));
+        issues.push(createIssue("warning", "landmark", "page.navigation.missing", "Page has no navigation landmark."));
     }
 
     if (footers.length === 0) {
-        issues.push(createIssue("info", "page.footer.missing", "Page has no footer landmark."));
+        issues.push(createIssue("info", "landmark", "page.footer.missing", "Page has no footer landmark."));
     }
 
     if (h1s.length === 0) {
-        issues.push(createIssue("warning", "page.h1.missing", "Page has no h1."));
+        issues.push(createIssue("warning", "heading", "page.h1.missing", "Page has no h1."));
     }
 
     if (h1s.length > 1) {
-        issues.push(createIssue("warning", "page.h1.multiple", "Page has more than one h1."));
+        issues.push(createIssue("warning", "heading", "page.h1.multiple", "Page has more than one h1."));
     }
 
     navs.forEach((nav) => {
         if (!hasAccessibleName(nav as HTMLElement)) {
             issues.push(createIssue(
                 "warning",
+                "landmark",
                 "navigation.name.missing",
                 "Navigation landmark has no accessible name.",
                 nav as HTMLElement
@@ -159,6 +203,7 @@ export function inspectPage(
         if (!section.querySelector("h1, h2, h3, h4, h5, h6")) {
             issues.push(createIssue(
                 "warning",
+                "section",
                 "section.heading.missing",
                 "Section has no heading.",
                 section
@@ -172,6 +217,7 @@ export function inspectPage(
         if (ids.has(element.id)) {
             issues.push(createIssue(
                 "error",
+                "aria",
                 "id.duplicate",
                 `Duplicate id found: ${element.id}`,
                 element
@@ -196,6 +242,7 @@ export function inspectPage(
                     if (!element.ownerDocument.getElementById(id)) {
                         issues.push(createIssue(
                             "error",
+                            "aria",
                             "aria.reference.broken",
                             `${attribute} references missing id: ${id}`,
                             element
@@ -215,6 +262,7 @@ export function inspectPage(
             if (!hasAccessibleName(element)) {
                 issues.push(createIssue(
                     "error",
+                    "control",
                     "control.name.missing",
                     "Interactive control has no accessible name.",
                     element
@@ -235,20 +283,28 @@ export function inspectPage(
 
         issues.push(createIssue(
             "warning",
+            "component",
             `component.${warning}`,
             getComponentWarningMessage(warning),
             element
         ));
     });
     
-    const errorCount = issues.filter((issue) => issue.level === "error").length;
-    const warningCount = issues.filter((issue) => issue.level === "warning").length;
+    const categories = options.categories;
+    const visibleIssues = categories === undefined
+        ? issues
+        : issues.filter((issue) => categories.includes(issue.category));
+
+    const errorCount = visibleIssues.filter((issue) => issue.level === "error").length;
+    const warningCount = visibleIssues.filter((issue) => issue.level === "warning").length;
+    const infoCount = visibleIssues.filter((issue) => issue.level === "info").length;
 
     const report: PageDiagnosticsReport = {
         status: getStatus(errorCount, warningCount),
-        issues,
+        issues: visibleIssues,
         errorCount,
-        warningCount
+        warningCount,
+        infoCount
     };
 
     if (options.log ?? true) {
