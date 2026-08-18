@@ -12,7 +12,11 @@ import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { NavigationDemo } from "./demo/navigation";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
-import { getPlaygroundRouteDocumentTitle, playgroundRoutes } from "./demo/routes";
+import {
+    getPlaygroundRouteDescription,
+    getPlaygroundRouteDocumentTitle,
+    playgroundRoutes
+} from "./demo/routes";
 import { PlaygroundSearch } from "./demo/search";
 import { notifications } from "./demo/status";
 
@@ -82,6 +86,11 @@ const router = createHashRouter({
     getDocumentTitle: getPlaygroundRouteDocumentTitle,
     getAnnouncement(route) {
         return `${route.title} demo loaded.`;
+    },
+    onRouteChange(route) {
+        shell.updateMetadata({
+            description: getPlaygroundRouteDescription(route)
+        });
     },
     inspect() {
         shell.inspect();

@@ -43,6 +43,7 @@ export interface PlaygroundRoute {
     id: string;
     label: string;
     title: string;
+    description?: string | null;
     render(): ComposedNode;
 }
 
@@ -100,6 +101,11 @@ function normalizeRouteId(value: string): string {
 
 export function getPlaygroundRouteDocumentTitle(route: PlaygroundRoute): string {
     return `${route.title} - Accessible First Playground`;
+}
+
+export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
+    return route.description
+        ?? `${route.title} demo in the Accessible First Playground.`;
 }
 
 export function getPlaygroundRouteById(id: string | null | undefined): PlaygroundRoute | null {

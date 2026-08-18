@@ -1,5 +1,8 @@
 import type { ComposedNode, CompositionChild } from "../composition";
-import type { DocumentMetadataOptions } from "../document-metadata";
+import type {
+    DocumentMetadataOptions,
+    DocumentMetadataUpdateOptions
+} from "../document-metadata";
 
 /**
  * Page color scheme mode.
@@ -86,6 +89,7 @@ export interface Page extends ComposedNode {
     section(section: CompositionChild): Page;
     setMainContent(...children: CompositionChild[]): Page;
     focusMain(options?: FocusOptions): Page;
+    updateMetadata(options: DocumentMetadataUpdateOptions): Page;
     footer(...children: CompositionChild[]): Page;
     appendToMain(...children: CompositionChild[]): Page;
     inspect(options?: PageDiagnosticsOptions): PageDiagnosticsReport;

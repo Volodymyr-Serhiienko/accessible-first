@@ -9,6 +9,7 @@ import {
     type CompositionChild,
     type CompositionContent
 } from "../composition";
+import type { DocumentMetadataUpdateOptions } from "../document-metadata";
 import {
     createPage,
     type Page,
@@ -97,6 +98,7 @@ export interface ComposedAppShell extends ComposedNode<HTMLElement> {
     setFooter(content: AppShellCompositionContent | null): ComposedAppShell;
     render(content: AppShellCompositionContent | null, options?: PageOutletRenderOptions): ComposedAppShell;
     focus(target?: PageOutletFocusTarget): boolean;
+    updateMetadata(options: DocumentMetadataUpdateOptions): ComposedAppShell;
     inspect(options?: PageDiagnosticsOptions): PageDiagnosticsReport;
     update(options: AppShellUpdateOptions): void;
     destroy(): void;
@@ -328,6 +330,14 @@ export function AppShell(options: AppShellOptions = {}): ComposedAppShell {
             if (destroyed) return false;
 
             return outlet.focus(target);
+        },
+
+        updateMetadata(metadataOptions): ComposedAppShell {
+            if (destroyed) return composed;
+
+            page.updateMetadata(metadataOptions);
+
+            return composed;
         },
 
         inspect(inspectOptions = {}): PageDiagnosticsReport {

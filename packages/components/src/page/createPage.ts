@@ -8,9 +8,10 @@ import { inspectPage } from "./diagnostics";
 import {
     createDocumentMetadata,
     DEFAULT_DOCUMENT_VIEWPORT,
-    type DocumentMetadataOptions
-} from "../document-metadata";
-import { restoreAttribute } from "../../../core/src/dom";
+    type DocumentMetadataController,
+    type DocumentMetadataOptions,
+    type DocumentMetadataUpdateOptions
+} from "../document-metadata";import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
     applyResolvedTheme,
@@ -99,6 +100,7 @@ export function createPage(options: PageOptions = {}): Page {
     let headerElement: HTMLElement | null = null;
     let navigationElement: HTMLElement | null = null;
     let footerElement: HTMLElement | null = null;
+    let metadataController: DocumentMetadataController | null = null;
 
     const pageDestroyers: Array<() => void> = [setupPageTheme(options)];
     const headerDestroyers: Array<() => void> = [];
@@ -106,14 +108,34 @@ export function createPage(options: PageOptions = {}): Page {
     const mainDestroyers: Array<() => void> = [];
     const footerDestroyers: Array<() => void> = [];
 
+    function registerMetadataController(controller: DocumentMetadataController): void {
+        metadataController = controller;
+
+        pageDestroyers.push(() => {
+            controller.destroy();
+
+            if (metadataController === controller) {
+                metadataController = null;
+            }
+        });
+    }
+
+    function ensureMetadataController(): DocumentMetadataController {
+        if (metadataController) {
+            return metadataController;
+        }
+
+        const controller = createDocumentMetadata();
+
+        registerMetadataController(controller);
+
+        return controller;
+    }
+
     const metadataOptions = getPageMetadataOptions(options);
 
     if (metadataOptions) {
-        const metadata = createDocumentMetadata(metadataOptions);
-
-        pageDestroyers.push(() => {
-            metadata.destroy();
-        });
+        registerMetadataController(createDocumentMetadata(metadataOptions));
     } else if (options.title !== undefined) {
         const originalTitle = document.title;
 
@@ -243,6 +265,12 @@ export function createPage(options: PageOptions = {}): Page {
 
         focusMain(options: FocusOptions = {}): Page {
             moveFocusToMain(options);
+
+            return page;
+        },
+
+        updateMetadata(metadataOptions: DocumentMetadataUpdateOptions): Page {
+            ensureMetadataController().update(metadataOptions);
 
             return page;
         },

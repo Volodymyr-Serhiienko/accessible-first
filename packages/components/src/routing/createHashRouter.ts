@@ -268,8 +268,8 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
                 : options.getAnnouncement?.(route, previousRoute) ?? true
         });
 
-        options.inspect?.();
         notifyRouteChange(route, previousRoute);
+        options.inspect?.();
 
         return true;
     }
