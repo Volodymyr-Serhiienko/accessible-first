@@ -66,6 +66,7 @@ export interface AppShellOptions extends BaseCompositionOptions {
     outletOptions?: AppShellOutletOptions;
     layout?: PageLayoutOptions | false;
     inspect?: boolean | PageDiagnosticsOptions;
+    metadata?: PageOptions["metadata"];
 }
 
 /**
@@ -117,6 +118,7 @@ function getPageOptions(options: AppShellOptions): PageOptions {
     if (options.skipLinkTargetId !== undefined) pageOptions.skipLinkTargetId = options.skipLinkTargetId;
     if (options.navigationLabel !== undefined) pageOptions.navigationLabel = options.navigationLabel;
     if (options.theme !== undefined) pageOptions.theme = options.theme;
+    if (options.metadata !== undefined) pageOptions.metadata = options.metadata;
 
     return pageOptions;
 }

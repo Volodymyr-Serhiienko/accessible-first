@@ -1,4 +1,5 @@
 import type { ComposedNode, CompositionChild } from "../composition";
+import type { DocumentMetadataOptions } from "../document-metadata";
 
 /**
  * Page color scheme mode.
@@ -38,6 +39,7 @@ export interface PageOptions {
     skipLinkTargetId?: string;
     navigationLabel?: string;
     theme?: PageTheme;
+    metadata?: DocumentMetadataOptions | false;
 }
 
 /**

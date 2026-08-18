@@ -37,7 +37,8 @@ This keeps structure visible without forcing developers into one large nested tr
 - footer;
 - skip link;
 - optional system, light, or dark theme;
-- development diagnostics through `page.inspect()`.
+- development diagnostics through `page.inspect()`;
+- optional document metadata for title, language, description, viewport, theme color, and icons.
 
 Sections added with `page.section(...)` are mounted into the main landmark.
 
@@ -191,6 +192,12 @@ Html({
 
 Use it only for static or already sanitized content.
 
+## Document Metadata
+
+Document metadata belongs to the page-building layer because it describes the whole document, not one visual component.
+
+Use `metadata` on `createPage()` or `AppShell()` for the common baseline: title, language, description, viewport, theme color, and icons. Later SEO-specific fields should build on the same layer instead of being scattered through application files.
+
 ## Diagnostics
 
 `page.inspect()` should help developers catch common structural issues:
@@ -203,13 +210,15 @@ Use it only for static or already sanitized content.
 - duplicate ids;
 - broken ARIA references;
 - interactive controls without accessible names;
-- component warnings exposed through `data-af-warning`.
+- component warnings exposed through `data-af-warning`;
+- missing document title, language, viewport, or description metadata.
 
 ## Direction
 
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 

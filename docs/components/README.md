@@ -29,6 +29,7 @@ Each component document should contain:
 - [DescriptionList](./description-list.md)
 - [Dialog](./dialog.md)
 - [Disclosure](./disclosure.md)
+- [DocumentMetadata](./document-metadata.md)
 - [EmptyState](./empty-state.md)
 - [FieldGroup](./field-group.md)
 - [Form](./form.md)
@@ -64,6 +65,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 

@@ -115,6 +115,7 @@ Completed:
 - CommandPalette shortcut matching by key and physical code for non-Latin keyboard layouts
 - App route location matching helper for native-link and multi-page current route detection
 - Shared programmatic focus helper and Screen focus targets for focus-route patterns
+- DocumentMetadata module and Page/AppShell metadata integration
 
 In progress:
 
@@ -141,7 +142,7 @@ Next:
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report model for accessibility, semantics, metadata, route state, and interaction checks
-- Document metadata helpers for title, description, icons, theme color, social previews, and SEO defaults
+- Metadata expansion for canonical URLs, robots, Open Graph, Twitter cards, manifests, social previews, and structured data
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
@@ -329,6 +330,7 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
 
 
 

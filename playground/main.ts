@@ -49,6 +49,17 @@ const shell = AppShell({
     skipLinkTargetId: "playground-navigation",
     navigationLabel: "Playground sections",
     theme: "system",
+    metadata: {
+        lang: "en",
+        description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, and app-building patterns.",
+        themeColor: "#111827",
+        icons: [
+            {
+                href: "assets/logo.svg",
+                type: "image/svg+xml"
+            }
+        ]
+    },
     outletOptions: {
         className: "playground-route-outlet",
         label: "Playground demo content",
@@ -127,5 +138,3 @@ router.start({
 });
 
 scheduleInitialPageScroll();
-
-shell.inspect();

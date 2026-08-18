@@ -10,6 +10,10 @@ Use it when an app needs a stable header, navigation, main content outlet, optio
 const shell = AppShell({
     title: "Language App",
     theme: "system",
+    metadata: {
+        lang: "en",
+        description: "Accessible language learning app."
+    },
     header: Header(),
     navigation: Navigation(),
     footer: Footer()
@@ -55,6 +59,7 @@ This keeps the framework flexible for:
 - `skipLinkTargetId` - skip-link target id.
 - `navigationLabel` - accessible name for the navigation landmark.
 - `theme` - `"system"`, `"light"`, or `"dark"`.
+- `metadata` - document metadata passed to `createPage`, or `false` when another integration owns metadata.
 - `header` - header slot content.
 - `navigation` - navigation slot content.
 - `beforeOutlet` - content rendered before the dynamic outlet.
@@ -81,6 +86,8 @@ This keeps the framework flexible for:
 ## Accessibility
 
 AppShell keeps native landmarks stable while changing only the outlet content. This helps keyboard and screen reader users stay oriented during application navigation.
+
+Use `metadata` for document-level health: language, description, responsive viewport, theme color, and icons. The `title` option is reused as the document title unless `metadata.title` is provided.
 
 Use `PageOutlet` render options to control scroll, focus target, and announcements for each screen change.
 
@@ -125,6 +132,7 @@ Use `layout: false` when an app wants to own all page layout styles manually.
 - Screen changes scroll to the expected start position.
 - Screen changes move focus to a useful target.
 - Page diagnostics do not report missing names, duplicate ids, or broken ARIA references.
+
 
 
 

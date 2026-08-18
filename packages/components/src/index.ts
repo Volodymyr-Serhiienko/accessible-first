@@ -14,6 +14,7 @@ export * from "./composition";
 export * from "./description-list";
 export * from "./dialog";
 export * from "./disclosure";
+export * from "./document-metadata";
 export * from "./empty-state";
 export * from "./field-group";
 export * from "./form";

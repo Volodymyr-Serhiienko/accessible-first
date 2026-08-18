@@ -5,6 +5,11 @@ import {
     type CompositionChild
 } from "../composition";
 import { inspectPage } from "./diagnostics";
+import {
+    createDocumentMetadata,
+    DEFAULT_DOCUMENT_VIEWPORT,
+    type DocumentMetadataOptions
+} from "../document-metadata";
 import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
@@ -51,6 +56,25 @@ function setupPageTheme(options: PageOptions): () => void {
     };
 }
 
+function getPageMetadataOptions(options: PageOptions): DocumentMetadataOptions | null {
+    if (options.metadata === false) return null;
+    if (options.title === undefined && options.metadata === undefined) return null;
+
+    const metadataOptions: DocumentMetadataOptions = {
+        ...(options.metadata ?? {})
+    };
+
+    if (options.title !== undefined && metadataOptions.title === undefined) {
+        metadataOptions.title = options.title;
+    }
+
+    if (metadataOptions.viewport === undefined) {
+        metadataOptions.viewport = DEFAULT_DOCUMENT_VIEWPORT;
+    }
+
+    return metadataOptions;
+}
+
 /**
  * Creates a semantic page controller.
  *
@@ -82,7 +106,15 @@ export function createPage(options: PageOptions = {}): Page {
     const mainDestroyers: Array<() => void> = [];
     const footerDestroyers: Array<() => void> = [];
 
-    if (options.title !== undefined) {
+    const metadataOptions = getPageMetadataOptions(options);
+
+    if (metadataOptions) {
+        const metadata = createDocumentMetadata(metadataOptions);
+
+        pageDestroyers.push(() => {
+            metadata.destroy();
+        });
+    } else if (options.title !== undefined) {
         const originalTitle = document.title;
 
         document.title = options.title;
