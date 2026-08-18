@@ -1,4 +1,5 @@
 import type { CompositionContent } from "../composition";
+import type { DocumentMetadataUpdateOptions } from "../document-metadata";
 import type { ComposedPageOutlet, PageOutletAnnouncement, PageOutletFocusTarget } from "../page-outlet";
 
 /**
@@ -68,6 +69,8 @@ export interface HashRouterOptions<TRoute extends HashRouterRoute> {
     getDocumentTitle?: ((route: TRoute) => string | null) | null;
     getAnnouncement?: ((route: TRoute, previousRoute: TRoute | null) => PageOutletAnnouncement) | null;
     onRouteChange?: HashRouterRouteChangeHandler<TRoute> | null;
+    getDocumentMetadata?: ((route: TRoute, previousRoute: TRoute | null) => DocumentMetadataUpdateOptions | null | undefined) | null;
+    updateDocumentMetadata?: ((metadata: DocumentMetadataUpdateOptions) => void) | null;
     inspect?: (() => void) | null;
 }
 
@@ -267,6 +270,12 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
                 ? navigateOptions.announcement ?? false
                 : options.getAnnouncement?.(route, previousRoute) ?? true
         });
+
+        const documentMetadata = options.getDocumentMetadata?.(route, previousRoute);
+
+        if (documentMetadata) {
+            options.updateDocumentMetadata?.(documentMetadata);
+        }
 
         notifyRouteChange(route, previousRoute);
         options.inspect?.();

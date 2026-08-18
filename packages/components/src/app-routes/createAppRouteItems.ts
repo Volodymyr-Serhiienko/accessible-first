@@ -1,4 +1,5 @@
 import type { BreadcrumbsCurrent, BreadcrumbsItem } from "../breadcrumbs";
+import type { DocumentMetadataUpdateOptions } from "../document-metadata";
 import type { NavigationItem } from "../navigation";
 import type { SearchBoxItem } from "../search-box";
 
@@ -15,6 +16,8 @@ export interface AppRouteDescriptor {
     disabled?: boolean;
     hint?: string | null;
     parentId?: string | null;
+    documentTitle?: string | null;
+    metadata?: DocumentMetadataUpdateOptions | null;
 }
 
 /**
@@ -82,6 +85,31 @@ export type AppRouteDisabledResolver<TRoute extends AppRouteDescriptor> = (
 export type AppRouteParentIdResolver<TRoute extends AppRouteDescriptor> = (
     route: TRoute
 ) => string | null | undefined;
+
+/**
+ * Resolves the document title for a route.
+ */
+export type AppRouteDocumentTitleResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute
+) => string | null;
+
+/**
+ * Resolves additional document metadata for a route.
+ */
+export type AppRouteMetadataResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute
+) => DocumentMetadataUpdateOptions | null | undefined;
+
+/**
+ * Options for deriving document metadata from route metadata.
+ */
+export interface AppRouteDocumentMetadataOptions<TRoute extends AppRouteDescriptor> {
+    appTitle?: string | null;
+    titleSeparator?: string;
+    getTitle?: AppRouteDocumentTitleResolver<TRoute>;
+    getDescription?: AppRouteDescriptionResolver<TRoute>;
+    getMetadata?: AppRouteMetadataResolver<TRoute>;
+}
 
 /**
  * Options for createAppRouteNavigationItems().
@@ -377,6 +405,76 @@ export function getAppRouteDescription(route: AppRouteDescriptor): string | null
     }
 
     return `Open ${getAppRouteLabel(route)}.`;
+}
+
+/**
+ * Returns the route description intended for document metadata.
+ */
+export function getAppRouteDocumentDescription(route: AppRouteDescriptor): string | null {
+    if ("description" in route) {
+        return route.description ?? null;
+    }
+
+    return null;
+}
+
+/**
+ * Returns the document title for a route.
+ */
+export function getAppRouteDocumentTitle<TRoute extends AppRouteDescriptor>(
+    route: TRoute,
+    options: Pick<
+        AppRouteDocumentMetadataOptions<TRoute>,
+        "appTitle" | "titleSeparator" | "getTitle"
+    > = {}
+): string | null {
+    const resolvedTitle = options.getTitle?.(route);
+
+    if (resolvedTitle !== undefined) return resolvedTitle;
+
+    const routeTitle = "documentTitle" in route && route.documentTitle !== undefined
+        ? route.documentTitle
+        : route.title;
+
+    if (routeTitle === null) return null;
+
+    const appTitle = options.appTitle ?? null;
+
+    if (!appTitle) return routeTitle;
+
+    return `${routeTitle} ${options.titleSeparator ?? "-"} ${appTitle}`;
+}
+
+/**
+ * Creates document metadata update options from a route descriptor.
+ */
+export function createAppRouteDocumentMetadata<TRoute extends AppRouteDescriptor>(
+    route: TRoute,
+    options: AppRouteDocumentMetadataOptions<TRoute> = {}
+): DocumentMetadataUpdateOptions {
+    const resolvedMetadata = options.getMetadata?.(route);
+    const routeMetadata = resolvedMetadata !== undefined
+        ? resolvedMetadata
+        : "metadata" in route
+            ? route.metadata
+            : null;
+
+    const metadata: DocumentMetadataUpdateOptions = {
+        ...(routeMetadata ?? {})
+    };
+
+    const title = getAppRouteDocumentTitle(route, options);
+    const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+
+    if (title !== null && metadata.title === undefined) {
+        metadata.title = title;
+    }
+
+    if (description !== null && metadata.description === undefined) {
+        metadata.description = description;
+    }
+
+    return metadata;
 }
 
 /**

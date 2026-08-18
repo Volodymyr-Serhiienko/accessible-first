@@ -1,6 +1,9 @@
 import {
+    createAppRouteDocumentMetadata,
     createAppRouteNavigationItems,
-    type ComposedNode
+    type AppRouteDocumentMetadataOptions,
+    type ComposedNode,
+    type DocumentMetadataUpdateOptions
 } from "./af";
 import {
     AccordionDemo,
@@ -100,12 +103,8 @@ function normalizeRouteId(value: string): string {
 }
 
 export function getPlaygroundRouteDocumentTitle(route: PlaygroundRoute): string {
-    return `${route.title} - Accessible First Playground`;
-}
-
-export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
-    return route.description
-        ?? `${route.title} demo in the Accessible First Playground.`;
+    return getPlaygroundRouteDocumentMetadata(route).title
+        ?? `${route.title} - Accessible First Playground`;
 }
 
 export function getPlaygroundRouteById(id: string | null | undefined): PlaygroundRoute | null {
@@ -118,4 +117,20 @@ export function getPlaygroundRouteById(id: string | null | undefined): Playgroun
 
 export function getPlaygroundRouteByHash(hash = window.location.hash): PlaygroundRoute {
     return getPlaygroundRouteById(hash) ?? initialPlaygroundRoute;
+}
+
+export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
+    return route.description
+        ?? `${route.title} demo in the Accessible First Playground.`;
+}
+
+const playgroundRouteMetadataOptions: AppRouteDocumentMetadataOptions<PlaygroundRoute> = {
+    appTitle: "Accessible First Playground",
+    getDescription: getPlaygroundRouteDescription
+};
+
+export function getPlaygroundRouteDocumentMetadata(
+    route: PlaygroundRoute
+): DocumentMetadataUpdateOptions {
+    return createAppRouteDocumentMetadata(route, playgroundRouteMetadataOptions);
 }

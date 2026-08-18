@@ -11,7 +11,8 @@ import {
     type DocumentMetadataController,
     type DocumentMetadataOptions,
     type DocumentMetadataUpdateOptions
-} from "../document-metadata";import { restoreAttribute } from "../../../core/src/dom";
+} from "../document-metadata";
+import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
     applyResolvedTheme,
