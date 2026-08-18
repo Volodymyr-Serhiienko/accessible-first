@@ -3,6 +3,8 @@ import {
     AppShell,
     bindHashRouterRouteControls,
     createHashRouter,
+    inspectAppRoutes,
+    logAppRouteDiagnostics,
     mount,
     type ComposedResponsiveNavigation
 } from "./demo/af";
@@ -14,6 +16,7 @@ import { NavigationDemo } from "./demo/navigation";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import {
     getPlaygroundRouteDescription,
+    getPlaygroundRouteDocumentMetadata,
     getPlaygroundRouteDocumentTitle,
     playgroundRoutes
 } from "./demo/routes";
@@ -78,19 +81,29 @@ const shell = AppShell({
     }
 });
 
+const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
+    getDescription: getPlaygroundRouteDescription,
+    getDocumentTitle: getPlaygroundRouteDocumentTitle,
+    requireDescription: true,
+    requireDocumentTitle: true
+});
+
+logAppRouteDiagnostics(routeDiagnostics);
+
 let navigation!: ComposedResponsiveNavigation;
 
 const router = createHashRouter({
     routes: playgroundRoutes,
     outlet: shell.outlet,
     getDocumentTitle: getPlaygroundRouteDocumentTitle,
+    getDocumentMetadata(route) {
+        return getPlaygroundRouteDocumentMetadata(route);
+    },
+    updateDocumentMetadata(metadata) {
+        shell.updateMetadata(metadata);
+    },
     getAnnouncement(route) {
         return `${route.title} demo loaded.`;
-    },
-    onRouteChange(route) {
-        shell.updateMetadata({
-            description: getPlaygroundRouteDescription(route)
-        });
     },
     inspect() {
         shell.inspect();

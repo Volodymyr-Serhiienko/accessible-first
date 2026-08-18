@@ -1,8 +1,8 @@
 # App Routes
 
-App route helpers turn one route list into shared navigation, search, breadcrumb, and route-trail data.
+App route helpers turn one route list into shared navigation, search, breadcrumb, route-trail, and document metadata.
 
-Use them when an application has screens, pages, or demo sections that should appear in navigation, search, breadcrumbs, or routing from the same source of truth.
+Use them when an application has screens, pages, or demo sections that should appear in navigation, search, breadcrumbs, routing, document titles, or document metadata from the same source of truth.
 
 ## Quick Start
 
@@ -26,6 +26,14 @@ const navigationItems = createAppRouteNavigationItems(routes);
 const searchItems = createAppRouteSearchItems(routes);
 const routeTrail = createAppRouteTrail(routes, "settings");
 const breadcrumbItems = createAppRouteBreadcrumbItems(routeTrail);
+const metadata = createAppRouteDocumentMetadata(routes[1], {
+    appTitle: "Example App"
+});
+const routeReport = inspectAppRoutes(routes, {
+    requireDescription: true
+});
+
+logAppRouteDiagnostics(routeReport);
 ```
 
 ## Purpose
@@ -51,7 +59,11 @@ const route = {
     parentId: "learning",
     description: "Browse language lessons.",
     keywords: ["study", "practice"],
-    href: "#lessons"
+    href: "#lessons",
+    documentTitle: "Lessons",
+    metadata: {
+        description: "Browse accessible language lessons."
+    }
 };
 ```
 
@@ -62,7 +74,9 @@ Supported fields:
 - `label` - shorter visible label for navigation, search, and breadcrumbs.
 - `parentId` - optional parent route id used by route trail helpers.
 - `href` - link target. If omitted, the default is `#${id}`.
-- `description` - search result description.
+- `description` - search result description and default document metadata description.
+- `documentTitle` - optional document title override for the route.
+- `metadata` - optional route-specific document metadata update options.
 - `keywords` - extra search keywords.
 - `disabled` - disables generated navigation or search items.
 - `hint` - optional navigation hint.
@@ -170,6 +184,78 @@ createAppRouteBreadcrumbItems(routeTrail, {
 });
 ```
 
+## Document Metadata
+
+Use `createAppRouteDocumentMetadata()` when route metadata should also drive the browser document metadata:
+
+```ts
+const metadata = createAppRouteDocumentMetadata(currentRoute, {
+    appTitle: "Language App"
+});
+
+shell.updateMetadata(metadata);
+```
+
+By default, the helper derives:
+
+- `title` from `route.documentTitle`, then `route.title`, optionally combined with `appTitle`;
+- `description` from `route.description`;
+- additional fields from `route.metadata`.
+
+Customize the result with resolvers:
+
+```ts
+createAppRouteDocumentMetadata(route, {
+    appTitle: "Language App",
+    titleSeparator: "|",
+    getDescription(route) {
+        return route.description ?? `Open ${route.title}.`;
+    },
+    getMetadata(route) {
+        return route.metadata ?? null;
+    }
+});
+```
+
+This lets one route descriptor feed navigation, search, breadcrumbs, command palettes, document title, and document metadata without separate per-screen wiring.
+
+## Route Diagnostics
+
+Use `inspectAppRoutes()` during development when one route list drives navigation, search, breadcrumbs, routing, and document metadata:
+
+```ts
+const report = inspectAppRoutes(routes, {
+    requireDescription: true,
+    requireDocumentTitle: true
+});
+
+logAppRouteDiagnostics(report);
+```
+
+Diagnostics check route structure before the application grows around it:
+
+- duplicate or empty route ids;
+- empty route titles;
+- duplicate or empty hrefs;
+- missing, empty, self-referencing, or cyclic parent ids;
+- optional document description and title requirements.
+
+When descriptions or titles are resolved by application logic, pass the same resolvers used by routing or metadata:
+
+```ts
+inspectAppRoutes(routes, {
+    getDescription(route) {
+        return route.description ?? `Open ${route.title}.`;
+    },
+    getDocumentTitle(route) {
+        return `${route.title} - Example App`;
+    },
+    requireDescription: true,
+    requireDocumentTitle: true
+});
+```
+
+The report uses `healthy`, `needs-attention`, or `blocked` status. `logAppRouteDiagnostics()` prints a compact console summary and categorized findings for developers.
 ## Location Matching
 
 Use `getAppRouteByLocation()` when native links or multi-page applications need to determine the current route from the browser URL:
@@ -212,12 +298,17 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
 - `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
 - `getAppRouteDescription(route)` - returns route description or a default open message.
+- `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
+- `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
+- `createAppRouteDocumentMetadata(route, options)` - creates document metadata update options from route metadata.
+- `inspectAppRoutes(routes, options)` - checks route ids, hrefs, parent hierarchy, and optional metadata requirements.
+- `logAppRouteDiagnostics(report)` - logs a compact route diagnostics report to the console.
 - `getAppRouteKeywords(route, extraKeywords)` - returns normalized search keywords.
 - `normalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
 
 ## Accessibility
 
-App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, parent relationships, current-page state, and disabled states consistent across navigation, search, and breadcrumbs.
+App route helpers do not create DOM by themselves. They improve accessibility indirectly by keeping route labels, link targets, descriptions, document metadata, parent relationships, current-page state, and disabled states consistent across navigation, search, and breadcrumbs.
 
 Good route metadata should be clear enough for both visible navigation and assistive technology output.
 
@@ -245,6 +336,10 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Disabled routes are not presented as usable actions.
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
+- Route diagnostics report `healthy` or only expected warnings during development.
+
+
+
 
 
 

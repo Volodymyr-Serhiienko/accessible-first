@@ -69,7 +69,23 @@ Document metadata is part of page health. It helps browsers, assistive technolog
 
 `AppShell()` passes `metadata` to `createPage()`, so application shells can define document metadata without separate setup code.
 
+Both `Page` and `AppShell` expose `updateMetadata(options)` for route changes, screen changes, and app state changes that need to update document metadata at runtime.
+
 Use `metadata: false` only when an integration must fully own document metadata itself.
+
+## Route Metadata
+
+Use App Route helpers when route descriptors should derive document metadata:
+
+```ts
+const metadata = createAppRouteDocumentMetadata(route, {
+    appTitle: "Language App"
+});
+
+shell.updateMetadata(metadata);
+```
+
+`HashRouter` can call this automatically through `getDocumentMetadata` and `updateDocumentMetadata`.
 
 ## Diagnostics
 
@@ -89,3 +105,5 @@ Private internal apps may not need every SEO-oriented field, but public pages sh
 - Mobile viewport uses responsive width.
 - Public pages have a concise meta description.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
+

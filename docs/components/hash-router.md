@@ -25,6 +25,14 @@ const router = createHashRouter({
     outlet,
     getDocumentTitle(route) {
         return `${route.title} - Example App`;
+    },
+    getDocumentMetadata(route) {
+        return createAppRouteDocumentMetadata(route, {
+            appTitle: "Example App"
+        });
+    },
+    updateDocumentMetadata(metadata) {
+        shell.updateMetadata(metadata);
     }
 });
 
@@ -66,6 +74,7 @@ router.start();
 - Falls back to a default route when the hash is empty or unknown.
 - Renders route content through `PageOutlet`.
 - Updates `document.title` when configured.
+- Can update document metadata when configured.
 - Updates navigation current state when route changes.
 - Can notify multiple route-change subscribers through `router.subscribe(...)`.
 - Pushes or replaces history only when asked.
@@ -82,6 +91,26 @@ Each route needs:
 
 Routes may include extra application-specific fields such as `label`, `keywords`, `category`, or permissions. The router preserves the route object type.
 
+## Document Metadata
+
+Use `getDocumentMetadata` and `updateDocumentMetadata` when route changes should update metadata beyond the document title:
+
+```ts
+const router = createHashRouter({
+    routes,
+    outlet: shell.outlet,
+    getDocumentMetadata(route) {
+        return createAppRouteDocumentMetadata(route, {
+            appTitle: "Example App"
+        });
+    },
+    updateDocumentMetadata(metadata) {
+        shell.updateMetadata(metadata);
+    }
+});
+```
+
+The router applies metadata before route-change subscribers and diagnostics run. This keeps `page.inspect()` aligned with the active route.
 ## Activation Helper
 
 Use `activateHashRouterRoute()` inside route-aware component callbacks. It prevents the native event by default and forwards the route to `router.navigate(...)`.
@@ -124,3 +153,5 @@ The helper calls `router.setNavigation(...)`, synchronizes the initial route, an
 - Re-activating the current navigation item focuses the active screen.
 - Browser back and forward restore the previous screen.
 - Header, navigation, footer, and theme controls are not recreated.
+- Document title and metadata match the active route when configured.
+

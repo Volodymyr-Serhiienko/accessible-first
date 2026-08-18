@@ -13,6 +13,8 @@ export {
     getAppRouteKeywords,
     getAppRouteLabel,
     getAppRouteParentId,
+    inspectAppRoutes,
+    logAppRouteDiagnostics,
     normalizeAppRouteText
 } from "./createAppRouteItems";
 
@@ -21,6 +23,12 @@ export type {
     AppRouteCurrentResolver,
     AppRouteDescriptionResolver,
     AppRouteDescriptor,
+    AppRouteDiagnosticsCategory,
+    AppRouteDiagnosticsIssue,
+    AppRouteDiagnosticsLevel,
+    AppRouteDiagnosticsOptions,
+    AppRouteDiagnosticsReport,
+    AppRouteDiagnosticsStatus,
     AppRouteDisabledResolver,
     AppRouteDocumentMetadataOptions,
     AppRouteDocumentTitleResolver,

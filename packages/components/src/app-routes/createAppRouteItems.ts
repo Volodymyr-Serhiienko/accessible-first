@@ -112,6 +112,66 @@ export interface AppRouteDocumentMetadataOptions<TRoute extends AppRouteDescript
 }
 
 /**
+ * Severity used by app route diagnostics.
+ */
+export type AppRouteDiagnosticsLevel = "info" | "warning" | "error";
+
+/**
+ * Route area checked by app route diagnostics.
+ */
+export type AppRouteDiagnosticsCategory =
+    | "identity"
+    | "hierarchy"
+    | "link"
+    | "metadata";
+
+/**
+ * Overall health status for a route diagnostics report.
+ */
+export type AppRouteDiagnosticsStatus =
+    | "healthy"
+    | "needs-attention"
+    | "blocked";
+
+/**
+ * One route diagnostics finding.
+ */
+export interface AppRouteDiagnosticsIssue<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> {
+    level: AppRouteDiagnosticsLevel;
+    category: AppRouteDiagnosticsCategory;
+    code: string;
+    message: string;
+    route?: TRoute;
+    relatedRoute?: TRoute;
+}
+
+/**
+ * Options for inspectAppRoutes().
+ */
+export interface AppRouteDiagnosticsOptions<TRoute extends AppRouteDescriptor> {
+    getHref?: AppRouteHrefResolver<TRoute>;
+    getParentId?: AppRouteParentIdResolver<TRoute>;
+    getDescription?: AppRouteDescriptionResolver<TRoute>;
+    getDocumentTitle?: AppRouteDocumentTitleResolver<TRoute>;
+    requireDescription?: boolean;
+    requireDocumentTitle?: boolean;
+}
+/**
+ * Result returned by inspectAppRoutes().
+ */
+export interface AppRouteDiagnosticsReport<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> {
+    status: AppRouteDiagnosticsStatus;
+    issues: Array<AppRouteDiagnosticsIssue<TRoute>>;
+    errorCount: number;
+    warningCount: number;
+    infoCount: number;
+}
+
+/**
  * Options for createAppRouteNavigationItems().
  */
 export interface AppRouteNavigationItemsOptions<TRoute extends AppRouteDescriptor> {
@@ -226,6 +286,253 @@ export function getAppRouteById<TRoute extends AppRouteDescriptor>(
     if (!id) return null;
 
     return routes.find((route) => route.id === id) ?? null;
+}
+
+function createAppRouteDiagnosticsIssue<TRoute extends AppRouteDescriptor>(
+    level: AppRouteDiagnosticsLevel,
+    category: AppRouteDiagnosticsCategory,
+    code: string,
+    message: string,
+    route?: TRoute,
+    relatedRoute?: TRoute
+): AppRouteDiagnosticsIssue<TRoute> {
+    const issue: AppRouteDiagnosticsIssue<TRoute> = {
+        level,
+        category,
+        code,
+        message
+    };
+
+    if (route !== undefined) issue.route = route;
+    if (relatedRoute !== undefined) issue.relatedRoute = relatedRoute;
+
+    return issue;
+}
+
+function getAppRouteDiagnosticsStatus(
+    errorCount: number,
+    warningCount: number
+): AppRouteDiagnosticsStatus {
+    if (errorCount > 0) return "blocked";
+    if (warningCount > 0) return "needs-attention";
+
+    return "healthy";
+}
+
+function hasAppRouteParentCycle<TRoute extends AppRouteDescriptor>(
+    route: TRoute,
+    routesById: Map<string, TRoute>,
+    options: Pick<AppRouteDiagnosticsOptions<TRoute>, "getParentId">
+): boolean {
+    const visited = new Set<string>([route.id]);
+    let current: TRoute | null = route;
+
+    while (current !== null) {
+        const resolvedParentId: string | null | undefined = options.getParentId?.(current);
+        const parentId: string | null = resolvedParentId ?? getAppRouteParentId(current);
+
+        if (!parentId) return false;
+        if (visited.has(parentId)) return true;
+
+        visited.add(parentId);
+        current = routesById.get(parentId) ?? null;
+    }
+
+    return false;
+}
+
+/**
+ * Inspects route descriptors for structural and metadata issues.
+ */
+export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: AppRouteDiagnosticsOptions<TRoute> = {}
+): AppRouteDiagnosticsReport<TRoute> {
+    const issues: Array<AppRouteDiagnosticsIssue<TRoute>> = [];
+    const routesById = new Map<string, TRoute>();
+    const routesByHref = new Map<string, TRoute>();
+
+    for (const route of routes) {
+        const id = route.id.trim();
+        const title = route.title.trim();
+
+        if (!id) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "error",
+                "identity",
+                "route.id.empty",
+                "Route id must not be empty.",
+                route
+            ));
+        } else {
+            const relatedRoute = routesById.get(id);
+
+            if (relatedRoute) {
+                issues.push(createAppRouteDiagnosticsIssue(
+                    "error",
+                    "identity",
+                    "route.id.duplicate",
+                    `Route id "${id}" is used more than once.`,
+                    route,
+                    relatedRoute
+                ));
+            } else {
+                routesById.set(id, route);
+            }
+        }
+
+        if (!title) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "identity",
+                "route.title.empty",
+                `Route "${route.id}" has an empty title.`,
+                route
+            ));
+        }
+
+        const href = options.getHref?.(route) ?? getAppRouteHref(route);
+
+        if (href !== null) {
+            const normalizedHref = href.trim();
+
+            if (!normalizedHref) {
+                issues.push(createAppRouteDiagnosticsIssue(
+                    "warning",
+                    "link",
+                    "route.href.empty",
+                    `Route "${route.id}" has an empty href.`,
+                    route
+                ));
+            } else {
+                const relatedRoute = routesByHref.get(normalizedHref);
+
+                if (relatedRoute) {
+                    issues.push(createAppRouteDiagnosticsIssue(
+                        "warning",
+                        "link",
+                        "route.href.duplicate",
+                        `Route href "${normalizedHref}" is used more than once.`,
+                        route,
+                        relatedRoute
+                    ));
+                } else {
+                    routesByHref.set(normalizedHref, route);
+                }
+            }
+        }
+
+        const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+
+        if (options.requireDescription && !description?.trim()) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "metadata",
+                "route.description.missing",
+        `       Route "${route.id}" does not provide a document description.`,
+                route
+            ));
+        }
+
+        const documentTitle = options.getDocumentTitle?.(route) ?? getAppRouteDocumentTitle(route);
+
+        if (options.requireDocumentTitle && !documentTitle?.trim()) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "metadata",
+                "route.document-title.missing",
+        `       Route "${route.id}" does not provide a document title.`,
+                route
+            ));
+        }
+    }
+
+    for (const route of routes) {
+        const parentId = options.getParentId?.(route) ?? getAppRouteParentId(route);
+
+        if (parentId === null || parentId === undefined) continue;
+
+        const normalizedParentId = parentId.trim();
+
+        if (!normalizedParentId) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "hierarchy",
+                "route.parent.empty",
+                `Route "${route.id}" has an empty parent id.`,
+                route
+            ));
+            continue;
+        }
+
+        if (normalizedParentId === route.id) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "error",
+                "hierarchy",
+                "route.parent.self",
+                `Route "${route.id}" cannot be its own parent.`,
+                route
+            ));
+            continue;
+        }
+
+        if (!routesById.has(normalizedParentId)) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "hierarchy",
+                "route.parent.missing",
+                `Route "${route.id}" references missing parent "${normalizedParentId}".`,
+                route
+            ));
+            continue;
+        }
+
+        if (hasAppRouteParentCycle(route, routesById, options)) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "error",
+                "hierarchy",
+                "route.parent.cycle",
+                `Route "${route.id}" is part of a parent route cycle.`,
+                route
+            ));
+        }
+    }
+
+    const errorCount = issues.filter((issue) => issue.level === "error").length;
+    const warningCount = issues.filter((issue) => issue.level === "warning").length;
+    const infoCount = issues.filter((issue) => issue.level === "info").length;
+
+    return {
+        status: getAppRouteDiagnosticsStatus(errorCount, warningCount),
+        issues,
+        errorCount,
+        warningCount,
+        infoCount
+    };
+}
+
+/**
+ * Logs an app route diagnostics report to the developer console.
+ */
+export function logAppRouteDiagnostics<TRoute extends AppRouteDescriptor>(
+    report: AppRouteDiagnosticsReport<TRoute>
+): void {
+    const summary = `[Accessible First] App route diagnostics: ${report.status} `
+        + `(${report.errorCount} errors, ${report.warningCount} warnings, ${report.infoCount} info)`;
+
+    if (report.errorCount > 0) console.error(summary);
+    else if (report.warningCount > 0) console.warn(summary);
+    else console.info(summary);
+
+    for (const issue of report.issues) {
+        const route = issue.route ? ` route=${issue.route.id}` : "";
+        const related = issue.relatedRoute ? ` related=${issue.relatedRoute.id}` : "";
+        const message = `[Accessible First] [${issue.level}] ${issue.category}/${issue.code}:${route}${related} ${issue.message}`;
+
+        if (issue.level === "error") console.error(message);
+        else if (issue.level === "warning") console.warn(message);
+        else console.info(message);
+    }
 }
 
 function getDefaultBaseUrl(): string | null {

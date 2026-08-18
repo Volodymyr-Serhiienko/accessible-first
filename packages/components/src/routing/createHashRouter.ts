@@ -69,7 +69,13 @@ export interface HashRouterOptions<TRoute extends HashRouterRoute> {
     getDocumentTitle?: ((route: TRoute) => string | null) | null;
     getAnnouncement?: ((route: TRoute, previousRoute: TRoute | null) => PageOutletAnnouncement) | null;
     onRouteChange?: HashRouterRouteChangeHandler<TRoute> | null;
+    /**
+     * Resolves document metadata for the active route.
+     */
     getDocumentMetadata?: ((route: TRoute, previousRoute: TRoute | null) => DocumentMetadataUpdateOptions | null | undefined) | null;
+    /**
+     * Applies metadata returned by getDocumentMetadata().
+     */
     updateDocumentMetadata?: ((metadata: DocumentMetadataUpdateOptions) => void) | null;
     inspect?: (() => void) | null;
 }
@@ -257,11 +263,16 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
 
         currentRoute = route;
 
+        const documentMetadata = options.getDocumentMetadata?.(route, previousRoute) ?? null;
+        const documentTitle = options.getDocumentTitle
+            ? options.getDocumentTitle(route)
+            : documentMetadata && "title" in documentMetadata
+                ? documentMetadata.title ?? null
+                : route.title;
+
         options.outlet.render(route.render(), {
             title: route.title,
-            documentTitle: options.getDocumentTitle
-                ? options.getDocumentTitle(route)
-                : route.title,
+            documentTitle,
             scroll: navigateOptions.scroll ?? true,
             focusTarget: "focusTarget" in navigateOptions
                 ? navigateOptions.focusTarget ?? null
@@ -270,8 +281,6 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
                 ? navigateOptions.announcement ?? false
                 : options.getAnnouncement?.(route, previousRoute) ?? true
         });
-
-        const documentMetadata = options.getDocumentMetadata?.(route, previousRoute);
 
         if (documentMetadata) {
             options.updateDocumentMetadata?.(documentMetadata);
