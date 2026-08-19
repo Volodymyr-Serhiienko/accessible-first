@@ -42,15 +42,15 @@ This keeps each inspector simple, while still giving an application a single hea
 - `routes` - optional `AppRouteDiagnosticsReport`.
 - `sources` - optional custom diagnostics reports.
 
-A custom source needs an `id` and a report-like object with `status`, `issues`, and/or issue counts.
+A custom source needs an `id` and a report-like object with `status`, `issues`, and/or issue counts. This can include reports such as `inspectWebAppManifest(...)`.
 
 ```ts
 createAppDiagnosticsReport({
     sources: [
         {
-            id: "metadata",
-            label: "Metadata",
-            report: metadataReport
+            id: "manifest",
+            label: "Web App Manifest",
+            report: manifestReport
         }
     ]
 });
@@ -91,4 +91,6 @@ For public applications, keep app diagnostics enabled in development and CI-like
 - Page diagnostics can be passed with `log: false` to avoid duplicate console output.
 - Route diagnostics remain visible as a source inside the app report.
 - Custom sources do not break the aggregate report when they are `null` or `undefined`.
+
+
 

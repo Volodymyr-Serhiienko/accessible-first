@@ -51,3 +51,4 @@ export * from "./text-field";
 export * from "./theme";
 export * from "./toast";
 export * from "./tooltip";
+export * from "./web-app-manifest";

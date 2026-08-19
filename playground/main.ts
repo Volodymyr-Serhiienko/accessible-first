@@ -5,6 +5,7 @@ import {
     createAppDiagnosticsReport,
     createHashRouter,
     inspectAppRoutes,
+    inspectWebAppManifest,
     logAppDiagnostics,
     mount,
     type ComposedResponsiveNavigation
@@ -13,6 +14,7 @@ import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
 import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
+import { playgroundManifest } from "./demo/manifest";
 import { NavigationDemo } from "./demo/navigation";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import {
@@ -63,6 +65,7 @@ const shell = AppShell({
         themeColor: "#111827",
         canonical: new URL(".", window.location.href),
         robots: "index, follow",
+        manifest: "site.webmanifest",
         icons: [
             {
                 href: "assets/logo.svg",
@@ -97,13 +100,32 @@ function logPlaygroundDiagnostics(): void {
         documentMetadata: {
             requireDescription: true,
             requireCanonical: true,
-            requireRobots: true
+            requireRobots: true,
+            requireManifest: true
         }
+    });
+
+    const manifestDiagnostics = inspectWebAppManifest(playgroundManifest, {
+        requireShortName: true,
+        requireDescription: true,
+        requireStartUrl: true,
+        requireDisplay: true,
+        requireIcons: true,
+        requireThemeColor: true,
+        requireBackgroundColor: true,
+        requireMaskableIcon: true
     });
 
     logAppDiagnostics(createAppDiagnosticsReport({
         page: pageDiagnostics,
-        routes: routeDiagnostics
+        routes: routeDiagnostics,
+        sources: [
+            {
+                id: "manifest",
+                label: "Web App Manifest",
+                report: manifestDiagnostics
+            }
+        ]
     }));
 }
 

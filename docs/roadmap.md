@@ -121,6 +121,8 @@ Completed:
 - AppDiagnostics aggregate report for page, route, and future diagnostics sources
 - DocumentMetadata canonical, robots, and manifest fields
 - Page diagnostics strict document metadata options for public pages
+- WebAppManifest helper for typed manifest JSON creation
+- WebAppManifest diagnostics for identity, launch, colors, icons, and shortcuts
 
 In progress:
 
@@ -335,6 +337,8 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
+
 
 
 

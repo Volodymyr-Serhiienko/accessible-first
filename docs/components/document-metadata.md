@@ -71,6 +71,8 @@ createDocumentMetadata({
 });
 ```
 
+Use [WebAppManifest](./web-app-manifest.md) when you also want a typed helper for creating the manifest JSON content.
+
 ## Icon Options
 
 - `href` - icon URL.
@@ -145,6 +147,7 @@ shell.inspect({
 - Robots policy matches the app/page visibility goal.
 - Manifest resolves correctly when the app should be installable or saved to a device.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
 
 
 

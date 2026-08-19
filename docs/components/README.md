@@ -64,8 +64,10 @@ Each component document should contain:
 - [ThemeToggle](./theme-toggle.md)
 - [Toast](./toast.md)
 - [Tooltip](./tooltip.md)
+- [WebAppManifest](./web-app-manifest.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
