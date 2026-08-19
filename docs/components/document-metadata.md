@@ -2,7 +2,7 @@
 
 DocumentMetadata applies document-level metadata for pages and application shells.
 
-Use it when an app should set a useful document title, language, description, responsive viewport, theme color, canonical URL, robots, manifest, and icons from the same composition layer that builds the page.
+Use it when an app should set a useful document title, language, description, responsive viewport, theme color, canonical URL, robots, manifest, social preview metadata, and icons from the same composition layer that builds the page.
 
 ## Quick Start
 
@@ -16,6 +16,21 @@ createDocumentMetadata({
     canonical: "https://example.com/app",
     robots: "index, follow",
     manifest: "site.webmanifest",
+    openGraph: {
+        title: "Language App",
+        type: "website",
+        url: "https://example.com/app",
+        image: {
+            url: "https://example.com/social-preview.png",
+            alt: "Language App preview"
+        }
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Language App",
+        image: "https://example.com/social-preview.png",
+        imageAlt: "Language App preview"
+    },
     icons: [
         { href: "assets/logo.svg", type: "image/svg+xml" }
     ]
@@ -40,7 +55,7 @@ AppShell({
 
 Document metadata is part of page health. It helps browsers, assistive technology, search engines, saved shortcuts, and mobile devices understand the app.
 
-`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving richer social previews and structured data for later expansion.
+`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving structured data and deeper SEO checks for later expansion.
 
 ## Options
 
@@ -53,6 +68,8 @@ Document metadata is part of page health. It helps browsers, assistive technolog
 - `canonical` - canonical page URL as a string or `URL`.
 - `robots` - meta robots policy, such as `"index, follow"` or `"noindex, nofollow"`.
 - `manifest` - web app manifest URL, or manifest options with `crossOrigin`.
+- `openGraph` - Open Graph preview metadata for shared links.
+- `twitter` - Twitter/X card preview metadata for shared links.
 - `icons` - managed icon links.
 
 ## Manifest Options
@@ -73,6 +90,29 @@ createDocumentMetadata({
 
 Use [WebAppManifest](./web-app-manifest.md) when you also want a typed helper for creating the manifest JSON content.
 
+## Social Preview Options
+
+Open Graph metadata supports the common preview fields:
+
+- `title` - shared object title. Falls back to the document title when omitted by application code only if the app provides that value itself.
+- `type` - object type, usually `"website"` for app pages.
+- `url` - canonical shared URL.
+- `description` - shared preview description.
+- `siteName` - site or product name.
+- `locale` - locale such as `"en_US"`.
+- `image` - preview image URL or image options with `secureUrl`, `type`, `width`, `height`, and `alt`.
+
+Twitter/X metadata supports:
+
+- `card` - card type, usually `"summary"` or `"summary_large_image"`.
+- `site` - site account handle.
+- `creator` - author account handle.
+- `title` - card title.
+- `description` - card description.
+- `image` - card image URL.
+- `imageAlt` - accessible description for the card image.
+
+Use absolute HTTPS image URLs for public social previews. Relative URLs can work inside the app but are often not enough for external crawlers.
 ## Icon Options
 
 - `href` - icon URL.
@@ -132,7 +172,9 @@ shell.inspect({
         requireDescription: true,
         requireCanonical: true,
         requireRobots: true,
-        requireManifest: true
+        requireManifest: true,
+        requireOpenGraph: true,
+        requireTwitter: true
     }
 });
 ```
@@ -146,7 +188,10 @@ shell.inspect({
 - Public pages have a canonical URL when duplicate URLs may exist.
 - Robots policy matches the app/page visibility goal.
 - Manifest resolves correctly when the app should be installable or saved to a device.
+- Open Graph and Twitter/X preview tags use meaningful titles, descriptions, URLs, and image alt text.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
+
 
 
 

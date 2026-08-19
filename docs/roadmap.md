@@ -123,6 +123,7 @@ Completed:
 - Page diagnostics strict document metadata options for public pages
 - WebAppManifest helper for typed manifest JSON creation
 - WebAppManifest diagnostics for identity, launch, colors, icons, and shortcuts
+- DocumentMetadata Open Graph and Twitter/X social preview fields
 
 In progress:
 
@@ -149,7 +150,7 @@ Next:
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
-- Metadata expansion for Open Graph, Twitter cards, social previews, structured data, and richer SEO checks
+- Metadata expansion for structured data, social preview assets, and richer SEO checks
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
@@ -337,6 +338,7 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
 
 
 

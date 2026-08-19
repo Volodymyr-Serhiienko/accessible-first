@@ -75,6 +75,8 @@ export interface PageDiagnosticsDocumentMetadataOptions {
     requireCanonical?: boolean;
     requireRobots?: boolean;
     requireManifest?: boolean;
+    requireOpenGraph?: boolean;
+    requireTwitter?: boolean;
 }
 
 /**

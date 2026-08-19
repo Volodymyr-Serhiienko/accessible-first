@@ -35,6 +35,66 @@ export interface DocumentMetadataManifestOptions {
 export type DocumentMetadataManifest = string | DocumentMetadataManifestOptions;
 
 /**
+ * URL value accepted by document metadata fields.
+ */
+export type DocumentMetadataUrlValue = string | URL;
+
+/**
+ * Open Graph image metadata for shared-link previews.
+ */
+export interface DocumentMetadataOpenGraphImageOptions {
+    url: DocumentMetadataUrlValue;
+    secureUrl?: DocumentMetadataUrlValue | null;
+    type?: string | null;
+    width?: string | number | null;
+    height?: string | number | null;
+    alt?: string | null;
+}
+
+/**
+ * Open Graph image value accepted by DocumentMetadata.
+ */
+export type DocumentMetadataOpenGraphImage =
+    | DocumentMetadataUrlValue
+    | DocumentMetadataOpenGraphImageOptions;
+
+/**
+ * Open Graph metadata managed through meta[property].
+ */
+export interface DocumentMetadataOpenGraphOptions {
+    title?: string | null;
+    type?: string | null;
+    url?: DocumentMetadataUrlValue | null;
+    description?: string | null;
+    siteName?: string | null;
+    locale?: string | null;
+    image?: DocumentMetadataOpenGraphImage | null;
+}
+
+/**
+ * Twitter/X card type.
+ */
+export type DocumentMetadataTwitterCard =
+    | "summary"
+    | "summary_large_image"
+    | "app"
+    | "player"
+    | (string & {});
+
+/**
+ * Twitter/X card metadata managed through meta[name].
+ */
+export interface DocumentMetadataTwitterOptions {
+    card?: DocumentMetadataTwitterCard | null;
+    site?: string | null;
+    creator?: string | null;
+    title?: string | null;
+    description?: string | null;
+    image?: DocumentMetadataUrlValue | null;
+    imageAlt?: string | null;
+}
+
+/**
  * Document-level metadata options for apps and pages.
  *
  * Covers the essential accessibility, responsive, SEO, installability,
@@ -51,6 +111,8 @@ export interface DocumentMetadataOptions {
     canonical?: string | URL | null;
     robots?: string | null;
     manifest?: DocumentMetadataManifest | null;
+    openGraph?: DocumentMetadataOpenGraphOptions | null;
+    twitter?: DocumentMetadataTwitterOptions | null;
 }
 
 /**
@@ -150,6 +212,71 @@ function stringifyMetadataUrl(value: string | URL): string {
     return typeof value === "string" ? value : value.toString();
 }
 
+const OPEN_GRAPH_PROPERTIES = [
+    "og:title",
+    "og:type",
+    "og:url",
+    "og:description",
+    "og:site_name",
+    "og:locale",
+    "og:image",
+    "og:image:secure_url",
+    "og:image:type",
+    "og:image:width",
+    "og:image:height",
+    "og:image:alt"
+];
+
+const TWITTER_META_NAMES = [
+    "twitter:card",
+    "twitter:site",
+    "twitter:creator",
+    "twitter:title",
+    "twitter:description",
+    "twitter:image",
+    "twitter:image:alt"
+];
+
+function findPropertyMeta(ownerDocument: Document, property: string): HTMLMetaElement | null {
+    return Array.from(ownerDocument.head.querySelectorAll<HTMLMetaElement>("meta[property]"))
+        .find((meta) => meta.getAttribute("property") === property) ?? null;
+}
+
+function restorePropertyMeta(
+    ownerDocument: Document,
+    property: string,
+    snapshot: MetaSnapshot
+): void {
+    const current = findPropertyMeta(ownerDocument, property);
+
+    if (!snapshot.element) {
+        current?.remove();
+        return;
+    }
+
+    if (current && current !== snapshot.element) {
+        current.remove();
+    }
+
+    if (!snapshot.element.parentElement) {
+        ownerDocument.head.append(snapshot.element);
+    }
+
+    if (snapshot.content === null) {
+        snapshot.element.removeAttribute("content");
+    } else {
+        snapshot.element.setAttribute("content", snapshot.content);
+    }
+}
+
+function toMetadataContent(
+    value: string | number | boolean | URL | null | undefined
+): string | null {
+    if (value === null || value === undefined) return null;
+
+    return value instanceof URL ? value.toString() : String(value);
+}
+
 function createIcon(ownerDocument: Document, icon: DocumentMetadataIconOptions): HTMLLinkElement {
     const link = ownerDocument.createElement("link");
 
@@ -176,6 +303,7 @@ export function createDocumentMetadata(
     const originalLang = ownerDocument.documentElement.getAttribute("lang");
     const metaSnapshots = new Map<string, MetaSnapshot>();
     const linkSnapshots = new Map<string, LinkSnapshot>();
+    const propertyMetaSnapshots = new Map<string, MetaSnapshot>();
     const managedIcons: HTMLLinkElement[] = [];
 
     function rememberMeta(name: string): MetaSnapshot {
@@ -206,6 +334,22 @@ export function createDocumentMetadata(
         };
 
         linkSnapshots.set(rel, snapshot);
+
+        return snapshot;
+    }
+
+    function rememberPropertyMeta(property: string): MetaSnapshot {
+        const existing = propertyMetaSnapshots.get(property);
+
+        if (existing) return existing;
+
+        const element = findPropertyMeta(ownerDocument, property);
+        const snapshot: MetaSnapshot = {
+            element,
+            content: element?.getAttribute("content") ?? null
+        };
+
+        propertyMetaSnapshots.set(property, snapshot);
 
         return snapshot;
     }
@@ -278,6 +422,71 @@ export function createDocumentMetadata(
         }
     }
 
+    function setPropertyMeta(property: string, content: string | null): void {
+        const snapshot = rememberPropertyMeta(property);
+
+        if (content === null) {
+            restorePropertyMeta(ownerDocument, property, snapshot);
+            return;
+        }
+
+        const meta = findPropertyMeta(ownerDocument, property) ?? ownerDocument.createElement("meta");
+
+        meta.setAttribute("property", property);
+        meta.setAttribute("content", content);
+
+        if (!meta.parentElement) {
+            ownerDocument.head.append(meta);
+        }
+    }
+
+    function setOpenGraph(openGraph: DocumentMetadataOpenGraphOptions | null): void {
+        for (const property of OPEN_GRAPH_PROPERTIES) {
+            setPropertyMeta(property, null);
+        }
+
+        if (!openGraph) return;
+
+        setPropertyMeta("og:title", openGraph.title ?? null);
+        setPropertyMeta("og:type", openGraph.type ?? null);
+        setPropertyMeta("og:url", toMetadataContent(openGraph.url));
+        setPropertyMeta("og:description", openGraph.description ?? null);
+        setPropertyMeta("og:site_name", openGraph.siteName ?? null);
+        setPropertyMeta("og:locale", openGraph.locale ?? null);
+
+        const image = openGraph.image ?? null;
+
+        if (!image) return;
+
+        if (typeof image === "string" || image instanceof URL) {
+            setPropertyMeta("og:image", stringifyMetadataUrl(image));
+            return;
+        }
+
+        setPropertyMeta("og:image", stringifyMetadataUrl(image.url));
+        setPropertyMeta("og:image:secure_url", toMetadataContent(image.secureUrl));
+        setPropertyMeta("og:image:type", image.type ?? null);
+        setPropertyMeta("og:image:width", toMetadataContent(image.width));
+        setPropertyMeta("og:image:height", toMetadataContent(image.height));
+        setPropertyMeta("og:image:alt", image.alt ?? null);
+    }
+
+    function setTwitter(twitter: DocumentMetadataTwitterOptions | null): void {
+        for (const name of TWITTER_META_NAMES) {
+            setMeta(name, null);
+        }
+
+        if (!twitter) return;
+
+        setMeta("twitter:card", twitter.card ?? null);
+        setMeta("twitter:site", twitter.site ?? null);
+        setMeta("twitter:creator", twitter.creator ?? null);
+        setMeta("twitter:title", twitter.title ?? null);
+        setMeta("twitter:description", twitter.description ?? null);
+        setMeta("twitter:image", toMetadataContent(twitter.image));
+        setMeta("twitter:image:alt", twitter.imageAlt ?? null);
+    }
+
     function setIcons(icons: DocumentMetadataIconOptions[] | null): void {
         for (const icon of managedIcons.splice(0)) {
             icon.remove();
@@ -316,6 +525,8 @@ export function createDocumentMetadata(
         if ("canonical" in nextOptions) setCanonical(nextOptions.canonical ?? null);
         if ("robots" in nextOptions) setMeta("robots", nextOptions.robots ?? null);
         if ("manifest" in nextOptions) setManifest(nextOptions.manifest ?? null);
+        if ("openGraph" in nextOptions) setOpenGraph(nextOptions.openGraph ?? null);
+        if ("twitter" in nextOptions) setTwitter(nextOptions.twitter ?? null);
     }
 
     update(options);
@@ -339,6 +550,10 @@ export function createDocumentMetadata(
 
             for (const [rel, snapshot] of linkSnapshots) {
                 restoreLink(ownerDocument, rel, snapshot);
+            }
+
+            for (const [property, snapshot] of propertyMetaSnapshots) {
+                restorePropertyMeta(ownerDocument, property, snapshot);
             }
 
             setIcons(null);

@@ -71,7 +71,28 @@ const shell = AppShell({
                 href: "assets/logo.svg",
                 type: "image/svg+xml"
             }
-        ]
+        ],
+        openGraph: {
+            title: "Accessible First Playground",
+            type: "website",
+            url: new URL(".", window.location.href),
+            description: "Accessible First Playground demonstrates WCAG-first UI components and app-building patterns.",
+            siteName: "Accessible First",
+            image: {
+                url: new URL("assets/logo-512.png", window.location.href),
+                type: "image/png",
+                width: 512,
+                height: 512,
+                alt: "Accessible First AF logo"
+            }
+        },
+        twitter: {
+            card: "summary",
+            title: "Accessible First Playground",
+            description: "WCAG-first components, semantic composition, routing, diagnostics, and app-building patterns.",
+            image: new URL("assets/logo-512.png", window.location.href),
+            imageAlt: "Accessible First AF logo"
+        }
     },
     outletOptions: {
         className: "playground-route-outlet",
@@ -101,7 +122,9 @@ function logPlaygroundDiagnostics(): void {
             requireDescription: true,
             requireCanonical: true,
             requireRobots: true,
-            requireManifest: true
+            requireManifest: true,
+            requireOpenGraph: true,
+            requireTwitter: true
         }
     });
 

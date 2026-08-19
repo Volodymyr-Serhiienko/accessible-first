@@ -45,6 +45,10 @@ function getLinksByRel(ownerDocument: Document, rel: string): HTMLLinkElement[] 
             .includes(expected));
 }
 
+function findDocumentPropertyMeta(ownerDocument: Document, property: string): HTMLMetaElement | null {
+    return ownerDocument.querySelector<HTMLMetaElement>(`meta[property='${property}']`);
+}
+
 function inspectDocument(
     ownerDocument: Document,
     issues: PageDiagnosticsIssue[],
@@ -105,6 +109,35 @@ function inspectDocument(
         issues.push(createIssue("warning", "document", "document.manifest.missing", "Installable apps should provide a manifest link."));
     } else if (manifestLinks[0] && !manifestLinks[0].getAttribute("href")?.trim()) {
         issues.push(createIssue("warning", "document", "document.manifest.href.missing", "Manifest link has no href."));
+    }
+
+    const hasOpenGraph = Boolean(
+        findDocumentPropertyMeta(ownerDocument, "og:title")
+        || findDocumentPropertyMeta(ownerDocument, "og:type")
+        || findDocumentPropertyMeta(ownerDocument, "og:url")
+        || findDocumentPropertyMeta(ownerDocument, "og:image")
+    );
+
+    if (options.requireOpenGraph && !hasOpenGraph) {
+        issues.push(createIssue("warning", "document", "document.opengraph.missing", "Public pages should provide Open Graph preview metadata."));
+    }
+
+    if (hasOpenGraph && !findDocumentPropertyMeta(ownerDocument, "og:image:alt")?.content.trim()) {
+        issues.push(createIssue("info", "document", "document.opengraph.image-alt.missing", "Open Graph image should provide og:image:alt."));
+    }
+
+    const hasTwitter = Boolean(
+        findDocumentMeta(ownerDocument, "twitter:card")
+        || findDocumentMeta(ownerDocument, "twitter:title")
+        || findDocumentMeta(ownerDocument, "twitter:image")
+    );
+
+    if (options.requireTwitter && !hasTwitter) {
+        issues.push(createIssue("warning", "document", "document.twitter.missing", "Public pages should provide Twitter/X card metadata."));
+    }
+
+    if (hasTwitter && !findDocumentMeta(ownerDocument, "twitter:card")?.content.trim()) {
+        issues.push(createIssue("warning", "document", "document.twitter.card.missing", "Twitter/X metadata should provide twitter:card."));
     }
 }
 
