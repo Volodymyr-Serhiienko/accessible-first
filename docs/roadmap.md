@@ -118,6 +118,8 @@ Completed:
 - DocumentMetadata module and Page/AppShell metadata integration
 - Route-derived document metadata helpers and HashRouter metadata callbacks
 - App route diagnostics helper for route id, href, hierarchy, and metadata checks
+- AppDiagnostics aggregate report for page, route, and future diagnostics sources
+- DocumentMetadata canonical, robots, and manifest fields
 
 In progress:
 
@@ -143,8 +145,8 @@ Next:
 - Route metadata model expansion for multi-page app patterns
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Focus-route templates for screen reader friendly app screens
-- App diagnostics and health report model for accessibility, semantics, metadata, route state, interaction checks, and route diagnostics integration
-- Metadata expansion for canonical URLs, robots, Open Graph, Twitter cards, manifests, social previews, and structured data
+- App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
+- Metadata expansion for Open Graph, Twitter cards, social previews, structured data, and richer SEO checks
 - Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
@@ -332,6 +334,8 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
+
 
 
 

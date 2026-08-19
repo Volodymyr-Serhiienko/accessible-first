@@ -2,9 +2,10 @@ import {
     activateHashRouterRoute,
     AppShell,
     bindHashRouterRouteControls,
+    createAppDiagnosticsReport,
     createHashRouter,
     inspectAppRoutes,
-    logAppRouteDiagnostics,
+    logAppDiagnostics,
     mount,
     type ComposedResponsiveNavigation
 } from "./demo/af";
@@ -88,7 +89,14 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
     requireDocumentTitle: true
 });
 
-logAppRouteDiagnostics(routeDiagnostics);
+function logPlaygroundDiagnostics(): void {
+    const pageDiagnostics = shell.inspect({ log: false });
+
+    logAppDiagnostics(createAppDiagnosticsReport({
+        page: pageDiagnostics,
+        routes: routeDiagnostics
+    }));
+}
 
 let navigation!: ComposedResponsiveNavigation;
 
@@ -106,7 +114,7 @@ const router = createHashRouter({
         return `${route.title} demo loaded.`;
     },
     inspect() {
-        shell.inspect();
+        logPlaygroundDiagnostics();
     }
 });
 

@@ -158,6 +158,7 @@ export interface AppRouteDiagnosticsOptions<TRoute extends AppRouteDescriptor> {
     requireDescription?: boolean;
     requireDocumentTitle?: boolean;
 }
+
 /**
  * Result returned by inspectAppRoutes().
  */
@@ -429,7 +430,7 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
                 "warning",
                 "metadata",
                 "route.description.missing",
-        `       Route "${route.id}" does not provide a document description.`,
+                `Route "${route.id}" does not provide a document description.`,
                 route
             ));
         }
@@ -441,7 +442,7 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
                 "warning",
                 "metadata",
                 "route.document-title.missing",
-        `       Route "${route.id}" does not provide a document title.`,
+                `Route "${route.id}" does not provide a document title.`,
                 route
             ));
         }

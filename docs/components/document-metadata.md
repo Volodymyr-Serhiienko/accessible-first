@@ -2,7 +2,7 @@
 
 DocumentMetadata applies document-level metadata for pages and application shells.
 
-Use it when an app should set a useful document title, language, description, responsive viewport, theme color, and icons from the same composition layer that builds the page.
+Use it when an app should set a useful document title, language, description, responsive viewport, theme color, canonical URL, robots, manifest, and icons from the same composition layer that builds the page.
 
 ## Quick Start
 
@@ -13,6 +13,9 @@ createDocumentMetadata({
     description: "Accessible language learning app.",
     viewport: DEFAULT_DOCUMENT_VIEWPORT,
     themeColor: "#111827",
+    canonical: "https://example.com/app",
+    robots: "index, follow",
+    manifest: "site.webmanifest",
     icons: [
         { href: "assets/logo.svg", type: "image/svg+xml" }
     ]
@@ -37,7 +40,7 @@ AppShell({
 
 Document metadata is part of page health. It helps browsers, assistive technology, search engines, saved shortcuts, and mobile devices understand the app.
 
-`DocumentMetadata` is intentionally small for now. It covers the metadata that almost every real app needs first, while leaving room for later SEO expansion such as canonical links, Open Graph, Twitter cards, manifests, robots, and structured data.
+`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving richer social previews and structured data for later expansion.
 
 ## Options
 
@@ -47,7 +50,26 @@ Document metadata is part of page health. It helps browsers, assistive technolog
 - `description` - meta description.
 - `viewport` - meta viewport. Use `DEFAULT_DOCUMENT_VIEWPORT` for the common responsive default.
 - `themeColor` - meta theme color.
+- `canonical` - canonical page URL as a string or `URL`.
+- `robots` - meta robots policy, such as `"index, follow"` or `"noindex, nofollow"`.
+- `manifest` - web app manifest URL, or manifest options with `crossOrigin`.
 - `icons` - managed icon links.
+
+## Manifest Options
+
+When `manifest` is an object, it supports:
+
+- `href` - manifest URL.
+- `crossOrigin` - optional crossorigin value: `""`, `"anonymous"`, or `"use-credentials"`.
+
+```ts
+createDocumentMetadata({
+    manifest: {
+        href: "site.webmanifest",
+        crossOrigin: "anonymous"
+    }
+});
+```
 
 ## Icon Options
 
@@ -104,6 +126,10 @@ Private internal apps may not need every SEO-oriented field, but public pages sh
 - Screen reader announces the document language correctly.
 - Mobile viewport uses responsive width.
 - Public pages have a concise meta description.
+- Public pages have a canonical URL when duplicate URLs may exist.
+- Robots policy matches the app/page visibility goal.
+- Manifest resolves correctly when the app should be installable or saved to a device.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
 
 

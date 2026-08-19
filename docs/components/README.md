@@ -17,6 +17,7 @@ Each component document should contain:
 - [Accordion](./accordion.md)
 - [ActionsBar](./actions-bar.md)
 - [AlertDialog](./alert-dialog.md)
+- [AppDiagnostics](./app-diagnostics.md)
 - [AppShell](./app-shell.md)
 - [App Routes](./app-routes.md)
 - [Badge](./badge.md)
@@ -65,6 +66,7 @@ Each component document should contain:
 - [Tooltip](./tooltip.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 
