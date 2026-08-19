@@ -120,6 +120,7 @@ Completed:
 - App route diagnostics helper for route id, href, hierarchy, and metadata checks
 - AppDiagnostics aggregate report for page, route, and future diagnostics sources
 - DocumentMetadata canonical, robots, and manifest fields
+- Page diagnostics strict document metadata options for public pages
 
 In progress:
 
@@ -334,6 +335,7 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
 
 
 

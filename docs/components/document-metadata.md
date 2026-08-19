@@ -116,9 +116,24 @@ shell.updateMetadata(metadata);
 - document title;
 - `html[lang]`;
 - viewport meta;
-- description meta.
+- description meta;
+- canonical link shape when present;
+- robots meta shape when present;
+- manifest link shape when present.
 
-Private internal apps may not need every SEO-oriented field, but public pages should provide meaningful metadata.
+Private internal apps may not need every SEO-oriented field. Public pages can enable stricter checks:
+
+```ts
+shell.inspect({
+    log: false,
+    documentMetadata: {
+        requireDescription: true,
+        requireCanonical: true,
+        requireRobots: true,
+        requireManifest: true
+    }
+});
+```
 
 ## Manual Checks
 
@@ -130,6 +145,7 @@ Private internal apps may not need every SEO-oriented field, but public pages sh
 - Robots policy matches the app/page visibility goal.
 - Manifest resolves correctly when the app should be installable or saved to a device.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
 
 
 

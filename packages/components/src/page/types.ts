@@ -68,12 +68,23 @@ export interface PageDiagnosticsReport {
 }
 
 /**
+ * Optional stricter document metadata checks for public pages.
+ */
+export interface PageDiagnosticsDocumentMetadataOptions {
+    requireDescription?: boolean;
+    requireCanonical?: boolean;
+    requireRobots?: boolean;
+    requireManifest?: boolean;
+}
+
+/**
  * Options for page diagnostics.
  */
 export interface PageDiagnosticsOptions {
     log?: boolean;
     document?: Document;
     categories?: PageDiagnosticsCategory[];
+    documentMetadata?: PageDiagnosticsDocumentMetadataOptions;
 }
 
 /**

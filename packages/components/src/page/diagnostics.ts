@@ -1,6 +1,7 @@
 import { getAriaReferencedText } from "../../../core/src/aria";
 import type {
     PageDiagnosticsCategory,
+    PageDiagnosticsDocumentMetadataOptions,
     PageDiagnosticsIssue,
     PageDiagnosticsOptions,
     PageDiagnosticsReport,
@@ -30,14 +31,32 @@ function shouldInspectCategory(
     return options.categories === undefined || options.categories.includes(category);
 }
 
+function findDocumentMeta(ownerDocument: Document, name: string): HTMLMetaElement | null {
+    return ownerDocument.querySelector<HTMLMetaElement>(`meta[name='${name}']`);
+}
+
+function getLinksByRel(ownerDocument: Document, rel: string): HTMLLinkElement[] {
+    const expected = rel.toLowerCase();
+
+    return Array.from(ownerDocument.head.querySelectorAll<HTMLLinkElement>("link[rel]"))
+        .filter((link) => (link.getAttribute("rel") ?? "")
+            .toLowerCase()
+            .split(/\s+/)
+            .includes(expected));
+}
+
 function inspectDocument(
     ownerDocument: Document,
-    issues: PageDiagnosticsIssue[]
+    issues: PageDiagnosticsIssue[],
+    options: PageDiagnosticsDocumentMetadataOptions = {}
 ): void {
     const title = ownerDocument.title.trim();
     const language = ownerDocument.documentElement.getAttribute("lang")?.trim() ?? "";
-    const viewport = ownerDocument.querySelector<HTMLMetaElement>("meta[name='viewport']");
-    const description = ownerDocument.querySelector<HTMLMetaElement>("meta[name='description']");
+    const viewport = findDocumentMeta(ownerDocument, "viewport");
+    const description = findDocumentMeta(ownerDocument, "description");
+    const robots = findDocumentMeta(ownerDocument, "robots");
+    const canonicalLinks = getLinksByRel(ownerDocument, "canonical");
+    const manifestLinks = getLinksByRel(ownerDocument, "manifest");
 
     if (!title) {
         issues.push(createIssue("warning", "document", "document.title.missing", "Document has no title."));
@@ -54,7 +73,38 @@ function inspectDocument(
     }
 
     if (!description?.content.trim()) {
-        issues.push(createIssue("info", "document", "document.description.missing", "Document has no meta description. This may be fine for private apps, but public pages usually need one."));
+        issues.push(createIssue(
+            options.requireDescription ? "warning" : "info",
+            "document",
+            "document.description.missing",
+            "Document has no meta description. This may be fine for private apps, but public pages usually need one."
+        ));
+    }
+
+    if (canonicalLinks.length > 1) {
+        issues.push(createIssue("warning", "document", "document.canonical.multiple", "Document has more than one canonical link."));
+    }
+
+    if (options.requireCanonical && canonicalLinks.length === 0) {
+        issues.push(createIssue("warning", "document", "document.canonical.missing", "Public pages should provide a canonical link."));
+    } else if (canonicalLinks[0] && !canonicalLinks[0].getAttribute("href")?.trim()) {
+        issues.push(createIssue("warning", "document", "document.canonical.href.missing", "Canonical link has no href."));
+    }
+
+    if (options.requireRobots && !robots) {
+        issues.push(createIssue("warning", "document", "document.robots.missing", "Public pages should define a robots policy."));
+    } else if (robots && !robots.content.trim()) {
+        issues.push(createIssue("warning", "document", "document.robots.empty", "Robots meta tag has empty content."));
+    }
+
+    if (manifestLinks.length > 1) {
+        issues.push(createIssue("warning", "document", "document.manifest.multiple", "Document has more than one manifest link."));
+    }
+
+    if (options.requireManifest && manifestLinks.length === 0) {
+        issues.push(createIssue("warning", "document", "document.manifest.missing", "Installable apps should provide a manifest link."));
+    } else if (manifestLinks[0] && !manifestLinks[0].getAttribute("href")?.trim()) {
+        issues.push(createIssue("warning", "document", "document.manifest.href.missing", "Manifest link has no href."));
     }
 }
 
@@ -150,7 +200,7 @@ export function inspectPage(
     const ownerDocument = options.document ?? root.ownerDocument;
 
     if (shouldInspectCategory(options, "document")) {
-        inspectDocument(ownerDocument, issues);
+        inspectDocument(ownerDocument, issues, options.documentMetadata);
     }
 
     const headers = root.querySelectorAll("header");

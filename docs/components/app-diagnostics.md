@@ -13,7 +13,13 @@ const routeReport = inspectAppRoutes(routes, {
 });
 
 const appReport = createAppDiagnosticsReport({
-    page: shell.inspect({ log: false }),
+    page: shell.inspect({
+        log: false,
+        documentMetadata: {
+            requireDescription: true,
+            requireCanonical: true
+        }
+    }),
     routes: routeReport
 });
 
@@ -85,3 +91,4 @@ For public applications, keep app diagnostics enabled in development and CI-like
 - Page diagnostics can be passed with `log: false` to avoid duplicate console output.
 - Route diagnostics remain visible as a source inside the app report.
 - Custom sources do not break the aggregate report when they are `null` or `undefined`.
+

@@ -4,6 +4,7 @@ export { inspectPage, logPageDiagnostics } from "./diagnostics";
 export type {
     Page,
     PageDiagnosticsCategory,
+    PageDiagnosticsDocumentMetadataOptions,
     PageDiagnosticsIssue,
     PageDiagnosticsLevel,
     PageDiagnosticsOptions,

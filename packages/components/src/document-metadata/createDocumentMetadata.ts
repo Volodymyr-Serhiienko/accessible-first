@@ -15,17 +15,30 @@ export interface DocumentMetadataIconOptions {
     color?: string;
 }
 
+/**
+ * Valid crossorigin values for a managed web app manifest link.
+ */
 export type DocumentMetadataManifestCrossOrigin = "" | "anonymous" | "use-credentials";
 
+/**
+ * Web app manifest link managed by DocumentMetadata.
+ */
 export interface DocumentMetadataManifestOptions {
     href: string;
     crossOrigin?: DocumentMetadataManifestCrossOrigin;
 }
 
+/**
+ * Manifest value accepted by DocumentMetadata.
+ * Use a string for the common case, or an object when crossorigin is needed.
+ */
 export type DocumentMetadataManifest = string | DocumentMetadataManifestOptions;
 
 /**
  * Document-level metadata options for apps and pages.
+ *
+ * Covers the essential accessibility, responsive, SEO, installability,
+ * theme, and icon metadata that an application shell usually owns.
  */
 export interface DocumentMetadataOptions {
     document?: Document;

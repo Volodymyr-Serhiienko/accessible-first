@@ -92,7 +92,14 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
 });
 
 function logPlaygroundDiagnostics(): void {
-    const pageDiagnostics = shell.inspect({ log: false });
+    const pageDiagnostics = shell.inspect({
+        log: false,
+        documentMetadata: {
+            requireDescription: true,
+            requireCanonical: true,
+            requireRobots: true
+        }
+    });
 
     logAppDiagnostics(createAppDiagnosticsReport({
         page: pageDiagnostics,
