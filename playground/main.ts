@@ -61,6 +61,8 @@ const shell = AppShell({
         lang: "en",
         description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, and app-building patterns.",
         themeColor: "#111827",
+        canonical: new URL(".", window.location.href),
+        robots: "index, follow",
         icons: [
             {
                 href: "assets/logo.svg",

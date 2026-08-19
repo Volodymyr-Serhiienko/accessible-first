@@ -15,6 +15,15 @@ export interface DocumentMetadataIconOptions {
     color?: string;
 }
 
+export type DocumentMetadataManifestCrossOrigin = "" | "anonymous" | "use-credentials";
+
+export interface DocumentMetadataManifestOptions {
+    href: string;
+    crossOrigin?: DocumentMetadataManifestCrossOrigin;
+}
+
+export type DocumentMetadataManifest = string | DocumentMetadataManifestOptions;
+
 /**
  * Document-level metadata options for apps and pages.
  */
@@ -26,6 +35,9 @@ export interface DocumentMetadataOptions {
     viewport?: string | null;
     themeColor?: string | null;
     icons?: DocumentMetadataIconOptions[] | null;
+    canonical?: string | URL | null;
+    robots?: string | null;
+    manifest?: DocumentMetadataManifest | null;
 }
 
 /**
@@ -46,6 +58,11 @@ export interface DocumentMetadataController {
 interface MetaSnapshot {
     element: HTMLMetaElement | null;
     content: string | null;
+}
+
+interface LinkSnapshot {
+    element: HTMLLinkElement | null;
+    attributes: Array<[string, string]>;
 }
 
 function findMeta(ownerDocument: Document, name: string): HTMLMetaElement | null {
@@ -70,6 +87,54 @@ function restoreMeta(ownerDocument: Document, name: string, snapshot: MetaSnapsh
     } else {
         snapshot.element.setAttribute("content", snapshot.content);
     }
+}
+
+function findLink(ownerDocument: Document, rel: string): HTMLLinkElement | null {
+    return Array.from(ownerDocument.head.querySelectorAll<HTMLLinkElement>("link[rel]"))
+        .find((link) => (link.getAttribute("rel") ?? "").split(/\s+/).includes(rel)) ?? null;
+}
+
+function getLinkAttributes(element: HTMLLinkElement | null): Array<[string, string]> {
+    if (!element) return [];
+
+    return Array.from(element.attributes)
+        .map((attribute) => [attribute.name, attribute.value]);
+}
+
+function restoreLinkAttributes(
+    element: HTMLLinkElement,
+    attributes: Array<[string, string]>
+): void {
+    for (const attribute of Array.from(element.attributes)) {
+        element.removeAttribute(attribute.name);
+    }
+
+    for (const [name, value] of attributes) {
+        element.setAttribute(name, value);
+    }
+}
+
+function restoreLink(ownerDocument: Document, rel: string, snapshot: LinkSnapshot): void {
+    const current = findLink(ownerDocument, rel);
+
+    if (!snapshot.element) {
+        current?.remove();
+        return;
+    }
+
+    if (current && current !== snapshot.element) {
+        current.remove();
+    }
+
+    if (!snapshot.element.parentElement) {
+        ownerDocument.head.append(snapshot.element);
+    }
+
+    restoreLinkAttributes(snapshot.element, snapshot.attributes);
+}
+
+function stringifyMetadataUrl(value: string | URL): string {
+    return typeof value === "string" ? value : value.toString();
 }
 
 function createIcon(ownerDocument: Document, icon: DocumentMetadataIconOptions): HTMLLinkElement {
@@ -97,6 +162,7 @@ export function createDocumentMetadata(
     const originalTitle = ownerDocument.title;
     const originalLang = ownerDocument.documentElement.getAttribute("lang");
     const metaSnapshots = new Map<string, MetaSnapshot>();
+    const linkSnapshots = new Map<string, LinkSnapshot>();
     const managedIcons: HTMLLinkElement[] = [];
 
     function rememberMeta(name: string): MetaSnapshot {
@@ -113,6 +179,72 @@ export function createDocumentMetadata(
         metaSnapshots.set(name, snapshot);
 
         return snapshot;
+    }
+
+    function rememberLink(rel: string): LinkSnapshot {
+        const existing = linkSnapshots.get(rel);
+
+        if (existing) return existing;
+
+        const element = findLink(ownerDocument, rel);
+        const snapshot: LinkSnapshot = {
+            element,
+            attributes: getLinkAttributes(element)
+        };
+
+        linkSnapshots.set(rel, snapshot);
+
+        return snapshot;
+    }
+
+    function setLink(
+        rel: string,
+        href: string | null,
+        attributes: Record<string, string | null | undefined> = {}
+    ): void {
+        const snapshot = rememberLink(rel);
+
+        if (href === null) {
+            restoreLink(ownerDocument, rel, snapshot);
+            return;
+        }
+
+        const link = findLink(ownerDocument, rel) ?? ownerDocument.createElement("link");
+
+        link.setAttribute("rel", rel);
+        link.setAttribute("href", href);
+
+        for (const [name, value] of Object.entries(attributes)) {
+            if (value === null || value === undefined) {
+                link.removeAttribute(name);
+            } else {
+                link.setAttribute(name, value);
+            }
+        }
+
+        if (!link.parentElement) {
+            ownerDocument.head.append(link);
+        }
+    }
+
+    function setCanonical(canonical: string | URL | null): void {
+        setLink("canonical", canonical === null ? null : stringifyMetadataUrl(canonical));
+    }
+
+    function setManifest(manifest: DocumentMetadataManifest | null): void {
+        if (manifest === null) {
+            setLink("manifest", null);
+            return;
+        }
+
+        if (typeof manifest === "string") {
+            setLink("manifest", manifest);
+            return;
+        }
+
+        setLink("manifest", manifest.href, {
+            crossorigin: manifest.crossOrigin
+        });
     }
 
     function setMeta(name: string, content: string | null): void {
@@ -168,6 +300,9 @@ export function createDocumentMetadata(
         if ("viewport" in nextOptions) setMeta("viewport", nextOptions.viewport ?? null);
         if ("themeColor" in nextOptions) setMeta("theme-color", nextOptions.themeColor ?? null);
         if ("icons" in nextOptions) setIcons(nextOptions.icons ?? null);
+        if ("canonical" in nextOptions) setCanonical(nextOptions.canonical ?? null);
+        if ("robots" in nextOptions) setMeta("robots", nextOptions.robots ?? null);
+        if ("manifest" in nextOptions) setManifest(nextOptions.manifest ?? null);
     }
 
     update(options);
@@ -187,6 +322,10 @@ export function createDocumentMetadata(
 
             for (const [name, snapshot] of metaSnapshots) {
                 restoreMeta(ownerDocument, name, snapshot);
+            }
+
+            for (const [rel, snapshot] of linkSnapshots) {
+                restoreLink(ownerDocument, rel, snapshot);
             }
 
             setIcons(null);
