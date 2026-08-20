@@ -91,13 +91,21 @@ export function ListDetailDemo(): ComposedNode {
     const buttons: ComposedButton[] = [];
     let listDetail!: ComposedListDetail;
 
+    function focusProjectDetail(): void {
+        const ownerWindow = listDetail.element.ownerDocument.defaultView ?? window;
+
+        ownerWindow.requestAnimationFrame(() => {
+            listDetail.focus("detail", { preventScroll: false });
+        });
+    }
+
     function selectProject(project: ProjectItem): void {
         for (const button of buttons) {
             button.setSelected(button.element.dataset.projectId === project.id);
         }
 
         listDetail.setDetail(ProjectDetail(project));
-        listDetail.focus("detail");
+        focusProjectDetail();
         announce(`${project.title} details shown.`);
     }
 

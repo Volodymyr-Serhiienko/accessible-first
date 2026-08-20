@@ -1,3 +1,4 @@
+import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
     applyCompositionElementOptions,
@@ -92,6 +93,12 @@ function setOptionalAriaLabel(element: HTMLElement, label: string | null): void 
     }
 }
 
+function ensureProgrammaticFocusTarget(element: HTMLElement): void {
+    if (!element.hasAttribute("tabindex")) {
+        element.tabIndex = -1;
+    }
+}
+
 /**
  * Creates a responsive list/detail screen pattern.
  */
@@ -117,6 +124,9 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
     const empty = createElement("div", getCompositionElementOptions(options.emptyOptions, {
         "data-af-list-detail-empty": ""
     }));
+
+    const originalListTabIndex = list.getAttribute("tabindex");
+    const originalDetailTabIndex = detail.getAttribute("tabindex");
 
     let listLabel: string | null = options.listLabel ?? "Items";
     let detailLabel: string | null = options.detailLabel ?? "Details";
@@ -164,6 +174,9 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         detail.setAttribute("data-af-list-detail-detail", "");
         detailContent.setAttribute("data-af-list-detail-content", "");
         empty.setAttribute("data-af-list-detail-empty", "");
+
+        ensureProgrammaticFocusTarget(list);
+        ensureProgrammaticFocusTarget(detail);
 
         setOptionalAriaLabel(list, listLabel);
         setOptionalAriaLabel(detail, detailLabel);
@@ -246,6 +259,8 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
             listSlot.dispose();
             detailSlot.dispose();
             emptySlot.dispose();
+            restoreAttribute(list, "tabindex", originalListTabIndex);
+            restoreAttribute(detail, "tabindex", originalDetailTabIndex);
         }
     };
 }

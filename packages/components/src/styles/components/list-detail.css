@@ -55,6 +55,12 @@
     display: none !important;
 }
 
+[data-af-list-detail-list]:focus-visible,
+[data-af-list-detail-detail]:focus-visible {
+    outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+    outline-offset: var(--af-focus-ring-offset);
+}
+
 @media (max-width: 48rem) {
     [data-af-composition="list-detail"][data-af-orientation="auto"] {
         grid-template-columns: minmax(0, 1fr);
