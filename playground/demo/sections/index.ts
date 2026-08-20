@@ -19,6 +19,7 @@ export { InfoCardDemo } from "./infoCard";
 export { LayoutDemo } from "./layout";
 export { LinksDemo } from "./links";
 export { ListboxDemo } from "./listbox";
+export { ListDetailDemo } from "./listDetail";
 export { MarkupDemo } from "./markup";
 export { MenuDemo } from "./menu";
 export { PopoverDemo } from "./popover";

@@ -41,6 +41,7 @@ Each component document should contain:
 - [IconButton](./icon-button.md)
 - [InfoCard](./info-card.md)
 - [Link](./link.md)
+- [ListDetail](./list-detail.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
 - [Navigation](./navigation.md)

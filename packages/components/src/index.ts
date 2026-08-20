@@ -26,6 +26,7 @@ export * from "./icon-button";
 export * from "./info-card";
 export * from "./link";
 export * from "./listbox";
+export * from "./list-detail";
 export * from "./menu";
 export * from "./navigation";
 export * from "./overflow-scroller";

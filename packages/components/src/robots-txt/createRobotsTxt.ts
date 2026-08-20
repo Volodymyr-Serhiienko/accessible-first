@@ -87,6 +87,7 @@ function toUserAgentArray(
 ): readonly RobotsTxtUserAgent[] {
     return isUserAgentArray(value) ? value : [value];
 }
+
 function sanitizeLine(value: string): string {
     return value.replace(/[\r\n]+/g, " ").trim();
 }
