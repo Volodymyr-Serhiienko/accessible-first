@@ -58,7 +58,10 @@ const projects: ProjectItem[] = [
     }
 ];
 
-function ProjectDetail(project: ProjectItem): ComposedNode {
+function ProjectDetail(
+    project: ProjectItem,
+    onReturnToList: () => void
+): ComposedNode {
     return Stack(
         InfoCard({
             title: project.title,
@@ -76,13 +79,21 @@ function ProjectDetail(project: ProjectItem): ComposedNode {
                     { term: "Next step", details: project.nextStep }
                 ]
             }),
-            actions: Button({
-                text: "Open project",
-                variant: "primary",
-                onPress() {
-                    announce(`${project.title} opened.`);
-                }
-            })
+            actions: [
+                Button({
+                    text: "Open project",
+                    variant: "primary",
+                    onPress() {
+                        announce(`${project.title} opened.`);
+                    }
+                }),
+                Button({
+                    text: "Back to project list",
+                    variant: "secondary",
+                    hint: `Return focus to ${project.title} in the project list.`,
+                    onPress: onReturnToList
+                })
+            ]
         })
     );
 }
@@ -99,12 +110,38 @@ export function ListDetailDemo(): ComposedNode {
         });
     }
 
+    function focusProjectButton(projectId: string): void {
+        const ownerWindow = listDetail.element.ownerDocument.defaultView ?? window;
+
+        ownerWindow.requestAnimationFrame(() => {
+            const button = buttons.find(
+                (item) => item.element.dataset.projectId === projectId
+            );
+
+            if (!button) {
+                listDetail.focus("list", { preventScroll: false });
+                return;
+            }
+
+            button.element.scrollIntoView({
+                block: "center",
+                inline: "nearest",
+                behavior: "auto"
+            });
+
+            button.element.focus({ preventScroll: true });
+        });
+    }
+
     function selectProject(project: ProjectItem): void {
         for (const button of buttons) {
             button.setSelected(button.element.dataset.projectId === project.id);
         }
 
-        listDetail.setDetail(ProjectDetail(project));
+        listDetail.setDetail(ProjectDetail(project, () => {
+            focusProjectButton(project.id);
+        }));
+        
         focusProjectDetail();
         announce(`${project.title} details shown.`);
     }
