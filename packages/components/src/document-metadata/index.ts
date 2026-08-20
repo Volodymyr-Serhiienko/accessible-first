@@ -10,6 +10,8 @@ export {
     type DocumentMetadataOpenGraphImageOptions,
     type DocumentMetadataOpenGraphOptions,
     type DocumentMetadataOptions,
+    type DocumentMetadataStructuredData,
+    type DocumentMetadataStructuredDataValue,
     type DocumentMetadataTwitterCard,
     type DocumentMetadataTwitterOptions,
     type DocumentMetadataUpdateOptions,

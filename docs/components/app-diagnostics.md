@@ -30,11 +30,11 @@ logAppDiagnostics(appReport);
 
 Accessible First diagnostics are intentionally layered:
 
-- `page.inspect()` checks the rendered DOM, landmarks, headings, ids, ARIA references, controls, and component warnings.
+- `page.inspect()` checks the rendered DOM, landmarks, headings, ids, ARIA references, controls, component warnings, and document metadata.
 - `inspectAppRoutes()` checks the route model, route hierarchy, hrefs, and route metadata.
 - `createAppDiagnosticsReport()` combines those reports into one app-level status.
 
-This keeps each inspector simple, while still giving an application a single health signal.
+This keeps each inspector simple, while still giving an application a single health signal. Public app checks can combine page metadata, route metadata, web app manifest diagnostics, and later custom SEO or interaction reports.
 
 ## Options
 
@@ -89,6 +89,7 @@ For public applications, keep app diagnostics enabled in development and CI-like
 
 - App diagnostics reports one combined status.
 - Page diagnostics can be passed with `log: false` to avoid duplicate console output.
+- Public-page metadata checks, including social metadata and JSON-LD requirements, should usually live in the page diagnostics source.
 - Route diagnostics remain visible as a source inside the app report.
 - Custom sources do not break the aggregate report when they are `null` or `undefined`.
 

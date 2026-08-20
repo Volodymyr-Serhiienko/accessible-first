@@ -95,6 +95,22 @@ export interface DocumentMetadataTwitterOptions {
 }
 
 /**
+ * JSON-compatible value accepted by JSON-LD structured data.
+ */
+export type DocumentMetadataStructuredDataValue =
+    | string
+    | number
+    | boolean
+    | null
+    | readonly DocumentMetadataStructuredDataValue[]
+    | { readonly [key: string]: DocumentMetadataStructuredDataValue };
+
+/**
+ * JSON-LD structured data inserted into script[type="application/ld+json"].
+ */
+export type DocumentMetadataStructuredData = DocumentMetadataStructuredDataValue;
+
+/**
  * Document-level metadata options for apps and pages.
  *
  * Covers the essential accessibility, responsive, SEO, installability,
@@ -113,6 +129,7 @@ export interface DocumentMetadataOptions {
     manifest?: DocumentMetadataManifest | null;
     openGraph?: DocumentMetadataOpenGraphOptions | null;
     twitter?: DocumentMetadataTwitterOptions | null;
+    structuredData?: DocumentMetadataStructuredData | null;
 }
 
 /**
@@ -305,6 +322,7 @@ export function createDocumentMetadata(
     const linkSnapshots = new Map<string, LinkSnapshot>();
     const propertyMetaSnapshots = new Map<string, MetaSnapshot>();
     const managedIcons: HTMLLinkElement[] = [];
+    const managedStructuredDataScripts: HTMLScriptElement[] = [];
 
     function rememberMeta(name: string): MetaSnapshot {
         const existing = metaSnapshots.get(name);
@@ -501,6 +519,23 @@ export function createDocumentMetadata(
         }
     }
 
+    function setStructuredData(structuredData: DocumentMetadataStructuredData | null): void {
+        for (const script of managedStructuredDataScripts.splice(0)) {
+            script.remove();
+        }
+
+        if (structuredData === null) return;
+
+        const script = ownerDocument.createElement("script");
+
+        script.type = "application/ld+json";
+        script.setAttribute("data-af-document-structured-data", "");
+        script.textContent = JSON.stringify(structuredData);
+
+        managedStructuredDataScripts.push(script);
+        ownerDocument.head.append(script);
+    }
+
     function update(nextOptions: DocumentMetadataUpdateOptions): void {
         if ("title" in nextOptions && nextOptions.title !== undefined) {
             ownerDocument.title = nextOptions.title ?? originalTitle;
@@ -527,6 +562,7 @@ export function createDocumentMetadata(
         if ("manifest" in nextOptions) setManifest(nextOptions.manifest ?? null);
         if ("openGraph" in nextOptions) setOpenGraph(nextOptions.openGraph ?? null);
         if ("twitter" in nextOptions) setTwitter(nextOptions.twitter ?? null);
+        if ("structuredData" in nextOptions) setStructuredData(nextOptions.structuredData ?? null);
     }
 
     update(options);
@@ -557,6 +593,7 @@ export function createDocumentMetadata(
             }
 
             setIcons(null);
+            setStructuredData(null);
         }
     };
 }

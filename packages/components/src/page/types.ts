@@ -77,6 +77,7 @@ export interface PageDiagnosticsDocumentMetadataOptions {
     requireManifest?: boolean;
     requireOpenGraph?: boolean;
     requireTwitter?: boolean;
+    requireStructuredData?: boolean;
 }
 
 /**

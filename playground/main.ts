@@ -92,6 +92,16 @@ const shell = AppShell({
             description: "WCAG-first components, semantic composition, routing, diagnostics, and app-building patterns.",
             image: new URL("assets/logo-512.png", window.location.href),
             imageAlt: "Accessible First AF logo"
+        },
+        structuredData: {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "Accessible First Playground",
+            applicationCategory: "DeveloperApplication",
+            operatingSystem: "Web",
+            url: new URL(".", window.location.href).toString(),
+            description: "Accessible First Playground demonstrates WCAG-first UI components, semantic composition, routing, diagnostics, and app-building patterns.",
+            image: new URL("assets/logo-512.png", window.location.href).toString()
         }
     },
     outletOptions: {
@@ -124,7 +134,8 @@ function logPlaygroundDiagnostics(): void {
             requireRobots: true,
             requireManifest: true,
             requireOpenGraph: true,
-            requireTwitter: true
+            requireTwitter: true,
+            requireStructuredData: true
         }
     });
 

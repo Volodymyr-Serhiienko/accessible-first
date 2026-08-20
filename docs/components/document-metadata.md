@@ -2,7 +2,7 @@
 
 DocumentMetadata applies document-level metadata for pages and application shells.
 
-Use it when an app should set a useful document title, language, description, responsive viewport, theme color, canonical URL, robots, manifest, social preview metadata, and icons from the same composition layer that builds the page.
+Use it when an app should set a useful document title, language, description, responsive viewport, theme color, canonical URL, robots, manifest, social preview metadata, structured data, and icons from the same composition layer that builds the page.
 
 ## Quick Start
 
@@ -31,6 +31,12 @@ createDocumentMetadata({
         image: "https://example.com/social-preview.png",
         imageAlt: "Language App preview"
     },
+    structuredData: {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Language App",
+        applicationCategory: "EducationalApplication"
+    },
     icons: [
         { href: "assets/logo.svg", type: "image/svg+xml" }
     ]
@@ -55,7 +61,7 @@ AppShell({
 
 Document metadata is part of page health. It helps browsers, assistive technology, search engines, saved shortcuts, and mobile devices understand the app.
 
-`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving structured data and deeper SEO checks for later expansion.
+`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving deeper SEO checks for later expansion.
 
 ## Options
 
@@ -70,6 +76,7 @@ Document metadata is part of page health. It helps browsers, assistive technolog
 - `manifest` - web app manifest URL, or manifest options with `crossOrigin`.
 - `openGraph` - Open Graph preview metadata for shared links.
 - `twitter` - Twitter/X card preview metadata for shared links.
+- `structuredData` - JSON-LD data inserted as `script[type="application/ld+json"]`.
 - `icons` - managed icon links.
 
 ## Manifest Options
@@ -113,6 +120,27 @@ Twitter/X metadata supports:
 - `imageAlt` - accessible description for the card image.
 
 Use absolute HTTPS image URLs for public social previews. Relative URLs can work inside the app but are often not enough for external crawlers.
+
+## Structured Data
+
+Use `structuredData` for JSON-LD that describes a public page or app to search engines and other consumers:
+
+```ts
+createDocumentMetadata({
+    structuredData: {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Language App",
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web"
+    }
+});
+```
+
+`DocumentMetadata` serializes the value into a managed `script[type="application/ld+json"]` element. Pass `null` to remove the managed structured data during a runtime update.
+
+The helper intentionally keeps structured data generic. Schema.org has many types, and real apps should choose the schema that matches the page: `WebSite`, `SoftwareApplication`, `Article`, `Course`, `FAQPage`, or another appropriate type.
+
 ## Icon Options
 
 - `href` - icon URL.
@@ -153,7 +181,7 @@ shell.updateMetadata(metadata);
 
 ## Diagnostics
 
-`page.inspect()` checks basic document metadata:
+`page.inspect()` checks document metadata and can enforce stricter public-page requirements:
 
 - document title;
 - `html[lang]`;
@@ -161,7 +189,9 @@ shell.updateMetadata(metadata);
 - description meta;
 - canonical link shape when present;
 - robots meta shape when present;
-- manifest link shape when present.
+- manifest link shape when present;
+- Open Graph and Twitter/X preview metadata when required;
+- JSON-LD structured data presence and JSON validity when required.
 
 Private internal apps may not need every SEO-oriented field. Public pages can enable stricter checks:
 
@@ -174,7 +204,8 @@ shell.inspect({
         requireRobots: true,
         requireManifest: true,
         requireOpenGraph: true,
-        requireTwitter: true
+        requireTwitter: true,
+        requireStructuredData: true
     }
 });
 ```
@@ -189,7 +220,10 @@ shell.inspect({
 - Robots policy matches the app/page visibility goal.
 - Manifest resolves correctly when the app should be installable or saved to a device.
 - Open Graph and Twitter/X preview tags use meaningful titles, descriptions, URLs, and image alt text.
+- JSON-LD structured data is valid JSON and uses an appropriate Schema.org type for the page.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
+
+
 
 
 

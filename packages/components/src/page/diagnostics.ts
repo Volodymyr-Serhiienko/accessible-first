@@ -49,6 +49,22 @@ function findDocumentPropertyMeta(ownerDocument: Document, property: string): HT
     return ownerDocument.querySelector<HTMLMetaElement>(`meta[property='${property}']`);
 }
 
+function getStructuredDataScripts(ownerDocument: Document): HTMLScriptElement[] {
+    return Array.from(ownerDocument.head.querySelectorAll<HTMLScriptElement>("script[type]"))
+        .filter((script) => script.getAttribute("type")?.trim().toLowerCase() === "application/ld+json");
+}
+
+function isStructuredDataObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasStructuredDataKeyword(value: unknown, keyword: string): boolean {
+    if (isStructuredDataObject(value)) return keyword in value;
+
+    return Array.isArray(value)
+        && value.some((item) => isStructuredDataObject(item) && keyword in item);
+}
+
 function inspectDocument(
     ownerDocument: Document,
     issues: PageDiagnosticsIssue[],
@@ -139,6 +155,74 @@ function inspectDocument(
     if (hasTwitter && !findDocumentMeta(ownerDocument, "twitter:card")?.content.trim()) {
         issues.push(createIssue("warning", "document", "document.twitter.card.missing", "Twitter/X metadata should provide twitter:card."));
     }
+
+    const structuredDataScripts = getStructuredDataScripts(ownerDocument);
+
+    if (options.requireStructuredData && structuredDataScripts.length === 0) {
+        issues.push(createIssue(
+            "warning",
+            "document",
+            "document.structured-data.missing",
+            "Public pages should provide JSON-LD structured data."
+        ));
+    }
+
+    structuredDataScripts.forEach((script, index) => {
+        const text = script.textContent?.trim() ?? "";
+
+        if (!text) {
+            issues.push(createIssue(
+                "warning",
+                "document",
+                "document.structured-data.empty",
+                "JSON-LD structured data script is empty.",
+                script
+            ));
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(text) as unknown;
+
+            if (!isStructuredDataObject(parsed) && !Array.isArray(parsed)) {
+                issues.push(createIssue(
+                    "warning",
+                    "document",
+                    "document.structured-data.shape",
+                    "JSON-LD structured data should usually be an object or an array of objects.",
+                    script
+                ));
+            }
+
+            if (!hasStructuredDataKeyword(parsed, "@context")) {
+                issues.push(createIssue(
+                    "info",
+                    "document",
+                    "document.structured-data.context.missing",
+                    "JSON-LD structured data should usually provide @context.",
+                    script
+                ));
+            }
+
+            if (!hasStructuredDataKeyword(parsed, "@type")) {
+                issues.push(createIssue(
+                    "info",
+                    "document",
+                    "document.structured-data.type.missing",
+                    "JSON-LD structured data should usually provide @type.",
+                    script
+                ));
+            }
+        } catch {
+            issues.push(createIssue(
+                "error",
+                "document",
+                "document.structured-data.invalid-json",
+                `JSON-LD structured data script #${index + 1} contains invalid JSON.`,
+                script
+            ));
+        }
+    });
 }
 
 function getControlLabelText(element: HTMLElement): string {
