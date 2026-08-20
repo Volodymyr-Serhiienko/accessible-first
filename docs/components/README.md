@@ -20,6 +20,7 @@ Each component document should contain:
 - [AppDiagnostics](./app-diagnostics.md)
 - [AppShell](./app-shell.md)
 - [App Routes](./app-routes.md)
+- [App Route Sitemap](./app-route-sitemap.md)
 - [Badge](./badge.md)
 - [Breadcrumbs](./breadcrumbs.md)
 - [Brand](./brand.md)

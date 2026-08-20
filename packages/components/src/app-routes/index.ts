@@ -18,6 +18,12 @@ export {
     logAppRouteDiagnostics,
     normalizeAppRouteText
 } from "./createAppRouteItems";
+export {
+    createAppRouteSitemapEntries,
+    createAppRouteSitemapXml,
+    inspectAppRouteSitemap,
+    logAppRouteSitemapDiagnostics
+} from "./createAppRouteSitemap";
 
 export type {
     AppRouteBreadcrumbItemsOptions,
@@ -49,3 +55,20 @@ export type {
     AppRouteStructuredDataResolver,
     AppRouteTrailOptions
 } from "./createAppRouteItems";
+export type {
+    AppRouteSitemapChangeFrequency,
+    AppRouteSitemapChangeFrequencyResolver,
+    AppRouteSitemapDiagnosticsCategory,
+    AppRouteSitemapDiagnosticsIssue,
+    AppRouteSitemapDiagnosticsLevel,
+    AppRouteSitemapDiagnosticsOptions,
+    AppRouteSitemapDiagnosticsReport,
+    AppRouteSitemapDiagnosticsStatus,
+    AppRouteSitemapEntriesOptions,
+    AppRouteSitemapEntry,
+    AppRouteSitemapLastModified,
+    AppRouteSitemapLastModifiedResolver,
+    AppRouteSitemapPriorityResolver,
+    AppRouteSitemapRouteFilter,
+    AppRouteSitemapXmlOptions
+} from "./createAppRouteSitemap";

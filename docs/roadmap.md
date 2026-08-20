@@ -148,6 +148,7 @@ Next:
 
 - Application shell refinement for real single-page and multi-page apps
 - Route metadata model expansion for multi-page app patterns
+- Route-derived sitemap helper for public pages and multi-page app artifacts
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
