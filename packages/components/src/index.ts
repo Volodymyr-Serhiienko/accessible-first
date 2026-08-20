@@ -36,6 +36,7 @@ export * from "./popover";
 export * from "./progress";
 export * from "./radio-group";
 export * from "./responsive-navigation";
+export * from "./robots-txt";
 export * from "./route-breadcrumbs";
 export * from "./route-command-palette";
 export * from "./route-responsive-navigation";

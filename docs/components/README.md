@@ -55,6 +55,7 @@ Each component document should contain:
 - [RouteCommandPalette](./route-command-palette.md)
 - [RouteResponsiveNavigation](./route-responsive-navigation.md)
 - [RouteSearchBox](./route-search-box.md)
+- [RobotsTxt](./robots-txt.md)
 - [SearchBox](./search-box.md)
 - [Screen](./screen.md)
 - [Select](./select.md)
