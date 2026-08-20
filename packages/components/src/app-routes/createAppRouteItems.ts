@@ -1,5 +1,9 @@
 import type { BreadcrumbsCurrent, BreadcrumbsItem } from "../breadcrumbs";
-import type { DocumentMetadataUpdateOptions } from "../document-metadata";
+import type {
+    DocumentMetadataStructuredData,
+    DocumentMetadataUpdateOptions,
+    DocumentMetadataUrlValue
+} from "../document-metadata";
 import type { NavigationItem } from "../navigation";
 import type { SearchBoxItem } from "../search-box";
 
@@ -101,11 +105,29 @@ export type AppRouteMetadataResolver<TRoute extends AppRouteDescriptor> = (
 ) => DocumentMetadataUpdateOptions | null | undefined;
 
 /**
+ * Resolves a canonical URL for a route.
+ */
+export type AppRouteCanonicalResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute
+) => DocumentMetadataUrlValue | null | undefined;
+
+/**
+ * Resolves JSON-LD structured data for a route.
+ */
+export type AppRouteStructuredDataResolver<TRoute extends AppRouteDescriptor> = (
+    route: TRoute
+) => DocumentMetadataStructuredData | null | undefined;
+
+/**
  * Options for deriving document metadata from route metadata.
  */
 export interface AppRouteDocumentMetadataOptions<TRoute extends AppRouteDescriptor> {
     appTitle?: string | null;
     titleSeparator?: string;
+    baseUrl?: string | URL | null;
+    getHref?: AppRouteHrefResolver<TRoute>;
+    getCanonical?: AppRouteCanonicalResolver<TRoute>;
+    getStructuredData?: AppRouteStructuredDataResolver<TRoute>;
     getTitle?: AppRouteDocumentTitleResolver<TRoute>;
     getDescription?: AppRouteDescriptionResolver<TRoute>;
     getMetadata?: AppRouteMetadataResolver<TRoute>;
@@ -151,12 +173,18 @@ export interface AppRouteDiagnosticsIssue<
  * Options for inspectAppRoutes().
  */
 export interface AppRouteDiagnosticsOptions<TRoute extends AppRouteDescriptor> {
+    baseUrl?: string | URL | null;
+    requireDescription?: boolean;
+    requireDocumentTitle?: boolean;
+    requireCanonical?: boolean;
+    requireStructuredData?: boolean;
     getHref?: AppRouteHrefResolver<TRoute>;
     getParentId?: AppRouteParentIdResolver<TRoute>;
     getDescription?: AppRouteDescriptionResolver<TRoute>;
     getDocumentTitle?: AppRouteDocumentTitleResolver<TRoute>;
-    requireDescription?: boolean;
-    requireDocumentTitle?: boolean;
+    getMetadata?: AppRouteMetadataResolver<TRoute>;
+    getCanonical?: AppRouteCanonicalResolver<TRoute>;
+    getStructuredData?: AppRouteStructuredDataResolver<TRoute>;
 }
 
 /**
@@ -287,6 +315,32 @@ export function getAppRouteById<TRoute extends AppRouteDescriptor>(
     if (!id) return null;
 
     return routes.find((route) => route.id === id) ?? null;
+}
+
+function getAppRouteResolvedMetadata<TRoute extends AppRouteDescriptor>(
+    route: TRoute,
+    options: Pick<AppRouteDocumentMetadataOptions<TRoute>, "getMetadata"> = {}
+): DocumentMetadataUpdateOptions | null {
+    const resolvedMetadata = options.getMetadata?.(route);
+
+    if (resolvedMetadata !== undefined) return resolvedMetadata;
+
+    return "metadata" in route ? route.metadata ?? null : null;
+}
+
+function stringifyAppRouteMetadataUrl(value: DocumentMetadataUrlValue): string {
+    return typeof value === "string" ? value : value.toString();
+}
+
+function isAppRouteStructuredDataObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasAppRouteStructuredDataKeyword(value: unknown, keyword: string): boolean {
+    if (isAppRouteStructuredDataObject(value)) return keyword in value;
+
+    return Array.isArray(value)
+        && value.some((item) => isAppRouteStructuredDataObject(item) && keyword in item);
 }
 
 function createAppRouteDiagnosticsIssue<TRoute extends AppRouteDescriptor>(
@@ -445,6 +499,65 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
                 `Route "${route.id}" does not provide a document title.`,
                 route
             ));
+        }
+
+        const routeMetadata = getAppRouteResolvedMetadata(route, options);
+        const canonical = routeMetadata?.canonical !== undefined
+            ? routeMetadata.canonical
+            : getAppRouteCanonical(route, options);
+
+        if (options.requireCanonical && canonical === null) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "metadata",
+                "route.canonical.missing",
+                `Route "${route.id}" does not provide a canonical URL.`,
+                route
+            ));
+        } else if (canonical !== null && !stringifyAppRouteMetadataUrl(canonical).trim()) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "metadata",
+                "route.canonical.empty",
+                `Route "${route.id}" has an empty canonical URL.`,
+                route
+            ));
+        }
+
+        const structuredData = routeMetadata?.structuredData !== undefined
+            ? routeMetadata.structuredData
+            : options.getStructuredData?.(route);
+
+        if (options.requireStructuredData && (structuredData === undefined || structuredData === null)) {
+            issues.push(createAppRouteDiagnosticsIssue(
+                "warning",
+                "metadata",
+                "route.structured-data.missing",
+                `Route "${route.id}" does not provide JSON-LD structured data.`,
+                route
+            ));
+        }
+
+        if (structuredData !== undefined && structuredData !== null) {
+            if (!hasAppRouteStructuredDataKeyword(structuredData, "@context")) {
+                issues.push(createAppRouteDiagnosticsIssue(
+                    "info",
+                    "metadata",
+                    "route.structured-data.context.missing",
+                    `Route "${route.id}" structured data should usually provide @context.`,
+                    route
+                ));
+            }
+
+            if (!hasAppRouteStructuredDataKeyword(structuredData, "@type")) {
+                issues.push(createAppRouteDiagnosticsIssue(
+                    "info",
+                    "metadata",
+                    "route.structured-data.type.missing",
+                    `Route "${route.id}" structured data should usually provide @type.`,
+                    route
+                ));
+            }
         }
     }
 
@@ -754,18 +867,40 @@ export function getAppRouteDocumentTitle<TRoute extends AppRouteDescriptor>(
 }
 
 /**
+ * Returns a route canonical URL from a resolver or from baseUrl plus route href.
+ */
+export function getAppRouteCanonical<TRoute extends AppRouteDescriptor>(
+    route: TRoute,
+    options: Pick<
+        AppRouteDocumentMetadataOptions<TRoute>,
+        "baseUrl" | "getHref" | "getCanonical"
+    > = {}
+): DocumentMetadataUrlValue | null {
+    const resolvedCanonical = options.getCanonical?.(route);
+
+    if (resolvedCanonical !== undefined) return resolvedCanonical;
+
+    const baseUrl = options.baseUrl ?? null;
+
+    if (baseUrl === null) return null;
+
+    const href = options.getHref?.(route) ?? getAppRouteHref(route);
+
+    if (href === null) return null;
+
+    const canonicalUrl = resolveAppRouteUrl(href, baseUrl);
+
+    return canonicalUrl?.href ?? null;
+}
+
+/**
  * Creates document metadata update options from a route descriptor.
  */
 export function createAppRouteDocumentMetadata<TRoute extends AppRouteDescriptor>(
     route: TRoute,
     options: AppRouteDocumentMetadataOptions<TRoute> = {}
 ): DocumentMetadataUpdateOptions {
-    const resolvedMetadata = options.getMetadata?.(route);
-    const routeMetadata = resolvedMetadata !== undefined
-        ? resolvedMetadata
-        : "metadata" in route
-            ? route.metadata
-            : null;
+    const routeMetadata = getAppRouteResolvedMetadata(route, options);
 
     const metadata: DocumentMetadataUpdateOptions = {
         ...(routeMetadata ?? {})
@@ -773,6 +908,8 @@ export function createAppRouteDocumentMetadata<TRoute extends AppRouteDescriptor
 
     const title = getAppRouteDocumentTitle(route, options);
     const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+    const canonical = getAppRouteCanonical(route, options);
+    const structuredData = options.getStructuredData?.(route);
 
     if (title !== null && metadata.title === undefined) {
         metadata.title = title;
@@ -780,6 +917,14 @@ export function createAppRouteDocumentMetadata<TRoute extends AppRouteDescriptor
 
     if (description !== null && metadata.description === undefined) {
         metadata.description = description;
+    }
+
+    if (canonical !== null && metadata.canonical === undefined) {
+        metadata.canonical = canonical;
+    }
+
+    if (structuredData !== undefined && metadata.structuredData === undefined) {
+        metadata.structuredData = structuredData;
     }
 
     return metadata;

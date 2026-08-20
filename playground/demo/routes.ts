@@ -126,7 +126,24 @@ export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
 
 const playgroundRouteMetadataOptions: AppRouteDocumentMetadataOptions<PlaygroundRoute> = {
     appTitle: "Accessible First Playground",
-    getDescription: getPlaygroundRouteDescription
+    baseUrl: new URL(".", window.location.href),
+    getDescription: getPlaygroundRouteDescription,
+    getStructuredData(route) {
+        const description = getPlaygroundRouteDescription(route);
+
+        return {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: `${route.title} - Accessible First Playground`,
+            description,
+            url: new URL(`#${route.id}`, window.location.href).toString(),
+            isPartOf: {
+                "@type": "WebSite",
+                name: "Accessible First Playground",
+                url: new URL(".", window.location.href).toString()
+            }
+        };
+    }
 };
 
 export function getPlaygroundRouteDocumentMetadata(

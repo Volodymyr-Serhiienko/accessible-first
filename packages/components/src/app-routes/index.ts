@@ -6,6 +6,7 @@ export {
     createAppRouteTrail,
     getAppRouteById,
     getAppRouteByLocation,
+    getAppRouteCanonical,
     getAppRouteDescription,
     getAppRouteDocumentDescription,
     getAppRouteDocumentTitle,
@@ -20,6 +21,7 @@ export {
 
 export type {
     AppRouteBreadcrumbItemsOptions,
+    AppRouteCanonicalResolver,
     AppRouteCurrentResolver,
     AppRouteDescriptionResolver,
     AppRouteDescriptor,
@@ -44,5 +46,6 @@ export type {
     AppRouteParentIdResolver,
     AppRouteSearchItem,
     AppRouteSearchItemsOptions,
+    AppRouteStructuredDataResolver,
     AppRouteTrailOptions
 } from "./createAppRouteItems";

@@ -119,10 +119,14 @@ const shell = AppShell({
 });
 
 const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
+    baseUrl: new URL(".", window.location.href),
     getDescription: getPlaygroundRouteDescription,
     getDocumentTitle: getPlaygroundRouteDocumentTitle,
+    getMetadata: getPlaygroundRouteDocumentMetadata,
     requireDescription: true,
-    requireDocumentTitle: true
+    requireDocumentTitle: true,
+    requireCanonical: true,
+    requireStructuredData: true,
 });
 
 function logPlaygroundDiagnostics(): void {

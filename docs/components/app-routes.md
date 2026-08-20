@@ -200,7 +200,9 @@ By default, the helper derives:
 
 - `title` from `route.documentTitle`, then `route.title`, optionally combined with `appTitle`;
 - `description` from `route.description`;
-- additional fields from `route.metadata`.
+- additional fields from `route.metadata`;
+- `canonical` from `baseUrl` plus the route href when `baseUrl` is provided;
+- `structuredData` from `getStructuredData` when a route needs JSON-LD.
 
 Customize the result with resolvers:
 
@@ -208,16 +210,25 @@ Customize the result with resolvers:
 createAppRouteDocumentMetadata(route, {
     appTitle: "Language App",
     titleSeparator: "|",
+    baseUrl: "https://example.com/app/",
     getDescription(route) {
         return route.description ?? `Open ${route.title}.`;
     },
     getMetadata(route) {
         return route.metadata ?? null;
+    },
+    getStructuredData(route) {
+        return {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: route.title,
+            description: route.description ?? null
+        };
     }
 });
 ```
 
-This lets one route descriptor feed navigation, search, breadcrumbs, command palettes, document title, and document metadata without separate per-screen wiring.
+This lets one route descriptor feed navigation, search, breadcrumbs, command palettes, document title, canonical URLs, structured data, and document metadata without separate per-screen wiring.
 
 ## Route Diagnostics
 
@@ -225,8 +236,11 @@ Use `inspectAppRoutes()` during development when one route list drives navigatio
 
 ```ts
 const report = inspectAppRoutes(routes, {
+    baseUrl: "https://example.com/app/",
     requireDescription: true,
-    requireDocumentTitle: true
+    requireDocumentTitle: true,
+    requireCanonical: true,
+    requireStructuredData: true
 });
 
 logAppRouteDiagnostics(report);
@@ -238,24 +252,32 @@ Diagnostics check route structure before the application grows around it:
 - empty route titles;
 - duplicate or empty hrefs;
 - missing, empty, self-referencing, or cyclic parent ids;
-- optional document description and title requirements.
+- optional document description and title requirements;
+- optional canonical URL and structured data requirements for public route sets.
 
-When descriptions or titles are resolved by application logic, pass the same resolvers used by routing or metadata:
+When descriptions, titles, canonical URLs, or structured data are resolved by application logic, pass the same resolvers used by routing or metadata:
 
 ```ts
 inspectAppRoutes(routes, {
+    baseUrl: "https://example.com/app/",
     getDescription(route) {
         return route.description ?? `Open ${route.title}.`;
     },
     getDocumentTitle(route) {
         return `${route.title} - Example App`;
     },
+    getStructuredData(route) {
+        return route.metadata?.structuredData ?? null;
+    },
     requireDescription: true,
-    requireDocumentTitle: true
+    requireDocumentTitle: true,
+    requireCanonical: true,
+    requireStructuredData: true
 });
 ```
 
 The report uses `healthy`, `needs-attention`, or `blocked` status. `logAppRouteDiagnostics()` prints a compact console summary and categorized findings for developers.
+
 ## Location Matching
 
 Use `getAppRouteByLocation()` when native links or multi-page applications need to determine the current route from the browser URL:
@@ -295,8 +317,10 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteById(routes, id)` - finds a route by id.
 - `getAppRouteByLocation(routes, options)` - finds the route matching a URL/location.
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
-- `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
-- `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
+- `getAppRouteHref(route)` - returns explicit `href`, 
+ull`, or `#id`.
+- `getAppRouteParentId(route)` - returns explicit `parentId` or 
+ull`.
 - `getAppRouteDescription(route)` - returns route description or a default open message.
 - `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
 - `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
@@ -304,7 +328,8 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `inspectAppRoutes(routes, options)` - checks route ids, hrefs, parent hierarchy, and optional metadata requirements.
 - `logAppRouteDiagnostics(report)` - logs a compact route diagnostics report to the console.
 - `getAppRouteKeywords(route, extraKeywords)` - returns normalized search keywords.
-- `normalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
+- 
+ormalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
 
 ## Accessibility
 
