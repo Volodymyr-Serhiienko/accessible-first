@@ -7,6 +7,7 @@ import {
     ListDetail,
     P,
     Section,
+    scheduleFocusRoute,
     Stack,
     type ComposedButton,
     type ComposedListDetail,
@@ -103,33 +104,23 @@ export function ListDetailDemo(): ComposedNode {
     let listDetail!: ComposedListDetail;
 
     function focusProjectDetail(): void {
-        const ownerWindow = listDetail.element.ownerDocument.defaultView ?? window;
-
-        ownerWindow.requestAnimationFrame(() => {
-            listDetail.focus("detail", { preventScroll: false });
+        scheduleFocusRoute({
+            target: () => listDetail.getFocusTarget("detail"),
+            scroll: true
         });
     }
 
     function focusProjectButton(projectId: string): void {
-        const ownerWindow = listDetail.element.ownerDocument.defaultView ?? window;
-
-        ownerWindow.requestAnimationFrame(() => {
-            const button = buttons.find(
+        scheduleFocusRoute({
+            target: () => buttons.find(
                 (item) => item.element.dataset.projectId === projectId
-            );
-
-            if (!button) {
-                listDetail.focus("list", { preventScroll: false });
-                return;
-            }
-
-            button.element.scrollIntoView({
+            )?.element,
+            fallback: () => listDetail.getFocusTarget("list"),
+            scroll: {
                 block: "center",
                 inline: "nearest",
                 behavior: "auto"
-            });
-
-            button.element.focus({ preventScroll: true });
+            }
         });
     }
 

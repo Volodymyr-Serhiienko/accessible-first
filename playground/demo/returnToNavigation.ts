@@ -1,5 +1,6 @@
 import {
     Link,
+    runFocusRoute,
     type ComposedNode,
     type ComposedResponsiveNavigation
 } from "./af";
@@ -34,30 +35,6 @@ function getCurrentNavigationLink(navigation: ComposedResponsiveNavigation): HTM
     return navigation.desktopNavigation.items[0]?.link.element ?? navigation.element;
 }
 
-function focusTarget(target: HTMLElement): void {
-    const originalTabIndex = target.getAttribute("tabindex");
-
-    if (target.tabIndex < 0) {
-        target.tabIndex = -1;
-    }
-
-    target.scrollIntoView({
-        block: "nearest",
-        inline: "nearest",
-        behavior: "auto"
-    });
-
-    target.focus({
-        preventScroll: true
-    });
-
-    if (originalTabIndex === null) {
-        target.removeAttribute("tabindex");
-    } else {
-        target.setAttribute("tabindex", originalTabIndex);
-    }
-}
-
 export function ReturnToNavigationLink(
     getNavigation: () => ComposedResponsiveNavigation
 ): ComposedNode {
@@ -73,9 +50,14 @@ export function ReturnToNavigationLink(
 
             const target = getCurrentNavigationLink(getNavigation());
 
-            if (target) {
-                focusTarget(target);
-            }
+            runFocusRoute({
+                target,
+                scroll: {
+                    block: "nearest",
+                    inline: "nearest",
+                    behavior: "auto"
+                }
+            });
         }
     });
 }

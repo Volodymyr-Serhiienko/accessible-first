@@ -93,7 +93,7 @@ Useful defaults include:
 - focus targets after route changes, form submissions, and modal/overlay actions;
 - visible controls for actions that also have keyboard shortcuts.
 
-Future screen templates should document their intended focus route and mobile screen reader route as part of the pattern, not as an afterthought.
+Future screen templates should document their intended focus route and mobile screen reader route as part of the pattern, not as an afterthought. Repeated focus glue from demos should be promoted into helpers such as `FocusRoute` when it clearly reduces application code without hiding the screen structure.
 
 ## Screens
 
@@ -218,6 +218,7 @@ Use `metadata` on `createPage()` or `AppShell()` for the common baseline: title,
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
+
 
 
 

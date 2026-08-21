@@ -36,6 +36,7 @@ Each component document should contain:
 - [FieldGroup](./field-group.md)
 - [Form](./form.md)
 - [FormSection](./form-section.md)
+- [FocusRoute](./focus-route.md)
 - [HashRouter](./hash-router.md)
 - [HeaderBar](./header-bar.md)
 - [IconButton](./icon-button.md)
@@ -70,6 +71,7 @@ Each component document should contain:
 - [WebAppManifest](./web-app-manifest.md)
 
 Shared component conventions live in [Component Foundation](./foundation.md).
+
 
 
 

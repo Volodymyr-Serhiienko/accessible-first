@@ -7,6 +7,7 @@ import {
     H3,
     P,
     Panel,
+    runFocusRoute,
     Section,
     Stack,
     TextField,
@@ -22,8 +23,14 @@ function validateProfileFields(fields: ComposedTextField[]): boolean {
     if (firstInvalidIndex >= 0) {
         const field = fields[firstInvalidIndex];
 
-        field?.control.focus();
-        field?.control.scrollIntoView({ block: "nearest", inline: "nearest" });
+        runFocusRoute({
+            target: () => field?.control,
+            scroll: {
+                block: "nearest",
+                inline: "nearest",
+                behavior: "auto"
+            }
+        });
 
         announce("Profile has validation errors. Check the highlighted field.", {
             variant: "danger",

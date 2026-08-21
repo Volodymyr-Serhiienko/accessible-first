@@ -115,6 +115,7 @@ Completed:
 - CommandPalette shortcut matching by key and physical code for non-Latin keyboard layouts
 - App route location matching helper for native-link and multi-page current route detection
 - Shared programmatic focus helper and Screen focus targets for focus-route patterns
+- FocusRoute helper planned to consolidate repeated workflow focus movement from playground and future apps
 - DocumentMetadata module and Page/AppShell metadata integration
 - Route-derived document metadata helpers and HashRouter metadata callbacks
 - App route diagnostics helper for route id, href, hierarchy, and metadata checks
@@ -138,6 +139,7 @@ In progress:
 - Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
 - Component examples and manual checklists
+- Playground helper extraction review: promote repeated demo glue into library helpers only when the pattern repeats
 - Interaction scenario templates for desktop keyboard and mobile screen reader flows
 - Keyboard shortcut model guidance for more advanced application-wide shortcut maps
 - Shortcut patterns for desktop-first application workflows
@@ -342,6 +344,7 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
 
 
 

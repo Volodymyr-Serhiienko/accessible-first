@@ -18,6 +18,7 @@ export * from "./disclosure";
 export * from "./document-metadata";
 export * from "./empty-state";
 export * from "./field-group";
+export * from "./focus-route";
 export * from "./form";
 export * from "./form-section";
 export * from "./foundation";

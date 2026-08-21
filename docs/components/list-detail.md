@@ -55,6 +55,15 @@ This helps screen-reader users understand where they are when focus moves betwee
 
 `focus("list")` and `focus("detail")` use programmatic focus. The areas are not added to the normal Tab order.
 
+For list/detail workflows, application code should provide a clear focus route after selection. A common pattern is:
+
+- select an item in the list;
+- update the detail area;
+- move focus to `listDetail.focus("detail")` or a specific heading inside the detail area;
+- provide a visible action in the detail area that returns focus to the selected list item.
+
+Use `FocusRoute` when the target appears after rendering or when the flow needs scrolling and fallback focus.
+
 When `detail` is empty and `empty` is provided, the detail area shows the empty state. This is useful for first-load screens where no item has been selected yet.
 
 ## Options
@@ -110,3 +119,4 @@ The component uses CSS custom properties:
 - Empty state is understandable before an item is selected.
 - On small screens, the list and detail areas stack without horizontal overflow.
 - Existing selection components keep their own keyboard behavior and visible focus state.
+
