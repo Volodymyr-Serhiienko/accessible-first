@@ -28,8 +28,14 @@
 }
 
 [data-af-field-group-legend][data-af-required]::after {
-    content: " *";
-    color: var(--af-color-danger);
+    content: "";
+    display: inline-block;
+    inline-size: 0.45em;
+    block-size: 0.45em;
+    margin-inline-start: 0.35em;
+    vertical-align: 0.35em;
+    background: var(--af-color-danger);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 56%, 79% 91%, 50% 70%, 21% 91%, 32% 56%, 2% 35%, 39% 35%);
 }
 
 [data-af-field-group-description],

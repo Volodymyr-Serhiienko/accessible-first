@@ -274,6 +274,8 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         "data-af-composition": "form"
     })) as HTMLFormElement;
 
+    const ownerWindow = element.ownerDocument.defaultView ?? window;
+
     const body = createElement("div", {
         attributes: {
             "data-af-form-body": ""
@@ -319,6 +321,8 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     let onInvalidSubmit = options.onInvalidSubmit ?? null;
     let validationAnnouncer: ValidationAnnouncer | null = null;
     const cleanups: Cleanup[] = [];
+    let pendingResetFrame: number | null = null;
+    let resetEventHandled = false;
 
     function getAnnouncer(): ValidationAnnouncer {
         validationAnnouncer ??= createValidationAnnouncer();
@@ -417,6 +421,26 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
 
         scrollIntoViewIfNeeded(control);
         focusElement(control);
+    }
+
+    function runResetEffects(): void {
+        pendingResetFrame = null;
+
+        if (clearValidationOnReset) {
+            clearValidation();
+        }
+
+        if (focusFirstOnReset) {
+            focusFirstField();
+        }
+    }
+
+    function scheduleResetEffects(): void {
+        if (pendingResetFrame !== null) {
+            ownerWindow.cancelAnimationFrame(pendingResetFrame);
+        }
+
+        pendingResetFrame = ownerWindow.requestAnimationFrame(runResetEffects);
     }
 
     function validate(
@@ -546,13 +570,8 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     }
 
     function handleReset(): void {
-        if (clearValidationOnReset) {
-            clearValidation();
-        }
-
-        if (focusFirstOnReset) {
-            focusFirstField();
-        }
+        resetEventHandled = true;
+        scheduleResetEffects();
     }
 
     function setFields(fields: FormValidatableField[]): void {
@@ -592,14 +611,11 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         },
 
         reset(): void {
+            resetEventHandled = false;
             element.reset();
 
-            if (clearValidationOnReset) {
-                clearValidation();
-            }
-
-            if (focusFirstOnReset) {
-                focusFirstField();
+            if (!resetEventHandled) {
+                scheduleResetEffects();
             }
         },
 
@@ -650,6 +666,11 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         },
 
         destroy(): void {
+            if (pendingResetFrame !== null) {
+                ownerWindow.cancelAnimationFrame(pendingResetFrame);
+                pendingResetFrame = null;
+            }
+            
             for (const cleanup of cleanups.splice(0)) {
                 cleanup();
             }

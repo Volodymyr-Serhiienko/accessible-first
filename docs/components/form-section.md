@@ -2,13 +2,15 @@
 
 FormSection provides a semantic section for larger forms, settings screens, and profile pages.
 
-It is a structure component, not a validation engine. Individual fields validate themselves, `FieldGroup` groups related controls, and a future `Form` layer can collect validation results.
+It is a structure component, not a validation engine. Individual fields validate themselves, while `Form` collects registered field validation results for submit and reset workflows.
 
 ## When To Use
 
 Use `FormSection` when a form has several meaningful areas, such as account details, notification settings, billing information, or security options.
 
 Use `FieldGroup` inside a form section when several controls answer one grouped question.
+
+Use `Form` around one or more form sections when submit, reset, validation summaries, first-invalid focus, and validation announcements should be handled as one workflow.
 
 ## Quick Start
 
@@ -45,6 +47,32 @@ FormSection({
 });
 ```
 
+Inside a validating form:
+
+```ts
+Form({
+    children: ({ field }) => FormSection({
+        title: "Profile",
+        description: "These fields are validated on submit.",
+        children: [
+            field(TextField({
+                label: "Display name",
+                required: true
+            })),
+            field(TextField({
+                label: "Email",
+                type: "email"
+            }))
+        ]
+    }),
+    actions: Button({
+        text: "Save profile",
+        type: "submit",
+        variant: "primary"
+    })
+});
+```
+
 ## Layers
 
 - Composition API: `FormSection(options)`
@@ -56,7 +84,7 @@ FormSection({
 - Connects an optional visible description with `aria-describedby`.
 - Keeps body content and section actions in separate areas.
 - Uses `ActionsBar` for section action layout.
-- Does not submit forms, trap focus, or validate fields.
+- Does not submit forms, trap focus, or collect validation results by itself.
 - Exposes stable data attributes for styling.
 
 ## Options
@@ -93,38 +121,37 @@ section.setActions(Button({ text: "Save profile", variant: "primary" }));
 
 ## Validation Actions
 
-`FormSection` does not collect or submit validation results by itself. For small demos or local settings panels, keep references to the fields that should be checked and call their `validate()` methods from the section action.
+`FormSection` does not collect or submit validation results by itself. For application forms, prefer wrapping sections in `Form` and registering fields through the `Form` children callback or the `fields` option. This lets the form validate all registered fields, announce validation results, move focus to the first invalid field, and reset validation state consistently.
 
 ```ts
-const displayName = TextField({
-    label: "Display name",
-    required: true
-});
-
-const email = TextField({
-    label: "Email",
-    type: "email"
-});
-
-FormSection({
-    title: "Profile",
-    children: [displayName, email],
-    actions: Button({
-        text: "Save profile",
-        variant: "primary",
-        onPress() {
-            const results = [displayName, email].map((field) => field.validate());
-            const firstInvalid = results.findIndex((result) => !result.valid);
-
-            if (firstInvalid >= 0) {
-                [displayName, email][firstInvalid]?.control.focus();
-            }
-        }
-    })
+Form({
+    children: ({ field }) => [
+        FormSection({
+            title: "Account",
+            children: [
+                field(TextField({
+                    label: "Display name",
+                    required: true,
+                    validationMessages: {
+                        valueMissing: "Enter a display name."
+                    }
+                })),
+                field(TextField({
+                    label: "Public email",
+                    type: "email",
+                    placeholder: "name@example.com"
+                }))
+            ]
+        })
+    ],
+    actions: [
+        Button({ text: "Save profile", type: "submit", variant: "primary" }),
+        Button({ text: "Reset", type: "reset", variant: "secondary" })
+    ]
 });
 ```
 
-A future `Form` composition layer should provide this collection and submit-validation behavior as a reusable pattern.
+For small non-form settings panels, a section action may still call an individual field's `validate()` method directly, but this should stay local and intentional.
 
 ## Styling
 
@@ -144,4 +171,5 @@ FormSection({
 - Description is announced when supported by the browser and screen reader pair.
 - Actions are reachable after the section content.
 - Fields and field groups inside the body keep their own labels, descriptions, errors, and validation behavior.
+- When wrapped in `Form`, submit validates registered fields and focuses the first invalid field.
 - Layout remains readable on small screens.

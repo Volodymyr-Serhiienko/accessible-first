@@ -31,6 +31,39 @@ function isLabelElement(element: HTMLElement): element is HTMLLabelElement {
     return element.localName === "label";
 }
 
+function isLegendElement(element: HTMLElement): element is HTMLLegendElement {
+    return element.localName === "legend";
+}
+
+function isLabelableElement(element: HTMLElement): boolean {
+    return ["button", "input", "meter", "output", "progress", "select", "textarea"]
+        .includes(element.localName);
+}
+
+function isNativeLabelReference(control: HTMLElement, reference: AriaReference): boolean {
+    if (!(reference instanceof HTMLElement)) return false;
+
+    if (isLabelElement(reference) && isLabelableElement(control)) {
+        return true;
+    }
+
+    return (
+        isLegendElement(reference)
+        && control.localName === "fieldset"
+        && reference.parentElement === control
+    );
+}
+
+function getAriaLabelReferences(
+    control: HTMLElement,
+    references: AriaReferences
+): AriaReferences {
+    const ariaReferences = toReferenceList(references)
+        .filter((reference) => !isNativeLabelReference(control, reference));
+
+    return ariaReferences.length > 0 ? ariaReferences : null;
+}
+
 function supportsNativeDisabled(element: HTMLElement): boolean {
     return ["button", "fieldset", "input", "optgroup", "option", "select", "textarea"]
         .includes(element.localName);
@@ -94,29 +127,18 @@ export function createFormField(
     }
 
     function getDescriptionReferences(): AriaReference[] {
-        const references: AriaReference[] = [];
+        if (!hasDescription) return [];
 
-        if (hasDescription) {
-            references.push(...toReferenceList(description).filter(Boolean));
-        }
-
-        if (hasErrorMessage) {
-            references.push(...toReferenceList(errorMessage).filter(Boolean));
-        }
-
-        return references;
+        return toReferenceList(description).filter(Boolean);
     }
 
     function syncLabel(): void {
-        if (!hasLabel) {
-            return;
-        }
+        if (!hasLabel) return;
 
         attributes.remember(control, "aria-labelledby");
-        rememberReferenceIds(label);
 
         for (const labelElement of getReferenceElements(label)) {
-            if (!isLabelElement(labelElement)) {
+            if (!isLabelElement(labelElement) || !isLabelableElement(control)) {
                 continue;
             }
 
@@ -126,13 +148,14 @@ export function createFormField(
             labelElement.htmlFor = ensureId(control, "af-field");
         }
 
-        setAriaLabelledBy(control, label);
-    }
+        const ariaLabelReferences = getAriaLabelReferences(control, label);
+
+        rememberReferenceIds(ariaLabelReferences);
+        setAriaLabelledBy(control, ariaLabelReferences);
+        }
 
     function syncDescriptions(): void {
-        if (!hasDescription && !hasErrorMessage) {
-            return;
-        }
+        if (!hasDescription && !hasErrorMessage) return;
 
         attributes.remember(control, "aria-describedby");
         attributes.remember(control, "aria-errormessage");

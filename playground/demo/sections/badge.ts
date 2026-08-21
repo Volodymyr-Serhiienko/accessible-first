@@ -1,22 +1,7 @@
 import { Badge, Grid, H3, Icon, InfoCard, P, Panel, Row, Section, Stack,
     type ComposedNode
 } from "../af";
-
-const outlineIconAttributes = {
-    fill: "none",
-    stroke: "currentColor",
-    "stroke-width": 2,
-    "stroke-linecap": "round",
-    "stroke-linejoin": "round"
-};
-
-function CheckIcon(): ComposedNode {
-    return Icon({
-        path: "M5 13l4 4L19 7",
-        decorative: true,
-        pathAttributes: outlineIconAttributes
-    });
-}
+import { DemoIcon, demoIconPaths } from "../icons";
 
 export function BadgeDemo(): ComposedNode {
     return Section({
@@ -62,7 +47,7 @@ export function BadgeDemo(): ComposedNode {
                         Badge({ text: "Lesson", variant: "info" }),
                         Badge({ text: "Ready", variant: "success" }),
                         Badge({
-                            icon: CheckIcon(),
+                            icon: DemoIcon(demoIconPaths.check, "1em"),
                             text: "Completed",
                             variant: "success"
                         })

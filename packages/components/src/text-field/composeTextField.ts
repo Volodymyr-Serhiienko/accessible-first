@@ -191,6 +191,23 @@ function hasDefaultEmailPattern(control: TextFieldElement): control is HTMLInput
         && control.getAttribute("pattern") === textFieldEmailPattern;
 }
 
+function isResetControl(target: EventTarget | null): target is HTMLElement {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return (
+        (target.localName === "button" || target.localName === "input")
+        && (target as HTMLButtonElement | HTMLInputElement).type === "reset"
+    );
+}
+
+function shouldSkipBlurValidation(event: FocusEvent, control: TextFieldElement): boolean {
+    const nextTarget = event.relatedTarget;
+
+    if (!isResetControl(nextTarget)) return false;
+
+    return control.form?.contains(nextTarget) ?? false;
+}
+
 function getControlAttributes(options: TextFieldCompositionOptions): ElementAttributes {
     const attributes: ElementAttributes = {
         "data-af-text-field-control": ""
@@ -578,7 +595,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
 
     const validationCleanups = [
         addEventListener<FocusEvent>(control, "blur", (event) => {
-            if (validateOnBlur) {
+            if (validateOnBlur && !shouldSkipBlurValidation(event, control)) {
                 composed.validate({ trigger: "blur", event });
             }
         }),
