@@ -1,6 +1,4 @@
-export {
-    Progress
-} from "./composeProgress";
+export { Progress } from "./composeProgress";
 
 export type {
     ComposedProgress,
@@ -11,4 +9,3 @@ export type {
     ProgressValue,
     ProgressVariant
 } from "./composeProgress";
-    

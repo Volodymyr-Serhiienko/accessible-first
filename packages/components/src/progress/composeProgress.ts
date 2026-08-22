@@ -150,6 +150,7 @@ export function Progress(options: ProgressOptions): ComposedProgress {
     let variant: ProgressVariant = options.variant ?? "default";
     let size: ProgressSize = options.size ?? "md";
     let showValue = options.showValue ?? value !== null;
+    let hasExplicitShowValue = options.showValue !== undefined;
     let descriptionContent: ProgressSlotContent = normalizeSlotContent(options.description);
     let explicitValueText = options.valueText ?? null;
     let hasDescription = hasCompositionContent(descriptionContent);
@@ -160,6 +161,12 @@ export function Progress(options: ProgressOptions): ComposedProgress {
 
     header.append(label, valueText);
     element.append(header, control, description);
+
+    function syncDefaultShowValue(): void {
+        if (!hasExplicitShowValue) {
+            showValue = value !== null;
+        }
+    }
 
     function getCurrentValueText(): string | null {
         if (explicitValueText !== null) return explicitValueText;
@@ -209,12 +216,14 @@ export function Progress(options: ProgressOptions): ComposedProgress {
 
     function setValue(nextValue: ProgressValue): void {
         value = normalizeValue(nextValue, max);
+        syncDefaultShowValue();
         sync();
     }
 
     function setMax(nextMax: number): void {
         max = normalizeMax(nextMax);
         value = normalizeValue(value, max);
+        syncDefaultShowValue();
         sync();
     }
 
@@ -280,7 +289,10 @@ export function Progress(options: ProgressOptions): ComposedProgress {
             if ("value" in nextOptions) setValue(nextOptions.value ?? null);
             if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
             if ("valueText" in nextOptions) setValueText(nextOptions.valueText ?? null);
-            if (nextOptions.showValue !== undefined) showValue = nextOptions.showValue;
+            if (nextOptions.showValue !== undefined) {
+                showValue = nextOptions.showValue;
+                hasExplicitShowValue = true;
+            }
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
 

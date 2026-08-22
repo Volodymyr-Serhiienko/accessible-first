@@ -1,16 +1,4 @@
-import {
-    Badge,
-    Grid,
-    H3,
-    Icon,
-    InfoCard,
-    P,
-    Panel,
-    Row,
-    Section,
-    Stack,
-    type ComposedNode
-} from "../af";
+import { Badge, Grid, H3, Icon, InfoCard, P, Panel, Row, Section, Stack, type ComposedNode } from "../af";
 import { demoIconPaths } from "../icons";
 
 export function BadgeDemo(): ComposedNode {

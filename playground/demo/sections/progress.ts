@@ -1,6 +1,4 @@
-import { Badge, Grid, H3, InfoCard, P, Panel, Progress, Section, Stack,
-    type ComposedNode
-} from "../af";
+import { Badge, Grid, H3, InfoCard, P, Panel, Progress, Section, Stack, type ComposedNode } from "../af";
 
 export function ProgressDemo(): ComposedNode {
     return Section({

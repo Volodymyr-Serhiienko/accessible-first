@@ -76,7 +76,7 @@ Progress({
 - `max` - Maximum value. Defaults to `100`.
 - `description` - Optional explanatory content.
 - `valueText` - Optional visible value text such as `60%` or `18 of 24 words`.
-- `showValue` - Whether to show generated value text when `valueText` is not provided. Defaults to `true` for determinate progress.
+- `showValue` - Whether to show generated value text when `valueText` is not provided. By default, generated value text is shown for determinate progress and hidden for indeterminate progress.
 - `variant` - `"default"`, `"success"`, `"warning"`, or `"danger"`. Defaults to `"default"`.
 - `size` - `"md"`.
 - `labelOptions` - Common DOM options for the label slot.
@@ -100,7 +100,7 @@ lessonProgress.update({
 });
 ```
 
-Use `setValue(null)` to switch to indeterminate progress.
+Use `setValue(null)` to switch to indeterminate progress. If `showValue` is not set explicitly, generated value text follows the current state: shown for determinate values and hidden for indeterminate values.
 
 ## Styling
 

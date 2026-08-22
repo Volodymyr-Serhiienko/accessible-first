@@ -104,7 +104,9 @@ Completed:
 - EmptyState component and playground demo
 - InfoCard component and playground demo
 - Badge component for status, category, and metadata labels
+- Badge speech/default audit
 - Progress component for determinate and indeterminate task progress
+- Progress speech/default audit
 - SettingsGroup component for application preferences and configuration screens
 - AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
 - App route helpers for deriving navigation, search, breadcrumb items, and parent route trails from route metadata
