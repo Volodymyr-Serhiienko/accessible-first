@@ -1,9 +1,8 @@
 import { setAriaAttribute, setAriaDisabled, setRole } from "../../../core/src/aria";
-import { getOwnerWindow } from "../../../core/src/dom";
+import { getOwnerWindow, restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey } from "../../../core/src/keyboard";
 import { createComponentLifecycle } from "../foundation";
-import { restoreAttribute } from "../../../core/src/dom";
 
 import type { Link, LinkCurrent, LinkOptions, LinkTarget, LinkUpdateOptions } from "./types";
 
@@ -26,6 +25,19 @@ function toAriaCurrentValue(current: LinkCurrent): string | null {
     }
 
     return current;
+}
+
+function setNullableAttribute(
+    element: HTMLElement,
+    name: string,
+    value: string | null
+): void {
+    if (value === null) {
+        element.removeAttribute(name);
+        return;
+    }
+
+    element.setAttribute(name, value);
 }
 
 /**
@@ -91,7 +103,7 @@ export function createLink(
         }
 
         if (anchor) {
-            anchor.href = href;
+            anchor.setAttribute("href", href);
             return;
         }
 
@@ -102,8 +114,8 @@ export function createLink(
         const effectiveTarget = getEffectiveTarget();
         const effectiveRel = getEffectiveRel();
 
-        restoreAttribute(element, "target", effectiveTarget);
-        restoreAttribute(element, "rel", effectiveRel);
+        setNullableAttribute(element, "target", effectiveTarget);
+        setNullableAttribute(element, "rel", effectiveRel);
     }
 
     function syncExternal(): void {
@@ -307,3 +319,4 @@ export function createLink(
         }
     };
 }
+

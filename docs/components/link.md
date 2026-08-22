@@ -54,7 +54,7 @@ const link = createLink(existingLink, {
 
 - Enhancement API: `createLink(element, options)`
 - Composition API: `Link(options)`
-- Reuses: core link behavior and component lifecycle
+- Reuses: core link behavior, component lifecycle, and shared control hint
 
 ## Behavior
 
@@ -64,7 +64,7 @@ const link = createLink(existingLink, {
 - Supports disabled state through `aria-disabled`.
 - Removes disabled links from the tab order.
 - Supports `aria-current`.
-- Supports external links with safe `_blank` defaults.
+- Supports external links with safe `_blank` defaults and `noopener noreferrer` for new browsing contexts.
 - Supports optional `hint` through `aria-describedby` and optional visual tooltip.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
@@ -113,3 +113,4 @@ Link({
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
 - Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
 - Link text is readable in light and dark themes.
+

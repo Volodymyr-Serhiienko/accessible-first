@@ -37,8 +37,10 @@ Completed:
 
 - Component foundation
 - Button
+- Button speech/default audit
 - Icon Button
 - Link
+- Link speech/default audit
 - Disclosure
 - Playground foundation
 - Semantic Composition foundation
@@ -345,6 +347,8 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
+
 
 
 

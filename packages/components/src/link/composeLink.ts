@@ -85,11 +85,11 @@ function getChildren(options: LinkCompositionOptions): CompositionChild[] {
 
 function getLinkOptions(
     options: LinkCompositionUpdateOptions,
-    onNavigate: (event: Event) => void
+    onNavigate?: (event: Event) => void
 ): LinkOptions {
-    const linkOptions: LinkOptions = {
-        onNavigate
-    };
+    const linkOptions: LinkOptions = {};
+
+    if (onNavigate !== undefined) linkOptions.onNavigate = onNavigate;
 
     if ("href" in options) {
         linkOptions.href = options.href ?? null;
@@ -165,7 +165,7 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
                 onNavigate = nextOptions.onNavigate ?? null;
             }
 
-            link.update(getLinkOptions(nextOptions, handleNavigate));
+            link.update(getLinkOptions(nextOptions));
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
@@ -186,3 +186,4 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
 
     return composed;
 }
+
