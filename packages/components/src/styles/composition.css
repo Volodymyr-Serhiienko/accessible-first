@@ -10,10 +10,14 @@
     pointer-events: none;
 }
 
-[data-af-composition="icon"] > svg {
+[data-af-composition="icon"] > :is(svg, img) {
     inline-size: 100%;
     block-size: 100%;
     display: block;
+}
+
+[data-af-composition="icon"] > img {
+    object-fit: contain;
 }
 
 [data-af-composition="icon"] * {

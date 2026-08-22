@@ -7,7 +7,7 @@ import {
     Section,
     type ComposedNode
 } from "../af";
-import { DemoIcon, demoIconPaths } from "../icons";
+import { demoIconPaths } from "../icons";
 import { announce } from "../status";
 
 export function InfoCardDemo(): ComposedNode {
@@ -19,7 +19,12 @@ export function InfoCardDemo(): ComposedNode {
                 { minColumnWidth: "18rem" },
                 InfoCard({
                     headingLevel: 3,
-                    media: DemoIcon(demoIconPaths.lesson),
+                    media: Icon({
+                        path: demoIconPaths.lesson,
+                        decorative: true,
+                        size: "3rem",
+                        variant: "outline"
+                    }),
                     meta: "Lesson - 12 words",
                     title: "Beginner vocabulary",
                     description: "A compact card for a lesson, module, or learning item.",
@@ -36,7 +41,12 @@ export function InfoCardDemo(): ComposedNode {
                 InfoCard({
                     headingLevel: 3,
                     orientation: "horizontal",
-                    media: DemoIcon(demoIconPaths.checkCircle),
+                    media: Icon({
+                        path: demoIconPaths.checkCircle,
+                        decorative: true,
+                        size: "3rem",
+                        variant: "outline"
+                    }),
                     meta: "Practice - ready",
                     title: "Daily practice",
                     description: "Horizontal cards work well for compact summaries with a visual marker.",

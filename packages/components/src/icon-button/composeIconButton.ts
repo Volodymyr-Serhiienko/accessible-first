@@ -116,11 +116,13 @@ function getInitialControlHintOptions(
 
 function getIconButtonOptions(
     options: IconButtonCompositionUpdateOptions,
-    onPress: (event: Event) => void
+    onPress?: (event: Event) => void
 ): IconButtonOptions {
-    const iconButtonOptions: IconButtonOptions = {
-        onPress
-    };
+    const iconButtonOptions: IconButtonOptions = {};
+
+    if (onPress !== undefined) {
+        iconButtonOptions.onPress = onPress;
+    }
 
     if ("label" in options) {
         iconButtonOptions.label = options.label ?? null;
@@ -285,7 +287,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
                 onPress = nextOptions.onPress ?? null;
             }
 
-            iconButton.update(getIconButtonOptions(nextOptions, handlePress));
+            iconButton.update(getIconButtonOptions(nextOptions));
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);

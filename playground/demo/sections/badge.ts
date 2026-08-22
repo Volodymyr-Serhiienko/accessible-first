@@ -1,7 +1,17 @@
-import { Badge, Grid, H3, Icon, InfoCard, P, Panel, Row, Section, Stack,
+import {
+    Badge,
+    Grid,
+    H3,
+    Icon,
+    InfoCard,
+    P,
+    Panel,
+    Row,
+    Section,
+    Stack,
     type ComposedNode
 } from "../af";
-import { DemoIcon, demoIconPaths } from "../icons";
+import { demoIconPaths } from "../icons";
 
 export function BadgeDemo(): ComposedNode {
     return Section({
@@ -47,7 +57,12 @@ export function BadgeDemo(): ComposedNode {
                         Badge({ text: "Lesson", variant: "info" }),
                         Badge({ text: "Ready", variant: "success" }),
                         Badge({
-                            icon: DemoIcon(demoIconPaths.check, "1em"),
+                            icon: Icon({
+                                path: demoIconPaths.check,
+                                decorative: true,
+                                size: "1em",
+                                variant: "outline"
+                            }),
                             text: "Completed",
                             variant: "success"
                         })

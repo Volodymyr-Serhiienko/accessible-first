@@ -61,6 +61,7 @@ const buttonsRoute: PlaygroundRoute = {
 export const playgroundRoutes: PlaygroundRoute[] = [
     buttonsRoute,
     { id: "links", label: "Links", title: "Links", render: LinksDemo },
+    { id: "icon-buttons", label: "Icon buttons", title: "Icon buttons", render: IconButtonsDemo },
     { id: "checkbox", label: "Checkbox", title: "Checkbox", render: CheckboxDemo },
     { id: "radio-group", label: "RadioGroup", title: "RadioGroup", render: RadioGroupDemo },
     { id: "switch", label: "Switch", title: "Switch", render: SwitchDemo },
@@ -77,7 +78,6 @@ export const playgroundRoutes: PlaygroundRoute[] = [
     { id: "screen", label: "Screen", title: "Screen", render: ScreenDemo },
     { id: "breadcrumbs", label: "Breadcrumbs", title: "Breadcrumbs", render: BreadcrumbsDemo },
     { id: "actions-bar", label: "ActionsBar", title: "ActionsBar", render: ActionsBarDemo },
-    { id: "icon-buttons", label: "Icon buttons", title: "Icon buttons", render: IconButtonsDemo },
     { id: "tooltip", label: "Tooltip", title: "Tooltip", render: TooltipDemo },
     { id: "toast", label: "Toast", title: "Toast", render: ToastDemo },
     { id: "disclosure", label: "Disclosure", title: "Disclosure", render: DisclosureDemo },

@@ -4,7 +4,7 @@ IconButton is an icon-only action component with accessible-name protection, def
 
 ## When To Use
 
-Use `IconButton` for compact actions where the visual icon is enough for sighted users, but assistive technologies still need a meaningful name.
+Use `IconButton` for compact actions where the visual icon is enough for sighted users, but assistive technologies still need a meaningful name. The `icon` slot can use inline path icons or file-based Icon assets.
 
 For actions with visible text, prefer `Button`.
 
@@ -42,6 +42,21 @@ IconButton({
 });
 ```
 
+Stable-label toggle icon button:
+
+```ts
+IconButton({
+    label: "Pin panel",
+    pressed: false,
+    icon: pinIcon,
+    hint: "Toggles whether this panel stays visible.",
+    hintDisplay: "description",
+    onPress(_event, button) {
+        button.setPressed(button.getPressed() !== true);
+    }
+});
+```
+
 Enhance existing HTML:
 
 ```ts
@@ -69,7 +84,7 @@ const button = createIconButton(existingButton, {
 - Shows a visual tooltip by default when `label` is provided.
 - Announces tooltip or label on mouse hover by default.
 - Supports the same `hint` and `hintDisplay` model as Button and Link.
-- Falls back to `aria-label="Icon button"` and `data-af-warning="missing-accessible-name"` when no accessible name is provided.
+- Falls back to `aria-label="Icon button"` and `data-af-warning="missing-accessible-name"` when no accessible name is provided. This is a development safety net, not a production label; provide a meaningful `label` or `labelledBy`.
 
 ## Options
 
@@ -84,7 +99,7 @@ const button = createIconButton(existingButton, {
 - `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the icon button.
 - `tooltip` - Backward-compatible visual hint alias. Defaults to `label`; use `null` to disable the default label tooltip.
 - `announceOnHover` - Backward-compatible alias for `hintAnnounceOnHover`.
-- `selected` - Adds visual/action state through `data-af-selected`.
+- `selected` - Adds visual/action state through `data-af-selected` for app-specific state that should not be exposed as `aria-pressed`.
 - `pressed` - Adds `aria-pressed` for true toggle icon buttons with stable labels.
 - `disabled` - Disables the button.
 - `type` - `"button"`, `"submit"`, or `"reset"`.
@@ -110,8 +125,9 @@ IconButton({
 - Tab reaches the button.
 - Focus indicator is visible.
 - Disabled buttons cannot be activated.
-- Toggle buttons expose pressed state where used.
+- Toggle icon buttons with stable labels expose `aria-pressed`; dynamic-label actions update their accessible label instead.
 - Screen readers announce a meaningful name and button role.
+- Missing accessible names produce a diagnostics warning instead of silently creating an unnamed control.
 - Default label tooltip remains readable in light and dark themes.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
 - Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.

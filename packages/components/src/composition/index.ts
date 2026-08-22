@@ -16,7 +16,17 @@ export { VisuallyHidden } from "./visuallyHidden";
 export { Img } from "./image";
 
 export type { ContentSlot } from "./contentSlot";
-export type { ComposedIcon, IconOptions } from "./icon";
+export type {
+    BaseIconOptions,
+    ComposedIcon,
+    ComposedImageIcon,
+    ComposedSvgIcon,
+    IconImageOptions,
+    IconOptions,
+    IconPathData,
+    IconPathOptions,
+    IconVariant
+} from "./icon";
 export type {
     ContainerAlign,
     ContainerOptions,

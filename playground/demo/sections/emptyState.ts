@@ -1,7 +1,16 @@
-import { Button, EmptyState, Grid, H3, Icon, P, Panel, Section, Stack,
+import {
+    Button,
+    EmptyState,
+    Grid,
+    H3,
+    Icon,
+    P,
+    Panel,
+    Section,
+    Stack,
     type ComposedNode
 } from "../af";
-import { DemoIcon, demoIconPaths } from "../icons";
+import { demoIconPaths } from "../icons";
 import { announce } from "../status";
 
 export function EmptyStateDemo(): ComposedNode {
@@ -17,7 +26,12 @@ export function EmptyStateDemo(): ComposedNode {
                         P("Use EmptyState when a search, filter, or route has nothing useful to show."),
                         EmptyState({
                             headingLevel: 4,
-                            media: DemoIcon(demoIconPaths.search),
+                            media: Icon({
+                                path: demoIconPaths.search,
+                                decorative: true,
+                                size: "3rem",
+                                variant: "outline"
+                            }),
                             title: "No matching sections",
                             description: "Try another search term or clear the current filter."
                         })
@@ -29,7 +43,12 @@ export function EmptyStateDemo(): ComposedNode {
                         P("An empty state can explain what will appear here and offer a useful next step."),
                         EmptyState({
                             headingLevel: 4,
-                            media: DemoIcon(demoIconPaths.lesson),
+                            media: Icon({
+                                path: demoIconPaths.lesson,
+                                decorative: true,
+                                size: "3rem",
+                                variant: "outline"
+                            }),
                             title: "No lessons yet",
                             description: "Create the first lesson to start building a learning flow.",
                             actionsLabel: "Empty lesson actions",
@@ -50,7 +69,12 @@ export function EmptyStateDemo(): ComposedNode {
                         EmptyState({
                             headingLevel: 4,
                             align: "start",
-                            media: DemoIcon(demoIconPaths.warning),
+                            media: Icon({
+                                path: demoIconPaths.warning,
+                                decorative: true,
+                                size: "3rem",
+                                variant: "outline"
+                            }),
                             title: "Practice data is unavailable",
                             description: "The screen can stay understandable while the app offers a safe recovery action.",
                             actionsLabel: "Recovery actions",

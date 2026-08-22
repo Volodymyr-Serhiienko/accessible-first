@@ -7,8 +7,8 @@ import {
 } from "../../../core/src/aria";
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
-import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
+import { createComponentLifecycle } from "../foundation";
 
 import type { ButtonPressedState } from "../button";
 import type { IconButton, IconButtonOptions, IconButtonUpdateOptions } from "./types";
@@ -173,8 +173,12 @@ export function createIconButton(
         syncAccessibleName();
     }
 
-    if (nativeButton && !nativeButton.hasAttribute("type")) {
-        nativeButton.type = options.type ?? "button";
+    if (nativeButton) {
+        if (options.type !== undefined) {
+            nativeButton.type = options.type;
+        } else if (!nativeButton.hasAttribute("type")) {
+            nativeButton.type = "button";
+        }
     }
 
     if (!nativeButton) {
