@@ -91,7 +91,8 @@ Completed:
 - Shared ARIA reference id helpers reused by hint, tooltip, and accordion logic
 - Navigation and ResponsiveNavigation composition APIs
 - Playground section navigation migrated to ResponsiveNavigation
-- Brand component and Img helper for real page headers
+- Brand component and Image/Img helper for real page headers
+- Image presentation presets
 - OverflowScroller component for long inline navigation, tab, and toolbar patterns
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells

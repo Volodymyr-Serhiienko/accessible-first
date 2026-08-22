@@ -159,10 +159,10 @@ Use native helpers such as `P`, `H1`, `H2`, `H3`, `Ul`, and `Li` when they make 
 
 ## Images
 
-`Img()` creates an accessible native image helper:
+`Image()` creates an accessible native image helper. `Img()` remains available as a short alias:
 
 ```ts
-Img({
+Image({
     src: "/product.png",
     alt: "Accessible First component playground"
 });
@@ -171,7 +171,7 @@ Img({
 Decorative images should be marked intentionally:
 
 ```ts
-Img({
+Image({
     src: "/logo-mark.svg",
     alt: "",
     decorative: true
@@ -218,14 +218,3 @@ Use `metadata` on `createPage()` or `AppShell()` for the common baseline: title,
 Semantic Composition should grow from real pages and the playground.
 
 New page patterns should be promoted only when repeated examples show that a named helper clearly reduces complexity.
-
-
-
-
-
-
-
-
-
-
-

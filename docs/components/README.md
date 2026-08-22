@@ -38,6 +38,7 @@ Each component document should contain:
 - [HeaderBar](./header-bar.md)
 - [Icon](./icon.md)
 - [IconButton](./icon-button.md)
+- [Image](./image.md)
 - [InfoCard](./info-card.md)
 - [Link](./link.md)
 - [ListDetail](./list-detail.md)

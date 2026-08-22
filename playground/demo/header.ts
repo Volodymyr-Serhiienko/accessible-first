@@ -1,4 +1,8 @@
-import { Brand, HeaderBar, Img, ThemeToggle,
+import {
+    Brand,
+    HeaderBar,
+    Image,
+    ThemeToggle,
     type ComposedNode,
     type CompositionChild
 } from "./af";
@@ -17,7 +21,7 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             logoAspectRatio: "1 / 1",
             logoScale: 1.6,
             logoOffsetY: "0.2rem",
-            logo: Img({
+            logo: Image({
                 src: "./assets/logo.svg",
                 alt: "",
                 decorative: true

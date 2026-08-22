@@ -18,6 +18,21 @@ export type ImageDecoding = "sync" | "async" | "auto";
 export type ImageFetchPriority = "high" | "low" | "auto";
 
 /**
+ * Object-fit value used for visual image cropping or containment.
+ */
+export type ImageFit = "contain" | "cover" | "fill" | "none" | "scale-down";
+
+/**
+ * Built-in image corner radius token.
+ */
+export type ImageRadius = "none" | "sm" | "md" | "lg" | "full";
+
+/**
+ * Built-in image presentation preset.
+ */
+export type ImageVariant = "plain" | "rounded" | "thumbnail" | "avatar";
+
+/**
  * Shared options for informative and decorative images.
  */
 export interface BaseImageOptions extends BaseCompositionOptions {
@@ -27,6 +42,13 @@ export interface BaseImageOptions extends BaseCompositionOptions {
     loading?: ImageLoading;
     decoding?: ImageDecoding;
     fetchPriority?: ImageFetchPriority;
+    fit?: ImageFit;
+    radius?: ImageRadius;
+    variant?: ImageVariant;
+    aspectRatio?: string | null;
+    objectPosition?: string | null;
+    inlineSize?: string | null;
+    blockSize?: string | null;
 }
 
 /**
@@ -46,7 +68,7 @@ export interface DecorativeImageOptions extends BaseImageOptions {
 }
 
 /**
- * Options for Img().
+ * Options for Image() and the Img() alias.
  */
 export type ImageOptions = InformativeImageOptions | DecorativeImageOptions;
 
@@ -56,6 +78,7 @@ export type ImageOptions = InformativeImageOptions | DecorativeImageOptions;
 export interface ComposedImage extends ComposedNode<HTMLImageElement> {
     readonly element: HTMLImageElement;
 }
+
 function getImageAlt(options: ImageOptions): string {
     return options.decorative === true ? "" : options.alt;
 }
@@ -63,6 +86,7 @@ function getImageAlt(options: ImageOptions): string {
 function getImageAttributes(options: ImageOptions): ElementAttributes {
     const attributes: ElementAttributes = {
         "data-af-composition": "image",
+        "data-af-image-variant": options.variant ?? "plain",
         src: options.src,
         alt: getImageAlt(options),
         "aria-hidden": options.decorative === true ? true : null
@@ -73,18 +97,55 @@ function getImageAttributes(options: ImageOptions): ElementAttributes {
     if (options.loading !== undefined) attributes.loading = options.loading;
     if (options.decoding !== undefined) attributes.decoding = options.decoding;
     if (options.fetchPriority !== undefined) attributes.fetchpriority = options.fetchPriority;
+    if (options.fit !== undefined) attributes["data-af-image-fit"] = options.fit;
+    if (options.radius !== undefined) attributes["data-af-image-radius"] = options.radius;
+    if (options.aspectRatio !== undefined && options.aspectRatio !== null) attributes["data-af-image-aspect-ratio"] = "";
 
     return attributes;
 }
 
+function setOptionalStyle(
+    element: HTMLElement,
+    name: string,
+    value: string | null | undefined
+): void {
+    if (value === null || value === undefined || !value.trim()) {
+        element.style.removeProperty(name);
+        return;
+    }
+
+    element.style.setProperty(name, value);
+}
+
+function applyImagePresentation(element: HTMLImageElement, options: ImageOptions): void {
+    if (options.fit !== undefined) {
+        element.style.setProperty("--af-image-fit", options.fit);
+    }
+
+    setOptionalStyle(element, "--af-image-aspect-ratio", options.aspectRatio);
+    setOptionalStyle(element, "--af-image-object-position", options.objectPosition);
+    setOptionalStyle(element, "--af-image-inline-size", options.inlineSize);
+    setOptionalStyle(element, "--af-image-block-size", options.blockSize);
+}
+
 /**
  * Creates an accessible native image.
- *
- * Informative images require alt text. Decorative images intentionally use
- * empty alt text and are hidden from assistive technologies.
+ * Informative images require alt text; decorative images intentionally use empty alt text.
+ */
+export function Image(options: ImageOptions): ComposedImage {
+    const element = createElement(
+        "img",
+        getCompositionElementOptions(options, getImageAttributes(options))
+    ) as HTMLImageElement;
+
+    applyImagePresentation(element, options);
+
+    return { element };
+}
+
+/**
+ * Short alias for Image(). Kept for compact composition code and backwards compatibility.
  */
 export function Img(options: ImageOptions): ComposedImage {
-    return {
-        element: createElement("img", getCompositionElementOptions(options, getImageAttributes(options)))
-    };
+    return Image(options);
 }

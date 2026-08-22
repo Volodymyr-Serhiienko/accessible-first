@@ -8,7 +8,7 @@ It can render as a home link when `href` is provided, or as a static identity bl
 
 Use `Brand` when a page needs a consistent product, site, or app identity with optional logo, name, and tagline.
 
-Use a regular heading when the text is only the page title. Use `Img` directly when an image is not acting as part of a brand identity.
+Use a regular heading when the text is only the page title. Use `Image` directly when an image is not acting as part of a brand identity.
 
 ## Quick Start
 
@@ -26,7 +26,7 @@ With logo:
 ```ts
 Brand({
     href: "/",
-    logo: Img({
+    logo: Image({
         src: "/logo.svg",
         alt: "",
         decorative: true
@@ -66,7 +66,7 @@ Brand({
 - `name` - Required brand name content.
 - `nameTag` - Native element for the brand name: `"span"`, `"p"`, `"h1"`, `"h2"`, or `"h3"`. Defaults to `"span"`. Creation-time option.
 - `href` - Optional destination. Creation-time option.
-- `logo` - Optional logo content, usually `Img(...)`, `Icon(...)`, or trusted inline SVG.
+- `logo` - Optional logo content, usually `Image(...)`, `Icon(...)`, or trusted inline SVG.
 - `logoAspectRatio` - Optional logo slot ratio, such as `"1 / 1"` or `"3 / 1"`. Defaults to `"1 / 1"`.
 - `logoScale` - Optional optical scale for the logo image inside the auto-sized logo slot. Defaults to `1.1`.
 - `logoOffsetY` - Optional CSS length that nudges the logo slot vertically, such as `"0.08rem"` or `"-2px"`.
