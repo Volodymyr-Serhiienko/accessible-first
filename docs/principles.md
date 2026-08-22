@@ -93,6 +93,20 @@ Components should use the same language for user help:
 
 Important information must not live only in hover content because touch devices do not have reliable hover.
 
+## Speech And Description Defaults
+
+Components should be useful without repetitive screen reader output.
+
+Default behavior should choose the least noisy accessible path:
+
+- names and labels should be short and stable;
+- visible descriptions should stay visible even when they are not attached through `aria-describedby`;
+- `descriptionMode` should default to the best baseline for the component type;
+- child controls should not inherit parent descriptions when they already have their own context;
+- live-region announcements should report changes, not repeat text that focus will immediately read.
+
+When a component needs more speech, developers should opt in with explicit options such as `descriptionMode: "aria"`, `announcement`, `hintDisplay`, or toast `politeness`.
+
 ## Documentation Driven
 
 Architectural decisions, public APIs, component behavior, and testing expectations should be documented as the project evolves.
@@ -104,3 +118,5 @@ The playground should become living documentation.
 Do not design the API only in theory.
 
 Use the playground and small real page examples to discover what is actually convenient, missing, confusing, or too complex.
+
+

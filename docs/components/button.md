@@ -31,7 +31,7 @@ Button({
 });
 ```
 
-Toggle-like action with changing label:
+Changing-label action with visual state:
 
 ```ts
 Button({
@@ -44,6 +44,23 @@ Button({
     }
 });
 ```
+
+Stable-label toggle button:
+
+```ts
+Button({
+    text: "Favorite",
+    pressed: false,
+    variant: "secondary",
+    onPress(_event, button) {
+        const pressed = button.getPressed() !== true;
+
+        button.setPressed(pressed);
+    }
+});
+```
+
+Use `pressed` when the visible label stays stable and the button represents an on/off state. Use `selected` when the button only needs visual/action state or when the label itself changes from one action to the next.
 
 Enhance existing HTML:
 
@@ -60,7 +77,7 @@ const button = createButton(existingButton, {
 
 - Enhancement API: `createButton(element, options)`
 - Composition API: `Button(options)`
-- Reuses: core button behavior and component lifecycle
+- Reuses: core button behavior, component lifecycle, selected state helper, and shared control hint
 
 ## Behavior
 
@@ -81,7 +98,7 @@ const button = createButton(existingButton, {
 - `children` - Rich content instead of `text`.
 - `disabled` - Disables the button.
 - `pressed` - Adds `aria-pressed` for true toggle buttons with stable labels.
-- `selected` - Adds visual/action state through `data-af-selected`.
+- `selected` - Adds visual/action state through `data-af-selected`; it is not an ARIA state.
 - `hint` - Supporting context for the button.
 - `hintId` - Custom id for the generated hint text.
 - `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
@@ -111,8 +128,9 @@ Button({
 - `Enter` activates the button.
 - `Space` activates the button.
 - Disabled state cannot be activated.
-- Toggle buttons announce pressed state.
+- Stable-label toggle buttons announce pressed state through `aria-pressed`.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
 - Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
 - Text contrast is readable in light and dark themes.
 - Touch target is comfortable on mobile.
+

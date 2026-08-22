@@ -95,8 +95,12 @@ export function createButton(
         }
     }
 
-    if (nativeButton && !nativeButton.hasAttribute("type")) {
-        nativeButton.type = options.type ?? "button";
+    if (nativeButton) {
+        if (options.type !== undefined) {
+            nativeButton.type = options.type;
+        } else if (!nativeButton.hasAttribute("type")) {
+            nativeButton.type = "button";
+        }
     }
 
     if (!nativeButton) {
@@ -199,3 +203,5 @@ export function createButton(
         }
     };
 }
+
+

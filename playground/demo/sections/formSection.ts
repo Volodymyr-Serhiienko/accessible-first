@@ -27,6 +27,7 @@ export function FormSectionDemo(): ComposedNode {
                         H3("Profile section in a form"),
                         P("FormSection gives the area semantic structure, while Form collects validation, announces errors, and moves focus to the first invalid field."),
                         Form({
+                            announceValidation: false,
                             children: ({ field }) => FormSection({
                                 title: "Account profile",
                                 description: "These fields describe the visible user profile.",
@@ -61,10 +62,17 @@ export function FormSectionDemo(): ComposedNode {
                                 })
                             ],
                             onValidSubmit() {
-                                announce("Profile fields are valid.", {
-                                    variant: "success"
+                                announce("Form is submited.", {
+                                    variant: "success",
+                                    politeness: "polite"
                                 });
-                            }
+                            },
+                            onInvalidSubmit() {
+                                announce("This field is not valid.", {
+                                    variant: "warning",
+                                    politeness: "polite"
+                                });
+                            } 
                         })
                     )
                 ),
@@ -78,7 +86,7 @@ export function FormSectionDemo(): ComposedNode {
                             children: [
                                 FieldGroup({
                                     label: "Channels",
-                                    description: "Choose at least one channel for important updates.",
+                                    description: "Choose any channels that should be available for important updates.",
                                     children: [
                                         Checkbox({ label: "Email" }),
                                         Checkbox({ label: "SMS" }),

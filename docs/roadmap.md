@@ -132,6 +132,7 @@ Completed:
 In progress:
 
 - Unified hint, tooltip, description, announcement, and toast model
+- Component-by-component speech and description defaults audit
 - Playground as living documentation
 - Responsive playground refinement
 - Playground AppShell and PageOutlet refinement
@@ -157,7 +158,7 @@ Next:
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
 - Metadata expansion for social preview assets and richer SEO checks
-- Remaining Disclosure, Popover, Dialog, and AlertDialog description/announcement naming review
+- Remaining Disclosure, Popover, Dialog, AlertDialog, FormSection, Screen, FieldGroup, SettingsGroup, and panel-like component description/announcement review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
@@ -344,6 +345,7 @@ The system should provide:
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
 - a playground for real-device testing and documentation.
+
 
 
 

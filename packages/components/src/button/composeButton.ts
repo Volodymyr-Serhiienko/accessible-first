@@ -85,11 +85,11 @@ function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
 
 function getButtonOptions(
     options: ButtonCompositionUpdateOptions,
-    onPress: (event: Event) => void
+    onPress?: (event: Event) => void
 ): ButtonOptions {
-    const buttonOptions: ButtonOptions = {
-        onPress
-    };
+    const buttonOptions: ButtonOptions = {};
+
+    if (onPress !== undefined) buttonOptions.onPress = onPress;
 
     if (options.disabled !== undefined) buttonOptions.disabled = options.disabled;
     if ("pressed" in options) buttonOptions.pressed = options.pressed ?? null;
@@ -123,11 +123,13 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     let composed!: ComposedButton;
     let onPress = options.onPress ?? null;
 
+    function handlePress(event: Event): void {
+        onPress?.(event, composed);
+    }
+
     const button = createButton(
         element,
-        getButtonOptions(options, (event) => {
-            onPress?.(event, composed);
-        })
+        getButtonOptions(options, handlePress)
     );
 
     const controlHint = createControlHint(element, getControlHintOptions(options));
@@ -157,9 +159,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
                 selectedState.setSelected(nextOptions.selected);
             }
 
-            button.update(getButtonOptions(nextOptions, (event) => {
-                onPress?.(event, composed);
-            }));
+            button.update(getButtonOptions(nextOptions));
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);
@@ -181,3 +181,5 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
     return composed;
 }
+
+

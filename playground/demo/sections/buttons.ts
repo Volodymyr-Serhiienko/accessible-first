@@ -48,6 +48,19 @@ export function ButtonsDemo(): ComposedNode {
                                 }
                             }),
                             Button({
+                                text: "Favorite",
+                                variant: "secondary",
+                                pressed: false,
+                                hint: "Keeps a stable label and exposes the toggle state with aria-pressed.",
+                                hintDisplay: "description",
+                                onPress(_event, button) {
+                                    const pressed = button.getPressed() !== true;
+
+                                    button.setPressed(pressed);
+                                    announce(`Favorite is ${pressed ? "pressed" : "not pressed"}.`);
+                                }
+                            }),
+                            Button({
                                 text: "Tooltip only",
                                 variant: "secondary",
                                 hint: "This hint is visual only and is not added to aria-describedby.",
@@ -64,3 +77,4 @@ export function ButtonsDemo(): ComposedNode {
         ]
     });
 }
+

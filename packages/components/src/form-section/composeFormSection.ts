@@ -25,6 +25,11 @@ export type FormSectionCompositionContent = CompositionContent;
 export type FormSectionHeadingLevel = 2 | 3 | 4 | 5 | 6;
 
 /**
+ * Controls whether the visible FormSection description is connected with aria-describedby.
+ */
+export type FormSectionDescriptionMode = "content" | "aria";
+
+/**
  * Visual variant for FormSection.
  */
 export type FormSectionVariant = "default" | "plain";
@@ -49,6 +54,7 @@ export interface FormSectionOptions extends BaseCompositionOptions {
     descriptionOptions?: BaseCompositionOptions;
     bodyOptions?: BaseCompositionOptions;
     actionsOptions?: BaseCompositionOptions;
+    descriptionMode?: FormSectionDescriptionMode;
 }
 
 /**
@@ -147,6 +153,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     let hasActions = hasCompositionContent(options.actions);
     let variant: FormSectionVariant = options.variant ?? "default";
     let size: FormSectionSize = options.size ?? "md";
+    let descriptionMode: FormSectionDescriptionMode = options.descriptionMode ?? "content";
 
     header.append(heading, description);
     element.append(header, body, actionsBar.element);
@@ -163,7 +170,10 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
         element.setAttribute("data-af-size", size);
 
         setAriaLabelledBy(element, heading);
-        setAriaDescribedBy(element, description.hidden ? null : description);
+        setAriaDescribedBy(
+            element,
+            descriptionMode === "aria" && !description.hidden ? description : null
+        );
     }
 
     function setTitleContent(content: FormSectionCompositionContent): void {
@@ -229,6 +239,9 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
 
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
+            if (nextOptions.descriptionMode !== undefined) {
+                descriptionMode = nextOptions.descriptionMode;
+            }
 
             sync();
         },

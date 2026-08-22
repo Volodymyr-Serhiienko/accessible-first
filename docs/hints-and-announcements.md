@@ -46,6 +46,38 @@ Use it for application feedback that should remain available visually. Toast sho
 - Action results should use toast or another visible status pattern, not tooltip.
 - Assertive announcements are reserved for urgent updates.
 - Repeated identical announcements must be supported by the live-region engine.
+- Do not route the same wording through several channels at once. A field error should not be both fully announced by a form live region and then immediately repeated by focus on the invalid field.
+- Child controls own their own labels, descriptions, errors, and hints. Parent sections and panels should not make every child focus repeat the parent description.
+
+## Description Exposure Rules
+
+Visible descriptions and programmatic descriptions are related, but they are not always the same thing.
+
+Use visible `description` content to explain a component, panel, section, or field in the page. Then decide whether that same text should also be connected with `aria-describedby`.
+
+Use `descriptionMode: "content"` when:
+
+- the description is useful visually and in normal reading order;
+- the description is long enough that repeating it during focus movement would be noisy;
+- child controls already have their own labels, descriptions, errors, or hints;
+- a form submit moves focus directly to a field that should be read on its own.
+
+Use `descriptionMode: "aria"` when:
+
+- the component or container itself is the meaningful focus target;
+- the description is short and essential for understanding that focused target;
+- the text should be spoken as part of the component context.
+
+Do not make ordinary layout sections tabbable only so their descriptions can be read. Prefer native headings, landmarks, and reading order for document navigation. A structural container should become a focus target only when it is a real workflow destination, route target, panel entry point, or widget surface.
+
+When focus moves into a component, the focused thing should decide what is spoken:
+
+- focusing a section or panel may speak its title and short programmatic description;
+- focusing a field should speak the field label, field description, validation state, and field error;
+- focusing a button or link should speak its label and optional hint;
+- focusing a child control should not normally repeat the parent panel description.
+
+For validation, avoid detailed live-region errors when focus also moves to the first invalid field. In that case, the focused field provides the detailed error context. Use form-level announcements only for deliberate summaries or when focus is not moved.
 
 ## Component API Direction
 
@@ -105,3 +137,4 @@ Toast buttons are a limited convenience feature only. They must not be the only 
 Use `Dialog`, `AlertDialog`, inline page actions, or visible page content when the user must press a button.
 
 Use persistent toast carefully when dismissal depends on a close button. Use timed toast only when the message is short and non-critical.
+
