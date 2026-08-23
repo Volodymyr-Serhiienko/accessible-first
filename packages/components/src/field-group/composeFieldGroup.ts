@@ -17,6 +17,11 @@ import {
 export type FieldGroupCompositionContent = CompositionContent;
 
 /**
+ * Controls whether the visible FieldGroup description is connected with aria-describedby.
+ */
+export type FieldGroupDescriptionMode = "content" | "aria";
+
+/**
  * Visual variant for FieldGroup.
  */
 export type FieldGroupVariant = "default" | "plain";
@@ -42,6 +47,7 @@ export interface FieldGroupOptions extends BaseCompositionOptions {
     disabled?: boolean;
     required?: boolean;
     invalid?: FormFieldInvalidState;
+    descriptionMode?: FieldGroupDescriptionMode;
     orientation?: FieldGroupOrientation;
     variant?: FieldGroupVariant;
     size?: FieldGroupSize;
@@ -120,6 +126,7 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
     let disabled = options.disabled ?? element.disabled;
     let required = options.required ?? false;
     let invalid: FormFieldInvalidState = options.invalid ?? false;
+    let descriptionMode: FieldGroupDescriptionMode = options.descriptionMode ?? "aria";
     let orientation: FieldGroupOrientation = options.orientation ?? "vertical";
     let variant: FieldGroupVariant = options.variant ?? "default";
     let size: FieldGroupSize = options.size ?? "md";
@@ -146,7 +153,9 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
         legend.toggleAttribute("data-af-required", required);
 
         formField.setLabel(legend);
-        formField.setDescription(description.hidden ? null : description);
+        formField.setDescription(
+            descriptionMode === "aria" && !description.hidden ? description : null
+        );
         formField.setErrorMessage(!hasInvalidState(invalid) || errorMessage.hidden ? null : errorMessage);
         formField.setRequired(required);
         formField.setDisabled(disabled);
@@ -249,6 +258,7 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
             if (nextOptions.disabled !== undefined) disabled = nextOptions.disabled;
             if (nextOptions.required !== undefined) required = nextOptions.required;
             if (nextOptions.invalid !== undefined) invalid = nextOptions.invalid;
+            if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
             if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;

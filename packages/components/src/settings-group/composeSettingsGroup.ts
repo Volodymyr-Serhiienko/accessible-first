@@ -1,6 +1,7 @@
 import {
     FormSection,
     type ComposedFormSection,
+    type FormSectionDescriptionMode,
     type FormSectionHeadingLevel,
     type FormSectionOptions,
     type FormSectionSize,
@@ -23,6 +24,11 @@ export type SettingsGroupCompositionContent = CompositionContent;
 export type SettingsGroupHeadingLevel = FormSectionHeadingLevel;
 
 /**
+ * Controls whether the visible SettingsGroup description is connected with aria-describedby.
+ */
+export type SettingsGroupDescriptionMode = FormSectionDescriptionMode;
+
+/**
  * Visual variant for SettingsGroup.
  */
 export type SettingsGroupVariant = "default" | "plain";
@@ -40,6 +46,7 @@ export interface SettingsGroupOptions extends BaseCompositionOptions {
     description?: SettingsGroupCompositionContent | null;
     children?: SettingsGroupCompositionContent | null;
     actions?: SettingsGroupCompositionContent | null;
+    descriptionMode?: SettingsGroupDescriptionMode;
     headingLevel?: SettingsGroupHeadingLevel;
     variant?: SettingsGroupVariant;
     size?: SettingsGroupSize;
@@ -91,6 +98,7 @@ function getFormSectionOptions(options: SettingsGroupOptions): FormSectionOption
     if ("description" in options) formSectionOptions.description = options.description ?? null;
     if ("children" in options) formSectionOptions.children = options.children ?? null;
     if ("actions" in options) formSectionOptions.actions = options.actions ?? null;
+    if (options.descriptionMode !== undefined) formSectionOptions.descriptionMode = options.descriptionMode;
     if (options.headingLevel !== undefined) formSectionOptions.headingLevel = options.headingLevel;
     if (options.headingOptions !== undefined) formSectionOptions.headingOptions = options.headingOptions;
     if (options.descriptionOptions !== undefined) formSectionOptions.descriptionOptions = options.descriptionOptions;
@@ -109,6 +117,7 @@ function getFormSectionUpdateOptions(options: SettingsGroupUpdateOptions): FormS
     if ("description" in options) formSectionOptions.description = options.description ?? null;
     if ("children" in options) formSectionOptions.children = options.children ?? null;
     if ("actions" in options) formSectionOptions.actions = options.actions ?? null;
+    if (options.descriptionMode !== undefined) formSectionOptions.descriptionMode = options.descriptionMode;
     if (options.headingOptions !== undefined) formSectionOptions.headingOptions = options.headingOptions;
     if (options.descriptionOptions !== undefined) formSectionOptions.descriptionOptions = options.descriptionOptions;
     if (options.bodyOptions !== undefined) formSectionOptions.bodyOptions = options.bodyOptions;

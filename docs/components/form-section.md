@@ -81,10 +81,12 @@ Form({
 ## Behavior
 
 - Creates a native section labelled by its heading.
-- Connects an optional visible description with `aria-describedby`.
+- Keeps the optional visible description as normal content by default.
+- Supports `descriptionMode: "aria"` when the section itself should be described by the visible description.
 - Keeps body content and section actions in separate areas.
 - Uses `ActionsBar` for section action layout.
 - Does not submit forms, trap focus, or collect validation results by itself.
+- Does not use live regions or forced announcements; form-level feedback should be handled by `Form`, field validation, toast/status helpers, or route/page announcements.
 - Exposes stable data attributes for styling.
 
 ## Options
@@ -93,6 +95,7 @@ Form({
 - `description` - Optional supporting content connected to the section.
 - `children` - Fields, field groups, or composed nodes inside the section body.
 - `actions` - Optional section actions, usually buttons. They are rendered through the `ActionsBar` primary slot.
+- `descriptionMode` - `"content"` or `"aria"`. Defaults to `"content"`, which avoids repeated section description speech while keeping the text visible.
 - `headingLevel` - Heading level from `2` to `6`. Defaults to `3`. Creation-time option.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -118,6 +121,12 @@ section.setActions(Button({ text: "Save profile", variant: "primary" }));
 ```
 
 `headingLevel` is creation-time only. Create a new section if the document outline changes.
+
+## Description Speech
+
+Use the default `descriptionMode: "content"` for most form sections. The section title still labels the section, while the description remains visible and readable in normal document navigation without being repeated as users move through fields.
+
+Use `descriptionMode: "aria"` when a whole section needs to carry its visible description as a programmatic description.
 
 ## Validation Actions
 
@@ -168,7 +177,7 @@ FormSection({
 
 - The section heading is visible and has the correct document level.
 - Screen readers can understand the section name from the heading.
-- Description is announced when supported by the browser and screen reader pair.
+- Description is announced with the section when `descriptionMode: "aria"` and supported by the browser/screen reader pair.
 - Actions are reachable after the section content.
 - Fields and field groups inside the body keep their own labels, descriptions, errors, and validation behavior.
 - When wrapped in `Form`, submit validates registered fields and focuses the first invalid field.

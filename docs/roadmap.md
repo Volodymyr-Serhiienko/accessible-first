@@ -75,7 +75,9 @@ Completed:
 - Switch component enhancement and composition APIs
 - TextField component enhancement and composition APIs
 - FieldGroup component and playground demo
+- FieldGroup speech/default audit
 - FormSection component and playground demo
+- FormSection speech/default audit
 - DescriptionList component and playground demo
 - DescriptionList speech/default audit
 - Breadcrumbs component and playground demo
@@ -113,6 +115,7 @@ Completed:
 - Progress component for determinate and indeterminate task progress
 - Progress speech/default audit
 - SettingsGroup component for application preferences and configuration screens
+- SettingsGroup speech/default audit
 - AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
 - App route helpers for deriving navigation, search, breadcrumb items, and parent route trails from route metadata
 - Screen component for top-level application views
@@ -170,7 +173,7 @@ Next:
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
 - Metadata expansion for social preview assets and richer SEO checks
-- Remaining Disclosure, Popover, Dialog, AlertDialog, FormSection, Screen, FieldGroup, SettingsGroup, and panel-like component description/announcement review
+- Remaining Disclosure, Popover, Dialog, AlertDialog, Screen, and panel-like component description/announcement review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

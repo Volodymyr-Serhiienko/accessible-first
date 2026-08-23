@@ -1,15 +1,4 @@
-import {
-    Button,
-    Grid,
-    P,
-    Section,
-    Select,
-    SettingsGroup,
-    Stack,
-    Switch,
-    TextField,
-    type ComposedNode
-} from "../af";
+import { Button, Grid, P, Section, Select, SettingsGroup, Stack, Switch, TextField, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function SettingsGroupDemo(): ComposedNode {

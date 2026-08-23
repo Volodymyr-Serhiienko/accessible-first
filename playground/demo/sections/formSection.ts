@@ -1,18 +1,4 @@
-import {
-    Button,
-    Checkbox,
-    FieldGroup,
-    Form,
-    FormSection,
-    Grid,
-    H3,
-    P,
-    Panel,
-    Section,
-    Stack,
-    TextField,
-    type ComposedNode
-} from "../af";
+import { Button, Checkbox, FieldGroup, Form, FormSection, Grid, H3, P, Panel, Section, Stack, TextField, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function FormSectionDemo(): ComposedNode {

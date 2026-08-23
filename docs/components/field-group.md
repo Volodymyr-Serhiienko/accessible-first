@@ -62,10 +62,13 @@ FieldGroup({
 ## Behavior
 
 - Uses a native fieldset and legend by default.
-- Connects optional group description and group error through form-field semantics.
+- Connects optional group description through form-field semantics by default.
+- Supports `descriptionMode: "content"` when the group description should stay visible without being connected through `aria-describedby`.
+- Always connects visible group error text when `invalid` is active, because validation feedback must be programmatically available.
 - Shows a visible required marker when `required` is true.
 - Supports disabled and invalid group states.
 - Does not validate child controls by itself. Individual fields own their own validation.
+- Does not use live regions by itself; pair it with field validation, form feedback, or toast/status helpers when dynamic feedback must be spoken.
 - Exposes stable data attributes for styling.
 
 ## Options
@@ -77,6 +80,7 @@ FieldGroup({
 - `disabled` - Disables the whole fieldset.
 - `required` - Marks the group as required and shows a visible required marker.
 - `invalid` - Sets invalid group state and connects `errorMessage` when present.
+- `descriptionMode` - `"aria"` or `"content"`. Defaults to `"aria"` for form-group context. Use `"content"` to reduce repeated group description speech.
 - `orientation` - `"vertical"` or `"horizontal"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -125,10 +129,16 @@ FieldGroup({
 });
 ```
 
+## Description Speech
+
+Use the default `descriptionMode: "aria"` when the group description gives important instructions for answering the grouped controls. This keeps the description programmatically attached to the fieldset.
+
+Use `descriptionMode: "content"` when the description is helpful visible context but becomes too repetitive with the target screen reader/browser combination. Error text remains connected while `invalid` is active.
+
 ## Manual Checks
 
 - The group label is announced before or with controls inside the group.
-- The group description is announced when supported by the screen reader/browser pair.
+- The group description is announced when `descriptionMode: "aria"` and supported by the screen reader/browser pair.
 - Required and invalid group states are visible.
 - Error text is connected when `invalid` is active.
 - Child controls keep their own labels, descriptions, validation, and keyboard behavior.

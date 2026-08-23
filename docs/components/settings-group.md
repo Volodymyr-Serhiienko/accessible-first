@@ -31,8 +31,10 @@ SettingsGroup({
 
 - Uses a labelled `section` internally.
 - Connects the group title with `aria-labelledby`.
-- Connects the optional description with `aria-describedby`.
+- Keeps the optional description as visible content by default, without forcing it through `aria-describedby`.
+- Supports `descriptionMode: "aria"` when the section itself should be described by the visible description.
 - Keeps settings controls as native, reachable elements inside the group.
+- Does not use live regions or forced announcements; controls announce their own labels, descriptions, and validation state.
 - Reuses the existing form-section foundation instead of duplicating accessibility logic.
 - Reuses the existing actions layout through FormSection and ActionsBar.
 
@@ -42,6 +44,7 @@ SettingsGroup({
 - `description` - optional explanatory content.
 - `children` - settings controls or any composed content.
 - `actions` - optional action buttons, usually save/reset/apply actions.
+- `descriptionMode` - `"content"` or `"aria"`. Defaults to `"content"`, which avoids repeated description speech while keeping the text visible.
 - `headingLevel` - heading level for the group title. Defaults to `3`.
 - `variant` - `default` or `plain`. Defaults to `default`.
 - `size` - currently `md`.
@@ -58,6 +61,12 @@ SettingsGroup has accessible default styling and can be customized through:
 - part-specific options such as `bodyOptions` and `actionsOptions`
 
 Use `variant: "plain"` when the surrounding page already provides the visual container.
+
+## Description Speech
+
+Use the default `descriptionMode: "content"` for most settings screens. The description remains visible and readable in normal document navigation, but it is not attached to the section as an automatic spoken description. This keeps focus movement between controls quieter.
+
+Use `descriptionMode: "aria"` only when the whole settings group needs to be announced with its description as a named section.
 
 ## Accessibility Notes
 
