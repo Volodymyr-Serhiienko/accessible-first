@@ -51,53 +51,60 @@ export interface PlaygroundRoute {
     render(): ComposedNode;
 }
 
-const buttonsRoute: PlaygroundRoute = {
-    id: "buttons",
-    label: "Buttons",
-    title: "Buttons",
-    render: ButtonsDemo
+const markupRoute: PlaygroundRoute = {
+    id: "markup",
+    label: "Markup",
+    title: "Markup",
+    render: MarkupDemo
 };
 
 export const playgroundRoutes: PlaygroundRoute[] = [
-    buttonsRoute,
+    markupRoute,
+    { id: "layout", label: "Layout", title: "Layout", render: LayoutDemo },
+
+    { id: "buttons", label: "Buttons", title: "Buttons", render: ButtonsDemo },
     { id: "links", label: "Links", title: "Links", render: LinksDemo },
     { id: "icon-buttons", label: "Icon buttons", title: "Icon buttons", render: IconButtonsDemo },
+
     { id: "badge", label: "Badge", title: "Badge", render: BadgeDemo },
     { id: "progress", label: "Progress", title: "Progress", render: ProgressDemo },
     { id: "description-list", label: "DescriptionList", title: "DescriptionList", render: DescriptionListDemo },
     { id: "empty-state", label: "EmptyState", title: "EmptyState", render: EmptyStateDemo },
     { id: "info-card", label: "InfoCard", title: "InfoCard", render: InfoCardDemo },
+
     { id: "actions-bar", label: "ActionsBar", title: "ActionsBar", render: ActionsBarDemo },
-    { id: "breadcrumbs", label: "Breadcrumbs", title: "Breadcrumbs", render: BreadcrumbsDemo },
-    { id: "settings-group", label: "SettingsGroup", title: "SettingsGroup", render: SettingsGroupDemo },
-    { id: "field-group", label: "FieldGroup", title: "FieldGroup", render: FieldGroupDemo },
-    { id: "form-section", label: "FormSection", title: "FormSection", render: FormSectionDemo },
+    { id: "tooltip", label: "Tooltip", title: "Tooltip", render: TooltipDemo },
+
+    { id: "disclosure", label: "Disclosure", title: "Disclosure", render: DisclosureDemo },
+    { id: "accordion", label: "Accordion", title: "Accordion", render: AccordionDemo },
+    { id: "popover", label: "Popover", title: "Popover", render: PopoverDemo },
+    { id: "dialog", label: "Dialog", title: "Dialog", render: DialogDemo },
+    { id: "alert-dialog", label: "Alert dialog", title: "Alert dialog", render: AlertDialogDemo },
+    { id: "toast", label: "Toast", title: "Toast", render: ToastDemo },
+
     { id: "checkbox", label: "Checkbox", title: "Checkbox", render: CheckboxDemo },
     { id: "radio-group", label: "RadioGroup", title: "RadioGroup", render: RadioGroupDemo },
     { id: "switch", label: "Switch", title: "Switch", render: SwitchDemo },
     { id: "text-field", label: "TextField", title: "TextField", render: TextFieldDemo },
-    { id: "disclosure", label: "Disclosure", title: "Disclosure", render: DisclosureDemo },
-    { id: "popover", label: "Popover", title: "Popover", render: PopoverDemo },
-    { id: "dialog", label: "Dialog", title: "Dialog", render: DialogDemo },
-    { id: "alert-dialog", label: "Alert dialog", title: "Alert dialog", render: AlertDialogDemo },
-    { id: "screen", label: "Screen", title: "Screen", render: ScreenDemo },
+    { id: "field-group", label: "FieldGroup", title: "FieldGroup", render: FieldGroupDemo },
+    { id: "form-section", label: "FormSection", title: "FormSection", render: FormSectionDemo },
+    { id: "form", label: "Form", title: "Form", render: FormDemo },
+
+    { id: "breadcrumbs", label: "Breadcrumbs", title: "Breadcrumbs", render: BreadcrumbsDemo },
     { id: "tabs", label: "Tabs", title: "Tabs", render: TabsDemo },
     { id: "listbox", label: "Listbox", title: "Listbox", render: ListboxDemo },
-    { id: "combobox", label: "Combobox", title: "Combobox", render: ComboboxDemo },
-    { id: "form", label: "Form", title: "Form", render: FormDemo },
-    { id: "toast", label: "Toast", title: "Toast", render: ToastDemo },
-    { id: "tooltip", label: "Tooltip", title: "Tooltip", render: TooltipDemo },
-    { id: "accordion", label: "Accordion", title: "Accordion", render: AccordionDemo },
     { id: "select", label: "Select", title: "Select", render: SelectDemo },
+    { id: "combobox", label: "Combobox", title: "Combobox", render: ComboboxDemo },
     { id: "menu", label: "Menu", title: "Menu", render: MenuDemo },
-    
+
+    { id: "settings-group", label: "SettingsGroup", title: "SettingsGroup", render: SettingsGroupDemo },
+    { id: "screen", label: "Screen", title: "Screen", render: ScreenDemo },
     { id: "list-detail", label: "ListDetail", title: "ListDetail", render: ListDetailDemo },
-    { id: "layout", label: "Layout", title: "Layout", render: LayoutDemo },
-    { id: "markup", label: "Markup", title: "Markup", render: MarkupDemo },
+
     { id: "checks", label: "Manual checks", title: "Manual checks", render: ChecksDemo }
 ];
 
-export const initialPlaygroundRoute = buttonsRoute;
+export const initialPlaygroundRoute = markupRoute;
 
 export const playgroundNavigationItems = createAppRouteNavigationItems(playgroundRoutes);
 
