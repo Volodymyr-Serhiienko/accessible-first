@@ -71,11 +71,18 @@ Completed:
 - Listbox accessible naming and speech/default audit
 - Menu component enhancement and composition APIs
 - Select component enhancement and composition APIs
+- Menu speech/default audit
+- Select speech/default audit
+- Combobox speech/default audit
 - Popover component enhancement and composition APIs
 - Popover speech/default audit
 - Combobox core behavior, enhancement API, composition API, styles, and playground demo
 - Tooltip enhancement and composition APIs
 - Toast viewport enhancement and composition APIs
+- Tooltip speech/default audit
+- Toast speech/default audit
+- Unified hint, tooltip, description, announcement, and toast model audit
+- Accordion speech/default audit
 - Checkbox component enhancement and composition APIs
 - Checkbox speech/default audit
 - Radio Group component enhancement and composition APIs
@@ -88,6 +95,7 @@ Completed:
 - FieldGroup speech/default audit
 - FormSection component and playground demo
 - FormSection speech/default audit
+- Form speech/default audit
 - DescriptionList component and playground demo
 - DescriptionList speech/default audit
 - Breadcrumbs component and playground demo
@@ -143,6 +151,11 @@ Completed:
 - App route location matching helper for native-link and multi-page current route detection
 - Shared programmatic focus helper and Screen focus targets for focus-route patterns
 - FocusRoute helper for repeated workflow focus movement in playground and future apps
+- ListDetail component and playground demo
+- ListDetail speech/default audit
+- Layout, markup, PageLayout, Screen, PageOutlet, and AppShell speech/default boundary audit
+- Manual checks playground section audit
+- Remaining user-facing default text inventory for localization
 - DocumentMetadata module and Page/AppShell metadata integration
 - Route-derived document metadata helpers and HashRouter metadata callbacks
 - App route diagnostics helper for route id, href, hierarchy, and metadata checks
@@ -158,13 +171,10 @@ Completed:
 
 In progress:
 
-- Unified hint, tooltip, description, announcement, and toast model
-- Component-by-component speech and description defaults audit
 - Playground as living documentation
 - Responsive playground refinement
 - Playground AppShell and PageOutlet refinement
 - Navigation patterns and responsive navigation
-- Image, logo, and brand composition helpers
 - Header actions such as theme, language, and user/profile controls
 - Component examples and manual checklists
 - Playground helper extraction review: keep demo-only glue in playground helpers and promote repeated application patterns into library helpers only when the pattern repeats
@@ -172,9 +182,7 @@ In progress:
 - Keyboard shortcut model guidance for more advanced application-wide shortcut maps
 - Shortcut patterns for desktop-first application workflows
 - Documentation alignment with current architecture
-- Localization/default text audit for generated labels and application-level preset components
-- Form composition layer
-- First app-building components such as EmptyState and InfoCard
+- Localization layer design and first implementation for user-facing service text
 - First reference application planning: accessible foreign-language learning app
 
 Next:
@@ -182,16 +190,16 @@ Next:
 - Application shell refinement for real single-page and multi-page apps
 - Route metadata model expansion for multi-page app patterns
 - Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
-- ListDetail screen pattern for real app list/detail workflows
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
 - Metadata expansion for social preview assets and richer SEO checks
-- Remaining panel-like component description/announcement review
+- LocaleController for explicit, saved, URL/app, system-language, and fallback locale resolution
+- Localizable default-text registry for user-facing component service labels
+- LanguageSelect or LanguageMenu header action component
+- Playground locale demo and gradual service-text migration
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
-- Icon, Image, and Logo composition review
-- Popover screen reader refinement after playground checks
 
 Planned components:
 
@@ -372,4 +380,5 @@ The system should provide:
 - theme and responsive design foundations;
 - diagnostics for development;
 - app health diagnostics and metadata helpers;
+- localization for user-facing component service text;
 - a playground for real-device testing and documentation.

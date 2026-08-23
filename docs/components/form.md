@@ -107,8 +107,9 @@ Form({
 - `focusFirstInvalid` - Moves focus to the first invalid field. Defaults to `true`.
 - `scrollFirstInvalid` - Scrolls the first invalid field into view. Defaults to `true`.
 - `announceValidation` - Announces invalid validation summaries. Defaults to `true`.
-- `announceSuccess` - Announces success after valid submit. Defaults to `false`.
-- `successMessage` - Success announcement message.
+- `announceSuccess` - Announces success after valid submit. Defaults to `false`. Provide `successMessage` when enabling this.
+- `successMessage` - Success announcement message. No framework-authored success text is announced when this is omitted.
+- `validationSummaryMessage` - Optional localized summary builder for invalid submit announcements. By default, the form announces the registered field messages without adding framework-authored prose.
 - `clearValidationOnReset` - Clears validation state on native reset. Defaults to `true`.
 - `focusFirstOnReset` - Moves focus to the first registered field after reset. Defaults to `true`.
 - `variant` - `"default"` or `"plain"`.
@@ -119,6 +120,12 @@ Form({
 - `onInvalidSubmit` - Called when submit validation fails.
 - `actionsOptions` - Common DOM options for the actions slot.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+## Speech And Validation
+
+`Form` owns aggregate validation announcements. Registered fields are validated with `announce: false`, so invalid submit does not produce both field-level live messages and a form summary.
+
+Use `validationSummaryMessage` when an application needs localized summary wording, a custom count, or a shorter message for long forms. Keep field error text visible and connected to the field itself.
 
 ## Field Contract
 
@@ -156,7 +163,7 @@ Useful hooks include `[data-af-composition="form"]`, `[data-af-form-body]`, `[da
 ## Manual Checks
 
 - Submit button triggers validation.
-- Invalid submit announces a useful summary.
+- Invalid submit announces a useful summary without duplicating each field live region.
 - Focus moves to the first invalid field.
 - Field error messages remain visible and connected to controls.
 - Valid submit calls the valid callback.

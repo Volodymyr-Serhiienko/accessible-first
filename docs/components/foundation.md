@@ -114,6 +114,14 @@ Future expandable components should consider this pattern when it helps users un
 
 The shared terminology is defined in [Hints And Announcements](../hints-and-announcements.md).
 
+## Localizable Text
+
+Components should avoid inventing application-specific copy. When a component needs service text such as close labels, region labels, command placeholders, or route-action prefixes, it should accept explicit options today and move fallback defaults behind the shared localization layer.
+
+Locale detection should prefer, in order: an explicit application setting, a saved user preference, URL or route context when the app owns it, `navigator.languages`, and finally a configured fallback locale. Do not use geographic location for UI language by default; it is privacy-sensitive, often permission-gated, and frequently does not match the user's preferred language.
+
+Developer-facing diagnostics text is separate from user-facing component text. It can remain English until a dedicated diagnostics localization pass. See [Localization](../localization.md) for the planned shared layer.
+
 ## Callback Shape
 
 Composition callbacks may receive the component instance when that makes state updates easier:

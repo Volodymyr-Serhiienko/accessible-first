@@ -105,6 +105,13 @@ export function createValidationAnnouncer(
         return label ? `${label}: ${message}` : message;
     }
 
+    function formatSummary(errors: readonly ValidationAnnouncement[]): string {
+        return errors
+            .map(formatError)
+            .filter(Boolean)
+            .join(" ");
+    }
+
     function announce(
         message: string,
         announceOptions: ValidationAnnounceOptions = {}
@@ -147,18 +154,17 @@ export function createValidationAnnouncer(
 
             const message =
                 options.summaryMessage?.(validErrors) ??
-                `There are ${validErrors.length} validation errors. ${validErrors
-                    .map(formatError)
-                    .join(" ")}`;
+                formatSummary(validErrors);
 
             announce(message);
         },
 
         announceSuccess(
-            message = options.successMessage ?? "All fields are valid.",
+            message?: string,
             announceOptions: ValidationAnnounceOptions = {}
         ): void {
-            announce(message, {
+            const nextMessage = message ?? options.successMessage ?? "";
+            announce(nextMessage, {
                 politeness: announceOptions.politeness ?? "polite"
             });
         },

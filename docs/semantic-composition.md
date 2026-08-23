@@ -134,6 +134,8 @@ Current primitives are intentionally small:
 
 Container is useful for header, navigation, main, footer, and app screen interiors that should align to the same readable width.
 
+Layout primitives should stay predictable and quiet. They create semantic or visual structure, but they should not add live-region announcements, hidden helper text, or extra Tab stops unless the primitive purpose requires it. Components and application flows own spoken feedback.
+
 Grid is a responsive flow helper, not a full CSS Grid DSL. If real pages need explicit placement, a future `Cell` or `GridCell` primitive can add row, column, span, or named area control.
 
 ## Tag Helpers
@@ -199,6 +201,8 @@ Document metadata belongs to the page-building layer because it describes the wh
 Use `metadata` on `createPage()` or `AppShell()` for the common baseline: title, language, description, viewport, theme color, and icons. Later SEO-specific fields should build on the same layer instead of being scattered through application files.
 
 ## Diagnostics
+
+Diagnostics are developer-facing checks. Console text can stay English until a separate diagnostics localization pass, while user-facing component text should move behind the shared localization layer.
 
 `page.inspect()` should help developers catch common structural issues:
 

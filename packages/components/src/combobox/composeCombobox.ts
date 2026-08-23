@@ -1,4 +1,5 @@
 import { createId } from "../../../core/src/id";
+import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -11,8 +12,8 @@ import {
     type CompositionContent,
     type ElementAttributes
 } from "../composition";
+import { createHoverAnnouncement } from "../foundation";
 import { createCombobox as createComboboxComponent } from "./createCombobox";
-import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
 import type {
     Combobox as ComboboxInstance,
     ComboboxActiveOptionChangeDetail as ComboboxInstanceActiveOptionChangeDetail,
@@ -41,6 +42,8 @@ export interface ComboboxCompositionItem {
     disabled?: boolean;
     optionOptions?: BaseCompositionOptions;
     textValue?: string;
+    announceOnHover?: boolean;
+    hoverAnnouncement?: string | null;
 }
 
 /**
@@ -51,6 +54,8 @@ export interface ComboboxCompositionItemUpdate {
     disabled?: boolean;
     optionOptions?: BaseCompositionOptions;
     textValue?: string | null;
+    announceOnHover?: boolean;
+    hoverAnnouncement?: string | null;
 }
 
 /**
@@ -128,6 +133,7 @@ export interface ComboboxCompositionOptions
     notFoundText?: string | null;
     notFoundOptions?: BaseCompositionOptions;
     announceNotFound?: boolean;
+    announceOnHover?: boolean;
     onOpenChange?: ComboboxCompositionOnOpenChange | null;
     onValueChange?: ComboboxCompositionOnValueChange | null;
     onActiveOptionChange?: ComboboxCompositionOnActiveOptionChange | null;
@@ -186,6 +192,8 @@ interface ComboboxItemNode {
     value: string;
     option: HTMLElement;
     labelContent: ReturnType<typeof createContentSlot>;
+    hoverAnnouncement: ReturnType<typeof createHoverAnnouncement>;
+    announceOnHover: boolean | undefined;
     disabled: boolean;
     textValue: string | null;
 }
@@ -235,7 +243,10 @@ function applyOptionOptions(
     option.setAttribute("data-af-combobox-option", "");
 }
 
-function createItemNodes(items: ComboboxCompositionItem[]): ComboboxItemNode[] {
+function createItemNodes(
+    items: ComboboxCompositionItem[],
+    rootAnnounceOnHover: boolean
+): ComboboxItemNode[] {
     const usedValues = new Set<string>();
 
     return items.map((item, index): ComboboxItemNode => {
@@ -253,6 +264,11 @@ function createItemNodes(items: ComboboxCompositionItem[]): ComboboxItemNode[] {
             value,
             option,
             labelContent: createContentSlot(option, toCompositionChildren(item.label)),
+            hoverAnnouncement: createHoverAnnouncement(option, {
+                message: item.hoverAnnouncement ?? undefined,
+                enabled: item.announceOnHover ?? rootAnnounceOnHover
+            }),
+            announceOnHover: item.announceOnHover,
             disabled: false,
             textValue: item.textValue ?? null,
         };
@@ -472,7 +488,8 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     notFound.textContent = getOptionalText(options.notFoundText);
     notFound.hidden = true;
 
-    let itemNodes = createItemNodes(options.items);
+    let announceOnHover = options.announceOnHover ?? true;
+    let itemNodes = createItemNodes(options.items, announceOnHover);
 
     for (const node of itemNodes) {
         listbox.append(node.option);
@@ -519,6 +536,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     function disposeItemNodes(nodes: ComboboxItemNode[]): void {
         for (const node of nodes) {
             node.labelContent.dispose();
+            node.hoverAnnouncement.destroy();
         }
     }
 
@@ -527,7 +545,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     function setItems(items: ComboboxCompositionItem[]): void {
         disposeItemNodes(itemNodes);
 
-        itemNodes = createItemNodes(items);
+        itemNodes = createItemNodes(items, announceOnHover);
         composedItems.splice(0, composedItems.length, ...itemNodes.map(createComposedItem));
         listbox.replaceChildren(...itemNodes.map((node) => node.option), notFound);
 
@@ -741,6 +759,14 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
                 announceNotFound = nextOptions.announceNotFound;
             }
 
+            if (nextOptions.announceOnHover !== undefined) {
+                announceOnHover = nextOptions.announceOnHover;
+
+                for (const node of itemNodes) {
+                    node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
+                }
+            }
+
             applyInputFormOptions(input, nextOptions);
 
             if ("label" in nextOptions) {
@@ -786,6 +812,15 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
 
                     if ("textValue" in nextItem) {
                         node.textValue = nextItem.textValue ?? null;
+                    }
+
+                    if ("hoverAnnouncement" in nextItem) {
+                        node.hoverAnnouncement.setMessage(nextItem.hoverAnnouncement ?? undefined);
+                    }
+
+                    if (nextItem.announceOnHover !== undefined) {
+                        node.announceOnHover = nextItem.announceOnHover;
+                        node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
                     }
                 });
             }

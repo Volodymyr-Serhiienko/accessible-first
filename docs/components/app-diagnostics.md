@@ -83,6 +83,8 @@ The logger prints one app-level summary and one line per source. The detailed so
 
 AppDiagnostics does not change UI behavior. It helps teams catch accessibility, semantics, route, and metadata problems while building.
 
+Diagnostics output is developer-facing console text. It should not be treated as user-facing application copy and does not need to participate in the first user-interface localization layer.
+
 For public applications, keep app diagnostics enabled in development and CI-like preview environments. In production, log only when a developer flag is enabled.
 
 ## Manual Checks

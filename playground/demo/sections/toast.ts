@@ -1,15 +1,4 @@
-import {
-    Button,
-    Grid,
-    H3,
-    P,
-    Panel,
-    Row,
-    Section,
-    Stack,
-    type ComposedNode,
-    type Toast
-} from "../af";
+import { Button, Grid, H3, P, Panel, Row, Section, Stack, type ComposedNode, type Toast } from "../af";
 import { notifications } from "../status";
 
 export function ToastDemo(): ComposedNode {

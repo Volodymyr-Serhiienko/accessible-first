@@ -87,7 +87,7 @@ const disclosure = createDisclosure(root, {
 - `descriptionId` - Custom id for the composed description.
 - `descriptionMode` - `"content"` or `"aria"`. Defaults to `"content"`.
 - `defaultOpen` - Opens the panel initially.
-- `open` - Controlled open state.
+- `open` - Initial open state for setup and runtime state for `update()`. Use `setOpen()`, `open()`, `close()`, or `toggle()` after creation.
 - `disabled` - Disables the trigger.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -101,7 +101,7 @@ const disclosure = createDisclosure(root, {
 
 `createDisclosure` does not invent announcement text by itself. Use `announcement` when enhancing existing HTML and the open event should be spoken.
 
-Use `announcement` for explicit event wording such as "Details opened." Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable.
+Use `announcement` for explicit event wording such as "Details opened." Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable. Use `announcement: false` when the visible description should stay visual-only.
 
 ```ts
 Disclosure({

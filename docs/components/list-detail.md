@@ -66,13 +66,21 @@ Use `FocusRoute` when the target appears after rendering or when the flow needs 
 
 When `detail` is empty and `empty` is provided, the detail area shows the empty state. This is useful for first-load screens where no item has been selected yet.
 
+## Speech And Localization
+
+`ListDetail` does not use a live region and does not announce selection changes by itself. Selection components, route helpers, toast/status feedback, or application code should decide when a selection needs a spoken confirmation.
+
+The list and detail areas are programmatic focus targets, not regular Tab stops. When application code moves focus to one of those areas, the area name should orient the user without forcing repeated descriptions while they continue through the controls inside the area.
+
+Prefer specific localized `listLabel` and `detailLabel` values in real applications. Generic fallback labels are temporary service text and should move behind the shared localization layer.
+
 ## Options
 
 - `list` - required list/sidebar content.
 - `detail` - selected item details.
 - `empty` - fallback content shown when `detail` is empty.
-- `listLabel` - accessible name for the list area. Defaults to `"Items"`.
-- `detailLabel` - accessible name for the detail area. Defaults to `"Details"`.
+- `listLabel` - accessible name for the list area. Prefer a specific localized label such as `"Projects"` or `"Lessons"`.
+- `detailLabel` - accessible name for the detail area. Prefer a specific localized label such as `"Project details"` or `"Lesson details"`.
 - `orientation` - `"auto"`, `"horizontal"`, or `"vertical"`. Defaults to `"auto"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - currently `"md"`.

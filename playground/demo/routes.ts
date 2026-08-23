@@ -83,15 +83,15 @@ export const playgroundRoutes: PlaygroundRoute[] = [
     { id: "screen", label: "Screen", title: "Screen", render: ScreenDemo },
     { id: "tabs", label: "Tabs", title: "Tabs", render: TabsDemo },
     { id: "listbox", label: "Listbox", title: "Listbox", render: ListboxDemo },
-
-    { id: "form", label: "Form", title: "Form", render: FormDemo },
-    { id: "tooltip", label: "Tooltip", title: "Tooltip", render: TooltipDemo },
-    { id: "toast", label: "Toast", title: "Toast", render: ToastDemo },
-    { id: "accordion", label: "Accordion", title: "Accordion", render: AccordionDemo },
-    { id: "list-detail", label: "ListDetail", title: "ListDetail", render: ListDetailDemo },
-    { id: "menu", label: "Menu", title: "Menu", render: MenuDemo },
-    { id: "select", label: "Select", title: "Select", render: SelectDemo },
     { id: "combobox", label: "Combobox", title: "Combobox", render: ComboboxDemo },
+    { id: "form", label: "Form", title: "Form", render: FormDemo },
+    { id: "toast", label: "Toast", title: "Toast", render: ToastDemo },
+    { id: "tooltip", label: "Tooltip", title: "Tooltip", render: TooltipDemo },
+    { id: "accordion", label: "Accordion", title: "Accordion", render: AccordionDemo },
+    { id: "select", label: "Select", title: "Select", render: SelectDemo },
+    { id: "menu", label: "Menu", title: "Menu", render: MenuDemo },
+    
+    { id: "list-detail", label: "ListDetail", title: "ListDetail", render: ListDetailDemo },
     { id: "layout", label: "Layout", title: "Layout", render: LayoutDemo },
     { id: "markup", label: "Markup", title: "Markup", render: MarkupDemo },
     { id: "checks", label: "Manual checks", title: "Manual checks", render: ChecksDemo }

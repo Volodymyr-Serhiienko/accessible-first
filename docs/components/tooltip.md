@@ -8,7 +8,7 @@ Use `Tooltip` for brief supporting text that helps identify or clarify a control
 
 For keyboard users, attach the tooltip to a focusable trigger such as `Button`, `Link`, or `IconButton`. A tooltip on plain text can still appear on mouse hover, but it will not be reached by Tab unless the trigger itself is focusable.
 
-Do not put interactive content, long instructions, or required information only inside a tooltip. If users must read or interact with the content, use visible text, `Disclosure`, `Popover`, or `Dialog` instead.
+Do not put interactive content, long instructions, or required information only inside a tooltip. If users must read or interact with the content, use visible text, `Disclosure`, `Popover`, or `Dialog` instead. On touch devices a visual tooltip may not appear, so essential information must also exist in visible text or programmatic descriptions.
 
 ## Quick Start
 
@@ -41,6 +41,7 @@ const tooltip = createTooltip(button, {
 - Keeps tooltip content non-interactive.
 - Supports `Escape` dismissal while the trigger remains hovered or focused.
 - Can politely announce the text on mouse hover when needed.
+- Touch and mobile screen reader users should not depend on the visual hover layer.
 - Restores original attributes on `destroy()`.
 
 ## Options
@@ -87,3 +88,4 @@ Tooltip({
 - `aria-describedby` is added only when description is useful.
 - Text is readable in light and dark themes.
 - Tooltip does not contain interactive content.
+- Mobile/touch flows remain understandable without relying on a visible hover tooltip.

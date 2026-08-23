@@ -72,7 +72,7 @@ Keyboard behavior:
 Root options:
 
 - `items` - Required list of menu item definitions.
-- `value` - Controlled current item value.
+- `value` - Current item value applied at creation or through `menu.update({ value })`.
 - `defaultValue` - Initially current item value.
 - `orientation` - `"vertical"` or `"horizontal"`. Creation-time option.
 - `loop` - Allows arrow navigation to wrap. Creation-time option.

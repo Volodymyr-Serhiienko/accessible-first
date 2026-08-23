@@ -99,8 +99,8 @@ Item options:
 - `headingLevel` - Overrides heading level for one item.
 - `disabled` - Disables one item.
 - `defaultOpen` - Opens one item initially.
-- `open` - Controlled open state.
-- `announcement` - Per-item announcement override. Prefer a short string for verbose panels.
+- `open` - Initial open state for enhancement/composition setup. Use item controllers or `accordion.update({ items: [{ open }] })` for runtime changes.
+- `announcement` - Per-item announcement override. Prefer a short string for verbose panels. Use `false` for intentionally quiet items.
 
 ## Description And Announcement
 

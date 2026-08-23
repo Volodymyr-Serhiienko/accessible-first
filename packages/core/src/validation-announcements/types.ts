@@ -31,7 +31,7 @@ export interface ValidationAnnouncerOptions extends AnnouncerOptions {
     politeness?: LiveRegionPoliteness;
     includeFieldLabel?: boolean;
     successMessage?: string;
-    summaryMessage?: (errors: readonly ValidationAnnouncement[]) => string;
+    summaryMessage?: (errors: readonly ValidationAnnouncement[]) => string | null | undefined;
 }
 
 /**

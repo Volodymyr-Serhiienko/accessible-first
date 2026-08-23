@@ -1,16 +1,4 @@
-import {
-    Button,
-    Form,
-    FormSection,
-    Grid,
-    H3,
-    P,
-    Panel,
-    Section,
-    Stack,
-    TextField,
-    type ComposedNode
-} from "../af";
+import { Button, Form, FormSection, Grid, H3, P, Panel, Section, Stack, TextField, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function FormDemo(): ComposedNode {

@@ -96,6 +96,13 @@ export interface FormCompositionSubmitDetail extends FormCompositionValidationDe
 }
 
 /**
+ * Builds a localized validation summary announcement for invalid form submits.
+ */
+export type FormCompositionValidationSummaryMessage = (
+    errors: readonly ValidationAnnouncement[]
+) => string | null | undefined;
+
+/**
  * Options accepted by ComposedForm.validate().
  */
 export interface FormCompositionValidateOptions {
@@ -166,6 +173,7 @@ export interface FormCompositionOptions extends BaseCompositionOptions {
     announceValidation?: boolean;
     announceSuccess?: boolean;
     successMessage?: string;
+    validationSummaryMessage?: FormCompositionValidationSummaryMessage | null;
     clearValidationOnReset?: boolean;
     focusFirstOnReset?: boolean;
     variant?: FormVariant;
@@ -310,6 +318,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     let announceValidation = options.announceValidation ?? true;
     let announceSuccess = options.announceSuccess ?? false;
     let successMessage = options.successMessage;
+    let validationSummaryMessage = options.validationSummaryMessage ?? null;
     let clearValidationOnReset = options.clearValidationOnReset ?? true;
     let focusFirstOnReset = options.focusFirstOnReset ?? true;
     let variant: FormVariant = options.variant ?? "default";
@@ -325,7 +334,9 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     let resetEventHandled = false;
 
     function getAnnouncer(): ValidationAnnouncer {
-        validationAnnouncer ??= createValidationAnnouncer();
+        validationAnnouncer ??= createValidationAnnouncer({
+            summaryMessage: (errors) => validationSummaryMessage?.(errors)
+        });
         return validationAnnouncer;
     }
 
@@ -647,6 +658,9 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
             if (nextOptions.announceValidation !== undefined) announceValidation = nextOptions.announceValidation;
             if (nextOptions.announceSuccess !== undefined) announceSuccess = nextOptions.announceSuccess;
             if (nextOptions.successMessage !== undefined) successMessage = nextOptions.successMessage;
+            if ("validationSummaryMessage" in nextOptions) {
+                validationSummaryMessage = nextOptions.validationSummaryMessage ?? null;
+            }
             if (nextOptions.clearValidationOnReset !== undefined) {
                 clearValidationOnReset = nextOptions.clearValidationOnReset;
             }

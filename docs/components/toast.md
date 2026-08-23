@@ -16,6 +16,7 @@ Persistent toasts that rely on a close button have the same limitation. Use them
 
 ```ts
 const notifications = ToastViewport({
+    label: "Notifications",
     placement: "bottom-end",
     limit: 4
 });
@@ -57,6 +58,7 @@ const notifications = createToastViewport(element, {
 - Adds visible notifications to a fixed viewport.
 - Does not move focus when a toast appears.
 - Announces messages through hidden live regions while keeping the visible toast card non-modal.
+- Re-announces repeated messages, so pressing the same control more than once can still produce audible feedback.
 - Defaults to persistent messages. Set `duration` when auto-dismiss is appropriate.
 - Provides a close button by default, but do not rely on that close button as the only accessible way to clear important UI.
 - Supports one optional action button as a limited convenience feature.
@@ -70,11 +72,11 @@ const notifications = createToastViewport(element, {
 Viewport options:
 
 - `placement` - `"top-start"`, `"top-end"`, `"bottom-start"`, or `"bottom-end"`.
-- `label` - Accessible label for the notification region.
+- `label` - Accessible label for the notification region. Provide this in the application language.
 - `limit` - Maximum visible toasts. `null` means no limit.
 - `duration` - Default auto-dismiss duration in milliseconds. `null` means persistent.
 - `dismissible` - Shows close buttons by default.
-- `closeLabel` - Accessible label for close buttons.
+- `closeLabel` - Accessible label for close buttons. Provide this in the application language when close buttons are enabled.
 - `pauseOnHover` - Pauses auto-dismiss while the mouse is over a toast.
 - `newestOnTop` - Inserts new toasts before older ones.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
@@ -114,10 +116,11 @@ Useful CSS custom properties:
 ## Manual Checks
 
 - Toast appears visually without moving focus.
-- Screen reader announces the message once.
+- Screen reader announces each shown message, including repeated messages.
 - Toasts that contain buttons are not required for the primary workflow.
 - Action buttons are avoided for required workflows.
 - If an action button is used anyway, the same action exists elsewhere in the page or in a dialog.
 - Persistent toasts remain until dismissed.
 - Timed toasts give enough time to read and pause on hover.
 - Toasts fit on small mobile screens.
+- Application-specific labels are localized instead of relying on framework fallback text.

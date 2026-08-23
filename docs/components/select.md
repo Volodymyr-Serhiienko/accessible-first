@@ -74,7 +74,7 @@ Root options:
 - `selectOptions` - Common DOM options for the native select element.
 - `placeholder` - Single-select placeholder shown when no initial value exists. Creation-time option.
 - `items` - Required list of option definitions.
-- `value` - Controlled value or values.
+- `value` - Selected value or values applied at creation or through `select.update({ value })`.
 - `defaultValue` - Initially selected value or values. Creation-time option.
 - `disabled` - Disables the select.
 - `required` - Marks the select as required.

@@ -46,7 +46,7 @@ Combobox({
 
 - Enhancement API: `createCombobox(input, listbox, options)`
 - Composition API: `Combobox(options)`
-- Reuses: core `createCombobox`, collection navigation, popover positioning, scroll utilities, component lifecycle, and optional live announcements
+- Reuses: core `createCombobox`, collection navigation, popover positioning, scroll utilities, component lifecycle, hover announcement helper, and optional live announcements
 
 ## Behavior
 
@@ -62,6 +62,7 @@ Combobox({
 - Closes on blur and outside pointer interaction.
 - Supports disabled options.
 - Can show and announce `notFoundText` when no options match the current input.
+- Announces option labels on mouse hover by default for screen reader setups that do not reliably announce custom popup options on pointer hover.
 - Positions the popup with the shared popover-position module.
 
 Keyboard behavior:
@@ -86,16 +87,17 @@ Root options:
 - `name` - Native form field name.
 - `required` - Marks the input as required.
 - `items` - Required list of option definitions.
-- `value` - Controlled selected value.
+- `value` - Selected value applied at creation or through `combobox.update({ value })`.
 - `defaultValue` - Initially selected value. Creation-time option.
-- `inputValue` - Controlled input text.
+- `inputValue` - Input text applied through creation or update.
 - `defaultInputValue` - Initial input text. Creation-time option.
 - `notFoundText` - Optional text shown and announced when no options match the typed input.
 - `notFoundOptions` - Common DOM options for the not-found message element.
 - `announceNotFound` - Announces `notFoundText` through a polite live region. Defaults to `true`.
+- `announceOnHover` - Announces option labels on mouse hover. Defaults to `true`.
 - `autocomplete` - `"list"` or `"none"`.
 - `disabled` - Disables the input and closes the popup.
-- `open` - Controlled open state.
+- `open` - Open state applied through creation or update.
 - `defaultOpen` - Opens initially. Creation-time option.
 - `openOnFocus` - Opens when input receives focus. Defaults to `true`; set to `false` for quieter fields.
 - `openOnInput` - Opens while typing. Defaults to `true`.
@@ -118,6 +120,8 @@ Item options:
 - `textValue` - Optional plain text used for filtering and the selected input value when the visual label contains richer content.
 - `disabled` - Disables one option.
 - `optionOptions` - Common DOM options for the option element.
+- `announceOnHover` - Per-option hover announcement override.
+- `hoverAnnouncement` - Custom hover announcement text for one option.
 
 ## Not Found State
 
@@ -134,6 +138,12 @@ Combobox({
 When `notFoundText` is provided and `closeOnEmpty` is not set, the popup stays open for empty result sets so the message can be shown.
 
 Set `announceNotFound: false` when the message should be visible only.
+
+## Speech And Hover Announcements
+
+Selection changes are exposed through combobox semantics and `aria-activedescendant`; use `onValueChange` when the application should also send a separate status or toast.
+
+`announceOnHover` is a pointer-hover compatibility helper. It politely announces option labels for screen reader setups that do not reliably speak custom popup options on mouse hover. Disable it with `announceOnHover: false` when an application does not need pointer-hover speech.
 
 ## Update Notes
 
@@ -201,6 +211,7 @@ Combobox({
 - `Escape` closes the popup.
 - Disabled options cannot be selected.
 - `notFoundText` appears and is announced when no result matches.
+- Mouse hover announces option labels when `announceOnHover` is enabled.
 - Focus remains on the input while navigating options.
 - Focus indicator is visible.
 - Popup stays within the viewport on small screens.

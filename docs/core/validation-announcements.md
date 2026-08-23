@@ -18,7 +18,7 @@ validation.announceError({
     message: "Email is required"
 });
 
-validation.announceSuccess();
+validation.announceSuccess("All fields are valid.");
 validation.destroy();
 ```
 
@@ -28,11 +28,12 @@ validation.destroy();
 
 * Announces individual field errors
 * Announces validation summaries
-* Announces success messages politely by default
+* Announces success messages politely when a success message is provided
 * Uses assertive announcements for errors by default
 * Can use an existing announcer or create its own
 * Does not own validation rules
 * Keeps validation feedback centralized
+* Allows localized summary and success messages
 
 ---
 

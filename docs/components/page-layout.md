@@ -46,4 +46,14 @@ page.footer(Footer());
 
 PageLayout is intentionally semantic-neutral. It should not create a second `main`, `header`, `nav`, or `footer`. Use it with `createPage()` instead of wrapping a full page inside another full page shell.
 
+PageLayout has no user-facing text, no live region, and no custom focus route. It only applies layout attributes and CSS variables, so screen-reader behavior remains owned by `createPage`, `PageOutlet`, `Screen`, and the components rendered inside the page.
+
 This separation keeps page semantics predictable while still giving developers a simple default layout for real applications.
+
+## Manual Checks
+
+- Header, navigation, main, and footer remain native landmarks from `createPage()`.
+- Contained regions align without creating horizontal overflow on small screens.
+- Sticky footer behavior keeps the footer at the viewport bottom only when content is short.
+- Borders and spacing do not clip visible focus rings.
+- Removing PageLayout or calling `destroy()` restores the page to component-owned semantics.

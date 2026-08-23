@@ -14,6 +14,7 @@ export type {
     FormCompositionUpdateOptions,
     FormCompositionValidateOptions,
     FormCompositionValidationDetail,
+    FormCompositionValidationSummaryMessage,
     FormFieldValidateOptions,
     FormFieldValidationResult,
     FormSize,

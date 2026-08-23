@@ -1,17 +1,4 @@
-import {
-    Button,
-    Grid,
-    H3,
-    Link,
-    P,
-    Panel,
-    Row,
-    Section,
-    Stack,
-    Tooltip,
-    type ComposedNode,
-    type ComposedTooltip
-} from "../af";
+import { Button, Grid, H3, Link, P, Panel, Row, Section, Stack, Tooltip, type ComposedNode, type ComposedTooltip } from "../af";
 import { announce } from "../status";
 
 export function TooltipDemo(): ComposedNode {
