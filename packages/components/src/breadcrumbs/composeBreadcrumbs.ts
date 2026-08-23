@@ -47,7 +47,14 @@ export interface BreadcrumbsItem {
  */
 export interface BreadcrumbsOptions extends BaseCompositionOptions {
     items: BreadcrumbsItem[];
-    label?: string;
+    /**
+     * Accessible navigation label. Defaults to "Breadcrumb" when omitted.
+     */
+    label?: string | null;
+    /**
+     * Id of visible text that labels the breadcrumb navigation.
+     */
+    labelledBy?: string | null;
     separator?: string;
     variant?: BreadcrumbsVariant;
     size?: BreadcrumbsSize;
@@ -78,6 +85,8 @@ export interface ComposedBreadcrumbs extends ComposedNode<HTMLElement> {
     readonly element: HTMLElement;
     readonly list: HTMLOListElement;
     readonly items: ComposedBreadcrumbsItem[];
+    setLabel(label: string | null): void;
+    setLabelledBy(labelledBy: string | null): void;
     setItems(items: BreadcrumbsItem[]): void;
     update(options: BreadcrumbsUpdateOptions): void;
     destroy(): void;
@@ -227,8 +236,7 @@ function createComposedItem(node: BreadcrumbsItemNode): ComposedBreadcrumbsItem 
  */
 export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
     const element = createElement("nav", getCompositionElementOptions(options, {
-        "data-af-composition": "breadcrumbs",
-        "aria-label": options.label ?? "Breadcrumb"
+        "data-af-composition": "breadcrumbs"
     }));
 
     const list = createElement("ol", getCompositionElementOptions(options.listOptions, {
@@ -241,17 +249,41 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
 
     let itemDefinitions = options.items;
     let separator = options.separator ?? "/";
-    let label = options.label ?? "Breadcrumb";
+    let label = options.label === undefined ? "Breadcrumb" : options.label;
+    let labelledBy = options.labelledBy ?? null;
     let variant: BreadcrumbsVariant = options.variant ?? "default";
     let size: BreadcrumbsSize = options.size ?? "md";
     let itemNodes: BreadcrumbsItemNode[] = [];
 
     function sync(): void {
         element.setAttribute("data-af-composition", "breadcrumbs");
-        element.setAttribute("aria-label", label);
+        const trimmedLabel = label?.trim() ?? "";
+        const trimmedLabelledBy = labelledBy?.trim() ?? "";
+
+        if (trimmedLabelledBy) {
+            element.removeAttribute("aria-label");
+            element.setAttribute("aria-labelledby", trimmedLabelledBy);
+        } else if (trimmedLabel) {
+            element.setAttribute("aria-label", trimmedLabel);
+            element.removeAttribute("aria-labelledby");
+        } else {
+            element.removeAttribute("aria-label");
+            element.removeAttribute("aria-labelledby");
+        }
+
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
         list.setAttribute("data-af-breadcrumbs-list", "");
+    }
+
+    function setLabel(nextLabel: string | null): void {
+        label = nextLabel;
+        sync();
+    }
+
+    function setLabelledBy(nextLabelledBy: string | null): void {
+        labelledBy = nextLabelledBy;
+        sync();
     }
 
     function disposeItems(): void {
@@ -292,6 +324,8 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         element,
         list,
         items: composedItems,
+        setLabel,
+        setLabelledBy,
         setItems,
 
         update(nextOptions): void {
@@ -302,7 +336,8 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
                 list.setAttribute("data-af-breadcrumbs-list", "");
             }
 
-            if (nextOptions.label !== undefined) label = nextOptions.label;
+            if ("label" in nextOptions) label = nextOptions.label ?? null;
+            if ("labelledBy" in nextOptions) labelledBy = nextOptions.labelledBy ?? null;
             if (nextOptions.separator !== undefined) separator = nextOptions.separator;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;

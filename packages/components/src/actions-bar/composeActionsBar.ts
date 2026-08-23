@@ -34,7 +34,14 @@ export type ActionsBarSize = "md";
  * Options for ActionsBar().
  */
 export interface ActionsBarOptions extends BaseCompositionOptions {
+    /**
+     * Accessible group label for related actions.
+     */
     label?: string | null;
+    /**
+     * Id of visible text that labels the related action group.
+     */
+    labelledBy?: string | null;
     primary?: ActionsBarCompositionContent | null;
     secondary?: ActionsBarCompositionContent | null;
     children?: ActionsBarCompositionContent;
@@ -58,6 +65,7 @@ export interface ComposedActionsBar extends ComposedNode<HTMLElement> {
     readonly primarySlot: HTMLElement;
     readonly secondarySlot: HTMLElement;
     setLabel(label: string | null): void;
+    setLabelledBy(labelledBy: string | null): void;
     setPrimary(content: ActionsBarCompositionContent | null): void;
     setSecondary(content: ActionsBarCompositionContent | null): void;
     update(options: ActionsBarUpdateOptions): void;
@@ -86,6 +94,7 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     }));
 
     let label = options.label ?? null;
+    let labelledBy = options.labelledBy ?? null;
     let align: ActionsBarAlign = options.align ?? "end";
     let variant: ActionsBarVariant = options.variant ?? "default";
     let size: ActionsBarSize = options.size ?? "md";
@@ -109,17 +118,31 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
         secondarySlot.hidden = !hasSecondary;
         primarySlot.hidden = !hasPrimary;
 
-        if (label && label.trim()) {
+        const trimmedLabel = label?.trim() ?? "";
+        const trimmedLabelledBy = labelledBy?.trim() ?? "";
+
+        if (trimmedLabelledBy) {
             element.setAttribute("role", "group");
-            element.setAttribute("aria-label", label);
+            element.removeAttribute("aria-label");
+            element.setAttribute("aria-labelledby", trimmedLabelledBy);
+        } else if (trimmedLabel) {
+            element.setAttribute("role", "group");
+            element.setAttribute("aria-label", trimmedLabel);
+            element.removeAttribute("aria-labelledby");
         } else {
             element.removeAttribute("role");
             element.removeAttribute("aria-label");
+            element.removeAttribute("aria-labelledby");
         }
     }
 
     function setLabel(nextLabel: string | null): void {
         label = nextLabel;
+        sync();
+    }
+
+    function setLabelledBy(nextLabelledBy: string | null): void {
+        labelledBy = nextLabelledBy;
         sync();
     }
 
@@ -142,6 +165,7 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
         primarySlot,
         secondarySlot,
         setLabel,
+        setLabelledBy,
         setPrimary,
         setSecondary,
 
@@ -159,6 +183,7 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
             }
 
             if ("label" in nextOptions) setLabel(nextOptions.label ?? null);
+            if ("labelledBy" in nextOptions) setLabelledBy(nextOptions.labelledBy ?? null);
 
             if ("primary" in nextOptions) {
                 setPrimary(nextOptions.primary ?? null);

@@ -25,6 +25,7 @@
     min-block-size: var(--af-target-size);
     display: inline-flex;
     align-items: center;
+    border-radius: var(--af-radius-sm);
     color: var(--af-color-muted);
     text-decoration: none;
 }

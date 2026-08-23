@@ -79,7 +79,9 @@ Completed:
 - DescriptionList component and playground demo
 - DescriptionList speech/default audit
 - Breadcrumbs component and playground demo
+- Breadcrumbs speech/default audit
 - ActionsBar component and playground demo
+- ActionsBar speech/default audit
 - Dialog and AlertDialog actions layout reuse ActionsBar
 - FormSection actions layout reuse ActionsBar
 - Shared control hint foundation and migration of Button, Link, and IconButton

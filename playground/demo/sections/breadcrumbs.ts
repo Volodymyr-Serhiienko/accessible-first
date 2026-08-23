@@ -44,10 +44,10 @@ export function BreadcrumbsDemo(): ComposedNode {
                 ),
                 Panel(
                     Stack(
-                        H3("Documentation path"),
+                        H3({ id: "breadcrumbs-docs-path-title", text: "Documentation path" }),
                         P("The current item is marked with aria-current by default."),
                         Breadcrumbs({
-                            label: "Documentation path",
+                            labelledBy: "breadcrumbs-docs-path-title",
                             items: [
                                 { label: "Docs", href: "#" },
                                 { label: "Components", href: "#components" },

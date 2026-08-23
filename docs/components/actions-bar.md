@@ -50,6 +50,15 @@ ActionsBar({
 });
 ```
 
+Labelled by visible text:
+
+```ts
+ActionsBar({
+    labelledBy: "profile-actions-heading",
+    primary: Button({ text: "Save", variant: "primary" })
+});
+```
+
 ## Layers
 
 - Composition API: `ActionsBar(options)`
@@ -58,17 +67,19 @@ ActionsBar({
 ## Behavior
 
 - Groups related actions visually.
-- Adds `role="group"` and `aria-label` when `label` is provided.
+- Adds `role="group"` with `aria-label` when `label` is provided, or with `aria-labelledby` when `labelledBy` is provided.
 - Keeps secondary and primary actions in separate slots.
 - Supports start, end, between, and stretch alignment.
 - Wraps actions on small screens.
 - Can be reused internally by components such as `Dialog` and `AlertDialog` for consistent action layout.
 - Does not add keyboard behavior because native controls own their interactions.
+- Does not use live regions or forced announcements; actions speak through their own button or link labels.
 - Exposes stable data attributes for styling.
 
 ## Options
 
 - `label` - Optional accessible group label.
+- `labelledBy` - Optional id of visible text that labels the action group. Prefer this when a nearby heading already names the group.
 - `primary` - Main action or actions.
 - `secondary` - Secondary action or actions.
 - `children` - Convenience content when separate slots are not needed.
@@ -109,6 +120,7 @@ ActionsBar({
 - Buttons or links remain reachable in logical order.
 - Visible order matches expected action priority.
 - Group label is useful when the actions need extra context.
+- `label` and `labelledBy` are not both needed; visible headings should usually use `labelledBy`.
 - Actions wrap cleanly on small screens.
 - Touch targets remain comfortable on mobile.
 - Text contrast is readable in light and dark themes.

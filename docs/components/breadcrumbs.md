@@ -35,6 +35,18 @@ Breadcrumbs({
 });
 ```
 
+Labelled by visible text:
+
+```ts
+Breadcrumbs({
+    labelledBy: "docs-path-heading",
+    items: [
+        { label: "Docs", href: "/docs" },
+        { label: "Components" }
+    ]
+});
+```
+
 Custom separator:
 
 ```ts
@@ -55,18 +67,21 @@ Breadcrumbs({
 ## Behavior
 
 - Creates a native navigation landmark with an accessible name.
+- Uses the default `label` only when no explicit `label` or `labelledBy` is provided; pass a localized label in real apps.
 - Renders an ordered list of breadcrumb items.
 - Uses links for items with `href`.
 - Marks the last item as `aria-current="page"` by default.
 - Allows explicit `current` values when the current item is not the last item.
 - Separators are hidden from assistive technologies.
 - Does not add keyboard behavior because native links already provide it.
+- Does not use live regions or forced announcements; breadcrumb changes should be announced by the route/page layer when needed.
 - Exposes stable data attributes for styling.
 
 ## Options
 
 - `items` - Required list of breadcrumb items.
-- `label` - Accessible navigation label. Defaults to `"Breadcrumb"`.
+- `label` - Accessible navigation label. Defaults to `"Breadcrumb"` when omitted. Set `null` only when another naming mechanism is supplied.
+- `labelledBy` - Optional id of visible text that labels the breadcrumb navigation. Prefer this when a nearby heading already names the path.
 - `separator` - Visible separator string between items. Defaults to `"/"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -121,6 +136,7 @@ Breadcrumbs({
 
 - Breadcrumbs are announced as navigation.
 - Navigation has a clear accessible name.
+- Localized apps pass `label` or use `labelledBy` instead of relying on the English default.
 - Items are read in page-path order.
 - Parent items are reachable links.
 - The current item is announced as current page.

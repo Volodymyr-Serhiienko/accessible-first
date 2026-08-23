@@ -33,10 +33,10 @@ export function ActionsBarDemo(): ComposedNode {
                 ),
                 Panel(
                     Stack(
-                        H3("Separated actions"),
+                        H3({ id: "actions-bar-separated-title", text: "Separated actions" }),
                         P("Use between alignment when destructive or secondary actions should stay apart."),
                         ActionsBar({
-                            label: "Account actions",
+                            labelledBy: "actions-bar-separated-title",
                             align: "between",
                             secondary: Button({
                                 text: "Reset",
