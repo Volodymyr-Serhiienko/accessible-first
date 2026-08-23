@@ -1,13 +1,4 @@
-import {
-    Button,
-    Dialog,
-    P,
-    Panel,
-    Section,
-    Stack,
-    type ComposedDialog,
-    type ComposedNode
-} from "../af";
+import { Button, Dialog, P, Panel, Section, Stack, type ComposedDialog, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function DialogDemo(): ComposedNode {

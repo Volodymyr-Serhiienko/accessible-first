@@ -28,7 +28,7 @@ A screen provides a predictable structure:
 
 - labelled root section;
 - title;
-- optional description;
+- optional visible description;
 - optional action area;
 - body content;
 - optional footer;
@@ -74,6 +74,12 @@ Available targets are `"screen"`, `"title"`, `"description"`, `"body"`, `"action
 
 These targets are not added to the regular Tab order. The framework focuses them programmatically, which keeps normal keyboard navigation clean while still allowing accessible route and workflow transitions.
 
+## Description Speech
+
+By default, `Screen` keeps `description` as visible content and does not connect it through `aria-describedby`. This avoids repeated screen description speech during route changes, because `PageOutlet`, route announcements, or focus routes should own screen-change feedback.
+
+Use `descriptionMode: "aria"` only when the screen root itself should carry the visible description as a programmatic description.
+
 ## Options
 
 - `title` - required screen title content.
@@ -81,6 +87,7 @@ These targets are not added to the regular Tab order. The framework focuses them
 - `children` - main body content.
 - `actions` - primary screen actions, usually shown near the title.
 - `footer` - low-priority footer content inside the screen.
+- `descriptionMode` - `"content"` or `"aria"`. Defaults to `"content"`, which keeps the description visible without forcing it through `aria-describedby`.
 - `headingLevel` - heading level for the title. Default is `2`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - size token. Currently `"md"`.
@@ -112,7 +119,9 @@ These targets are not added to the regular Tab order. The framework focuses them
 
 `Screen` renders a native `section` and connects it to its title with `aria-labelledby`.
 
-When a description is present, it is connected with `aria-describedby`. Keep descriptions short and useful. Long instructions usually belong in the body.
+Screen does not use live regions or forced announcements. Route changes, command-palette actions, and PageOutlet transitions should decide when screen changes are spoken.
+
+When a description is present, it remains visible content by default. Set `descriptionMode: "aria"` only when the screen root should be programmatically described by that text. Keep descriptions short and useful; long instructions usually belong in the body.
 
 The default heading level is `2`, which works well when the application header already contains the main `h1`. Use `headingLevel: 1` only when the screen is the primary document title.
 
@@ -154,7 +163,7 @@ Customize spacing and title size with CSS variables:
 
 - The screen has one clear title.
 - The title is announced as the screen label.
-- The description is short and useful when announced.
+- The description is short and useful. It is announced with the screen only when `descriptionMode: "aria"` and supported by the browser/screen reader pair.
 - Header actions wrap cleanly on small screens.
 - Body content does not create horizontal overflow.
 - Footer content remains secondary and does not hide primary actions.

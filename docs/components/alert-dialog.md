@@ -36,6 +36,7 @@ AlertDialog({
 - Requires a short `description`.
 - Connects the title with `aria-labelledby`.
 - Connects the description with `aria-describedby`.
+- Does not use live-region announcements; opening speech comes from focus, the alert dialog title, and the required programmatic description.
 - Moves focus inside the alert dialog on open.
 - Focuses the cancel action by default as the safer action.
 - Falls back to the confirm action if the cancel action is disabled.
@@ -51,8 +52,8 @@ AlertDialog({
 - `trigger` - Required trigger content.
 - `title` - Required visible alert dialog title.
 - `description` - Required short description connected with `aria-describedby`.
-- `confirmText` - Confirm button text. Defaults to `"Confirm"`.
-- `cancelText` - Cancel button text. Defaults to `"Cancel"`.
+- `confirmText` - Confirm button text. Provide localized text for application UI; a generic fallback is used when omitted.
+- `cancelText` - Cancel button text. Provide localized text for application UI; a generic fallback is used when omitted.
 - `confirmVariant` - Confirm button variant. Defaults to `"danger"`.
 - `cancelVariant` - Cancel button variant. Defaults to `"secondary"`.
 - `confirmSize` - Confirm button size token.

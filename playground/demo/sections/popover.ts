@@ -1,16 +1,4 @@
-import {
-    Button,
-    Grid,
-    H3,
-    P,
-    Panel,
-    Popover,
-    Row,
-    Section,
-    Stack,
-    type ComposedNode,
-    type ComposedPopover
-} from "../af";
+import { Button, Grid, H3, P, Panel, Popover, Row, Section, Stack, type ComposedNode, type ComposedPopover } from "../af";
 import { announce } from "../status";
 
 export function PopoverDemo(): ComposedNode {

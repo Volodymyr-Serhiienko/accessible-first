@@ -32,6 +32,11 @@ export type ScreenCompositionContent = CompositionContent;
 export type ScreenHeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
+ * Controls whether the visible Screen description is connected with aria-describedby.
+ */
+export type ScreenDescriptionMode = "content" | "aria";
+
+/**
  * Visual variant for Screen.
  */
 export type ScreenVariant = "default" | "plain";
@@ -66,6 +71,7 @@ export interface ScreenOptions extends BaseCompositionOptions {
     children?: ScreenCompositionContent | null;
     actions?: ScreenCompositionContent | null;
     footer?: ScreenCompositionContent | null;
+    descriptionMode?: ScreenDescriptionMode;
     headingLevel?: ScreenHeadingLevel;
     variant?: ScreenVariant;
     size?: ScreenSize;
@@ -186,6 +192,7 @@ export function Screen(options: ScreenOptions): ComposedScreen {
 
     let variant: ScreenVariant = options.variant ?? "default";
     let size: ScreenSize = options.size ?? "md";
+    let descriptionMode: ScreenDescriptionMode = options.descriptionMode ?? "content";
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: ScreenActionsAlign = options.actionsAlign ?? "end";
     let defaultFocusTarget: ScreenFocusTarget = options.defaultFocusTarget ?? "title";
@@ -228,7 +235,7 @@ export function Screen(options: ScreenOptions): ComposedScreen {
     ): boolean {
         return focusProgrammatically(getFocusTarget(target), focusOptions);
     }
-    
+
     function sync(): void {
         ensureId(title, "af-screen-title");
 
@@ -250,7 +257,10 @@ export function Screen(options: ScreenOptions): ComposedScreen {
         footer.hidden = !hasFooter;
 
         setAriaLabelledBy(element, title);
-        setAriaDescribedBy(element, description.hidden ? null : description);
+        setAriaDescribedBy(
+            element,
+            descriptionMode === "aria" && !description.hidden ? description : null
+        );
 
         actionsBar.update(getActionsBarStateOptions(actionsLabel, actionsAlign));
         actionsBar.element.setAttribute("data-af-screen-actions", "");
@@ -348,6 +358,7 @@ export function Screen(options: ScreenOptions): ComposedScreen {
             if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
             if ("footer" in nextOptions) setFooter(nextOptions.footer ?? null);
             if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
+            if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
             if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;

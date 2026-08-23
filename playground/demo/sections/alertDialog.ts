@@ -1,11 +1,4 @@
-import {
-    AlertDialog,
-    P,
-    Panel,
-    Section,
-    Stack,
-    type ComposedNode
-} from "../af";
+import { AlertDialog, P, Panel, Section, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function AlertDialogDemo(): ComposedNode {

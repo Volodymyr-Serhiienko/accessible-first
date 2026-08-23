@@ -1,6 +1,4 @@
-import { Badge, Button, Grid, InfoCard, P, Progress, Screen, Stack,
-    type ComposedNode
-} from "../af";
+import { Badge, Button, Grid, InfoCard, P, Progress, Screen, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function ScreenDemo(): ComposedNode {

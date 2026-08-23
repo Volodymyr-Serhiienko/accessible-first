@@ -73,7 +73,8 @@ const disclosure = createDisclosure(root, {
 - Supports disabled state.
 - Composition API can create a visible `description` inside the panel.
 - `descriptionMode` defaults to `"content"`, so the description is not read from the trigger before the panel opens.
-- When a composed description exists and no explicit `announcement` is provided, the description is announced when the panel opens.
+- Enhancement API stays quiet unless `announcement` is provided.
+- Composition API uses a visible `description` as a concise open announcement when no explicit `announcement` is provided.
 - Can optionally announce full panel text or a custom message when opened.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
@@ -97,6 +98,8 @@ const disclosure = createDisclosure(root, {
 ## Description And Announcement
 
 `description` is the preferred way to give a short visible hint for composed disclosures. By default it is shown inside the opened panel and announced only when the panel opens.
+
+`createDisclosure` does not invent announcement text by itself. Use `announcement` when enhancing existing HTML and the open event should be spoken.
 
 Use `announcement` for explicit event wording such as "Details opened." Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable.
 

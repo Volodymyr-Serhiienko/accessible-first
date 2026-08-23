@@ -4,6 +4,7 @@ export type {
     ComposedScreen,
     ScreenActionsAlign,
     ScreenCompositionContent,
+    ScreenDescriptionMode,
     ScreenFocusTarget,
     ScreenHeadingLevel,
     ScreenOptions,

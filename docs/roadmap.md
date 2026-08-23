@@ -43,6 +43,7 @@ Completed:
 - Link
 - Link speech/default audit
 - Disclosure
+- Disclosure speech/default audit
 - Playground foundation
 - Semantic Composition foundation
 - Component composition API for Button, Icon Button, Link, and Disclosure
@@ -60,13 +61,16 @@ Completed:
 - VisuallyHidden helper
 - Accordion component
 - Dialog component
+- Dialog speech/default audit
 - Alert Dialog component
+- AlertDialog speech/default audit
 - Tabs component
 - Hover announcement helper
 - Listbox component
 - Menu component enhancement and composition APIs
 - Select component enhancement and composition APIs
 - Popover component enhancement and composition APIs
+- Popover speech/default audit
 - Combobox core behavior, enhancement API, composition API, styles, and playground demo
 - Tooltip enhancement and composition APIs
 - Toast viewport enhancement and composition APIs
@@ -101,6 +105,7 @@ Completed:
 - OverflowScroller component for long inline navigation, tab, and toolbar patterns
 - Theme helpers and ThemeToggle component for reusable page/app theme switching
 - PageOutlet component for replacing active application screens inside stable page shells
+- PageOutlet screen-change announcement audit
 - PageLayout helper for sticky footer, contained regions, gutters, and page separators
 - HeaderBar component for brand, search, and header actions layout
 - HashRouter helper for lightweight PageOutlet-based screen switching
@@ -119,6 +124,7 @@ Completed:
 - AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
 - App route helpers for deriving navigation, search, breadcrumb items, and parent route trails from route metadata
 - Screen component for top-level application views
+- Screen speech/default audit
 - Playground main migrated to AppShell
 - RouteBreadcrumbs component for deriving breadcrumb UI from route metadata
 - Combobox and SearchBox setItems APIs for replacing dynamic result lists
@@ -160,6 +166,7 @@ In progress:
 - Keyboard shortcut model guidance for more advanced application-wide shortcut maps
 - Shortcut patterns for desktop-first application workflows
 - Documentation alignment with current architecture
+- Localization/default text audit for generated labels and application-level preset components
 - Form composition layer
 - First app-building components such as EmptyState and InfoCard
 - First reference application planning: accessible foreign-language learning app
@@ -173,7 +180,7 @@ Next:
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
 - Metadata expansion for social preview assets and richer SEO checks
-- Remaining Disclosure, Popover, Dialog, AlertDialog, Screen, and panel-like component description/announcement review
+- Remaining panel-like component description/announcement review
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

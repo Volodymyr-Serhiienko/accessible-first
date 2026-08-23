@@ -95,8 +95,15 @@ function getFirstHeading(element: HTMLElement): HTMLElement | null {
     return element.querySelector<HTMLElement>("h1, h2, h3, h4, h5, h6");
 }
 
-function getDefaultAnnouncement(context: PageOutletAnnouncementContext): string {
-    return context.title ?? context.documentTitle ?? "Content updated.";
+function normalizeAnnouncementText(value: string | null | undefined): string | null {
+    const text = value?.trim() ?? "";
+
+    return text.length > 0 ? text : null;
+}
+
+function getDefaultAnnouncement(context: PageOutletAnnouncementContext): string | null {
+    return normalizeAnnouncementText(context.title)
+        ?? normalizeAnnouncementText(context.documentTitle);
 }
 
 function resolveAnnouncement(
@@ -105,8 +112,11 @@ function resolveAnnouncement(
 ): string | null {
     if (announcement === false) return null;
     if (announcement === true) return getDefaultAnnouncement(context);
-    if (typeof announcement === "function") return announcement(context) ?? null;
-    return announcement;
+    if (typeof announcement === "function") {
+        return normalizeAnnouncementText(announcement(context));
+    }
+
+    return normalizeAnnouncementText(announcement);
 }
 
 /**

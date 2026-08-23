@@ -54,6 +54,7 @@ Dialog({
 - Default initial focus target is the first focusable element inside the dialog.
 - `initialFocusTarget` can move initial focus to `"title"`, `"description"`, or `"dialog"` for content-heavy cases.
 - `descriptionMode: "content"` keeps the description as visible content only.
+- Does not use live-region announcements; opening speech comes from focus, the dialog title, and the optional programmatic description.
 - Moves focus inside the dialog on open.
 - Keeps `Tab` and `Shift+Tab` inside the dialog while modal focus trapping is enabled.
 - Locks page scrolling behind modal dialogs by default.
@@ -74,7 +75,7 @@ Dialog({
 - `initialFocus` - Custom element or function for initial focus.
 - `children` - Main dialog content.
 - `actions` - Footer action content.
-- `closeText` - Text for the default close button.
+- `closeText` - Text for the default close button. Provide localized text for application UI.
 - `hideCloseButton` - Hides the default close button for specialized dialogs.
 - `open` - Controlled open state.
 - `defaultOpen` - Opens initially.

@@ -79,7 +79,8 @@ const popover = createPopover(content, {
 - Composition API can create a visible `description`.
 - Composition `descriptionMode: "content"` keeps the description visible only. This is the default.
 - Composition `descriptionMode: "aria"` links the visible description with `aria-describedby`.
-- When a composed description exists and no explicit `announcement` is provided, the description can be announced when the popover opens.
+- Enhancement API stays quiet unless `announcement` is provided.
+- Composition API uses a visible `description` as a concise open announcement when no explicit `announcement` is provided.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
 
@@ -136,6 +137,8 @@ Use `description` for visible helper text. By default it stays as content and ca
 Use `descriptionMode: "aria"` only when the popover container itself should be described by that text. This is useful for dialog-like popovers, but it can cause repeated speech in some screen reader and browser combinations if the same description is also announced on open.
 
 Use `announcement` when something should be read through a live region on open without moving focus into the popover, especially when the spoken message should be different from the visible description.
+
+`createPopover` does not invent announcement text by itself. Use `announcement` when enhancing existing HTML and the open event should be spoken.
 
 When a composed description exists and no explicit `announcement` is provided, the description is announced when the popover opens. Set `announcement: false` to keep the description visible and semantic without an open live-region message.
 
