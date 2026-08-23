@@ -65,8 +65,10 @@ Completed:
 - Alert Dialog component
 - AlertDialog speech/default audit
 - Tabs component
+- Tabs speech/default audit
 - Hover announcement helper
 - Listbox component
+- Listbox accessible naming and speech/default audit
 - Menu component enhancement and composition APIs
 - Select component enhancement and composition APIs
 - Popover component enhancement and composition APIs
@@ -75,9 +77,13 @@ Completed:
 - Tooltip enhancement and composition APIs
 - Toast viewport enhancement and composition APIs
 - Checkbox component enhancement and composition APIs
+- Checkbox speech/default audit
 - Radio Group component enhancement and composition APIs
+- RadioGroup speech/default audit
 - Switch component enhancement and composition APIs
+- Switch speech/default audit
 - TextField component enhancement and composition APIs
+- TextField speech/default audit
 - FieldGroup component and playground demo
 - FieldGroup speech/default audit
 - FormSection component and playground demo

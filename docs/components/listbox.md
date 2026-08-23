@@ -6,12 +6,13 @@ Listbox provides selectable option lists with keyboard navigation and optional t
 
 Use `Listbox` when users need to choose one or more options from a visible list.
 
-For collapsed native form selection, a future `Select` component will build on similar behavior.
+For collapsed native form selection, use `Select`. Use `Combobox` when typing should filter known options.
 
 ## Quick Start
 
 ```ts
 Listbox({
+    label: "Documentation sections",
     defaultValue: "documentation",
     items: [
         { value: "components", label: "Components" },
@@ -29,6 +30,7 @@ Multiple selection:
 
 ```ts
 Listbox({
+    label: "Testing targets",
     selectionMode: "multiple",
     defaultValue: ["keyboard", "mobile"],
     items: [
@@ -48,6 +50,7 @@ Listbox({
 ## Behavior
 
 - Adds `role="listbox"` to the root element.
+- Supports an accessible name through `label` or `labelledBy`; `labelledBy` wins when both are provided.
 - Adds `role="option"` to every option.
 - Keeps `aria-selected` synchronized with selection state.
 - Adds `aria-multiselectable="true"` for multiple-selection listboxes.
@@ -73,6 +76,8 @@ Keyboard behavior:
 Root options:
 
 - `items` - Required list of option definitions.
+- `label` - Optional accessible label for the listbox.
+- `labelledBy` - Optional id of visible text that labels the listbox. Takes priority over `label`.
 - `value` - Controlled selected value or values.
 - `defaultValue` - Initially selected value or values.
 - `orientation` - `"vertical"` or `"horizontal"`. Creation-time option.
@@ -97,14 +102,21 @@ Item options:
 - `announceOnHover` - Per-option hover announcement override.
 - `hoverAnnouncement` - Custom hover announcement text for one option.
 
+## Speech And Hover Announcements
+
+Selection changes are not announced through a listbox-owned live region. Option names, selected state, disabled state, and multiselect state are exposed through native ARIA listbox semantics and focus movement.
+
+`announceOnHover` is a pointer-hover compatibility helper. It politely announces option labels for screen reader setups that do not reliably speak option text on mouse hover. Disable it with `announceOnHover: false` when an application does not need pointer-hover speech.
+
 ## Update Notes
 
-`orientation`, `selectionMode`, `selectionFollowsFocus`, `loop`, `typeahead`, `typeaheadTimeout`, and `defaultValue` are creation-time options.
+`orientation`, `selectionMode`, `selectionFollowsFocus`, `loop`, `typeahead`, `typeaheadTimeout`, and `defaultValue` are creation-time options. Accessible naming, selection value, visual options, callbacks, and option content can be updated.
 
 Change selection through `value` or controller methods:
 
 ```ts
 const listbox = Listbox({
+    label: "Numbers",
     items: [
         { value: "one", label: "One" },
         { value: "two", label: "Two" }

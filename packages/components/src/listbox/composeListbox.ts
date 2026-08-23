@@ -272,6 +272,8 @@ function getListboxOptions(
     const selectedOptions = getDefaultSelectedOptions(options, itemNodes);
 
     if (selectedOptions.length > 0) listboxOptions.defaultSelectedOptions = selectedOptions;
+    if (options.label !== undefined) listboxOptions.label = options.label;
+    if (options.labelledBy !== undefined) listboxOptions.labelledBy = options.labelledBy;
     if (options.orientation !== undefined) listboxOptions.orientation = options.orientation;
     if (options.loop !== undefined) listboxOptions.loop = options.loop;
     if (options.selectionMode !== undefined) listboxOptions.selectionMode = options.selectionMode;
@@ -290,6 +292,8 @@ function getListboxUpdateOptions(
 ): ListboxInstanceUpdateOptions {
     const listboxOptions: ListboxInstanceUpdateOptions = {};
 
+    if ("label" in options) listboxOptions.label = options.label ?? null;
+    if ("labelledBy" in options) listboxOptions.labelledBy = options.labelledBy ?? null;
     if (options.variant !== undefined) listboxOptions.variant = options.variant;
     if (options.size !== undefined) listboxOptions.size = options.size;
     if (options.value !== undefined) {

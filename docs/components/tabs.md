@@ -63,6 +63,7 @@ Tabs({
 - Supports automatic or manual activation.
 - Skips disabled tabs.
 - Announces tab labels on mouse hover by default for screen reader setups that do not reliably announce `role="tab"` on pointer hover.
+- Does not use live-region announcements for tab changes; selected state and panel relationship are exposed through ARIA and focus.
 
 Keyboard behavior:
 
@@ -82,7 +83,7 @@ Root options:
 - `defaultValue` - Initially selected tab value.
 - `orientation` - `"horizontal"` or `"vertical"`. Creation-time option.
 - `activationMode` - `"automatic"` or `"manual"`. Creation-time option.
-- `loop` - Allows arrow navigation to wrap. Creation-time option.
+- `loop` - Allows arrow navigation to wrap.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
 - `announceOnHover` - Announces tab labels on mouse hover. Defaults to `true`.
@@ -101,9 +102,15 @@ Item options:
 - `announceOnHover` - Per-tab hover announcement override.
 - `hoverAnnouncement` - Custom hover announcement text for one tab.
 
+## Speech And Hover Announcements
+
+Tab changes are not announced through a live region. The selected tab, tablist, and active panel are exposed through `role="tab"`, `aria-selected`, `aria-controls`, and `aria-labelledby`, so keyboard and screen reader users receive state from the focused tab and panel relationship.
+
+`announceOnHover` is a pointer-hover compatibility helper. It politely announces tab labels for screen reader setups that do not reliably speak tab text on mouse hover. Disable it with `announceOnHover: false` when an application does not need pointer-hover speech.
+
 ## Update Notes
 
-`orientation`, `activationMode`, `loop`, and `defaultValue` are creation-time options.
+`orientation`, `activationMode`, and `defaultValue` are creation-time options. `loop` can be updated.
 
 Change the selected tab through `value` or controller methods:
 

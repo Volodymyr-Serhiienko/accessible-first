@@ -42,6 +42,8 @@ function getCoreListboxOptions(
 export function createListbox(element: HTMLElement, options: ListboxOptions): Listbox {
     const lifecycle = createComponentLifecycle(element, { name: "listbox" });
 
+    const originalAriaLabel = element.getAttribute("aria-label");
+    const originalAriaLabelledBy = element.getAttribute("aria-labelledby");
     const originalVariant = element.getAttribute("data-af-variant");
     const originalSize = element.getAttribute("data-af-size");
     const originalOrientation = element.getAttribute("data-af-orientation");
@@ -50,6 +52,8 @@ export function createListbox(element: HTMLElement, options: ListboxOptions): Li
     const orientation = options.orientation ?? "vertical";
     const selectionMode = options.selectionMode ?? "single";
 
+    let label = options.label;
+    let labelledBy = options.labelledBy;
     let variant: ListboxVariant = options.variant ?? "default";
     let size: ListboxSize = options.size ?? "md";
     let onSelectionChange = options.onSelectionChange ?? null;
@@ -60,7 +64,33 @@ export function createListbox(element: HTMLElement, options: ListboxOptions): Li
 
     const listbox = createListboxBehavior(element, coreOptions);
 
+    function syncAccessibleName(): void {
+        const labelledByText = labelledBy?.trim() ?? "";
+        const labelText = label?.trim() ?? "";
+
+        if (labelledByText) {
+            element.setAttribute("aria-labelledby", labelledByText);
+            element.removeAttribute("aria-label");
+            return;
+        }
+
+        if (labelText) {
+            element.setAttribute("aria-label", labelText);
+            element.removeAttribute("aria-labelledby");
+            return;
+        }
+
+        if (labelledBy !== undefined) {
+            element.removeAttribute("aria-labelledby");
+        }
+
+        if (label !== undefined) {
+            element.removeAttribute("aria-label");
+        }
+    }
+
     function syncAttributes(): void {
+        syncAccessibleName();
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
         element.setAttribute("data-af-orientation", orientation);
@@ -70,6 +100,8 @@ export function createListbox(element: HTMLElement, options: ListboxOptions): Li
     syncAttributes();
 
     lifecycle.addCleanup(() => {
+        restoreAttribute(element, "aria-label", originalAriaLabel);
+        restoreAttribute(element, "aria-labelledby", originalAriaLabelledBy);
         restoreAttribute(element, "data-af-variant", originalVariant);
         restoreAttribute(element, "data-af-size", originalSize);
         restoreAttribute(element, "data-af-orientation", originalOrientation);
@@ -98,6 +130,8 @@ export function createListbox(element: HTMLElement, options: ListboxOptions): Li
                 onSelectionChange = nextOptions.onSelectionChange ?? null;
             }
 
+            if ("label" in nextOptions) label = nextOptions.label ?? null;
+            if ("labelledBy" in nextOptions) labelledBy = nextOptions.labelledBy ?? null;
             if (nextOptions.getOptions !== undefined) coreOptions.getOptions = nextOptions.getOptions;
             if (nextOptions.getOptionText !== undefined) coreOptions.getOptionText = nextOptions.getOptionText;
             if (nextOptions.isOptionDisabled !== undefined) coreOptions.isOptionDisabled = nextOptions.isOptionDisabled;

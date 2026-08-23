@@ -1,13 +1,4 @@
-import {
-    Grid,
-    H3,
-    Listbox,
-    P,
-    Panel,
-    Section,
-    Stack,
-    type ComposedNode
-} from "../af";
+import { Grid, H3, Listbox, P, Panel, Section, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function ListboxDemo(): ComposedNode {
@@ -22,6 +13,7 @@ export function ListboxDemo(): ComposedNode {
                         H3("Single selection"),
                         P("Arrow keys move through options. Typeahead is enabled by default."),
                         Listbox({
+                            label: "Single selection list",
                             defaultValue: "documentation",
                             items: [
                                 { value: "components", label: "Components" },
@@ -40,6 +32,7 @@ export function ListboxDemo(): ComposedNode {
                         H3("Multiple selection"),
                         P("Use Enter or Space to toggle focused options."),
                         Listbox({
+                            label: "Multiple selection list",
                             selectionMode: "multiple",
                             defaultValue: ["keyboard", "screen-reader"],
                             items: [

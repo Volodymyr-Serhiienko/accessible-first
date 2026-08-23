@@ -47,6 +47,8 @@ export type ListboxOnSelectionChange = (selectedOptions: HTMLElement[]) => void;
  */
 export interface ListboxOptions extends Omit<CoreListboxOptions, "onSelectionChange"> {
     selectedOptions?: HTMLElement[];
+    label?: string | null;
+    labelledBy?: string | null;
     variant?: ListboxVariant;
     size?: ListboxSize;
     onSelectionChange?: ListboxOnSelectionChange | null;

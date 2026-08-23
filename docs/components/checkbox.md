@@ -77,6 +77,7 @@ const checkbox = createCheckbox(existingInput, {
 - Uses the native checkbox input for role, keyboard support, form submission, and mobile reliability.
 - Connects the composed visible label through a native `<label for="...">`.
 - Connects optional description and error slots through form-field semantics.
+- Does not use live-region announcements; label, description, state, required, invalid, and error speech come from native form-field focus semantics.
 - Supports `checked`, `defaultChecked`, and `"mixed"` checked state.
 - Maps `"mixed"` to the native `indeterminate` state.
 - Emits normalized change details after user interaction.
@@ -108,6 +109,14 @@ Root options:
 - `descriptionOptions` - Common DOM options for the description slot.
 - `errorOptions` - Common DOM options for the error slot.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+## Description And Error Speech
+
+`description` is programmatically connected to the native checkbox by default. This is intentional for form controls: when focus lands on the input, screen readers should have the label, state, required/invalid state, and short field-specific help in one place.
+
+`errorMessage` is connected only while `invalid` is active. Use form-level or toast announcements only for summaries or workflow feedback; do not repeat the same detailed field error through a live region when focus moves to the invalid checkbox.
+
+On touch screen readers, the label may also be discoverable as a large tap target. The native input remains the keyboard tab stop, and label activation toggles the same checkbox.
 
 ## Update Notes
 

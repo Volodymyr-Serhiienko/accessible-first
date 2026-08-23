@@ -83,6 +83,7 @@ const radioGroup = createRadioGroup(existingFieldset, {
 - Uses native radio inputs for role, keyboard support, form submission, validation, and mobile reliability.
 - Uses a composed `<fieldset>` and `<legend>` for the group label.
 - Connects optional group description and error message.
+- Does not use live-region announcements; group label, group description, option labels, option descriptions, required, invalid, and error speech come from native form-field focus semantics.
 - Connects optional per-option descriptions.
 - Keeps all radios in one generated or provided `name` group.
 - Supports `value`, `defaultValue`, disabled, required, invalid, orientation, variant, and size.
@@ -127,6 +128,16 @@ Item options:
 - `inputOptions` - Common DOM options for the native radio input.
 - `labelOptions` - Common DOM options for the option label.
 - `descriptionOptions` - Common DOM options for the option description.
+
+## Description And Error Speech
+
+`description` is programmatically connected to the composed `fieldset` by default. This gives the radio group a shared context when assistive technology enters the group.
+
+Item `description` is connected to that item's native radio input. Keep item descriptions short, because they may be spoken while users move between radio options.
+
+`errorMessage` is connected only while `invalid` is active. Use form-level or toast announcements only for summaries or workflow feedback; do not repeat the same detailed group error through a live region when focus moves to the radio group.
+
+On touch screen readers, labels may also be discoverable as large tap targets. The native radio inputs remain the keyboard focus targets, and label activation selects the same option.
 
 ## Update Notes
 

@@ -54,6 +54,7 @@ const switchControl = createSwitch(existingInput, {
 - Adds `role="switch"` and synchronized `aria-checked`.
 - Connects the composed visible label through a native `<label for="...">`.
 - Connects optional description and error slots through form-field semantics.
+- Does not use live-region announcements; label, switch role, state, required, invalid, and error speech come from native form-field focus semantics.
 - Supports checked/defaultChecked, disabled, required, invalid, name, and value.
 - Emits normalized checked-change details after user interaction.
 - Exposes stable data attributes for styling.
@@ -81,6 +82,14 @@ Native keyboard behavior is used: `Tab` reaches the switch and `Space` toggles i
 - `descriptionOptions` - Common DOM options for the description slot.
 - `errorOptions` - Common DOM options for the error slot.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
+
+## Description And Error Speech
+
+`description` is programmatically connected to the native switch by default. This is intentional for form controls: when focus lands on the input, screen readers should have the label, role, state, required/invalid state, and short field-specific help in one place.
+
+`errorMessage` is connected only while `invalid` is active. Use form-level or toast announcements only for summaries or workflow feedback; do not repeat the same detailed field error through a live region when focus moves to the invalid switch.
+
+On touch screen readers, the label may also be discoverable as a large tap target. The native input remains the keyboard tab stop, and label activation toggles the same switch.
 
 ## Update Notes
 
