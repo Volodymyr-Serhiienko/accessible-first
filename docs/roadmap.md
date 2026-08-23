@@ -77,6 +77,7 @@ Completed:
 - FieldGroup component and playground demo
 - FormSection component and playground demo
 - DescriptionList component and playground demo
+- DescriptionList speech/default audit
 - Breadcrumbs component and playground demo
 - ActionsBar component and playground demo
 - Dialog and AlertDialog actions layout reuse ActionsBar
@@ -102,7 +103,9 @@ Completed:
 - SearchBox component built on Combobox for local result search
 - Playground SearchBox over registered demo screens and component keywords
 - EmptyState component and playground demo
+- EmptyState speech/default audit
 - InfoCard component and playground demo
+- InfoCard speech/default audit
 - Badge component for status, category, and metadata labels
 - Badge speech/default audit
 - Progress component for determinate and indeterminate task progress

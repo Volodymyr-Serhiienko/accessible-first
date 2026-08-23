@@ -73,8 +73,10 @@ EmptyState({
 - Renders a semantic visual state block with a required heading.
 - Supports optional media, description, and actions.
 - Uses a native heading level selected by `headingLevel`.
+- Treats media as decorative by default through `mediaHidden: true`, so icons do not create extra screen reader noise.
 - Keeps actions in a consistent grouped layout through `ActionsBar`.
 - Does not announce itself automatically. Use `PageOutlet`, route announcements, inline status, or a live region when a dynamic state change must be spoken.
+- Keeps `description` as normal visible content; it is read when the user reaches the block naturally, not forced through a live region.
 - Does not create a landmark by default. Add `role`, `aria-label`, or `aria-labelledby` through common composition options only when the block needs region semantics.
 - Exposes stable data attributes for styling.
 
@@ -82,7 +84,8 @@ EmptyState({
 
 - `title` - Required title content.
 - `description` - Optional explanatory content.
-- `media` - Optional decorative or meaningful media content. Decorative icons should stay hidden from assistive technologies.
+- `media` - Optional media content. Decorative icons are hidden from assistive technologies by default.
+- `mediaHidden` - Whether the media slot is decorative and hidden from assistive technologies. Defaults to `true`; set to `false` for meaningful `Image` content with useful `alt` text.
 - `actions` - Optional action content, usually one or more buttons or links.
 - `headingLevel` - Heading level from `2` to `6`. Defaults to `2`.
 - `align` - `"center"` or `"start"`. Defaults to `"center"`.
@@ -134,6 +137,7 @@ The default styles use CSS custom properties such as `--af-empty-state-max-width
 - Empty states are not used for blocking decisions.
 - Actions are reachable by keyboard and have clear names.
 - Icons that are decorative are hidden from assistive technologies.
+- Meaningful media uses `mediaHidden: false` and has an accessible name, such as informative image `alt` text.
 - The block remains readable in light and dark themes.
 - Layout remains comfortable on small screens.
 

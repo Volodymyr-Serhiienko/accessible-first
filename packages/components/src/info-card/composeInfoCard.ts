@@ -39,7 +39,7 @@ export type InfoCardOrientation = "vertical" | "horizontal";
 
 /**
  * Visual variant for InfoCard.
-*/
+ */
 export type InfoCardVariant = "default" | "plain";
 
 /**
@@ -59,6 +59,11 @@ export interface InfoCardOptions extends BaseCompositionOptions {
     title: InfoCardCompositionContent;
     description?: InfoCardCompositionContent | null;
     media?: InfoCardCompositionContent | null;
+    /**
+     * Whether the media slot is decorative and hidden from assistive technologies.
+     * Defaults to false because card media is often meaningful.
+     */
+    mediaHidden?: boolean;
     meta?: InfoCardCompositionContent | null;
     children?: InfoCardCompositionContent | null;
     actions?: InfoCardCompositionContent | null;
@@ -142,6 +147,18 @@ function getInitialActionsBarOptions(
     return actionsBarOptions;
 }
 
+function getMediaAttributes(mediaHidden: boolean): Record<string, string> {
+    const attributes: Record<string, string> = {
+        "data-af-info-card-media": ""
+    };
+
+    if (mediaHidden) {
+        attributes["aria-hidden"] = "true";
+    }
+
+    return attributes;
+}
+
 /**
  * Creates a structured card for one meaningful item, summary, or app entry.
  */
@@ -150,9 +167,10 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
         "data-af-composition": "info-card"
     }));
 
-    const media = createElement("div", getCompositionElementOptions(options.mediaOptions, {
-        "data-af-info-card-media": ""
-    }));
+    const media = createElement("div", getCompositionElementOptions(
+        options.mediaOptions,
+        getMediaAttributes(options.mediaHidden ?? false)
+    ));
 
     const content = createElement("div", {
         attributes: {
@@ -179,6 +197,7 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
     let orientation: InfoCardOrientation = options.orientation ?? "vertical";
     let variant: InfoCardVariant = options.variant ?? "default";
     let size: InfoCardSize = options.size ?? "md";
+    let mediaHidden = options.mediaHidden ?? false;
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: InfoCardActionsAlign = options.actionsAlign ?? "start";
 
@@ -215,6 +234,12 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
         element.setAttribute("data-af-has-media", String(hasMedia));
 
         media.setAttribute("data-af-info-card-media", "");
+        if (mediaHidden) {
+            media.setAttribute("aria-hidden", "true");
+        } else {
+            media.removeAttribute("aria-hidden");
+        }
+
         content.setAttribute("data-af-info-card-content", "");
         meta.setAttribute("data-af-info-card-meta", "");
         title.setAttribute("data-af-info-card-title", "");
@@ -309,6 +334,7 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
             if ("meta" in nextOptions) setMeta(nextOptions.meta ?? null);
             if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
             if ("media" in nextOptions) setMedia(nextOptions.media ?? null);
+            if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? false;
             if ("children" in nextOptions) setBody(nextOptions.children ?? null);
             if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
             if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;

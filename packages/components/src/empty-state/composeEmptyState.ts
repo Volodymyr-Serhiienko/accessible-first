@@ -54,6 +54,11 @@ export interface EmptyStateOptions extends BaseCompositionOptions {
     title: EmptyStateCompositionContent;
     description?: EmptyStateCompositionContent | null;
     media?: EmptyStateCompositionContent | null;
+    /**
+     * Whether the media slot is decorative and hidden from assistive technologies.
+     * Defaults to true. Set to false for meaningful images or media.
+     */
+    mediaHidden?: boolean;
     actions?: EmptyStateCompositionContent | null;
     headingLevel?: EmptyStateHeadingLevel;
     align?: EmptyStateAlign;
@@ -133,6 +138,18 @@ function getInitialActionsBarOptions(
     return actionsBarOptions;
 }
 
+function getMediaAttributes(mediaHidden: boolean): Record<string, string> {
+    const attributes: Record<string, string> = {
+        "data-af-empty-state-media": ""
+    };
+
+    if (mediaHidden) {
+        attributes["aria-hidden"] = "true";
+    }
+
+    return attributes;
+}
+
 /**
  * Creates an accessible empty/no-results/error state block.
  */
@@ -143,10 +160,10 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
         "data-af-composition": "empty-state"
     }));
 
-    const media = createElement("div", getCompositionElementOptions(options.mediaOptions, {
-        "data-af-empty-state-media": "",
-        "aria-hidden": "true"
-    }));
+    const media = createElement("div", getCompositionElementOptions(
+        options.mediaOptions,
+        getMediaAttributes(options.mediaHidden ?? true)
+    ));
 
     const title = createElement(getHeadingTag(headingLevel), getCompositionElementOptions(options.titleOptions, {
         "data-af-empty-state-title": ""
@@ -159,6 +176,7 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
     let align: EmptyStateAlign = options.align ?? "center";
     let variant: EmptyStateVariant = options.variant ?? "default";
     let size: EmptyStateSize = options.size ?? "md";
+    let mediaHidden = options.mediaHidden ?? true;
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: EmptyStateActionsAlign = options.actionsAlign ?? "start";
     let mediaContent: EmptyStateSlotContent = normalizeSlotContent(options.media);
@@ -186,6 +204,12 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
         element.setAttribute("data-af-size", size);
 
         media.setAttribute("data-af-empty-state-media", "");
+        if (mediaHidden) {
+            media.setAttribute("aria-hidden", "true");
+        } else {
+            media.removeAttribute("aria-hidden");
+        }
+
         title.setAttribute("data-af-empty-state-title", "");
         description.setAttribute("data-af-empty-state-description", "");
         actionsBar.element.setAttribute("data-af-empty-state-actions", "");
@@ -275,6 +299,7 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
             if ("title" in nextOptions) setTitle(nextOptions.title);
             if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
             if ("media" in nextOptions) setMedia(nextOptions.media ?? null);
+            if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? true;
             if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
             if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
             if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;

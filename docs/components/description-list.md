@@ -61,8 +61,10 @@ DescriptionList({
 
 - Renders a native description list.
 - Keeps each item as a term and details pair.
+- Relies on native `<dl>`, `<dt>`, and `<dd>` semantics instead of extra ARIA roles.
 - Supports stacked and inline visual layouts.
 - Does not add keyboard behavior because the list is static semantic content.
+- Does not use live regions or forced announcements; screen readers encounter the terms and details through normal reading/navigation.
 - Exposes stable data attributes for styling.
 
 ## Options
@@ -118,6 +120,7 @@ DescriptionList({
 
 - Screen readers expose the content as a description list or understandable term/details content.
 - Term and details order is logical.
+- No duplicate description or live-region announcement is produced.
 - Inline layout wraps cleanly on small screens.
 - Links or other interactive content inside details remain reachable and named.
 - Text contrast is readable in light and dark themes.

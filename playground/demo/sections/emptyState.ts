@@ -1,15 +1,4 @@
-import {
-    Button,
-    EmptyState,
-    Grid,
-    H3,
-    Icon,
-    P,
-    Panel,
-    Section,
-    Stack,
-    type ComposedNode
-} from "../af";
+import { Button, EmptyState, Grid, H3, Icon, P, Panel, Section, Stack, type ComposedNode } from "../af";
 import { demoIconPaths } from "../icons";
 import { announce } from "../status";
 

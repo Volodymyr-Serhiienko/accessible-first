@@ -78,9 +78,11 @@ InfoCard({
 - Uses `article` by default for self-contained content.
 - Supports optional media, meta, description, body, and actions.
 - Uses a native heading level selected by `headingLevel`.
+- InfoCard does not hide media by default because card images and previews are often meaningful.
 - Keeps actions grouped through `ActionsBar`.
 - Does not make the entire card clickable by default. Put links or buttons in the title, body, or actions instead.
 - Does not create automatic announcements. Use `PageOutlet`, live regions, or inline status when dynamic changes must be spoken.
+- Keeps `description`, `meta`, and body content as normal visible content instead of forcing them through a live region.
 - Exposes stable data attributes for styling.
 
 ## Options
@@ -88,6 +90,7 @@ InfoCard({
 - `title` - Required card title content.
 - `description` - Optional explanatory content.
 - `media` - Optional image, icon, logo, or visual preview content.
+- `mediaHidden` - Whether the whole media slot is decorative and hidden from assistive technologies. Defaults to `false`; set to `true` for decorative media wrappers, or use decorative `Icon`/`Image` content inside the slot.
 - `meta` - Optional short metadata content shown before the title.
 - `children` - Optional main body content.
 - `actions` - Optional action content, usually buttons or links.
@@ -143,6 +146,6 @@ The default styles use CSS custom properties such as `--af-info-card-padding`, `
 - Heading levels match the surrounding page structure.
 - Interactive actions are reachable by keyboard in a logical order.
 - The whole card is not made clickable when it contains other interactive controls.
-- Decorative media is hidden from assistive technologies.
+- Decorative media is hidden from assistive technologies, either by the media content itself or with `mediaHidden: true`.
 - Text contrast is readable in light and dark themes.
 - Horizontal layout collapses cleanly on small screens.
