@@ -2,6 +2,7 @@ import {
     Brand,
     HeaderBar,
     Image,
+    LanguageSelect,
     ThemeToggle,
     type ComposedNode,
     type CompositionChild
@@ -34,6 +35,17 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
         content: options.content ?? null,
         actions: [
             ...(options.actions ?? []),
+            LanguageSelect({
+                locale: playgroundLocale,
+                labelOptions: {
+                    attributes: {
+                        "data-af-composition": "visually-hidden"
+                    }
+                },
+                onLocaleChange() {
+                    window.location.reload();
+                }
+            }),
             ThemeToggle({
                 locale: playgroundLocale,
                 variant: "secondary"

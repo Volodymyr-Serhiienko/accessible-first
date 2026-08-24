@@ -140,6 +140,9 @@ export function RouteSearchBox<
         onSelect: handleSelect
     });
 
+    const setSearchBoxItems = searchBox.setItems.bind(searchBox);
+    const updateSearchBox = searchBox.update.bind(searchBox);
+
     setRouteSearchBoxAttribute(searchBox);
 
     composed = Object.assign(searchBox, {
@@ -153,7 +156,7 @@ export function RouteSearchBox<
 
         setRoutes(nextRoutes: readonly TRoute[]): void {
             routes = nextRoutes;
-            searchBox.setItems(getItems());
+            setSearchBoxItems(getItems());
             setRouteSearchBoxAttribute(searchBox);
         },
 
@@ -171,10 +174,10 @@ export function RouteSearchBox<
             if ("onRouteSelect" in nextOptions) onRouteSelect = nextOnRouteSelect ?? null;
 
             if (nextRoutes !== undefined || "searchItemsOptions" in nextOptions) {
-                searchBox.setItems(getItems());
+                setSearchBoxItems(getItems());
             }
 
-            searchBox.update(getSearchBoxUpdateOptions(nextOptions));
+            updateSearchBox(getSearchBoxUpdateOptions(nextOptions));
             setRouteSearchBoxAttribute(searchBox);
         }
     }) as ComposedRouteSearchBox<TRoute>;

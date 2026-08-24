@@ -119,7 +119,8 @@ The first migration covers these framework-owned fallbacks:
 - `Breadcrumbs`: default navigation label.
 - `CommandPalette`: title, description, search label, placeholder, empty result text, and internal dialog close fallback.
 - `Dialog`: close button text in composition and behavior fallback accessible names.
-- `IconButton`: missing accessible-name fallback.
+- IconButton: missing accessible-name fallback.
+- LanguageSelect: default language picker label.
 - `ListDetail`: list/detail region labels.
 - `OverflowScroller`: previous/next control labels.
 - `Page`: skip-link text and default navigation label.
@@ -129,4 +130,4 @@ The first migration covers these framework-owned fallbacks:
 - `ThemeToggle`: toggle labels and default change announcements.
 - `ToastViewport`: region label, close/dismiss labels, and fallback notification text.
 
-Next localization work should add a reusable `LanguageSelect` or `LanguageMenu` header action and a playground demo that switches service text at runtime.
+Next localization work should add a richer `LanguageMenu` or action-overflow pattern if native select is not enough for a specific app header.

@@ -202,8 +202,8 @@ export function RouteCommandPalette<
         if (!locale?.subscribe) return;
 
         unsubscribeLocale = locale.subscribe(() => {
-            palette.setItems(getItems());
-            palette.update({ locale: getCommandPaletteLocale(locale), onSelect: handleSelect });
+            setPaletteItems(getItems());
+            updatePalette({ locale: getCommandPaletteLocale(locale), onSelect: handleSelect });
         });
     }
 
@@ -213,6 +213,9 @@ export function RouteCommandPalette<
         items: getItems(),
         onSelect: handleSelect
     });
+    const setPaletteItems = palette.setItems.bind(palette);
+    const updatePalette = palette.update.bind(palette);
+    const destroyPalette = palette.destroy.bind(palette);
 
     setRouteCommandPaletteAttribute(palette.element);
     syncLocaleSubscription();
@@ -224,7 +227,7 @@ export function RouteCommandPalette<
 
         setRoutes(nextRoutes: readonly TRoute[]): void {
             routes = nextRoutes;
-            palette.setItems(getItems());
+            setPaletteItems(getItems());
             setRouteCommandPaletteAttribute(palette.element);
         },
 
@@ -247,16 +250,16 @@ export function RouteCommandPalette<
                 || "commandLabelPrefix" in nextOptions
                 || "locale" in nextOptions
             ) {
-                palette.setItems(getItems());
+                setPaletteItems(getItems());
             }
 
-            palette.update(getCommandPaletteUpdateOptions(nextOptions));
+            updatePalette(getCommandPaletteUpdateOptions(nextOptions));
             setRouteCommandPaletteAttribute(palette.element);
         },
 
         destroy(): void {
             unsubscribeLocale?.();
-            palette.destroy();
+            destroyPalette();
         }
     }) as ComposedRouteCommandPalette<TRoute>;
 

@@ -1,0 +1,7 @@
+[data-af-language-select] {
+    --af-select-width: var(--af-language-select-width, 10rem);
+}
+
+[data-af-language-select] [data-af-component="select"] {
+    inline-size: min(100%, var(--af-language-select-width, 10rem));
+}

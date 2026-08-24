@@ -14,6 +14,7 @@ export type AccessibleFirstMessageKey =
     | "dialog.closeText"
     | "dialog.fallbackLabel"
     | "iconButton.fallbackLabel"
+    | "languageSelect.label"
     | "listDetail.detailLabel"
     | "listDetail.listLabel"
     | "overflowScroller.nextLabel"
@@ -48,6 +49,7 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "dialog.closeText": "Close",
     "dialog.fallbackLabel": "Dialog",
     "iconButton.fallbackLabel": "Icon button",
+    "languageSelect.label": "Language",
     "listDetail.detailLabel": "Details",
     "listDetail.listLabel": "Items",
     "overflowScroller.nextLabel": "Scroll right",

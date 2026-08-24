@@ -391,6 +391,8 @@ export function CommandPalette<
     }
 
     const dialog = Dialog(initialDialogOptions);
+    const updateDialog = dialog.update.bind(dialog);
+    const destroyDialog = dialog.destroy.bind(dialog);
 
     let closeOnEscape = dialogOptions?.closeOnEscape ?? true;
     let cleanupEscapeKey: Cleanup | null = null;
@@ -429,7 +431,7 @@ export function CommandPalette<
 
         dialogUpdate.locale = locale;
 
-        dialog.update(dialogUpdate);
+        updateDialog(dialogUpdate);
     }
 
     function syncLocaleSubscription(): void {
@@ -521,7 +523,7 @@ export function CommandPalette<
             dialogUpdate.description = getLocalizedDescription(paletteDescription, locale);
             dialogUpdate.locale = locale;
 
-            dialog.update(dialogUpdate);
+            updateDialog(dialogUpdate);
             setAttributes();
         },
 
@@ -530,7 +532,7 @@ export function CommandPalette<
             cleanupShortcut?.();
             unsubscribeLocale?.();
             searchBox.destroy();
-            dialog.destroy();
+            destroyDialog();
         }
     }) as ComposedCommandPalette<TItem>;
 

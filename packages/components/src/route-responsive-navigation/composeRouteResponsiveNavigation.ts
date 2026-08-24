@@ -168,6 +168,9 @@ export function RouteResponsiveNavigation<
         onNavigate: handleNavigate
     });
 
+    const setNavigationItems = navigation.setItems.bind(navigation);
+    const updateNavigation = navigation.update.bind(navigation);
+
     setRouteResponsiveNavigationAttribute(navigation);
 
     composed = Object.assign(navigation, {
@@ -179,7 +182,7 @@ export function RouteResponsiveNavigation<
 
         setRoutes(nextRoutes: readonly TRoute[]): void {
             routes = nextRoutes;
-            navigation.setItems(getItems());
+            setNavigationItems(getItems());
             setRouteResponsiveNavigationAttribute(navigation);
         },
 
@@ -193,7 +196,7 @@ export function RouteResponsiveNavigation<
                 onRouteNavigate = nextOptions.onRouteNavigate ?? null;
             }
 
-            navigation.update(getResponsiveNavigationUpdateOptions(nextOptions));
+            updateNavigation(getResponsiveNavigationUpdateOptions(nextOptions));
             setRouteResponsiveNavigationAttribute(navigation);
         }
     }) as ComposedRouteResponsiveNavigation<TRoute>;

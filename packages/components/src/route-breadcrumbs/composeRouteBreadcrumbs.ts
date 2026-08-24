@@ -86,7 +86,7 @@ export function RouteBreadcrumbs<
         items: getItems()
     });
 
-    const updateBreadcrumbs = breadcrumbs.update;
+    const updateBreadcrumbs = breadcrumbs.update.bind(breadcrumbs);
 
     setRouteBreadcrumbsAttribute(breadcrumbs);
 

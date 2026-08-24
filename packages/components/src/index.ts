@@ -25,6 +25,7 @@ export * from "./foundation";
 export * from "./header-bar";
 export * from "./icon-button";
 export * from "./info-card";
+export * from "./language-select";
 export * from "./link";
 export * from "./listbox";
 export * from "./list-detail";
