@@ -30,6 +30,21 @@ Each layer should depend only on the layer below it.
 
 Higher layers may combine lower layers, but they should not duplicate their behavior. For example, a component should reuse the core focus, keyboard, ARIA, and selection modules instead of reimplementing them locally.
 
+## Cross-Cutting Foundations
+
+Some framework decisions affect almost every component and should be treated as foundation work, not as late add-ons:
+
+- localization and internationalization;
+- theme tokens, density, and responsive sizing;
+- header, navigation, and app shell behavior;
+- SPA and MPA route metadata;
+- document metadata, SEO, PWA, and public-page artifacts;
+- diagnostics and health reporting;
+- hints, descriptions, announcements, and validation speech;
+- mobile touch and mobile screen reader interaction routes.
+
+When a new component creates user-facing service text, layout behavior, metadata, focus movement, or diagnostics, it should connect to the shared foundation instead of creating a local one-off rule.
+
 ## Public Surfaces
 
 Accessible First has two main public surfaces.
@@ -104,6 +119,8 @@ Keyboard shortcuts are useful accelerators for desktop applications, but visible
 - Keep component APIs small, but expose escape hatches through native attributes and DOM access.
 - Restore component mutations on `destroy()`.
 - Add page and app patterns only after real examples prove they are useful.
+- Prefer real links and route metadata before SPA-only abstractions, so static pages, multi-page apps, server-rendered pages, and client-side shells can share one navigation model.
+- Save original child-component methods before extending composed objects with `Object.assign()`, so wrapper `update()` methods cannot accidentally call themselves.
 
 ## Documentation Map
 
@@ -128,11 +145,3 @@ Each module should move through the same cycle:
 6. Playground integration where useful
 
 This keeps the framework understandable while it grows.
-
-
-
-
-
-
-
-

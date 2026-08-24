@@ -120,6 +120,19 @@ shell.render(Screen({
 
 Backgrounds, spacing, sticky behavior, and responsive shell layout should live in page or app patterns rather than in the low-level header landmark itself.
 
+## App Shell And Navigation Modes
+
+Low-level `HeaderBar` should stay a composable header layout, while higher-level app shell patterns should own page behavior such as sticky headers, fixed navigation, reveal-on-scroll headers, and action overflow.
+
+Planned shell modes should cover:
+
+- normal flow, where header and navigation scroll with the page;
+- sticky or fixed app chrome, where header or navigation remains visible;
+- reveal-on-scroll app chrome, where header/navigation reappears when the user scrolls back;
+- compact header actions, where search, language, theme, command palette, and future profile controls wrap or move into overflow without breaking the brand.
+
+Navigation should keep real links as the baseline. SPA routing can intercept the same links, but MPA and static-page navigation should not need a different route model.
+
 ## Layout Primitives
 
 Current primitives are intentionally small:

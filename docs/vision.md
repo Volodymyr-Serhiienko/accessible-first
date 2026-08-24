@@ -16,7 +16,15 @@ It should provide:
 - responsive layout primitives;
 - light and dark theme foundations;
 - development diagnostics;
+- localization and internationalization for framework service text and application copy;
+- metadata, SEO, PWA, and public-page helpers;
 - a playground that acts as living documentation and a real-device testing surface.
+
+## Framework Direction
+
+Accessible First should grow toward real application development, not only isolated widgets. The framework should help a developer start with accessible defaults for page structure, theme, localization, routing, metadata, diagnostics, and responsive behavior before they write large amounts of application glue.
+
+The first real validation target is an accessible foreign-language learning application. It should prove that the same foundation can support practical screens, forms, navigation, feedback, preferences, and mobile use without forcing a large UI runtime.
 
 ## Developer Experience Vision
 

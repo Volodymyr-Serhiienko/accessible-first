@@ -1,385 +1,256 @@
 # Roadmap
 
-## Completed Phase: Behavior Foundation
+Accessible First is moving from a component library into a small framework for building accessible web applications. The roadmap is intentionally organized as a working plan, not as a complete history log.
 
-Completed:
+## Current Direction
 
-- DOM
-- Events
-- ID
-- Keyboard
-- Focus
-- ARIA
-- Collection navigation
-- Scroll utilities
-- Roving focus
-- Live region and announcer
-- Disclosure behavior
-- Dialog behavior
-- Tabs navigation
-- Listbox navigation
-- Typeahead navigation
-- Selection utilities
-- Menu navigation
-- Popover positioning
-- Dismissable layer
-- Overlay stack
-- Form field semantics
-- Validation announcements
+The project goal is a lightweight, framework-independent foundation for building accessible SPA and MPA web applications.
 
----
+Accessible First should provide:
 
-## Current Phase: Accessible Components And Semantic Composition
+- low-level accessibility behavior modules;
+- enhancement APIs for existing HTML;
+- composition APIs for creating interfaces directly;
+- semantic page and app shell primitives;
+- accessible UI components with practical defaults;
+- localization, theme, metadata, diagnostics, and responsive layout foundations;
+- a playground that acts as living documentation and real-device testing surface;
+- reusable application patterns proven by real applications.
 
-Goal: build framework-independent, WCAG-oriented component primitives with accessible defaults, predictable behavior, semantic page composition, and minimal integration cost.
+## Status Legend
 
-Completed:
+- **Stable foundation** - usable and documented, with only normal refinements expected.
+- **Active** - current work area.
+- **Next** - planned soon, before major new product/application work.
+- **Later** - important, but should wait until real examples justify the final API shape.
 
-- Component foundation
-- Button
-- Button speech/default audit
-- Icon Button
-- IconButton speech/default audit
-- Link
-- Link speech/default audit
-- Disclosure
-- Disclosure speech/default audit
-- Playground foundation
-- Semantic Composition foundation
-- Component composition API for Button, Icon Button, Link, and Disclosure
-- Self-aware composition callbacks
-- Page object API
-- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar
-- Responsive Grid primitive
-- Container layout primitive for aligned page regions and responsive gutters
-- Tag helpers
-- Trusted Html composition helper
-- System/light/dark page theme support
-- Initial page diagnostics
-- Icon helper
-- Icon file-source support
-- VisuallyHidden helper
-- Accordion component
-- Dialog component
-- Dialog speech/default audit
-- Alert Dialog component
-- AlertDialog speech/default audit
-- Tabs component
-- Tabs speech/default audit
-- Hover announcement helper
-- Listbox component
-- Listbox accessible naming and speech/default audit
-- Menu component enhancement and composition APIs
-- Select component enhancement and composition APIs
-- Menu speech/default audit
-- Select speech/default audit
-- Combobox speech/default audit
-- Popover component enhancement and composition APIs
-- Popover speech/default audit
-- Combobox core behavior, enhancement API, composition API, styles, and playground demo
-- Tooltip enhancement and composition APIs
-- Toast viewport enhancement and composition APIs
-- Tooltip speech/default audit
-- Toast speech/default audit
-- Unified hint, tooltip, description, announcement, and toast model audit
-- Accordion speech/default audit
-- Checkbox component enhancement and composition APIs
-- Checkbox speech/default audit
-- Radio Group component enhancement and composition APIs
-- RadioGroup speech/default audit
-- Switch component enhancement and composition APIs
-- Switch speech/default audit
-- TextField component enhancement and composition APIs
-- TextField speech/default audit
-- FieldGroup component and playground demo
-- FieldGroup speech/default audit
-- FormSection component and playground demo
-- FormSection speech/default audit
-- Form speech/default audit
-- DescriptionList component and playground demo
-- DescriptionList speech/default audit
-- Breadcrumbs component and playground demo
-- Breadcrumbs speech/default audit
-- ActionsBar component and playground demo
-- ActionsBar speech/default audit
-- Dialog and AlertDialog actions layout reuse ActionsBar
-- FormSection actions layout reuse ActionsBar
-- Shared control hint foundation and migration of Button, Link, and IconButton
-- Accordion item descriptions aligned with Disclosure open-announcement behavior
-- Toast action guidance: use Dialog or AlertDialog for required actions
-- Dialog and AlertDialog focus/description documentation refinement
-- Documentation structure consolidation: component docs now own Quick Start sections
-- Dialog, AlertDialog, and Disclosure update APIs narrowed to runtime-safe options
-- Breadcrumb separator updates preserve existing item DOM nodes
-- Shared ARIA reference id helpers reused by hint, tooltip, and accordion logic
-- Navigation and ResponsiveNavigation composition APIs
-- Playground section navigation migrated to ResponsiveNavigation
-- Brand component and Image/Img helper for real page headers
-- Image presentation presets
-- OverflowScroller component for long inline navigation, tab, and toolbar patterns
-- Theme helpers and ThemeToggle component for reusable page/app theme switching
-- PageOutlet component for replacing active application screens inside stable page shells
-- PageOutlet screen-change announcement audit
-- PageLayout helper for sticky footer, contained regions, gutters, and page separators
-- HeaderBar component for brand, search, and header actions layout
-- HashRouter helper for lightweight PageOutlet-based screen switching
-- SearchBox component built on Combobox for local result search
-- Playground SearchBox over registered demo screens and component keywords
-- EmptyState component and playground demo
-- EmptyState speech/default audit
-- InfoCard component and playground demo
-- InfoCard speech/default audit
-- Badge component for status, category, and metadata labels
-- Badge speech/default audit
-- Progress component for determinate and indeterminate task progress
-- Progress speech/default audit
-- SettingsGroup component for application preferences and configuration screens
-- SettingsGroup speech/default audit
-- AppShell component as a thin application scaffold over createPage, PageOutlet, and PageLayout
-- App route helpers for deriving navigation, search, breadcrumb items, and parent route trails from route metadata
-- Screen component for top-level application views
-- Screen speech/default audit
-- Playground main migrated to AppShell
-- RouteBreadcrumbs component for deriving breadcrumb UI from route metadata
-- Combobox and SearchBox setItems APIs for replacing dynamic result lists
-- RouteSearchBox component for deriving route search UI from route metadata
-- RouteResponsiveNavigation component for deriving responsive navigation UI from route metadata
-- HashRouter route activation and binding helpers for route-aware navigation, search, and breadcrumbs
-- CommandPalette component for searchable application commands and quick navigation
-- RouteCommandPalette component for route-derived command search
-- CommandPalette shortcut matching by key and physical code for non-Latin keyboard layouts
-- App route location matching helper for native-link and multi-page current route detection
-- Shared programmatic focus helper and Screen focus targets for focus-route patterns
-- FocusRoute helper for repeated workflow focus movement in playground and future apps
-- ListDetail component and playground demo
-- ListDetail speech/default audit
-- Layout, markup, PageLayout, Screen, PageOutlet, and AppShell speech/default boundary audit
-- Manual checks playground section audit
-- Remaining user-facing default text inventory for localization
-- DocumentMetadata module and Page/AppShell metadata integration
-- Route-derived document metadata helpers and HashRouter metadata callbacks
-- App route diagnostics helper for route id, href, hierarchy, and metadata checks
-- AppDiagnostics aggregate report for page, route, and future diagnostics sources
-- DocumentMetadata canonical, robots, and manifest fields
-- Page diagnostics strict document metadata options for public pages
-- WebAppManifest helper for typed manifest JSON creation
-- WebAppManifest diagnostics for identity, launch, colors, icons, and shortcuts
-- DocumentMetadata Open Graph and Twitter/X social preview fields
-- DocumentMetadata JSON-LD structured data field and diagnostics
-- Route-derived sitemap helper for public pages and multi-page app artifacts
-- RobotsTxt helper for crawler policy and sitemap discovery
-- LocaleController and default framework service-text registry
-- First service-text migration for Dialog, AlertDialog, Breadcrumbs, CommandPalette, IconButton, ListDetail, OverflowScroller, Page, ResponsiveNavigation, RouteCommandPalette, TextField, ThemeToggle, and ToastViewport
+## Stable Foundation
 
-In progress:
+These layers are strong enough to build on:
 
-- Playground as living documentation
-- Responsive playground refinement
-- Playground AppShell and PageOutlet refinement
-- Navigation patterns and responsive navigation
-- Header actions such as theme, language, and user/profile controls
-- Component examples and manual checklists
-- Playground helper extraction review: keep demo-only glue in playground helpers and promote repeated application patterns into library helpers only when the pattern repeats
-- Interaction scenario templates for desktop keyboard and mobile screen reader flows
-- Keyboard shortcut model guidance for more advanced application-wide shortcut maps
-- Shortcut patterns for desktop-first application workflows
-- Documentation alignment with current architecture
-- App localization template planning for combining framework service text and application copy
-- First reference application planning: accessible foreign-language learning app
+- Platform utilities: DOM, events, IDs, keyboard helpers, focus helpers, ARIA helpers, scroll utilities, collection helpers.
+- Behavior modules: roving focus, live regions, disclosure, dialog, tabs, listbox, typeahead, selection, menu, popover positioning, dismissable layer, overlay stack, form-field semantics, validation announcements.
+- Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
+- Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
+- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
+- Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
+- Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
+- Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect.
 
-Next:
+## Active Phase: App Foundation Stabilization
 
-- Application shell refinement for real single-page and multi-page apps
-- Route metadata model expansion for multi-page app patterns
-- Screen templates based on real app screens, such as settings, dashboard, list/detail, and lesson practice views
-- Focus-route templates for screen reader friendly app screens
-- App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
-- Metadata expansion for social preview assets and richer SEO checks
-- Application locale file template for shared framework and app translations
-- LanguageSelect or LanguageMenu header action component
-- Playground locale demo with runtime service-text switching
-- Mobile playground layout cleanup after real-device checks
-- Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
-- Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields
+Goal: make the framework ready for the first real application without carrying avoidable architectural debt.
 
-Planned components:
+Current focus:
 
-- Navigation patterns, starting with native-link navigation that works for multi-page apps and can be intercepted by SPA-style shells
+1. Keep documentation aligned with the architecture.
+2. Finish localization as a cross-cutting foundation, not a per-component patch.
+3. Refine header, navigation, and app shell layout so real apps need minimal custom CSS.
+4. Confirm SPA and MPA patterns share the same route metadata and native-link foundation.
+5. Keep the playground useful as a living demo while extracting only repeated app patterns into the library.
 
-### Component Quality Baseline
+### Now
 
-Every component should define:
+- Roadmap and overview documentation cleanup.
+- Verify locale switching across AppShell, route components, command palette, search, header actions, toasts, dialogs, and text-field service messages.
+- Define the next header/navigation model:
+  - normal page flow;
+  - sticky/fixed header and navigation;
+  - reveal-on-scroll header/navigation for long pages;
+  - compact responsive header action layout for search, language, theme, commands, and future profile controls.
+- Decide whether `HeaderBar` remains a low-level layout component and whether higher-level app header templates should own sticky/reveal behavior.
+- Improve mobile header compactness where search or actions take too much space.
+- Keep route wrappers safe from self-recursive `Object.assign()` update patterns.
+- Prepare the first app-template plan for both SPA and MPA usage.
 
-- accessible semantics by default;
-- keyboard behavior where applicable;
-- visible focus state;
-- disabled state behavior;
-- minimum practical target size;
-- light and dark theme tokens;
-- manual desktop checks;
-- manual mobile checks;
-- clear documentation examples;
-- playground demo where useful.
+### Exit Criteria For This Phase
 
----
+Before starting the first real application, we should have:
 
-## Semantic Composition Phase
+- one clear app shell recipe for SPA;
+- one clear app shell recipe for MPA/native links;
+- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, and diagnostics;
+- theme and locale handled at the app shell level;
+- header/navigation responsive behavior documented;
+- diagnostics reporting useful page, route, metadata, localization, and manifest issues;
+- playground sections stable enough for desktop and mobile smoke checks.
 
-Goal: provide a simple TypeScript-first API for creating accessible pages from semantic blocks, while reusing the same accessibility engine and enhancement components.
+## Next Phase: Application Templates And First Reference App
 
-Completed:
+Goal: use Accessible First to build real application screens, then promote repeated patterns back into the framework.
 
-- DOM adapter: createElement, append, mount
-- Component composition API: Button, IconButton, Link, Disclosure
-- Page object API: createPage, header, navigation, section, footer
-- Semantic primitives: Section, Panel, Row, Stack, Group, Toolbar, Grid
-- Tag helpers
-- Trusted Html helper
-- Console page report for development
+Planned sequence:
 
-Planned:
+1. Create app templates around `AppShell`, `PageOutlet`, `PageLayout`, route metadata, metadata helpers, diagnostics, locale, and theme.
+2. Add header/navigation variants only after the template needs them:
+   - top navigation;
+   - sidebar navigation;
+   - mobile navigation;
+   - sticky and reveal-on-scroll shell behavior;
+   - action overflow when header actions do not fit.
+3. Build the first reference application: an accessible foreign-language learning app.
+4. Use that application to validate real workflows:
+   - lesson list and lesson detail;
+   - vocabulary list/detail;
+   - practice screen;
+   - settings screen;
+   - progress feedback;
+   - form validation and user preferences;
+   - desktop keyboard and mobile screen reader routes.
+5. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
 
-- Playground refactor into semantic demo modules
-- More diagnostics for page structure and component usage
-- Optional visual diagnostics overlay later
-- GridCell or Cell primitive if explicit grid placement becomes necessary
-- Image and Logo helpers for real page headers, cards, and branded surfaces
-- Expanded Icon helper inputs for common icon sources when repeated use proves the API shape
-- More semantic helpers only after repeated real use proves the need
+## Component Expansion Queue
 
----
+Do not create every possible component immediately. Build components when they unlock real app work or repeated playground patterns.
 
-## Page Building Phase
+High-priority candidates:
 
-Goal: turn semantic composition into a practical way to build real pages and app screens.
+- DataTable / Table primitives for structured data with captions, sorting, selection, and responsive alternatives.
+- Pagination and result summary helpers.
+- Drawer / SidePanel / Sheet for non-modal and modal side content, especially mobile layouts.
+- Toolbar improvements and command/action grouping.
+- Stepper / Wizard for guided multi-step workflows.
+- FileUpload built on native input with accessible validation and progress.
+- Slider / Range using native input first.
+- Avatar / UserMenu / ProfileAction for app headers.
+- Loading, Skeleton, ErrorState, and retry patterns for async screens.
+- Modal and non-modal application panels based on Dialog, Popover, and DismissableLayer.
 
-Planned:
+Lower-priority or research-heavy candidates:
 
-- Header patterns
-- Navigation patterns based on real links first, so multi-page apps, static pages, server-rendered pages, and SPA shells share the same foundation
-- Form shell and submit-validation pattern
-- Responsive navigation with mobile collapse / burger behavior
-- Main content patterns
-- Footer patterns
-- Page outlet pattern for rendering changing page content inside a stable shell
-- Responsive layout patterns
-- Small-screen control layout guidelines
-- InfoCard
-- EmptyState
-- Badge
-- Progress
-- SettingsGroup
-- Component composition guidelines
-- Page-building examples in the playground
+- Calendar / DatePicker, only with a native-first fallback and careful mobile testing.
+- Virtualized large lists, only when performance needs are proven.
+- Rich text editor patterns, only after core app patterns are stable.
+- Advanced charts, only with accessible data summaries and keyboard-independent alternatives.
 
-Important direction:
+## Cross-Cutting Decisions To Settle Early
 
-- Do not create too many page patterns before real examples exist.
-- Use the playground and small demo pages to discover repeated patterns.
-- Promote repeated compositions into named helpers only when they clearly reduce complexity.
+These topics can cause expensive refactors if postponed too long.
 
----
+### Localization And Internationalization
 
-## App Building Phase
+Already started. Continue to keep all framework-owned user-facing service text behind `LocaleController`.
 
-Goal: provide reusable patterns for full application screens.
+Need next:
 
-Planned:
+- app-owned translation file template;
+- reactive app text strategy without forcing a heavy runtime;
+- locale-aware number/date formatting helpers;
+- pluralization strategy;
+- locale-aware search/sort options;
+- RTL direction support and diagnostics.
 
-- AppShell integration with playground and reference app examples
-- Sidebar navigation
-- Top navigation
-- Mobile navigation
-- Multi-page application shell patterns
-- Lightweight client-side page routing / content switching pattern
-- Foreign-language learning reference app as the first real application built with Accessible First
-- Command menu
-- Settings panels
-- Dashboard patterns
-- CRUD page patterns
-- Loading states
-- Error states
-- Accessible notification system
+### Theme, Tokens, And Density
 
----
+Default styles should remain accessible and lightweight.
 
-## Styling And Theme Phase
+Need next:
 
-Goal: provide accessible default styling without forcing a design framework.
+- clearer token documentation;
+- density presets for comfortable/compact UI;
+- typography scale and readable line lengths;
+- component size consistency;
+- dark-theme glare checks for primary surfaces, tooltips, and selected states.
 
-Current direction:
+### Responsive Shell, Header, And Navigation
 
-- Default component styles are included.
-- CSS custom properties are the main customization mechanism.
-- Components should have practical accessible defaults.
-- Common layout and navigation patterns should need minimal project-specific CSS.
-- The library should not require Tailwind, CSS-in-JS, or a specific framework.
+Header, navigation, search, language, theme, command palette, and future profile controls must compose well across desktop, tablet, and mobile.
 
-Planned:
+Need next:
 
-- Typography scale
-- Spacing scale
-- Accessible color tokens
-- Focus ring system
-- Component density options
-- More theme documentation
-- Better responsive examples
+- app-level shell modes: normal, sticky/fixed, reveal-on-scroll;
+- header action wrapping and overflow strategy;
+- compact search behavior;
+- desktop overflow navigation without clipped focus;
+- mobile navigation that remains visually clear and screen-reader understandable.
 
----
+### Routing, SPA, And MPA
 
-## Playground And Validation Phase
+Navigation should start from real links so MPA, static pages, server-rendered pages, and SPA shells can share the same route metadata.
 
-Completed:
+Need next:
 
-- Initial Vite playground shell
-- Light and dark theme toggle
-- First demos for Button, Icon Button, Link, and Disclosure
-- Semantic composition demos
-- Layout primitive demos
-- Tabs demo
-- Listbox demo
+- MPA current-route detection examples;
+- hash-router and native-link examples side by side;
+- canonical URL and sitemap guidance for hash routes;
+- route diagnostics for missing titles, descriptions, hrefs, parents, and metadata.
 
-In progress:
+### Forms And Validation
 
-- Playground as living documentation
-- Responsive viewport demos
-- Manual component checklists
+Validation should be field-first, form-aware, and quiet enough for screen readers.
 
-Planned:
+Need next:
 
-- Keyboard interaction demos
-- Screen reader behavior notes
-- GitHub Pages deployment
-- Mobile device testing workflow
-- Accessibility checklist per component
-- Real page demos such as settings page or application shell
-- Reference-app validation flow for the foreign-language learning application
-- Automated unit tests for behavior utilities after APIs settle
-- Playwright smoke tests for core component interactions after the playground stabilizes
+- form-level validation summary pattern;
+- async validation hooks;
+- field success/error visual indicators;
+- rules for when live-region validation is useful and when focus should own the message.
 
-### Planned Validation Flow
+### Hints, Descriptions, Announcements, And Toasts
 
-- Add manual testing notes for every component as it is created.
-- Add every meaningful component to the playground.
-- Use the playground for desktop keyboard testing, mobile touch testing, and screen reader smoke checks.
-- Deploy the playground to GitHub Pages when the first component demos are stable.
-- Add automated tests after the public API settles enough to avoid churn.
+The current model is good. Keep enforcing it.
 
----
+Need next:
+
+- avoid duplicated speech when focus already reads the target;
+- keep important information visible for touch and non-screen-reader users;
+- keep toast actions non-critical until a reliable focus route exists.
+
+### Diagnostics And Health Reports
+
+Diagnostics should become one of the framework's strongest differentiators.
+
+Need next:
+
+- localization diagnostics;
+- responsive/mobile risk diagnostics where detectable;
+- duplicate or missing route metadata diagnostics;
+- SEO/public-page readiness diagnostics;
+- optional visual diagnostics overlay later.
+
+### Assets, Icons, And Images
+
+The icon and image model should stay flexible before many components depend on it.
+
+Need next:
+
+- document icon source choices;
+- keep IconButton flexible for paths, SVG strings, image files, and composed icon nodes;
+- image presets for content images, logos, avatars, thumbnails, and cards.
+
+## Playground Direction
+
+The playground should be living documentation, not a second framework.
+
+Keep in playground:
+
+- demo-only strings and examples;
+- simple local helpers that do not repeat across real apps;
+- manual testing sections;
+- real-device layout checks.
+
+Promote into the library:
+
+- repeated accessibility behavior;
+- repeated route/app shell wiring;
+- repeated focus routes;
+- repeated responsive shell/header/navigation patterns;
+- repeated diagnostics checks.
+
+## Validation Direction
+
+Manual validation stays important because screen reader and mobile behavior cannot be fully trusted to unit tests.
+
+Use this flow:
+
+1. Add or update the component/pattern.
+2. Document expected behavior.
+3. Add or update playground demo when useful.
+4. Smoke test desktop keyboard and screen reader behavior.
+5. Smoke test mobile touch and screen reader behavior when the pattern affects mobile UX.
+6. Add automated tests after the public API stabilizes enough to avoid churn.
 
 ## Long-Term Goal
 
-Accessible First should become a simple, framework-independent foundation for building accessible web applications.
-
-The system should provide:
-
-- low-level accessibility primitives;
-- behavior modules;
-- reusable accessible components;
-- semantic page composition;
-- page and application patterns;
-- theme and responsive design foundations;
-- diagnostics for development;
-- app health diagnostics and metadata helpers;
-- localization for user-facing component service text;
-- a playground for real-device testing and documentation.
+Accessible First should become a small but serious web application framework: easier than large UI frameworks for accessible apps, lighter than full virtual-DOM stacks, and more opinionated about WCAG-friendly defaults, semantics, diagnostics, and real user workflows.

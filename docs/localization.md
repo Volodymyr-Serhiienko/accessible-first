@@ -119,8 +119,8 @@ The first migration covers these framework-owned fallbacks:
 - `Breadcrumbs`: default navigation label.
 - `CommandPalette`: title, description, search label, placeholder, empty result text, and internal dialog close fallback.
 - `Dialog`: close button text in composition and behavior fallback accessible names.
-- IconButton: missing accessible-name fallback.
-- LanguageSelect: default language picker label.
+- `IconButton`: missing accessible-name fallback.
+- `LanguageSelect`: default language picker label.
 - `ListDetail`: list/detail region labels.
 - `OverflowScroller`: previous/next control labels.
 - `Page`: skip-link text and default navigation label.
@@ -130,4 +130,17 @@ The first migration covers these framework-owned fallbacks:
 - `ThemeToggle`: toggle labels and default change announcements.
 - `ToastViewport`: region label, close/dismiss labels, and fallback notification text.
 
-Next localization work should add a richer `LanguageMenu` or action-overflow pattern if native select is not enough for a specific app header.
+LanguageSelect is the current simple header control for user-selected locale changes. A richer `LanguageMenu` or action-overflow pattern should be added only if native select is not enough for a specific app header.
+
+## Future I18n Gates
+
+Before many real applications depend on localization, plan these extensions deliberately:
+
+- reactive app-owned text updates without forcing a heavy runtime;
+- date, time, number, and relative-time formatting helpers;
+- pluralization and parameter formatting conventions;
+- locale-aware search, filtering, and sorting options;
+- document `dir` / RTL support;
+- diagnostics for missing app translations and unsupported locales.
+
+Keep geography out of default locale detection. Browser language, saved preference, URL/app context, or account preference should remain the preferred signals.

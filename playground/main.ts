@@ -115,6 +115,11 @@ const shell = AppShell({
     layout: {
         maxWidth: "var(--playground-max-width)",
         gutter: "var(--playground-gutter)",
+        chrome: {
+            header: "sticky",
+            navigation: "normal",
+            beforeOutlet: "sticky"
+        },
         mainGap: "1rem",
         mainPaddingBlock: "1rem 2rem"
     }

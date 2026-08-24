@@ -47,6 +47,12 @@ page.header(
 - `brandOptions`, `contentOptions`, `actionsOptions` - advanced DOM options for inner slots.
 - Base options: `id`, `className`, `attributes`.
 
+## Relationship To App Shell
+
+HeaderBar owns only the internal header composition: brand, content, and actions. It should not own page scroll behavior.
+
+Sticky headers, fixed navigation, reveal-on-scroll headers, and action overflow should belong to higher-level `AppShell` / `PageLayout` patterns once real applications prove the final API shape. This keeps HeaderBar small and reusable in normal pages, sidebars, dialogs, and future shell templates.
+
 ## Layout Modes
 
 `auto` is the recommended default for application headers. It adapts to language length, search width, number of action buttons, and viewport/container size.

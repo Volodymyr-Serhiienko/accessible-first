@@ -35,6 +35,12 @@ AppShell is a thin composition helper. It combines:
 
 It does not own routing. Use `HashRouter` or native links on top of AppShell depending on the app model.
 
+## Shell Chrome Direction
+
+AppShell is the right layer for future app chrome patterns because it already owns the stable header, navigation, outlet, and footer slots.
+
+Planned shell behavior should include normal scrolling, sticky/fixed header or navigation, reveal-on-scroll header/navigation, and action overflow for dense headers. These behaviors should be added as app-shell or page-layout options, not as one-off playground CSS.
+
 ## Routing And Search
 
 Use [App Routes](./app-routes.md) when one route list should feed navigation, search, breadcrumbs, parent route trails, and routing metadata.
@@ -132,7 +138,3 @@ Use `layout: false` when an app wants to own all page layout styles manually.
 - Screen changes scroll to the expected start position.
 - Screen changes move focus to a useful target.
 - Page diagnostics do not report missing names, duplicate ids, or broken ARIA references.
-
-
-
-

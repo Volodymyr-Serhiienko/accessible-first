@@ -7,6 +7,22 @@ import type { Page } from "../page";
 export type PageLayoutMode = "app" | "document";
 
 /**
+ * Page chrome positioning mode for page header, navigation, and outlet helper regions.
+ */
+export type PageLayoutChromeMode = "normal" | "sticky" | "fixed";
+
+/**
+ * Page chrome options for header, navigation, and before-outlet behavior.
+ */
+export interface PageLayoutChromeOptions {
+    header?: PageLayoutChromeMode;
+    navigation?: PageLayoutChromeMode;
+    beforeOutlet?: PageLayoutChromeMode;
+    topOffset?: string;
+    zIndex?: string;
+}
+
+/**
  * Options for applyPageLayout().
  */
 export interface PageLayoutOptions {
@@ -17,6 +33,7 @@ export interface PageLayoutOptions {
     gutter?: string;
     mainGap?: string;
     mainPaddingBlock?: string;
+    chrome?: PageLayoutChromeOptions | PageLayoutChromeMode;
 }
 
 /**
@@ -33,6 +50,14 @@ export interface PageLayoutController {
     update(options: PageLayoutUpdateOptions): void;
     destroy(): void;
     isDestroyed(): boolean;
+}
+
+interface ResolvedPageLayoutChromeOptions {
+    header: PageLayoutChromeMode;
+    navigation: PageLayoutChromeMode;
+    beforeOutlet: PageLayoutChromeMode;
+    topOffset: string | null;
+    zIndex: string | null;
 }
 
 interface StyleSnapshotValue {
@@ -95,6 +120,42 @@ function setStyleProperty(
     element.style.setProperty(property, value);
 }
 
+function normalizeChromeOptions(
+    chrome: PageLayoutOptions["chrome"]
+): ResolvedPageLayoutChromeOptions {
+    if (typeof chrome === "string") {
+        return {
+            header: chrome,
+            navigation: chrome,
+            beforeOutlet: chrome,
+            topOffset: null,
+            zIndex: null
+        };
+    }
+
+    return {
+        header: chrome?.header ?? "normal",
+        navigation: chrome?.navigation ?? "normal",
+        beforeOutlet: chrome?.beforeOutlet ?? "normal",
+        topOffset: chrome?.topOffset ?? null,
+        zIndex: chrome?.zIndex ?? null
+    };
+}
+
+function isPinnedChrome(mode: PageLayoutChromeMode): boolean {
+    return mode === "sticky" || mode === "fixed";
+}
+
+function getBlockSize(element: HTMLElement | null): number {
+    if (!element || element.hidden) return 0;
+
+    return Math.max(0, element.getBoundingClientRect().height);
+}
+
+function formatPixels(value: number): string {
+    return `${Math.round(value * 100) / 100}px`;
+}
+
 /**
  * Applies reusable page layout behavior to a createPage() instance.
  */
@@ -104,11 +165,10 @@ export function applyPageLayout(
 ): PageLayoutController {
     const attributes = createAttributeSnapshot();
     const styles = createStyleSnapshot();
+    const ownerWindow = page.element.ownerDocument.defaultView ?? window;
 
-    attributes.remember(page.element, "data-af-page-layout");
-    attributes.remember(page.element, "data-af-page-contained");
-    attributes.remember(page.element, "data-af-page-borders");
-
+    let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
     let mode: PageLayoutMode = options.mode ?? "app";
     let contained = options.contained ?? true;
     let borders = options.borders ?? true;
@@ -116,20 +176,116 @@ export function applyPageLayout(
     let gutter = options.gutter ?? null;
     let mainGap = options.mainGap ?? null;
     let mainPaddingBlock = options.mainPaddingBlock ?? null;
+    let chrome = normalizeChromeOptions(options.chrome);
     let destroyed = false;
+
+    attributes.remember(page.element, "data-af-page-layout");
+    attributes.remember(page.element, "data-af-page-contained");
+    attributes.remember(page.element, "data-af-page-borders");
+    attributes.remember(page.element, "data-af-page-header-mode");
+    attributes.remember(page.element, "data-af-page-navigation-mode");
+    attributes.remember(page.element, "data-af-page-before-outlet-mode");
+
+    function getHeaderElement(): HTMLElement | null {
+        return page.element.querySelector<HTMLElement>("[data-af-page-header]");
+    }
+
+    function getNavigationElement(): HTMLElement | null {
+        return page.element.querySelector<HTMLElement>("[data-af-page-navigation]");
+    }
+
+    function getBeforeOutletElement(): HTMLElement | null {
+        return page.element.querySelector<HTMLElement>("[data-af-app-shell-before-outlet]");
+    }
+
+    function syncChromeMetrics(): void {
+        if (destroyed) return;
+
+        const headerSize = getBlockSize(getHeaderElement());
+        const navigationSize = getBlockSize(getNavigationElement());
+        const beforeOutletSize = getBlockSize(getBeforeOutletElement());
+
+        const pinnedHeaderSize = isPinnedChrome(chrome.header) ? headerSize : 0;
+        const pinnedNavigationSize = isPinnedChrome(chrome.navigation) ? navigationSize : 0;
+        const pinnedBeforeOutletSize = isPinnedChrome(chrome.beforeOutlet) ? beforeOutletSize : 0;
+
+        const navigationOffset = pinnedHeaderSize;
+        const beforeOutletOffset = pinnedHeaderSize + pinnedNavigationSize;
+        const scrollMargin = beforeOutletOffset + pinnedBeforeOutletSize;
+        const fixedChromeSize =
+            (chrome.header === "fixed" ? headerSize : 0)
+            + (chrome.navigation === "fixed" ? navigationSize : 0)
+            + (chrome.beforeOutlet === "fixed" ? beforeOutletSize : 0);
+
+        setStyleProperty(styles, page.element, "--af-page-header-block-size", formatPixels(headerSize));
+        setStyleProperty(styles, page.element, "--af-page-navigation-block-size", formatPixels(navigationSize));
+        setStyleProperty(styles, page.element, "--af-page-before-outlet-block-size", formatPixels(beforeOutletSize));
+        setStyleProperty(styles, page.element, "--af-page-navigation-offset-block-size", formatPixels(navigationOffset));
+        setStyleProperty(styles, page.element, "--af-page-before-outlet-offset-block-size", formatPixels(beforeOutletOffset));
+        setStyleProperty(styles, page.element, "--af-page-scroll-margin-block-size", formatPixels(scrollMargin));
+        setStyleProperty(styles, page.element, "--af-page-fixed-chrome-block-size", formatPixels(fixedChromeSize));
+    }
+
+    function observeChromeElement(element: HTMLElement | null): void {
+        if (!element || !resizeObserver) return;
+
+        resizeObserver.observe(element);
+    }
+
+    function refreshChromeObservers(): void {
+        if (destroyed) return;
+
+        resizeObserver?.disconnect();
+        resizeObserver = null;
+
+        if (ownerWindow.ResizeObserver) {
+            resizeObserver = new ownerWindow.ResizeObserver(() => {
+                syncChromeMetrics();
+            });
+
+            observeChromeElement(getHeaderElement());
+            observeChromeElement(getNavigationElement());
+            observeChromeElement(getBeforeOutletElement());
+        }
+
+        syncChromeMetrics();
+    }
+
+    function setupMutationObserver(): void {
+        if (!ownerWindow.MutationObserver) return;
+
+        mutationObserver = new ownerWindow.MutationObserver(() => {
+            refreshChromeObservers();
+        });
+
+        mutationObserver.observe(page.element, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["hidden"]
+        });
+    }
 
     function sync(): void {
         page.element.setAttribute("data-af-page-layout", mode);
         page.element.setAttribute("data-af-page-contained", String(contained));
         page.element.setAttribute("data-af-page-borders", String(borders));
+        page.element.setAttribute("data-af-page-header-mode", chrome.header);
+        page.element.setAttribute("data-af-page-navigation-mode", chrome.navigation);
+        page.element.setAttribute("data-af-page-before-outlet-mode", chrome.beforeOutlet);
 
         setStyleProperty(styles, page.element, "--af-page-layout-max-width", maxWidth);
         setStyleProperty(styles, page.element, "--af-page-layout-gutter", gutter);
         setStyleProperty(styles, page.element, "--af-page-main-gap", mainGap);
         setStyleProperty(styles, page.element, "--af-page-main-padding-block", mainPaddingBlock);
+        setStyleProperty(styles, page.element, "--af-page-chrome-top-offset", chrome.topOffset);
+        setStyleProperty(styles, page.element, "--af-page-chrome-z-index", chrome.zIndex);
+        syncChromeMetrics();
     }
 
     sync();
+    refreshChromeObservers();
+    setupMutationObserver();
 
     return {
         page,
@@ -145,14 +301,18 @@ export function applyPageLayout(
             if ("mainPaddingBlock" in nextOptions) {
                 mainPaddingBlock = nextOptions.mainPaddingBlock ?? null;
             }
+            if ("chrome" in nextOptions) chrome = normalizeChromeOptions(nextOptions.chrome);
 
             sync();
+            refreshChromeObservers();
         },
 
         destroy() {
             if (destroyed) return;
 
             destroyed = true;
+            resizeObserver?.disconnect();
+            mutationObserver?.disconnect();
             attributes.restore();
             styles.restore();
         },

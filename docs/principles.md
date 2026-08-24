@@ -30,6 +30,14 @@ The project should remain framework-independent and avoid heavy runtime machiner
 
 Signals, virtual DOM, advanced builders, and large reactive systems are future possibilities only if real application examples prove they are needed.
 
+## Design Cross-Cutting Foundations Early
+
+Accessibility, localization, theming, responsive layout, routing, metadata, diagnostics, and validation should be considered before many components depend on a local workaround.
+
+A component that needs service text should use the localization layer. A component that needs visual states should use shared tokens. A component that changes focus, route state, document metadata, or announcements should connect to the shared app foundation where possible.
+
+This prevents late, wide refactors and keeps the framework simple for application developers.
+
 ## Semantic Composition
 
 Pages should be built from meaningful blocks, not only from nested DOM nodes.
@@ -118,5 +126,3 @@ The playground should become living documentation.
 Do not design the API only in theory.
 
 Use the playground and small real page examples to discover what is actually convenient, missing, confusing, or too complex.
-
-
