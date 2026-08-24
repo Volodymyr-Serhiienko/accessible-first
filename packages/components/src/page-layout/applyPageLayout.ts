@@ -217,13 +217,26 @@ export function applyPageLayout(
     }
 
     function containsTarget(element: HTMLElement | null, target: EventTarget | null): boolean {
-        return !!element && target instanceof Node && element.contains(target);
+        return !!element && target instanceof ownerWindow.Node && element.contains(target);
+    }
+
+    function hasExpandedControl(element: HTMLElement | null): boolean {
+        return !!element?.querySelector('[aria-expanded="true"]');
     }
 
     function isRevealChromeTarget(target: EventTarget | null): boolean {
         return (chrome.header === "reveal" && containsTarget(getHeaderElement(), target))
             || (chrome.navigation === "reveal" && containsTarget(getNavigationElement(), target))
             || (chrome.beforeOutlet === "reveal" && containsTarget(getBeforeOutletElement(), target));
+    }
+
+    function hasActiveRevealChrome(): boolean {
+        const activeElement = page.element.ownerDocument.activeElement;
+
+        return isRevealChromeTarget(activeElement)
+            || (chrome.header === "reveal" && hasExpandedControl(getHeaderElement()))
+            || (chrome.navigation === "reveal" && hasExpandedControl(getNavigationElement()))
+            || (chrome.beforeOutlet === "reveal" && hasExpandedControl(getBeforeOutletElement()));
     }
 
     function syncChromeVisibility(): void {
@@ -321,7 +334,7 @@ export function applyPageLayout(
 
         lastScrollY = nextScrollY;
 
-        if (nextScrollY <= getRevealHideThreshold()) {
+        if (nextScrollY <= getRevealHideThreshold() || hasActiveRevealChrome()) {
             setChromeVisible(true);
             return;
         }

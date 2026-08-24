@@ -116,7 +116,7 @@ const shell = AppShell({
         maxWidth: "var(--playground-max-width)",
         gutter: "var(--playground-gutter)",
         chrome: {
-            header: "reveal",
+            header: "normal",
             navigation: "reveal",
             beforeOutlet: "sticky"
         },
@@ -204,13 +204,13 @@ const playgroundCommands = PlaygroundCommands({
 });
 
 shell.setHeader(HeaderDemo({
-    content: [
+    controls: [
         PlaygroundSearch({
             router,
             routes: playgroundRoutes
-        })
-    ],
-    actions: [playgroundCommands]
+        }),
+        playgroundCommands
+    ]
 }));
 
 navigation = NavigationDemo({

@@ -58,7 +58,7 @@ page.footer(Footer());
 
 `fixed` pins the selected region to the viewport. Use it carefully because fixed chrome can overlap content unless the application has enough space and the behavior is tested across breakpoints.
 
-`reveal` behaves like sticky chrome that hides while the user scrolls down and appears immediately when the user starts scrolling up. It also appears when keyboard focus enters a reveal region, so hidden chrome does not trap focus off screen. It is useful for larger application headers and navigation on mobile because it keeps controls close without permanently taking vertical space.
+`reveal` behaves like sticky chrome that hides while the user scrolls down and appears immediately when the user starts scrolling up. It also remains visible while focus is inside the reveal region or while a descendant control is expanded, so open mobile navigation, search popups, and similar interactive chrome do not disappear during use. It is useful for larger application headers and navigation on mobile because it keeps controls close without permanently taking vertical space.
 
 `beforeOutlet` targets the AppShell content rendered before `PageOutlet`. It is useful for breadcrumbs, route tabs, filters, or compact context bars that should remain available while the current screen scrolls.
 
@@ -93,7 +93,7 @@ This separation keeps page semantics predictable while still giving developers a
 - Contained regions align without creating horizontal overflow on small screens.
 - Sticky footer behavior keeps the footer at the viewport bottom only when content is short.
 - Sticky or reveal header/navigation/breadcrumbs remain usable without creating duplicate landmarks.
-- Reveal chrome hides while scrolling down and appears on the first upward scroll movement or when focus enters the hidden region.
+- Reveal chrome hides while scrolling down and appears on the first upward scroll movement, when focus enters the hidden region, or while an expanded descendant control is open.
 - Route changes scroll to the beginning of the visible screen content without hiding it under pinned chrome.
 - Fixed header/navigation does not hide the current focus target or first content heading.
 - Borders and spacing do not clip visible focus rings.

@@ -7,6 +7,7 @@
     --af-header-bar-content-width: 18rem;
     --af-header-bar-content-min-width: 12rem;
     --af-header-bar-content-max-width: 24rem;
+    --af-header-bar-content-gap: var(--af-space-3);
     --af-header-bar-actions-gap: var(--af-space-3);
 
     container-type: inline-size;
@@ -45,8 +46,10 @@
     max-inline-size: min(100%, var(--af-header-bar-content-max-width));
     flex: 1 1 min(100%, var(--af-header-bar-content-width));
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
+    gap: var(--af-header-bar-content-gap);
 }
 
 [data-af-header-bar-content] > * {
@@ -57,7 +60,7 @@
 [data-af-header-bar-actions] {
     min-inline-size: 0;
     max-inline-size: 100%;
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     display: flex;
     flex-wrap: wrap;
     align-items: center;

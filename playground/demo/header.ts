@@ -10,8 +10,7 @@ import {
 import { playgroundLocale, t } from "./localization";
 
 export interface HeaderDemoOptions {
-    content?: CompositionChild[];
-    actions?: CompositionChild[];
+    controls?: CompositionChild[];
 }
 
 export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
@@ -32,9 +31,8 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             nameTag: "h1",
             tagline: t("app.brand.tagline")
         }),
-        content: options.content ?? null,
         actions: [
-            ...(options.actions ?? []),
+            ...(options.controls ?? []),
             LanguageSelect({
                 locale: playgroundLocale,
                 labelOptions: {
