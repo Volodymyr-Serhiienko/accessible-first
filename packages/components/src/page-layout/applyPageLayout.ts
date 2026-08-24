@@ -9,7 +9,7 @@ export type PageLayoutMode = "app" | "document";
 /**
  * Page chrome positioning mode for page header, navigation, and outlet helper regions.
  */
-export type PageLayoutChromeMode = "normal" | "sticky" | "fixed";
+export type PageLayoutChromeMode = "normal" | "sticky" | "fixed" | "reveal";
 
 /**
  * Page chrome options for header, navigation, and before-outlet behavior.
@@ -143,7 +143,19 @@ function normalizeChromeOptions(
 }
 
 function isPinnedChrome(mode: PageLayoutChromeMode): boolean {
-    return mode === "sticky" || mode === "fixed";
+    return mode === "sticky" || mode === "fixed" || mode === "reveal";
+}
+
+function isVisiblePinnedChrome(mode: PageLayoutChromeMode, chromeVisible: boolean): boolean {
+    if (mode === "reveal") return chromeVisible;
+
+    return isPinnedChrome(mode);
+}
+
+function hasRevealChrome(chrome: ResolvedPageLayoutChromeOptions): boolean {
+    return chrome.header === "reveal"
+        || chrome.navigation === "reveal"
+        || chrome.beforeOutlet === "reveal";
 }
 
 function getBlockSize(element: HTMLElement | null): number {
@@ -169,6 +181,11 @@ export function applyPageLayout(
 
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
+    let removeScrollListener: (() => void) | null = null;
+    let removeRevealFocusListener: (() => void) | null = null;
+    let scrollFrameId: number | null = null;
+    let lastScrollY = ownerWindow.scrollY;
+    let chromeVisible = true;
     let mode: PageLayoutMode = options.mode ?? "app";
     let contained = options.contained ?? true;
     let borders = options.borders ?? true;
@@ -185,6 +202,7 @@ export function applyPageLayout(
     attributes.remember(page.element, "data-af-page-header-mode");
     attributes.remember(page.element, "data-af-page-navigation-mode");
     attributes.remember(page.element, "data-af-page-before-outlet-mode");
+    attributes.remember(page.element, "data-af-page-chrome-visible");
 
     function getHeaderElement(): HTMLElement | null {
         return page.element.querySelector<HTMLElement>("[data-af-page-header]");
@@ -198,6 +216,28 @@ export function applyPageLayout(
         return page.element.querySelector<HTMLElement>("[data-af-app-shell-before-outlet]");
     }
 
+    function containsTarget(element: HTMLElement | null, target: EventTarget | null): boolean {
+        return !!element && target instanceof Node && element.contains(target);
+    }
+
+    function isRevealChromeTarget(target: EventTarget | null): boolean {
+        return (chrome.header === "reveal" && containsTarget(getHeaderElement(), target))
+            || (chrome.navigation === "reveal" && containsTarget(getNavigationElement(), target))
+            || (chrome.beforeOutlet === "reveal" && containsTarget(getBeforeOutletElement(), target));
+    }
+
+    function syncChromeVisibility(): void {
+        page.element.setAttribute("data-af-page-chrome-visible", String(chromeVisible || !hasRevealChrome(chrome)));
+    }
+
+    function setChromeVisible(nextVisible: boolean): void {
+        if (chromeVisible === nextVisible) return;
+
+        chromeVisible = nextVisible;
+        syncChromeVisibility();
+        syncChromeMetrics();
+    }
+
     function syncChromeMetrics(): void {
         if (destroyed) return;
 
@@ -205,9 +245,10 @@ export function applyPageLayout(
         const navigationSize = getBlockSize(getNavigationElement());
         const beforeOutletSize = getBlockSize(getBeforeOutletElement());
 
-        const pinnedHeaderSize = isPinnedChrome(chrome.header) ? headerSize : 0;
-        const pinnedNavigationSize = isPinnedChrome(chrome.navigation) ? navigationSize : 0;
-        const pinnedBeforeOutletSize = isPinnedChrome(chrome.beforeOutlet) ? beforeOutletSize : 0;
+        const effectiveChromeVisible = chromeVisible || !hasRevealChrome(chrome);
+        const pinnedHeaderSize = isVisiblePinnedChrome(chrome.header, effectiveChromeVisible) ? headerSize : 0;
+        const pinnedNavigationSize = isVisiblePinnedChrome(chrome.navigation, effectiveChromeVisible) ? navigationSize : 0;
+        const pinnedBeforeOutletSize = isVisiblePinnedChrome(chrome.beforeOutlet, effectiveChromeVisible) ? beforeOutletSize : 0;
 
         const navigationOffset = pinnedHeaderSize;
         const beforeOutletOffset = pinnedHeaderSize + pinnedNavigationSize;
@@ -266,6 +307,78 @@ export function applyPageLayout(
         });
     }
 
+    function getRevealHideThreshold(): number {
+        return Math.max(24, getBlockSize(getHeaderElement()) / 2);
+    }
+
+    function handleRevealScroll(): void {
+        scrollFrameId = null;
+
+        if (destroyed || !hasRevealChrome(chrome)) return;
+
+        const nextScrollY = Math.max(0, ownerWindow.scrollY);
+        const delta = nextScrollY - lastScrollY;
+
+        lastScrollY = nextScrollY;
+
+        if (nextScrollY <= getRevealHideThreshold()) {
+            setChromeVisible(true);
+            return;
+        }
+
+        if (delta < 0) {
+            setChromeVisible(true);
+        } else if (delta > 4) {
+            setChromeVisible(false);
+        }
+    }
+
+    function setupRevealScroll(): void {
+        removeScrollListener?.();
+        removeRevealFocusListener?.();
+        removeScrollListener = null;
+        removeRevealFocusListener = null;
+
+        if (scrollFrameId !== null) {
+            ownerWindow.cancelAnimationFrame(scrollFrameId);
+            scrollFrameId = null;
+        }
+
+        if (!hasRevealChrome(chrome)) {
+            lastScrollY = Math.max(0, ownerWindow.scrollY);
+            chromeVisible = true;
+            syncChromeVisibility();
+            syncChromeMetrics();
+            return;
+        }
+
+        lastScrollY = Math.max(0, ownerWindow.scrollY);
+        syncChromeVisibility();
+
+        const onScroll = (): void => {
+            if (scrollFrameId !== null) return;
+
+            scrollFrameId = ownerWindow.requestAnimationFrame(handleRevealScroll);
+        };
+
+        const onFocusIn = (event: FocusEvent): void => {
+            if (!isRevealChromeTarget(event.target)) return;
+
+            lastScrollY = Math.max(0, ownerWindow.scrollY);
+            setChromeVisible(true);
+        };
+
+        ownerWindow.addEventListener("scroll", onScroll, { passive: true });
+        page.element.addEventListener("focusin", onFocusIn);
+
+        removeScrollListener = () => {
+            ownerWindow.removeEventListener("scroll", onScroll);
+        };
+        removeRevealFocusListener = () => {
+            page.element.removeEventListener("focusin", onFocusIn);
+        };
+    }
+
     function sync(): void {
         page.element.setAttribute("data-af-page-layout", mode);
         page.element.setAttribute("data-af-page-contained", String(contained));
@@ -273,6 +386,7 @@ export function applyPageLayout(
         page.element.setAttribute("data-af-page-header-mode", chrome.header);
         page.element.setAttribute("data-af-page-navigation-mode", chrome.navigation);
         page.element.setAttribute("data-af-page-before-outlet-mode", chrome.beforeOutlet);
+        syncChromeVisibility();
 
         setStyleProperty(styles, page.element, "--af-page-layout-max-width", maxWidth);
         setStyleProperty(styles, page.element, "--af-page-layout-gutter", gutter);
@@ -286,6 +400,7 @@ export function applyPageLayout(
     sync();
     refreshChromeObservers();
     setupMutationObserver();
+    setupRevealScroll();
 
     return {
         page,
@@ -305,12 +420,21 @@ export function applyPageLayout(
 
             sync();
             refreshChromeObservers();
+            setupRevealScroll();
         },
 
         destroy() {
             if (destroyed) return;
 
             destroyed = true;
+
+            if (scrollFrameId !== null) {
+                ownerWindow.cancelAnimationFrame(scrollFrameId);
+                scrollFrameId = null;
+            }
+
+            removeScrollListener?.();
+            removeRevealFocusListener?.();
             resizeObserver?.disconnect();
             mutationObserver?.disconnect();
             attributes.restore();

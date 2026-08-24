@@ -57,7 +57,7 @@ Current focus:
 - Define the next header/navigation model:
   - normal page flow;
   - sticky/fixed header and navigation;
-  - reveal-on-scroll header/navigation for long pages;
+  - refine reveal-on-scroll header/navigation behavior after mobile testing;
   - compact responsive header action layout for search, language, theme, commands, and future profile controls.
 - Decide whether `HeaderBar` remains a low-level layout component and whether higher-level app header templates should own sticky/reveal behavior.
 - Improve mobile header compactness where search or actions take too much space.
@@ -87,7 +87,7 @@ Planned sequence:
    - top navigation;
    - sidebar navigation;
    - mobile navigation;
-   - sticky and reveal-on-scroll shell behavior;
+   - expanded sticky/reveal shell behavior and header overflow patterns;
    - action overflow when header actions do not fit.
 3. Build the first reference application: an accessible foreign-language learning app.
 4. Use that application to validate real workflows:

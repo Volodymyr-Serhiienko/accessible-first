@@ -33,7 +33,7 @@ page.header(
 - Uses `layout: "auto"` by default, so slots wrap according to available inline space.
 - Lets the brand take priority, then places content and actions beside it when there is room.
 - Moves brand to its own row on narrower containers, while content and actions continue sharing a row when possible.
-- Falls back to full-width content and actions on very narrow containers.
+- Keeps content and actions beside each other as long as there is room, then falls back to full-width content and actions on very narrow containers.
 - Hides empty slots automatically.
 
 ## Options
@@ -51,7 +51,7 @@ page.header(
 
 HeaderBar owns only the internal header composition: brand, content, and actions. It should not own page scroll behavior.
 
-Sticky headers, fixed navigation, reveal-on-scroll headers, and action overflow should belong to higher-level `AppShell` / `PageLayout` patterns once real applications prove the final API shape. This keeps HeaderBar small and reusable in normal pages, sidebars, dialogs, and future shell templates.
+Sticky headers, fixed navigation, reveal-on-scroll headers, and action overflow belong to higher-level `AppShell` / `PageLayout` patterns. This keeps HeaderBar small and reusable in normal pages, sidebars, dialogs, and future shell templates.
 
 ## Layout Modes
 

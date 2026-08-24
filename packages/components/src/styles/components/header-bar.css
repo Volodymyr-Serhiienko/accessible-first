@@ -110,7 +110,7 @@
     }
 }
 
-@container (max-width: 24rem) {
+@container (max-width: 20rem) {
     [data-af-composition="header-bar"][data-af-header-bar-layout="auto"] [data-af-header-bar-content],
     [data-af-composition="header-bar"][data-af-header-bar-layout="auto"] [data-af-header-bar-actions] {
         inline-size: 100%;
