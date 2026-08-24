@@ -1,3 +1,5 @@
+import { accessibleFirstEnglishMessages } from "../localization";
+
 /**
  * Default email pattern for TextField when type="email" has no custom pattern.
  *
@@ -10,5 +12,4 @@ export const textFieldEmailPattern = "[^\\s@]+@[^\\s@.]+(?:\\.[^\\s@.]+)+";
  * Default message for the Accessible First email pattern.
  */
 export const textFieldEmailPatternMismatchMessage =
-    "Enter an email address with a domain, such as name@example.com.";
-    
+    accessibleFirstEnglishMessages["textField.emailPatternMismatchMessage"];

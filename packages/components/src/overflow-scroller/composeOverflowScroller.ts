@@ -9,6 +9,11 @@ import {
     type ComposedNode,
     type CompositionChild
 } from "../composition";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
 
 /**
  * Controls visibility mode for OverflowScroller.
@@ -21,6 +26,18 @@ export type OverflowScrollerControls = "auto" | "always" | "none";
 export type OverflowScrollerScrollAmount = "page" | number;
 
 /**
+ * Localized message keys used by OverflowScroller control buttons.
+ */
+export type OverflowScrollerMessageKey =
+    | "overflowScroller.previousLabel"
+    | "overflowScroller.nextLabel";
+
+/**
+ * Localization provider accepted by OverflowScroller.
+ */
+export type OverflowScrollerLocalization = LocaleTextProvider<OverflowScrollerMessageKey>;
+
+/**
  * Options for OverflowScroller().
  */
 export interface OverflowScrollerOptions extends BaseCompositionOptions {
@@ -28,6 +45,7 @@ export interface OverflowScrollerOptions extends BaseCompositionOptions {
     label?: string | null;
     previousLabel?: string;
     nextLabel?: string;
+    locale?: OverflowScrollerLocalization | null;
     controls?: OverflowScrollerControls;
     scrollAmount?: OverflowScrollerScrollAmount;
     viewportOptions?: BaseCompositionOptions;
@@ -75,6 +93,14 @@ function parseCssPixelValue(value: string): number {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function getControlLabel(
+    value: string | undefined,
+    locale: OverflowScrollerLocalization | null,
+    key: OverflowScrollerMessageKey
+): string {
+    return value ?? getLocaleText(locale, key, accessibleFirstEnglishMessages[key]);
+}
+
 function getViewportFocusInset(viewport: HTMLElement, ownerWindow: Window): number {
     const style = ownerWindow.getComputedStyle(viewport);
 
@@ -110,8 +136,12 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     const contentSlot = createContentSlot(content, toCompositionChildren(options.children));
 
     let label = options.label ?? null;
-    let previousLabel = options.previousLabel ?? "Scroll left";
-    let nextLabel = options.nextLabel ?? "Scroll right";
+    let previousLabel = options.previousLabel;
+    let nextLabel = options.nextLabel;
+    let locale: OverflowScrollerLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
+    let previousButtonOptions = options.previousButtonOptions;
+    let nextButtonOptions = options.nextButtonOptions;
     let controls: OverflowScrollerControls = options.controls ?? "auto";
     let scrollAmount: OverflowScrollerScrollAmount = options.scrollAmount ?? "page";
     let updateTimer: number | null = null;
@@ -144,8 +174,18 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             element.removeAttribute("aria-label");
         }
 
-        applyButtonOptions(previousButton, options.previousButtonOptions, "previous", previousLabel);
-        applyButtonOptions(nextButton, options.nextButtonOptions, "next", nextLabel);
+        applyButtonOptions(
+            previousButton,
+            previousButtonOptions,
+            "previous",
+            getControlLabel(previousLabel, locale, "overflowScroller.previousLabel")
+        );
+        applyButtonOptions(
+            nextButton,
+            nextButtonOptions,
+            "next",
+            getControlLabel(nextLabel, locale, "overflowScroller.nextLabel")
+        );
     }
 
     function getScrollDistance(): number {
@@ -227,6 +267,17 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
         scheduleFocusedElementScroll(target);
     }
 
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncStructure();
+        });
+    }
+
     function scrollPrevious(): void {
         viewport.scrollBy({
             left: -getScrollDistance(),
@@ -268,6 +319,7 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
 
     viewport.append(content);
     element.append(previousButton, viewport, nextButton);
+    syncLocaleSubscription();
     syncStructure();
     scheduleStateUpdate();
 
@@ -286,8 +338,12 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             applyCompositionElementOptions(element, nextOptions);
 
             if ("label" in nextOptions) label = nextOptions.label ?? null;
-            if (nextOptions.previousLabel !== undefined) previousLabel = nextOptions.previousLabel;
-            if (nextOptions.nextLabel !== undefined) nextLabel = nextOptions.nextLabel;
+            if ("previousLabel" in nextOptions) previousLabel = nextOptions.previousLabel;
+            if ("nextLabel" in nextOptions) nextLabel = nextOptions.nextLabel;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if (nextOptions.controls !== undefined) controls = nextOptions.controls;
             if (nextOptions.scrollAmount !== undefined) scrollAmount = nextOptions.scrollAmount;
 
@@ -300,11 +356,13 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             }
 
             if (nextOptions.previousButtonOptions !== undefined) {
-                applyCompositionElementOptions(previousButton, nextOptions.previousButtonOptions);
+                previousButtonOptions = nextOptions.previousButtonOptions;
+                applyCompositionElementOptions(previousButton, previousButtonOptions);
             }
 
             if (nextOptions.nextButtonOptions !== undefined) {
-                applyCompositionElementOptions(nextButton, nextOptions.nextButtonOptions);
+                nextButtonOptions = nextOptions.nextButtonOptions;
+                applyCompositionElementOptions(nextButton, nextButtonOptions);
             }
 
             if (nextOptions.children !== undefined) {
@@ -324,13 +382,14 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
                 ownerWindow.clearTimeout(updateTimer);
                 updateTimer = null;
             }
-            
+
             if (focusScrollFrame !== null) {
                 ownerWindow.cancelAnimationFrame(focusScrollFrame);
                 focusScrollFrame = null;
             }
 
             resizeObserver?.disconnect();
+            unsubscribeLocale?.();
 
             for (const cleanup of [...cleanups].reverse()) {
                 cleanup();

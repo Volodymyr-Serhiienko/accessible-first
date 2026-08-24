@@ -4,6 +4,8 @@ export type {
     BreadcrumbsCompositionContent,
     BreadcrumbsCurrent,
     BreadcrumbsItem,
+    BreadcrumbsLocalization,
+    BreadcrumbsMessageKey,
     BreadcrumbsOptions,
     BreadcrumbsSize,
     BreadcrumbsUpdateOptions,

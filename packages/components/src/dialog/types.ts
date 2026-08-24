@@ -6,6 +6,7 @@ import type {
 import type { DismissableLayerEvent } from "../../../core/src/dismissable-layer";
 import type { OverlayStack } from "../../../core/src/overlay-stack";
 import type { Component } from "../foundation";
+import type { LocaleTextProvider } from "../localization";
 
 /**
  * Visual variant for a dialog.
@@ -16,6 +17,18 @@ export type DialogVariant = "default" | "plain";
  * Dialog size token.
  */
 export type DialogSize = "md";
+
+/**
+ * Localized message keys used by createDialog() fallback accessible names.
+ */
+export type DialogBehaviorMessageKey =
+    | "dialog.fallbackLabel"
+    | "dialog.alertFallbackLabel";
+
+/**
+ * Localization provider accepted by createDialog().
+ */
+export type DialogBehaviorLocalization = LocaleTextProvider<DialogBehaviorMessageKey>;
 
 /**
  * Options for createDialog().
@@ -32,6 +45,7 @@ export interface DialogOptions extends Omit<CoreDialogOptions, "onOpenChange"> {
     lockScroll?: boolean;
     variant?: DialogVariant;
     size?: DialogSize;
+    locale?: DialogBehaviorLocalization | null;
     onEscapeKeyDown?: ((event: DismissableLayerEvent<KeyboardEvent>) => void) | null;
     onPointerDownOutside?: ((event: DismissableLayerEvent<PointerEvent>) => void) | null;
     onFocusOutside?: ((event: DismissableLayerEvent<FocusEvent>) => void) | null;

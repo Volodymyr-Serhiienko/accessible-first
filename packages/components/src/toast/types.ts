@@ -1,4 +1,5 @@
 import type { Component } from "../foundation";
+import type { LocaleTextProvider } from "../localization";
 
 /**
  * Visual tone of a toast notification.
@@ -14,6 +15,20 @@ export type ToastPoliteness = "polite" | "assertive";
  * Fixed viewport placement for toast notifications.
  */
 export type ToastPlacement = "top-start" | "top-end" | "bottom-start" | "bottom-end";
+
+/**
+ * Localized message keys used by ToastViewport fallback text.
+ */
+export type ToastMessageKey =
+    | "toast.label"
+    | "toast.closeLabel"
+    | "toast.closeButtonText"
+    | "toast.fallbackDescription";
+
+/**
+ * Localization provider accepted by ToastViewport.
+ */
+export type ToastLocalization = LocaleTextProvider<ToastMessageKey>;
 
 /**
  * Reason passed to toast close callbacks.
@@ -80,6 +95,7 @@ export interface ToastViewportOptions {
     duration?: number | null;
     dismissible?: boolean;
     closeLabel?: string;
+    locale?: ToastLocalization | null;
     pauseOnHover?: boolean;
     newestOnTop?: boolean;
 }

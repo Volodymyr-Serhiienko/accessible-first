@@ -6,6 +6,7 @@ import {
     type ComposedNode,
     type CompositionChild
 } from "./af";
+import { playgroundLocale, t } from "./localization";
 
 export interface HeaderDemoOptions {
     content?: CompositionChild[];
@@ -17,7 +18,7 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
         brand: Brand({
             className: "playground-brand",
             href: "#main",
-            label: "Accessible First Playground home",
+            label: t("app.brand.homeLabel"),
             logoAspectRatio: "1 / 1",
             logoScale: 1.6,
             logoOffsetY: "0.2rem",
@@ -26,14 +27,15 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
                 alt: "",
                 decorative: true
             }),
-            name: "Accessible First Playground",
+            name: t("app.brand.name"),
             nameTag: "h1",
-            tagline: "WCAG-first components and page composition"
+            tagline: t("app.brand.tagline")
         }),
         content: options.content ?? null,
         actions: [
             ...(options.actions ?? []),
             ThemeToggle({
+                locale: playgroundLocale,
                 variant: "secondary"
             })
         ]

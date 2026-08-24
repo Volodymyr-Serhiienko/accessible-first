@@ -14,6 +14,11 @@ import {
 import { createTextField as createTextFieldComponent } from "./createTextField";
 import { addEventListener } from "../../../core/src/events";
 import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
+import {
     createValidationAnnouncer,
     type ValidationAnnouncer
 } from "../../../core/src/validation-announcements";
@@ -66,6 +71,16 @@ export type TextFieldCompositionValidationState = "idle" | "valid" | "invalid";
  * Reason that triggered text field validation.
  */
 export type TextFieldCompositionValidationTrigger = "blur" | "input" | "programmatic";
+
+/**
+ * Localized message keys used by TextField fallback validation text.
+ */
+export type TextFieldMessageKey = "textField.emailPatternMismatchMessage";
+
+/**
+ * Localization provider accepted by TextField.
+ */
+export type TextFieldLocalization = LocaleTextProvider<TextFieldMessageKey>;
 
 /**
  * Custom validation messages for native constraint validation.
@@ -145,6 +160,7 @@ export interface TextFieldCompositionOptions
     showValidState?: boolean;
     announceValidation?: boolean;
     validationMessages?: TextFieldCompositionValidationMessages;
+    locale?: TextFieldLocalization | null;
     validator?: TextFieldCompositionValidator | null;
     onValidationChange?: TextFieldCompositionOnValidationChange | null;
     onValueInput?: TextFieldCompositionOnValueInput | null;
@@ -320,6 +336,8 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     let showValidState = options.showValidState ?? true;
     let announceValidation = options.announceValidation ?? true;
     let validationMessages = options.validationMessages ?? {};
+    let locale: TextFieldLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let validator = options.validator ?? null;
     let onValidationChange = options.onValidationChange ?? null;
     let validationState: TextFieldCompositionValidationState = "idle";
@@ -358,6 +376,14 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         label.toggleAttribute("data-af-required", textField.isRequired());
     }
 
+    function getDefaultEmailPatternMessage(): string {
+        return getLocaleText(
+            locale,
+            "textField.emailPatternMismatchMessage",
+            accessibleFirstEnglishMessages["textField.emailPatternMismatchMessage"]
+        );
+    }
+
     function getNativeValidationMessage(): string {
         const validity = control.validity;
 
@@ -366,7 +392,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         if (validity.patternMismatch) {
             return validationMessages.patternMismatch
                 ?? (hasDefaultEmailPattern(control)
-                    ? textFieldEmailPatternMismatchMessage
+                    ? getDefaultEmailPatternMessage()
                     : control.validationMessage);
         }
         if (validity.tooShort) return validationMessages.tooShort ?? control.validationMessage;
@@ -427,6 +453,19 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         syncFormFieldReferences();
     }
 
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            if (validationState === "invalid") {
+                composed.validate({ trigger: "programmatic", announce: false });
+            }
+        });
+    }
+
     const textField = createTextFieldComponent(
         control,
         getTextFieldOptions(
@@ -437,6 +476,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     );
 
     syncFormFieldReferences();
+    syncLocaleSubscription();
 
     composed = {
         ...textField,
@@ -565,6 +605,10 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
             if (nextOptions.showValidState !== undefined) showValidState = nextOptions.showValidState;
             if (nextOptions.announceValidation !== undefined) announceValidation = nextOptions.announceValidation;
             if (nextOptions.validationMessages !== undefined) validationMessages = nextOptions.validationMessages;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if ("validator" in nextOptions) validator = nextOptions.validator ?? null;
             if ("onValidationChange" in nextOptions) onValidationChange = nextOptions.onValidationChange ?? null;
 
@@ -583,6 +627,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
             errorSlot.dispose();
             formField.destroy();
             textField.destroy();
+            unsubscribeLocale?.();
 
             for (const cleanup of validationCleanups) {
                 cleanup();

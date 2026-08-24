@@ -4,6 +4,8 @@ export type {
     ComposedListDetail,
     ListDetailCompositionContent,
     ListDetailFocusTarget,
+    ListDetailLocalization,
+    ListDetailMessageKey,
     ListDetailOptions,
     ListDetailOrientation,
     ListDetailSize,

@@ -18,6 +18,10 @@ import {
 } from "../composition";
 import { createDialog } from "./createDialog";
 import { createId } from "../../../core/src/id";
+import {
+    accessibleFirstEnglishMessages,
+    type LocaleTextProvider
+} from "../localization";
 import type {
     Dialog as DialogInstance,
     DialogOptions,
@@ -46,6 +50,16 @@ export type DialogInitialFocusTarget = "first" | "title" | "description" | "dial
 export type DialogCompositionContent = CompositionContent;
 
 /**
+ * Localized message keys used by Dialog fallback text.
+ */
+export type DialogMessageKey = "dialog.closeText";
+
+/**
+ * Localization provider accepted by Dialog.
+ */
+export type DialogLocalization = LocaleTextProvider<DialogMessageKey>;
+
+/**
  * Called when a composed dialog opens or closes.
  */
 export type DialogCompositionOnOpenChange = (
@@ -59,7 +73,13 @@ export type DialogCompositionOnOpenChange = (
 export interface DialogCompositionOptions
     extends Omit<
             DialogOptions,
-            "trigger" | "closeElements" | "surface" | "labelledBy" | "describedBy" | "onOpenChange"
+            | "trigger"
+            | "closeElements"
+            | "surface"
+            | "labelledBy"
+            | "describedBy"
+            | "locale"
+            | "onOpenChange"
         >,
         BaseCompositionOptions {
     trigger: DialogCompositionContent;
@@ -75,6 +95,7 @@ export interface DialogCompositionOptions
     hideCloseButton?: boolean;
     triggerVariant?: ButtonVariant;
     triggerSize?: ButtonSize;
+    locale?: DialogLocalization | null;
     onOpenChange?: DialogCompositionOnOpenChange | null;
 }
 
@@ -148,6 +169,15 @@ function getCompositionInitialFocus(
         default:
             return undefined;
     }
+}
+
+function getCloseText(
+    closeText: string | undefined,
+    locale: DialogLocalization | null
+): string {
+    return closeText
+        ?? locale?.t("dialog.closeText")
+        ?? accessibleFirstEnglishMessages["dialog.closeText"];
 }
 
 function getDialogOptions(
@@ -352,8 +382,12 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         }
     });
 
+    let closeText: string | undefined = options.closeText;
+    let locale = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
+
     const closeButton: ComposedButton = Button({
-        text: options.closeText ?? "Close",
+        text: getCloseText(closeText, locale),
         variant: "secondary"
     });
 
@@ -427,12 +461,29 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         actionsBar.setSecondary(actions);
     }
 
+    function syncLocalizedText(): void {
+        closeButton.setText(getCloseText(closeText, locale));
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncLocalizedText();
+        });
+    }
+
     function syncCloseButtonVisibility(): void {
         actionsBar.setPrimary(hideCloseButton ? null : closeButton.element);
         dialog.update({
             closeElements: hideCloseButton ? [] : [closeButton.element]
         });
     }
+
+    syncLocaleSubscription();
 
     composed = {
         ...dialog,
@@ -469,8 +520,15 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
                 setActions(nextOptions.actions ?? null);
             }
 
-            if (nextOptions.closeText !== undefined) {
-                closeButton.setText(nextOptions.closeText);
+            if ("closeText" in nextOptions) {
+                closeText = nextOptions.closeText;
+                syncLocalizedText();
+            }
+
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+                syncLocalizedText();
             }
 
             if (nextOptions.hideCloseButton !== undefined) {
@@ -499,6 +557,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         },
 
         destroy(): void {
+            unsubscribeLocale?.();
             dialog.destroy();
             bodySlot.dispose();
             actionsBar.destroy();

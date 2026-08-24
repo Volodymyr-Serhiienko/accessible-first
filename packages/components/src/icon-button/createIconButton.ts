@@ -9,20 +9,34 @@ import { addEventListener } from "../../../core/src/events";
 import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
 import { restoreAttribute } from "../../../core/src/dom";
 import { createComponentLifecycle } from "../foundation";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText
+} from "../localization";
 
 import type { ButtonPressedState } from "../button";
-import type { IconButton, IconButtonOptions, IconButtonUpdateOptions } from "./types";
+import type { IconButton, IconButtonLocalization, IconButtonOptions, IconButtonUpdateOptions } from "./types";
 
 function isNativeButton(element: HTMLElement): element is HTMLButtonElement {
     return element.localName === "button";
 }
 
-function hasAccessibleName(element: HTMLElement): boolean {
+function hasAuthorAccessibleName(element: HTMLElement, fallbackLabelApplied: boolean): boolean {
+    const label = element.getAttribute("aria-label")?.trim();
+
     return Boolean(
-        element.getAttribute("aria-label")?.trim()
-        || element.getAttribute("aria-labelledby")?.trim()
+        element.getAttribute("aria-labelledby")?.trim()
+        || (label && !fallbackLabelApplied)
         || element.textContent?.trim()
         || element.getAttribute("title")?.trim()
+    );
+}
+
+function getFallbackLabel(locale: IconButtonLocalization | null): string {
+    return getLocaleText(
+        locale,
+        "iconButton.fallbackLabel",
+        accessibleFirstEnglishMessages["iconButton.fallbackLabel"]
     );
 }
 
@@ -62,6 +76,9 @@ export function createIconButton(
     let labelledBy: AriaReferences = options.labelledBy ?? null;
     let hasExplicitLabel = options.label !== undefined;
     let hasExplicitLabelledBy = options.labelledBy !== undefined;
+    let fallbackLabelApplied = false;
+    let locale: IconButtonLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
 
     function syncAccessibleName(): void {
         element.removeAttribute("data-af-warning");
@@ -85,10 +102,29 @@ export function createIconButton(
             element.removeAttribute("aria-label");
         }
 
-        if (!hasAccessibleName(element)) {
-            element.setAttribute("aria-label", "Icon button");
-            element.setAttribute("data-af-warning", "missing-accessible-name");
+        if (hasAuthorAccessibleName(element, fallbackLabelApplied)) {
+            if (fallbackLabelApplied) {
+                element.removeAttribute("aria-label");
+                fallbackLabelApplied = false;
+            }
+
+            return;
         }
+
+        element.setAttribute("aria-label", getFallbackLabel(locale));
+        element.setAttribute("data-af-warning", "missing-accessible-name");
+        fallbackLabelApplied = true;
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncAccessibleName();
+        });
     }
 
     function syncDisabled(): void {
@@ -200,6 +236,7 @@ export function createIconButton(
     lifecycle.addCleanup(addEventListener<MouseEvent>(element, "click", handleClick));
 
     lifecycle.addCleanup(() => {
+        unsubscribeLocale?.();
         restoreAttribute(element, "role", originalRole);
         restoreAttribute(element, "tabindex", originalTabIndex);
         restoreAttribute(element, "aria-label", originalAriaLabel);
@@ -216,6 +253,7 @@ export function createIconButton(
         }
     });
 
+    syncLocaleSubscription();
     syncAccessibleName();
     syncDisabled();
     syncPressed();
@@ -251,6 +289,12 @@ export function createIconButton(
 
             if ("labelledBy" in nextOptions) {
                 setLabelledBy(nextOptions.labelledBy ?? null);
+            }
+
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+                syncAccessibleName();
             }
 
             if (nextOptions.variant !== undefined) {

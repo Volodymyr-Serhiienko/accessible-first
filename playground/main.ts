@@ -14,6 +14,7 @@ import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
 import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
+import { playgroundLocale, t } from "./demo/localization";
 import { playgroundManifest } from "./demo/manifest";
 import { NavigationDemo } from "./demo/navigation";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
@@ -53,14 +54,15 @@ function scheduleInitialPageScroll(): void {
 }
 
 const shell = AppShell({
-    title: "Accessible First Playground",
+    title: t("app.brand.name"),
     mainId: "main",
-    skipLink: "Skip to section navigation",
+    skipLink: t("app.navigation.skipLink"),
     skipLinkTargetId: "playground-navigation",
-    navigationLabel: "Playground sections",
+    navigationLabel: t("app.navigation.label"),
+    locale: playgroundLocale,
     theme: "system",
     metadata: {
-        lang: "en",
+        lang: playgroundLocale.getLocale(),
         description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, and app-building patterns.",
         themeColor: "#111827",
         canonical: new URL(".", window.location.href),
@@ -73,7 +75,7 @@ const shell = AppShell({
             }
         ],
         openGraph: {
-            title: "Accessible First Playground",
+            title: t("app.brand.name"),
             type: "website",
             url: new URL(".", window.location.href),
             description: "Accessible First Playground demonstrates WCAG-first UI components and app-building patterns.",
@@ -88,7 +90,7 @@ const shell = AppShell({
         },
         twitter: {
             card: "summary",
-            title: "Accessible First Playground",
+            title: t("app.brand.name"),
             description: "WCAG-first components, semantic composition, routing, diagnostics, and app-building patterns.",
             image: new URL("assets/logo-512.png", window.location.href),
             imageAlt: "Accessible First AF logo"
@@ -180,7 +182,9 @@ const router = createHashRouter({
         shell.updateMetadata(metadata);
     },
     getAnnouncement(route) {
-        return `${route.title} demo loaded.`;
+        return t("app.route.loaded", {
+            title: route.title
+        });
     },
     inspect() {
         logPlaygroundDiagnostics();

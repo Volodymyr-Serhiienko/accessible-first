@@ -3,6 +3,8 @@ export { Dialog } from "./composeDialog";
 
 export type {
     Dialog as DialogInstance,
+    DialogBehaviorLocalization,
+    DialogBehaviorMessageKey,
     DialogElement,
     DialogOptions,
     DialogRole,
@@ -14,6 +16,8 @@ export type {
 export type {
     ComposedDialog,
     DialogCompositionContent,
+    DialogLocalization,
+    DialogMessageKey,
     DialogCompositionOnOpenChange,
     DialogCompositionOptions,
     DialogCompositionUpdateOptions,

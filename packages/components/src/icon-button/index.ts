@@ -3,6 +3,8 @@ export { IconButton } from "./composeIconButton";
 
 export type {
     IconButton as IconButtonInstance,
+    IconButtonLocalization,
+    IconButtonMessageKey,
     IconButtonOptions,
     IconButtonSize,
     IconButtonUpdateOptions

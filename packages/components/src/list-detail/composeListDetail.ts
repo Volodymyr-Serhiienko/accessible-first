@@ -11,6 +11,10 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import {
+    accessibleFirstEnglishMessages,
+    type LocaleTextProvider
+} from "../localization";
 
 /**
  * Content accepted by ListDetail slots.
@@ -38,6 +42,18 @@ export type ListDetailSize = "md";
 export type ListDetailFocusTarget = "list" | "detail";
 
 /**
+ * Localized message keys used by ListDetail fallback labels.
+ */
+export type ListDetailMessageKey =
+    | "listDetail.listLabel"
+    | "listDetail.detailLabel";
+
+/**
+ * Localization provider accepted by ListDetail.
+ */
+export type ListDetailLocalization = LocaleTextProvider<ListDetailMessageKey>;
+
+/**
  * Options for ListDetail().
  */
 export interface ListDetailOptions extends BaseCompositionOptions {
@@ -46,6 +62,7 @@ export interface ListDetailOptions extends BaseCompositionOptions {
     empty?: ListDetailCompositionContent | null;
     listLabel?: string | null;
     detailLabel?: string | null;
+    locale?: ListDetailLocalization | null;
     orientation?: ListDetailOrientation;
     variant?: ListDetailVariant;
     size?: ListDetailSize;
@@ -83,6 +100,24 @@ type ListDetailSlotContent = Exclude<ListDetailCompositionContent, undefined> | 
 
 function normalizeSlotContent(content: ListDetailCompositionContent | null): ListDetailSlotContent {
     return content === undefined ? null : content;
+}
+
+function getFallbackLabel(
+    locale: ListDetailLocalization | null,
+    key: ListDetailMessageKey
+): string {
+    return locale?.t(key) ?? accessibleFirstEnglishMessages[key];
+}
+
+function resolveLabel(
+    value: string | null | undefined,
+    locale: ListDetailLocalization | null,
+    fallbackKey: ListDetailMessageKey
+): string | null {
+    if (value === null) return null;
+    if (value !== undefined) return value;
+
+    return getFallbackLabel(locale, fallbackKey);
 }
 
 function setOptionalAriaLabel(element: HTMLElement, label: string | null): void {
@@ -128,8 +163,10 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
     const originalListTabIndex = list.getAttribute("tabindex");
     const originalDetailTabIndex = detail.getAttribute("tabindex");
 
-    let listLabel: string | null = options.listLabel ?? "Items";
-    let detailLabel: string | null = options.detailLabel ?? "Details";
+    let listLabel = options.listLabel;
+    let detailLabel = options.detailLabel;
+    let locale = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let orientation: ListDetailOrientation = options.orientation ?? "auto";
     let variant: ListDetailVariant = options.variant ?? "default";
     let size: ListDetailSize = options.size ?? "md";
@@ -178,8 +215,14 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         ensureProgrammaticFocusTarget(list);
         ensureProgrammaticFocusTarget(detail);
 
-        setOptionalAriaLabel(list, listLabel);
-        setOptionalAriaLabel(detail, detailLabel);
+        setOptionalAriaLabel(
+            list,
+            resolveLabel(listLabel, locale, "listDetail.listLabel")
+        );
+        setOptionalAriaLabel(
+            detail,
+            resolveLabel(detailLabel, locale, "listDetail.detailLabel")
+        );
 
         detailContent.hidden = !hasDetail;
         empty.hidden = hasDetail || !hasEmpty;
@@ -190,6 +233,17 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         } else {
             element.style.removeProperty("--af-list-detail-list-width");
         }
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            sync();
+        });
     }
 
     function setList(content: ListDetailCompositionContent): void {
@@ -212,6 +266,7 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         sync();
     }
 
+    syncLocaleSubscription();
     sync();
 
     return {
@@ -244,8 +299,12 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
             if ("list" in nextOptions) setList(nextOptions.list);
             if ("detail" in nextOptions) setDetail(nextOptions.detail ?? null);
             if ("empty" in nextOptions) setEmpty(nextOptions.empty ?? null);
-            if ("listLabel" in nextOptions) listLabel = nextOptions.listLabel ?? null;
-            if ("detailLabel" in nextOptions) detailLabel = nextOptions.detailLabel ?? null;
+            if ("listLabel" in nextOptions) listLabel = nextOptions.listLabel;
+            if ("detailLabel" in nextOptions) detailLabel = nextOptions.detailLabel;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if ("listWidth" in nextOptions) listWidth = nextOptions.listWidth ?? null;
             if (nextOptions.defaultFocusTarget !== undefined) defaultFocusTarget = nextOptions.defaultFocusTarget;
             if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
@@ -256,6 +315,7 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         },
 
         destroy(): void {
+            unsubscribeLocale?.();
             listSlot.dispose();
             detailSlot.dispose();
             emptySlot.dispose();

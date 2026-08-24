@@ -10,5 +10,7 @@ export type {
     PageDiagnosticsOptions,
     PageDiagnosticsReport,
     PageDiagnosticsStatus,
+    PageLocalization,
+    PageMessageKey,
     PageOptions
 } from "./types";

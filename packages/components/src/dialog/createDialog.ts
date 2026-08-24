@@ -22,8 +22,14 @@ import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 import { createScrollLock } from "../../../core/src/scroll";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText
+} from "../localization";
 import type {
     Dialog,
+    DialogBehaviorLocalization,
+    DialogBehaviorMessageKey,
     DialogOptions,
     DialogSize,
     DialogUpdateOptions,
@@ -75,10 +81,15 @@ function hasAuthorAccessibleName(element: HTMLElement, fallbackLabelApplied: boo
     return Boolean(labelledBy || (label && !fallbackLabelApplied));
 }
 
-function getFallbackAccessibleName(element: HTMLElement): string {
-    return element.getAttribute("role") === "alertdialog"
-        ? "Alert dialog"
-        : "Dialog";
+function getFallbackAccessibleName(
+    element: HTMLElement,
+    locale: DialogBehaviorLocalization | null
+): string {
+    const key: DialogBehaviorMessageKey = element.getAttribute("role") === "alertdialog"
+        ? "dialog.alertFallbackLabel"
+        : "dialog.fallbackLabel";
+
+    return getLocaleText(locale, key, accessibleFirstEnglishMessages[key]);
 }
 
 /**
@@ -121,6 +132,8 @@ export function createDialog(
     let closeOnEscape = options.closeOnEscape ?? true;
     let dismissOnPointerDownOutside = options.dismissOnPointerDownOutside ?? true;
     let dismissOnFocusOutside = options.dismissOnFocusOutside ?? false;
+    let locale: DialogBehaviorLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let modal = options.modal ?? true;
     let hasExplicitLockScroll = options.lockScroll !== undefined;
     let lockScroll = options.lockScroll ?? modal;
@@ -135,9 +148,20 @@ export function createDialog(
             return;
         }
 
-        element.setAttribute("aria-label", getFallbackAccessibleName(element));
+        element.setAttribute("aria-label", getFallbackAccessibleName(element, locale));
         element.setAttribute("data-af-warning", "missing-accessible-name");
         fallbackLabelApplied = true;
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncAccessibleName();
+        });
     }
 
     function syncTriggerAttributes(): void {
@@ -292,6 +316,7 @@ export function createDialog(
 
     layer = createDismissableLayer(surface, layerOptions);
 
+    syncLocaleSubscription();
     bindTrigger(options.trigger ?? null);
     bindCloseElements(options.closeElements ?? []);
 
@@ -308,6 +333,7 @@ export function createDialog(
         restoreAttribute(surface, "data-af-dialog-surface", originalSurfaceMarker);
     });
 
+    lifecycle.addCleanup(() => unsubscribeLocale?.());
     lifecycle.addCleanup(() => behavior.destroy());
     lifecycle.addCleanup(() => layer.destroy());
     lifecycle.addCleanup(() => triggerCleanup?.());
@@ -388,6 +414,12 @@ export function createDialog(
 
             if (nextOptions.role !== undefined) {
                 setRole(element, nextOptions.role);
+                syncAccessibleName();
+            }
+
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
                 syncAccessibleName();
             }
 

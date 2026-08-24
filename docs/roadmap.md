@@ -168,6 +168,8 @@ Completed:
 - DocumentMetadata JSON-LD structured data field and diagnostics
 - Route-derived sitemap helper for public pages and multi-page app artifacts
 - RobotsTxt helper for crawler policy and sitemap discovery
+- LocaleController and default framework service-text registry
+- First service-text migration for Dialog, AlertDialog, Breadcrumbs, CommandPalette, IconButton, ListDetail, OverflowScroller, Page, ResponsiveNavigation, RouteCommandPalette, TextField, ThemeToggle, and ToastViewport
 
 In progress:
 
@@ -182,7 +184,7 @@ In progress:
 - Keyboard shortcut model guidance for more advanced application-wide shortcut maps
 - Shortcut patterns for desktop-first application workflows
 - Documentation alignment with current architecture
-- Localization layer design and first implementation for user-facing service text
+- App localization template planning for combining framework service text and application copy
 - First reference application planning: accessible foreign-language learning app
 
 Next:
@@ -193,10 +195,9 @@ Next:
 - Focus-route templates for screen reader friendly app screens
 - App diagnostics and health report expansion for metadata, interaction checks, mobile UX checks, and SEO-oriented checks
 - Metadata expansion for social preview assets and richer SEO checks
-- LocaleController for explicit, saved, URL/app, system-language, and fallback locale resolution
-- Localizable default-text registry for user-facing component service labels
+- Application locale file template for shared framework and app translations
 - LanguageSelect or LanguageMenu header action component
-- Playground locale demo and gradual service-text migration
+- Playground locale demo with runtime service-text switching
 - Mobile playground layout cleanup after real-device checks
 - Mobile screen reader UX research for SearchBox, Combobox, CommandPalette, navigation, and form controls
 - Mobile screen reader form-control verbosity review for Checkbox, RadioGroup, Switch, and future fields

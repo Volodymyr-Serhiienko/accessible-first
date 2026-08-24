@@ -1,11 +1,22 @@
 import type { AriaReferences } from "../../../core/src/aria";
 import type { ButtonPressedState, ButtonVariant } from "../button";
 import type { Component } from "../foundation";
+import type { LocaleTextProvider } from "../localization";
 
 /**
  * Icon button size token.
  */
 export type IconButtonSize = "md";
+
+/**
+ * Localized message keys used by createIconButton() fallback accessible names.
+ */
+export type IconButtonMessageKey = "iconButton.fallbackLabel";
+
+/**
+ * Localization provider accepted by createIconButton().
+ */
+export type IconButtonLocalization = LocaleTextProvider<IconButtonMessageKey>;
 
 /**
  * Options for createIconButton().
@@ -19,6 +30,7 @@ export interface IconButtonOptions {
     type?: "button" | "submit" | "reset";
     variant?: ButtonVariant;
     size?: IconButtonSize;
+    locale?: IconButtonLocalization | null;
     onPress?: ((event: Event) => void) | null;
 }
 

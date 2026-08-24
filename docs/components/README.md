@@ -15,6 +15,7 @@ Each component document should contain:
 ## Shared Conventions
 
 - [Component Foundation](./foundation.md)
+- [Localization](../localization.md)
 
 ## Visual UI, Layout, And Form Components
 

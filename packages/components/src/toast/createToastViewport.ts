@@ -3,10 +3,15 @@ import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
 import { createComponentLifecycle } from "../foundation";
 import { createAnnouncer } from "../../../core/src/live-region";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText
+} from "../localization";
 import type {
     Toast,
     ToastCloseReason,
     ToastInput,
+    ToastLocalization,
     ToastPlacement,
     ToastPoliteness,
     ToastShowOptions,
@@ -48,6 +53,7 @@ function normalizeToastInput(
     input: ToastInput,
     defaults: Required<Pick<ToastViewportOptions, "dismissible" | "closeLabel">> & {
         duration: number | null;
+        fallbackDescription: string;
     }
 ): ToastState {
     const options: ToastShowOptions = typeof input === "string"
@@ -59,7 +65,7 @@ function normalizeToastInput(
     let description = normalizeText(options.description);
 
     if (!title && !description) {
-        description = "Notification";
+        description = defaults.fallbackDescription;
     }
 
     return {
@@ -95,16 +101,50 @@ export function createToastViewport(
     const originalPlacement = element.getAttribute("data-af-placement");
 
     let placement: ToastPlacement = options.placement ?? "bottom-end";
-    let label = normalizeText(options.label) || "Notifications";
+    let label = options.label;
     let limit = normalizeLimit(options.limit ?? null);
     let defaultDuration = options.duration ?? null;
     let defaultDismissible = options.dismissible ?? true;
-    let defaultCloseLabel = normalizeText(options.closeLabel) || "Dismiss notification";
+    let defaultCloseLabel = options.closeLabel;
+    let locale: ToastLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let pauseOnHover = options.pauseOnHover ?? true;
     let newestOnTop = options.newestOnTop ?? true;
     let toasts: Toast[] = [];
 
     const announcer = createAnnouncer({ container: element });
+
+    function getViewportLabel(): string {
+        return normalizeText(label) || getLocaleText(
+            locale,
+            "toast.label",
+            accessibleFirstEnglishMessages["toast.label"]
+        );
+    }
+
+    function getDefaultCloseLabel(): string {
+        return normalizeText(defaultCloseLabel) || getLocaleText(
+            locale,
+            "toast.closeLabel",
+            accessibleFirstEnglishMessages["toast.closeLabel"]
+        );
+    }
+
+    function getCloseButtonText(): string {
+        return getLocaleText(
+            locale,
+            "toast.closeButtonText",
+            accessibleFirstEnglishMessages["toast.closeButtonText"]
+        );
+    }
+
+    function getFallbackDescription(): string {
+        return getLocaleText(
+            locale,
+            "toast.fallbackDescription",
+            accessibleFirstEnglishMessages["toast.fallbackDescription"]
+        );
+    }
 
     function getAnnouncementText(state: ToastState): string {
         return [state.title, state.description]
@@ -128,7 +168,7 @@ export function createToastViewport(
 
     function syncViewportAttributes(): void {
         element.setAttribute("role", "region");
-        element.setAttribute("aria-label", label);
+        element.setAttribute("aria-label", getViewportLabel());
         element.setAttribute("aria-relevant", "additions text");
         element.setAttribute("data-af-placement", placement);
     }
@@ -150,7 +190,8 @@ export function createToastViewport(
         const state = normalizeToastInput(input, {
             duration: defaultDuration,
             dismissible: defaultDismissible,
-            closeLabel: defaultCloseLabel
+            closeLabel: getDefaultCloseLabel(),
+            fallbackDescription: getFallbackDescription()
         });
 
         const toastElement = ownerDocument.createElement("div");
@@ -250,7 +291,7 @@ export function createToastViewport(
                 }
 
                 if (state.dismissible) {
-                    const close = createButton("Close", "data-af-toast-close");
+                    const close = createButton(getCloseButtonText(), "data-af-toast-close");
                     close.setAttribute("aria-label", state.closeLabel);
 
                     cleanups.push(addEventListener(close, "click", () => {
@@ -296,7 +337,7 @@ export function createToastViewport(
                 if ("duration" in nextOptions) state.duration = nextOptions.duration ?? null;
                 if (nextOptions.dismissible !== undefined) state.dismissible = nextOptions.dismissible;
                 if (nextOptions.closeLabel !== undefined) {
-                    state.closeLabel = normalizeText(nextOptions.closeLabel) || defaultCloseLabel;
+                    state.closeLabel = normalizeText(nextOptions.closeLabel) || getDefaultCloseLabel();
                 }
                 if (nextOptions.actionText !== undefined) state.actionText = normalizeText(nextOptions.actionText);
                 if (nextOptions.actionLabel !== undefined) state.actionLabel = normalizeText(nextOptions.actionLabel);
@@ -329,6 +370,18 @@ export function createToastViewport(
         return toast;
     }
 
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncViewportAttributes();
+        });
+    }
+
+    syncLocaleSubscription();
     syncViewportAttributes();
 
     lifecycle.addCleanup(() => {
@@ -337,6 +390,7 @@ export function createToastViewport(
         }
 
         announcer.destroy();
+        unsubscribeLocale?.();
 
         restoreAttribute(element, "role", originalRole);
         restoreAttribute(element, "aria-label", originalLabel);
@@ -380,12 +434,16 @@ export function createToastViewport(
 
         update(nextOptions: ToastViewportOptions): void {
             if (nextOptions.placement !== undefined) placement = nextOptions.placement;
-            if (nextOptions.label !== undefined) label = normalizeText(nextOptions.label) || "Notifications";
+            if ("label" in nextOptions) label = nextOptions.label;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if ("limit" in nextOptions) limit = normalizeLimit(nextOptions.limit ?? null);
             if ("duration" in nextOptions) defaultDuration = nextOptions.duration ?? null;
             if (nextOptions.dismissible !== undefined) defaultDismissible = nextOptions.dismissible;
-            if (nextOptions.closeLabel !== undefined) {
-                defaultCloseLabel = normalizeText(nextOptions.closeLabel) || "Dismiss notification";
+            if ("closeLabel" in nextOptions) {
+                defaultCloseLabel = nextOptions.closeLabel;
             }
             if (nextOptions.pauseOnHover !== undefined) pauseOnHover = nextOptions.pauseOnHover;
             if (nextOptions.newestOnTop !== undefined) newestOnTop = nextOptions.newestOnTop;

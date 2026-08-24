@@ -17,6 +17,8 @@ export type {
 export type {
     ComposedTextField,
     TextFieldCompositionContent,
+    TextFieldLocalization,
+    TextFieldMessageKey,
     TextFieldCompositionOnValueChange,
     TextFieldCompositionOnValueInput,
     TextFieldCompositionOptions,

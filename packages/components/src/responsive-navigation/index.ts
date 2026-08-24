@@ -4,6 +4,8 @@ export type {
     ComposedResponsiveNavigation,
     ResponsiveNavigationDisclosureOptions,
     ResponsiveNavigationListOptions,
+    ResponsiveNavigationLocalization,
+    ResponsiveNavigationMessageKey,
     ResponsiveNavigationOnNavigate,
     ResponsiveNavigationOptions,
     ResponsiveNavigationTriggerContent,

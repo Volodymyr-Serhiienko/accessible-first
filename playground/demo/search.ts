@@ -4,6 +4,7 @@ import {
     type ComposedRouteSearchBox,
     type HashRouter
 } from "./af";
+import { t } from "./localization";
 import type { PlaygroundRoute } from "./routes";
 
 export interface PlaygroundSearchOptions {
@@ -16,19 +17,21 @@ export function PlaygroundSearch(
 ): ComposedRouteSearchBox<PlaygroundRoute> {
     return RouteSearchBox<PlaygroundRoute>({
         className: "playground-search",
-        label: "Search demo sections",
+        label: t("app.search.label"),
         labelOptions: {
             attributes: {
                 "data-af-composition": "visually-hidden"
             }
         },
-        placeholder: "Search sections",
+        placeholder: t("app.search.placeholder"),
         openOnFocus: false,
-        notFoundText: "No matching sections found.",
+        notFoundText: t("app.search.notFoundText"),
         routes: options.routes,
         searchItemsOptions: {
             getDescription(route) {
-                return `Open the ${route.title} section.`;
+                return t("app.route.searchDescription", {
+                    title: route.title
+                });
             },
             getKeywords() {
                 return ["component", "demo"];

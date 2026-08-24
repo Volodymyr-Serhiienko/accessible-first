@@ -1,16 +1,16 @@
 # Localization
 
-Localization is the planned shared layer for user-facing service text in Accessible First.
+Localization is the shared layer for user-facing service text in Accessible First.
 
-The goal is not to translate application content for developers. Application copy, product names, lesson text, marketing text, and domain-specific labels remain owned by the app. The framework should localize only the small service text it creates or defaults, such as close labels, dismiss labels, command search placeholders, generic region labels, and route action prefixes.
+The framework localizes only the small pieces of text it creates or defaults: close labels, dismiss labels, command search placeholders, generic region labels, route action prefixes, and similar UI service text. Application copy remains owned by the application.
 
 ## Locale Resolution
 
-Accessible First should resolve locale in this order:
+Accessible First resolves locale in this order:
 
 1. Explicit application locale.
 2. Saved user preference.
-3. URL, route, or app context when the application owns that rule.
+3. URL, route, account, or app context when the application owns that rule.
 4. Browser/system language through `navigator.languages` or `navigator.language`.
 5. Configured fallback locale.
 
@@ -18,68 +18,115 @@ Do not use geographic location as the default way to choose UI language. It is p
 
 ## Message Layers
 
-User-facing component service text should move behind localization first. Current examples include:
+Framework service text belongs in the Accessible First message registry. Examples:
 
-- dialog close and alert-dialog cancel labels;
-- toast region, close, and dismiss labels;
-- command palette search label, placeholder, and description;
+- dialog close labels and dialog fallback accessible names;
+- alert-dialog cancel and confirm labels;
+- toast region, close, dismiss, and fallback notification labels;
+- command palette title, description, search label, placeholder, and empty result text;
 - route command prefixes such as `Open`;
-- generic list/detail region labels;
-- future header actions such as language selection.
+- generic list/detail, breadcrumbs, page navigation, overflow scroller, responsive navigation, theme toggle, icon-button, and text-field fallback labels.
 
-Application-facing copy should stay explicit in application code. Examples include button text, form labels, validation messages, route labels, screen titles, and demo content.
+Application copy stays explicit in application code or in the application's own locale files. Examples include product names, route labels, screen titles, lesson text, form labels, button text, validation copy chosen by the app, marketing text, and demo content.
 
-Developer-facing diagnostics text is a separate layer. Console diagnostics can remain English until a later diagnostics localization pass.
+Developer diagnostics are a separate layer. Console diagnostics can remain English until a later diagnostics localization pass.
 
-## Planned API Shape
+## API
 
-The first implementation should stay small:
+Create one locale controller near the app shell:
 
 ```ts
 const locale = createLocaleController({
     supportedLocales: ["en", "uk", "ru"],
     fallbackLocale: "en",
     messages: {
-        en: accessibleFirstEnglishMessages,
-        uk: accessibleFirstUkrainianMessages,
-        ru: accessibleFirstRussianMessages
+        uk: {
+            "dialog.closeText": "Закрити",
+            "alertDialog.cancelText": "Скасувати"
+        },
+        ru: {
+            "dialog.closeText": "Закрыть",
+            "alertDialog.cancelText": "Отмена"
+        }
     }
 });
-
-locale.getLocale();
-locale.setLocale("uk");
-locale.t("toast.closeLabel");
 ```
 
-A future header control should use the same controller:
+Pass the same controller to components that create framework-owned service text:
 
 ```ts
-HeaderBar({
-    actions: LanguageSelect({
-        locale,
-        languages: [
-            { value: "en", label: "English" },
-            { value: "uk", label: "Українська" },
-            { value: "ru", label: "Русский" }
-        ]
-    })
+const page = createPage({ locale });
+
+const dialog = Dialog({
+    trigger: "Open settings",
+    title: "Settings",
+    description: "Change application preferences.",
+    locale,
+    children: [settingsContent]
+});
+
+const toasts = ToastViewport({ locale });
+```
+
+The same controller can hold app-specific keys when the app defines its own message union:
+
+```ts
+type AppMessageKey =
+    | AccessibleFirstMessageKey
+    | "app.header.title"
+    | "lessons.startButton";
+
+const locale = createLocaleController<"en" | "uk" | "ru", AppMessageKey>({
+    supportedLocales: ["en", "uk", "ru"],
+    fallbackLocale: "en",
+    messages: {
+        uk: {
+            "app.header.title": "Мій застосунок",
+            "lessons.startButton": "Почати урок"
+        }
+    }
 });
 ```
 
-The selector should be optional. Applications can still choose locale from server settings, account settings, route prefixes, or any other integration.
+## Application Template
 
-## Component Rules
+Applications should keep one locale file near the app shell. The playground uses `playground/demo/localization.ts` as the reference template:
 
-- Components must accept explicit text options for labels they expose.
-- If a component has a framework-provided fallback label, that fallback should come from localization.
-- Components should not infer application-specific labels from geography.
-- Missing translation keys should fall back predictably and remain diagnosable in development.
-- Locale changes should update future composed components without requiring the whole page architecture to change.
+- define the supported locale tuple;
+- define an app-specific message-key union;
+- combine it with `AccessibleFirstMessageKey`;
+- create one shared `createLocaleController()` instance;
+- export a small `t(key, params?)` helper for application-owned strings;
+- pass the same controller to `AppShell`, `ThemeToggle`, `ToastViewport`, route navigation, command palette, dialogs, and other localized components.
 
-## First Migration Targets
+English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
 
-1. Inventory all remaining user-facing fallback strings.
-2. Add a small locale controller and default message registry.
-3. Migrate the safest fallback strings first: Toast, Dialog, AlertDialog, ListDetail, CommandPalette, and route command prefixes.
-4. Add a language selector component for HeaderBar/AppShell use.
-5. Add a playground locale demo after the API shape is stable.
+## Component Contract
+
+- Components accept explicit text options for labels they expose.
+- Explicit component text always wins over localization fallback text.
+- `undefined` means: use the localized framework fallback when the component owns a fallback.
+- `null` keeps its existing semantic meaning for that option, usually disabling a label, description, or prefix when the option already supported `null`.
+- Components with a `locale` option should subscribe to locale changes when the provider supports `subscribe()`.
+- Components must not infer application-specific labels from geography.
+- Missing translation keys fall back predictably to English built-ins.
+
+## Current Service-Text Migration
+
+The first migration covers these framework-owned fallbacks:
+
+- `AlertDialog`: cancel and confirm labels.
+- `Breadcrumbs`: default navigation label.
+- `CommandPalette`: title, description, search label, placeholder, empty result text, and internal dialog close fallback.
+- `Dialog`: close button text in composition and behavior fallback accessible names.
+- `IconButton`: missing accessible-name fallback.
+- `ListDetail`: list/detail region labels.
+- `OverflowScroller`: previous/next control labels.
+- `Page`: skip-link text and default navigation label.
+- `ResponsiveNavigation`: mobile trigger text and internal overflow scroller labels.
+- `RouteCommandPalette`: route command prefix.
+- `TextField`: strict email-pattern fallback validation text.
+- `ThemeToggle`: toggle labels and default change announcements.
+- `ToastViewport`: region label, close/dismiss labels, and fallback notification text.
+
+Next localization work should add a reusable `LanguageSelect` or `LanguageMenu` header action and a playground demo that switches service text at runtime.

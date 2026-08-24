@@ -26,6 +26,11 @@ import {
     type NavigationUpdateOptions,
     type NavigationVariant
 } from "../navigation";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
 
 /**
  * Content accepted by the mobile navigation trigger.
@@ -36,6 +41,19 @@ export type ResponsiveNavigationTriggerContent = CompositionContent;
  * Side where the mobile trigger menu icon is shown.
  */
 export type ResponsiveNavigationTriggerIconPosition = "start" | "end";
+
+/**
+ * Localized message keys used by ResponsiveNavigation and its internal scroller.
+ */
+export type ResponsiveNavigationMessageKey =
+    | "responsiveNavigation.trigger"
+    | "overflowScroller.previousLabel"
+    | "overflowScroller.nextLabel";
+
+/**
+ * Localization provider accepted by ResponsiveNavigation.
+ */
+export type ResponsiveNavigationLocalization = LocaleTextProvider<ResponsiveNavigationMessageKey>;
 
 /**
  * Options passed to the internal desktop or mobile Navigation.
@@ -71,6 +89,7 @@ export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
     trigger?: ResponsiveNavigationTriggerContent;
     triggerIconPosition?: ResponsiveNavigationTriggerIconPosition;
     current?: string | null;
+    locale?: ResponsiveNavigationLocalization | null;
     variant?: NavigationVariant;
     mobileVariant?: NavigationVariant;
     size?: NavigationSize;
@@ -103,9 +122,14 @@ export interface ComposedResponsiveNavigation extends ComposedNode<HTMLElement> 
 }
 
 function getTriggerContent(
-    trigger: ResponsiveNavigationTriggerContent | undefined
+    trigger: ResponsiveNavigationTriggerContent | undefined,
+    locale: ResponsiveNavigationLocalization | null
 ): ResponsiveNavigationTriggerContent {
-    return trigger ?? "Menu";
+    return trigger ?? getLocaleText(
+        locale,
+        "responsiveNavigation.trigger",
+        accessibleFirstEnglishMessages["responsiveNavigation.trigger"]
+    );
 }
 
 function getNavigationOptions(
@@ -164,13 +188,42 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     let items = options.items;
     let variant: NavigationVariant = options.variant ?? "pills";
     let mobileVariant: NavigationVariant = options.mobileVariant ?? "pills";
+    let trigger = options.trigger;
     let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "end";
+    let locale: ResponsiveNavigationLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let size: NavigationSize = options.size ?? "md";
     let closeOnNavigate = options.closeOnNavigate ?? true;
     let onNavigate = options.onNavigate ?? null;
     let hasCurrent = "current" in options;
     let current = options.current ?? null;
     let destroyed = false;
+
+    function getOverflowScrollerOptions(
+        scrollerOptions: ResponsiveNavigationOverflowScrollerOptions | undefined
+    ): ResponsiveNavigationOverflowScrollerOptions {
+        const resolvedOptions: ResponsiveNavigationOverflowScrollerOptions = {
+            ...(scrollerOptions ?? {})
+        };
+
+        if (resolvedOptions.locale === undefined && locale !== null) {
+            resolvedOptions.locale = locale;
+        }
+
+        return resolvedOptions;
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
+            desktopScroller.update(getOverflowScrollerOptions(undefined));
+        });
+    }
 
     function handleNavigate(detail: NavigationNavigateDetail): void {
         onNavigate?.(detail, composed);
@@ -190,7 +243,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     ));
 
     const desktopScroller = OverflowScroller({
-        ...(options.overflowScrollerOptions ?? {}),
+        ...getOverflowScrollerOptions(options.overflowScrollerOptions),
         children: [desktopNavigation]
     });
 
@@ -205,7 +258,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
 
     const mobileDisclosure = Disclosure({
         ...(options.disclosureOptions ?? {}),
-        trigger: getTriggerContent(options.trigger),
+        trigger: getTriggerContent(trigger, locale),
         panel: mobileNavigation,
         variant: options.disclosureOptions?.variant ?? "plain",
         announcement: options.disclosureOptions?.announcement ?? false
@@ -226,6 +279,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     }
 
     syncTriggerIconPosition();
+    syncLocaleSubscription();
 
     element.append(desktopScroller.element, mobileDisclosure.element);
 
@@ -268,6 +322,10 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             if (nextOptions.triggerIconPosition !== undefined) {
                 triggerIconPosition = nextOptions.triggerIconPosition;
             }
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if (nextOptions.closeOnNavigate !== undefined) closeOnNavigate = nextOptions.closeOnNavigate;
 
@@ -288,8 +346,8 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
                 false
             ));
 
-            if (nextOptions.overflowScrollerOptions !== undefined) {
-                desktopScroller.update(nextOptions.overflowScrollerOptions);
+            if (nextOptions.overflowScrollerOptions !== undefined || "locale" in nextOptions) {
+                desktopScroller.update(getOverflowScrollerOptions(nextOptions.overflowScrollerOptions));
             }
 
             desktopScroller.refresh();
@@ -308,7 +366,10 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             }
 
             if ("trigger" in nextOptions) {
-                mobileDisclosure.setTriggerContent(getTriggerContent(nextOptions.trigger));
+                trigger = nextOptions.trigger;
+                mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
+            } else if ("locale" in nextOptions) {
+                mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
             }
 
             syncTriggerIconPosition();
@@ -324,6 +385,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             if (destroyed) return;
 
             destroyed = true;
+            unsubscribeLocale?.();
             desktopScroller.destroy();
             mobileDisclosure.destroy();
             element.remove();

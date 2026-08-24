@@ -15,6 +15,10 @@ import {
 import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
+    accessibleFirstEnglishMessages,
+    getLocaleText
+} from "../localization";
+import {
     applyResolvedTheme,
     getSystemTheme,
     type ResolvedTheme
@@ -101,7 +105,9 @@ export function createPage(options: PageOptions = {}): Page {
     let headerElement: HTMLElement | null = null;
     let navigationElement: HTMLElement | null = null;
     let footerElement: HTMLElement | null = null;
+    let skipLinkElement: HTMLAnchorElement | null = null;
     let metadataController: DocumentMetadataController | null = null;
+    let locale = options.locale ?? null;
 
     const pageDestroyers: Array<() => void> = [setupPageTheme(options)];
     const headerDestroyers: Array<() => void> = [];
@@ -146,19 +152,49 @@ export function createPage(options: PageOptions = {}): Page {
         });
     }
 
-    if (options.skipLink !== false) {
-        const skipText = typeof options.skipLink === "string"
+    function getSkipLinkText(): string {
+        return typeof options.skipLink === "string"
             ? options.skipLink
-            : "Skip to content";
+            : getLocaleText(
+                locale,
+                "page.skipLinkText",
+                accessibleFirstEnglishMessages["page.skipLinkText"]
+            );
+    }
 
-        root.append(createElement("a", {
+    function getNavigationLabel(): string {
+        return options.navigationLabel ?? getLocaleText(
+            locale,
+            "page.navigationLabel",
+            accessibleFirstEnglishMessages["page.navigationLabel"]
+        );
+    }
+
+    function syncLocalizedText(): void {
+        if (skipLinkElement) {
+            skipLinkElement.textContent = getSkipLinkText();
+        }
+
+        if (navigationElement) {
+            navigationElement.setAttribute("aria-label", getNavigationLabel());
+        }
+    }
+
+    if (locale?.subscribe) {
+        pageDestroyers.push(locale.subscribe(syncLocalizedText));
+    }
+
+    if (options.skipLink !== false) {
+        skipLinkElement = createElement("a", {
             className: "skip-link",
-            text: skipText,
+            text: getSkipLinkText(),
             attributes: {
                 href: `#${options.skipLinkTargetId ?? main.id}`,
                 "data-af-skip-link": ""
             }
-        }));
+        });
+
+        root.append(skipLinkElement);
     }
 
     root.append(main);
@@ -203,7 +239,7 @@ export function createPage(options: PageOptions = {}): Page {
             navigationElement = createElement("nav", {
                 attributes: {
                     "data-af-page-navigation": "",
-                    "aria-label": options.navigationLabel ?? "Primary"
+                    "aria-label": getNavigationLabel()
                 }
             });
 

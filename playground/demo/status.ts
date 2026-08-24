@@ -4,6 +4,7 @@ import {
     type ToastShowOptions,
     type ToastVariant
 } from "./af";
+import { playgroundLocale, t } from "./localization";
 
 /**
  * Options for playground announcements shown through the shared toast viewport.
@@ -22,10 +23,11 @@ export interface PlaygroundAnnouncementOptions {
 export const notifications = ToastViewport({
     id: "playground-notifications",
     placement: "bottom-end",
-    label: "Playground notifications",
+    label: t("app.notifications.label"),
     limit: 4,
     pauseOnHover: true,
-    newestOnTop: true
+    newestOnTop: true,
+    locale: playgroundLocale
 });
 
 /**

@@ -10,6 +10,11 @@ import {
     type CompositionContent,
     type ElementAttributes
 } from "../composition";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
 
 /**
  * Content accepted by breadcrumb item labels.
@@ -32,6 +37,16 @@ export type BreadcrumbsVariant = "default" | "plain";
 export type BreadcrumbsSize = "md";
 
 /**
+ * Localized message keys used by Breadcrumbs fallback labels.
+ */
+export type BreadcrumbsMessageKey = "breadcrumbs.label";
+
+/**
+ * Localization provider accepted by Breadcrumbs.
+ */
+export type BreadcrumbsLocalization = LocaleTextProvider<BreadcrumbsMessageKey>;
+
+/**
  * One item accepted by Breadcrumbs().
  */
 export interface BreadcrumbsItem {
@@ -48,13 +63,14 @@ export interface BreadcrumbsItem {
 export interface BreadcrumbsOptions extends BaseCompositionOptions {
     items: BreadcrumbsItem[];
     /**
-     * Accessible navigation label. Defaults to "Breadcrumb" when omitted.
+     * Accessible navigation label. Defaults to the localized breadcrumb label when omitted.
      */
     label?: string | null;
     /**
      * Id of visible text that labels the breadcrumb navigation.
      */
     labelledBy?: string | null;
+    locale?: BreadcrumbsLocalization | null;
     separator?: string;
     variant?: BreadcrumbsVariant;
     size?: BreadcrumbsSize;
@@ -231,6 +247,23 @@ function createComposedItem(node: BreadcrumbsItemNode): ComposedBreadcrumbsItem 
     };
 }
 
+function getFallbackLabel(locale: BreadcrumbsLocalization | null): string {
+    return getLocaleText(
+        locale,
+        "breadcrumbs.label",
+        accessibleFirstEnglishMessages["breadcrumbs.label"]
+    );
+}
+
+function getNavigationLabel(
+    label: string | null | undefined,
+    locale: BreadcrumbsLocalization | null
+): string | null {
+    if (label === null) return null;
+
+    return label ?? getFallbackLabel(locale);
+}
+
 /**
  * Creates semantic breadcrumb navigation.
  */
@@ -249,15 +282,18 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
 
     let itemDefinitions = options.items;
     let separator = options.separator ?? "/";
-    let label = options.label === undefined ? "Breadcrumb" : options.label;
+    let label = options.label;
     let labelledBy = options.labelledBy ?? null;
+    let locale: BreadcrumbsLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let variant: BreadcrumbsVariant = options.variant ?? "default";
     let size: BreadcrumbsSize = options.size ?? "md";
     let itemNodes: BreadcrumbsItemNode[] = [];
 
     function sync(): void {
         element.setAttribute("data-af-composition", "breadcrumbs");
-        const trimmedLabel = label?.trim() ?? "";
+        const resolvedLabel = getNavigationLabel(label, locale);
+        const trimmedLabel = resolvedLabel?.trim() ?? "";
         const trimmedLabelledBy = labelledBy?.trim() ?? "";
 
         if (trimmedLabelledBy) {
@@ -284,6 +320,17 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
     function setLabelledBy(nextLabelledBy: string | null): void {
         labelledBy = nextLabelledBy;
         sync();
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            sync();
+        });
     }
 
     function disposeItems(): void {
@@ -318,6 +365,7 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         });
     }
 
+    syncLocaleSubscription();
     setItems(itemDefinitions);
 
     return {
@@ -336,8 +384,12 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
                 list.setAttribute("data-af-breadcrumbs-list", "");
             }
 
-            if ("label" in nextOptions) label = nextOptions.label ?? null;
+            if ("label" in nextOptions) label = nextOptions.label;
             if ("labelledBy" in nextOptions) labelledBy = nextOptions.labelledBy ?? null;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
             if (nextOptions.separator !== undefined) separator = nextOptions.separator;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
@@ -352,6 +404,7 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         },
 
         destroy(): void {
+            unsubscribeLocale?.();
             disposeItems();
         }
     };

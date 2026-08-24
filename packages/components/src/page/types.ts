@@ -3,12 +3,25 @@ import type {
     DocumentMetadataOptions,
     DocumentMetadataUpdateOptions
 } from "../document-metadata";
+import type { LocaleTextProvider } from "../localization";
 
 /**
  * Page color scheme mode.
  * "system" follows the user's operating system preference.
  */
 export type PageTheme = "system" | "light" | "dark";
+
+/**
+ * Localized message keys used by createPage() fallback text.
+ */
+export type PageMessageKey =
+    | "page.skipLinkText"
+    | "page.navigationLabel";
+
+/**
+ * Localization provider accepted by createPage().
+ */
+export type PageLocalization = LocaleTextProvider<PageMessageKey>;
 
 /**
  * Severity level for a page diagnostics issue.
@@ -41,6 +54,7 @@ export interface PageOptions {
     skipLink?: boolean | string;
     skipLinkTargetId?: string;
     navigationLabel?: string;
+    locale?: PageLocalization | null;
     theme?: PageTheme;
     metadata?: DocumentMetadataOptions | false;
 }

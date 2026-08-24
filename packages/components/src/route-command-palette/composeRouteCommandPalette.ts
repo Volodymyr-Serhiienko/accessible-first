@@ -7,11 +7,30 @@ import {
     CommandPalette,
     type CommandPaletteItem,
     type CommandPaletteOnSelect,
+    type CommandPaletteLocalization,
+    type CommandPaletteMessageKey,
     type CommandPaletteOptions,
     type CommandPaletteSelectDetail,
     type CommandPaletteUpdateOptions,
     type ComposedCommandPalette
 } from "../command-palette";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
+
+/**
+ * Localized message keys used by RouteCommandPalette fallback text.
+ */
+export type RouteCommandPaletteMessageKey =
+    | CommandPaletteMessageKey
+    | "routeCommandPalette.commandLabelPrefix";
+
+/**
+ * Localization provider accepted by RouteCommandPalette.
+ */
+export type RouteCommandPaletteLocalization = LocaleTextProvider<RouteCommandPaletteMessageKey>;
 
 /**
  * CommandPalette item generated for one route.
@@ -46,10 +65,11 @@ export type RouteCommandPaletteOnRouteSelect<
  */
 export interface RouteCommandPaletteOptions<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
-> extends Omit<CommandPaletteOptions<RouteCommandPaletteItem<TRoute>>, "items" | "onSelect"> {
+> extends Omit<CommandPaletteOptions<RouteCommandPaletteItem<TRoute>>, "items" | "locale" | "onSelect"> {
     routes: readonly TRoute[];
     searchItemsOptions?: AppRouteSearchItemsOptions<TRoute>;
     commandLabelPrefix?: string | null;
+    locale?: RouteCommandPaletteLocalization | null;
     onSelect?: CommandPaletteOnSelect<RouteCommandPaletteItem<TRoute>> | null;
     onRouteSelect?: RouteCommandPaletteOnRouteSelect<TRoute> | null;
 }
@@ -81,12 +101,23 @@ export interface ComposedRouteCommandPalette<
     update(options: RouteCommandPaletteUpdateOptions<TRoute>): void;
 }
 
-function getInitialCommandLabelPrefix<TRoute extends AppRouteDescriptor>(
-    options: RouteCommandPaletteOptions<TRoute>
+function getCommandLabelPrefix(
+    prefix: string | null | undefined,
+    locale: RouteCommandPaletteLocalization | null
 ): string | null {
-    return "commandLabelPrefix" in options
-        ? options.commandLabelPrefix ?? null
-        : "Open ";
+    if (prefix === null) return null;
+
+    return prefix ?? getLocaleText(
+        locale,
+        "routeCommandPalette.commandLabelPrefix",
+        accessibleFirstEnglishMessages["routeCommandPalette.commandLabelPrefix"]
+    );
+}
+
+function getCommandPaletteLocale(
+    locale: RouteCommandPaletteLocalization | null
+): CommandPaletteLocalization | null {
+    return locale;
 }
 
 function setRouteCommandPaletteAttribute(element: HTMLElement): void {
@@ -104,6 +135,7 @@ export function RouteCommandPalette<
         routes: _routes,
         searchItemsOptions: _searchItemsOptions,
         commandLabelPrefix: _commandLabelPrefix,
+        locale: _locale,
         onSelect: _onSelect,
         onRouteSelect: _onRouteSelect,
         ...commandPaletteOptions
@@ -112,12 +144,14 @@ export function RouteCommandPalette<
     let composed!: ComposedRouteCommandPalette<TRoute>;
     let routes = options.routes;
     let searchItemsOptions = options.searchItemsOptions;
-    let commandLabelPrefix = getInitialCommandLabelPrefix(options);
+    let commandLabelPrefix = options.commandLabelPrefix;
+    let locale: RouteCommandPaletteLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
     let onSelect = options.onSelect ?? null;
     let onRouteSelect = options.onRouteSelect ?? null;
 
     function getItems(): RouteCommandPaletteItem<TRoute>[] {
-        const prefix = commandLabelPrefix ?? "";
+        const prefix = getCommandLabelPrefix(commandLabelPrefix, locale) ?? "";
 
         return createAppRouteSearchItems(routes, searchItemsOptions).map((item) => ({
             ...item,
@@ -148,6 +182,7 @@ export function RouteCommandPalette<
             routes: _nextRoutes,
             searchItemsOptions: _nextSearchItemsOptions,
             commandLabelPrefix: _nextCommandLabelPrefix,
+            locale: _nextLocale,
             onSelect: _nextOnSelect,
             onRouteSelect: _nextOnRouteSelect,
             ...nextCommandPaletteOptions
@@ -155,17 +190,32 @@ export function RouteCommandPalette<
 
         return {
             ...nextCommandPaletteOptions,
+            locale: getCommandPaletteLocale(locale),
             onSelect: handleSelect
         };
     }
 
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            palette.setItems(getItems());
+            palette.update({ locale: getCommandPaletteLocale(locale), onSelect: handleSelect });
+        });
+    }
+
     const palette = CommandPalette<RouteCommandPaletteItem<TRoute>>({
         ...commandPaletteOptions,
+        locale: getCommandPaletteLocale(locale),
         items: getItems(),
         onSelect: handleSelect
     });
 
     setRouteCommandPaletteAttribute(palette.element);
+    syncLocaleSubscription();
 
     composed = Object.assign(palette, {
         getRoutes(): readonly TRoute[] {
@@ -182,7 +232,11 @@ export function RouteCommandPalette<
             if (nextOptions.routes !== undefined) routes = nextOptions.routes;
             if ("searchItemsOptions" in nextOptions) searchItemsOptions = nextOptions.searchItemsOptions;
             if ("commandLabelPrefix" in nextOptions) {
-                commandLabelPrefix = nextOptions.commandLabelPrefix ?? null;
+                commandLabelPrefix = nextOptions.commandLabelPrefix;
+            }
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
             }
             if ("onSelect" in nextOptions) onSelect = nextOptions.onSelect ?? null;
             if ("onRouteSelect" in nextOptions) onRouteSelect = nextOptions.onRouteSelect ?? null;
@@ -191,12 +245,18 @@ export function RouteCommandPalette<
                 nextOptions.routes !== undefined
                 || "searchItemsOptions" in nextOptions
                 || "commandLabelPrefix" in nextOptions
+                || "locale" in nextOptions
             ) {
                 palette.setItems(getItems());
             }
 
             palette.update(getCommandPaletteUpdateOptions(nextOptions));
             setRouteCommandPaletteAttribute(palette.element);
+        },
+
+        destroy(): void {
+            unsubscribeLocale?.();
+            palette.destroy();
         }
     }) as ComposedRouteCommandPalette<TRoute>;
 

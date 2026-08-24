@@ -11,6 +11,11 @@ import {
     type DialogCompositionOptions,
     type DialogCompositionUpdateOptions
 } from "../dialog";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
 
 /**
  * Initial focus preset for AlertDialog().
@@ -20,6 +25,18 @@ import {
  * clearly expected.
  */
 export type AlertDialogFocusTarget = "cancel" | "confirm";
+
+/**
+ * Localized message keys used by AlertDialog action fallbacks.
+ */
+export type AlertDialogMessageKey =
+    | "alertDialog.cancelText"
+    | "alertDialog.confirmText";
+
+/**
+ * Localization provider accepted by AlertDialog.
+ */
+export type AlertDialogLocalization = LocaleTextProvider<AlertDialogMessageKey>;
 
 /**
  * Called when the confirm or cancel action is activated.
@@ -59,6 +76,7 @@ export interface AlertDialogCompositionOptions
         | "descriptionMode"
         | "initialFocus"
         | "initialFocusTarget"
+        | "locale"
         | "onOpenChange"
     > {
     description: string;
@@ -71,6 +89,7 @@ export interface AlertDialogCompositionOptions
     confirmDisabled?: boolean;
     cancelDisabled?: boolean;
     focusTarget?: AlertDialogFocusTarget;
+    locale?: AlertDialogLocalization | null;
     onConfirm?: AlertDialogCompositionOnAction | null;
     onCancel?: AlertDialogCompositionOnAction | null;
     onOpenChange?: AlertDialogCompositionOnOpenChange | null;
@@ -130,6 +149,14 @@ function getInitialFocus(
     if (!fallback.disabled) return fallback;
 
     return null;
+}
+
+function getActionText(
+    text: string | undefined,
+    locale: AlertDialogLocalization | null,
+    key: AlertDialogMessageKey
+): string {
+    return text ?? getLocaleText(locale, key, accessibleFirstEnglishMessages[key]);
 }
 
 function getActionButtonOptions(
@@ -283,7 +310,6 @@ function getCancelButtonUpdateOptions(
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {};
 
-    if (options.cancelText !== undefined) buttonOptions.text = options.cancelText;
     if (options.cancelVariant !== undefined) buttonOptions.variant = options.cancelVariant;
     if (options.cancelSize !== undefined) buttonOptions.size = options.cancelSize;
     if (options.cancelDisabled !== undefined) buttonOptions.disabled = options.cancelDisabled;
@@ -296,7 +322,6 @@ function getConfirmButtonUpdateOptions(
 ): ButtonCompositionOptions {
     const buttonOptions: ButtonCompositionOptions = {};
 
-    if (options.confirmText !== undefined) buttonOptions.text = options.confirmText;
     if (options.confirmVariant !== undefined) buttonOptions.variant = options.confirmVariant;
     if (options.confirmSize !== undefined) buttonOptions.size = options.confirmSize;
     if (options.confirmDisabled !== undefined) buttonOptions.disabled = options.confirmDisabled;
@@ -313,9 +338,13 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
     let onCancel = options.onCancel ?? null;
     let onOpenChange = options.onOpenChange ?? null;
     let focusTarget: AlertDialogFocusTarget = options.focusTarget ?? "cancel";
+    let cancelText = options.cancelText;
+    let confirmText = options.confirmText;
+    let locale: AlertDialogLocalization | null = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
 
     const cancelButton = Button(getActionButtonOptions(
-        options.cancelText ?? "Cancel",
+        getActionText(cancelText, locale, "alertDialog.cancelText"),
         options.cancelVariant ?? "secondary",
         options.cancelSize,
         options.cancelDisabled,
@@ -329,7 +358,7 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
     ));
 
     const confirmButton = Button(getActionButtonOptions(
-        options.confirmText ?? "Confirm",
+        getActionText(confirmText, locale, "alertDialog.confirmText"),
         options.confirmVariant ?? "danger",
         options.confirmSize,
         options.confirmDisabled,
@@ -346,6 +375,22 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
         onOpenChange?.(open, composed);
     };
 
+    function syncLocalizedText(): void {
+        cancelButton.setText(getActionText(cancelText, locale, "alertDialog.cancelText"));
+        confirmButton.setText(getActionText(confirmText, locale, "alertDialog.confirmText"));
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncLocalizedText();
+        });
+    }
+
     const dialog = Dialog(getDialogOptions(
         options,
         cancelButton,
@@ -354,17 +399,21 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
         handleOpenChange
     ));
 
+    syncLocaleSubscription();
+
     composed = {
         ...dialog,
         cancelButton: cancelButton.element,
         confirmButton: confirmButton.element,
 
         setCancelText(text: string): void {
-            cancelButton.setText(text);
+            cancelText = text;
+            syncLocalizedText();
         },
 
         setConfirmText(text: string): void {
-            confirmButton.setText(text);
+            confirmText = text;
+            syncLocalizedText();
         },
 
         setCancelDisabled(disabled: boolean): void {
@@ -392,12 +441,22 @@ export function AlertDialog(options: AlertDialogCompositionOptions): ComposedAle
                 focusTarget = nextOptions.focusTarget;
             }
 
+            if ("cancelText" in nextOptions) cancelText = nextOptions.cancelText;
+            if ("confirmText" in nextOptions) confirmText = nextOptions.confirmText;
+
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
+
             cancelButton.update(getCancelButtonUpdateOptions(nextOptions));
             confirmButton.update(getConfirmButtonUpdateOptions(nextOptions));
+            syncLocalizedText();
             dialog.update(getDialogUpdateOptions(nextOptions, handleOpenChange));
         },
 
         destroy(): void {
+            unsubscribeLocale?.();
             dialog.destroy();
         }
     };

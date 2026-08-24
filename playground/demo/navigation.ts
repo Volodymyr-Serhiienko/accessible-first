@@ -3,6 +3,7 @@ import {
     type ComposedRouteResponsiveNavigation,
     type RouteResponsiveNavigationNavigateDetail
 } from "./af";
+import { playgroundLocale, t } from "./localization";
 import {
     playgroundRoutes,
     type PlaygroundRoute
@@ -25,9 +26,10 @@ export function NavigationDemo(
     return RouteResponsiveNavigation<PlaygroundRoute>({
         id: "playground-navigation",
         className: "playground-nav__inner",
-        trigger: "Sections",
+        trigger: t("app.navigation.trigger"),
         triggerIconPosition: "start",
         variant: "pills",
+        locale: playgroundLocale,
         current: options.current ?? null,
         routes: playgroundRoutes,
         onRouteNavigate(detail, navigation) {

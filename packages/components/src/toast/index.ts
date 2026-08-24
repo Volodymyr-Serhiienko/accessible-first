@@ -13,6 +13,8 @@ export type {
     ToastCloseHandler,
     ToastCloseReason,
     ToastInput,
+    ToastLocalization,
+    ToastMessageKey,
     ToastPlacement,
     ToastPoliteness,
     ToastShowOptions,

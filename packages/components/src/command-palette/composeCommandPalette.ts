@@ -16,12 +16,48 @@ import {
     type SearchBoxSelectDetail,
     type SearchBoxUpdateOptions
 } from "../search-box";
+import {
+    accessibleFirstEnglishMessages,
+    getLocaleText,
+    type LocaleTextProvider
+} from "../localization";
 
-const DEFAULT_TITLE = "Command palette";
-const DEFAULT_DESCRIPTION = "Search commands and press Enter to run the selected result.";
-const DEFAULT_SEARCH_LABEL = "Search commands";
-const DEFAULT_PLACEHOLDER = "Search commands";
-const DEFAULT_NOT_FOUND_TEXT = "No commands found.";
+/**
+ * Localized message keys used by CommandPalette fallback text.
+ */
+export type CommandPaletteMessageKey =
+    | "commandPalette.title"
+    | "commandPalette.description"
+    | "commandPalette.searchLabel"
+    | "commandPalette.placeholder"
+    | "commandPalette.notFoundText"
+    | "dialog.closeText";
+
+/**
+ * Localization provider accepted by CommandPalette.
+ */
+export type CommandPaletteLocalization = LocaleTextProvider<CommandPaletteMessageKey>;
+
+function getLocalizedText(
+    value: string | null | undefined,
+    locale: CommandPaletteLocalization | null,
+    key: CommandPaletteMessageKey
+): string {
+    return value ?? getLocaleText(locale, key, accessibleFirstEnglishMessages[key]);
+}
+
+function getLocalizedDescription(
+    value: string | null | undefined,
+    locale: CommandPaletteLocalization | null
+): string | null {
+    if (value === null) return null;
+
+    return value ?? getLocaleText(
+        locale,
+        "commandPalette.description",
+        accessibleFirstEnglishMessages["commandPalette.description"]
+    );
+}
 
 /**
  * Keyboard shortcut modifier configuration for opening CommandPalette.
@@ -129,7 +165,15 @@ export type CommandPaletteSearchBoxUpdateOptions<
  */
 export type CommandPaletteDialogOptions = Omit<
     DialogCompositionOptions,
-    "trigger" | "title" | "description" | "children" | "actions" | "initialFocus" | "initialFocusTarget" | "onOpenChange"
+    | "trigger"
+    | "title"
+    | "description"
+    | "children"
+    | "actions"
+    | "initialFocus"
+    | "initialFocusTarget"
+    | "locale"
+    | "onOpenChange"
 >;
 
 /**
@@ -145,6 +189,7 @@ export interface CommandPaletteOptions<
     searchLabel?: string | null;
     placeholder?: string | null;
     notFoundText?: string | null;
+    locale?: CommandPaletteLocalization | null;
     closeOnSelect?: boolean;
     searchBoxOptions?: CommandPaletteSearchBoxOptions<TItem>;
     dialogOptions?: CommandPaletteDialogOptions;
@@ -175,10 +220,6 @@ export interface ComposedCommandPalette<
     setItems(items: TItem[]): void;
     update(options: CommandPaletteUpdateOptions<TItem>): void;
     destroy(): void;
-}
-
-function getDescription(value: string | null | undefined): string | null {
-    return value === undefined ? DEFAULT_DESCRIPTION : value;
 }
 
 function isShortcutList(
@@ -241,6 +282,7 @@ export function CommandPalette<
         searchLabel,
         placeholder,
         notFoundText,
+        locale: initialLocale,
         closeOnSelect: initialCloseOnSelect,
         searchBoxOptions,
         dialogOptions,
@@ -256,7 +298,14 @@ export function CommandPalette<
     let onSelect = initialOnSelect ?? null;
     let onOpenChange = initialOnOpenChange ?? null;
     let shortcuts = normalizeShortcuts(shortcut);
+    let paletteTitle = title;
+    let paletteDescription = description;
+    let paletteSearchLabel = searchLabel;
+    let palettePlaceholder = placeholder;
+    let paletteNotFoundText = notFoundText;
+    let locale: CommandPaletteLocalization | null = initialLocale ?? null;
     let cleanupShortcut: Cleanup | null = null;
+    let unsubscribeLocale: (() => void) | null = null;
 
     function handleShortcutKeyDown(event: KeyboardEvent): void {
         const matchedShortcut = shortcuts.find((item) => {
@@ -315,9 +364,9 @@ export function CommandPalette<
     const searchBox = SearchBox<TItem>({
         ...(searchBoxOptions ?? {}),
         items,
-        label: searchLabel ?? DEFAULT_SEARCH_LABEL,
-        placeholder: placeholder ?? DEFAULT_PLACEHOLDER,
-        notFoundText: notFoundText ?? DEFAULT_NOT_FOUND_TEXT,
+        label: getLocalizedText(paletteSearchLabel, locale, "commandPalette.searchLabel"),
+        placeholder: getLocalizedText(palettePlaceholder, locale, "commandPalette.placeholder"),
+        notFoundText: getLocalizedText(paletteNotFoundText, locale, "commandPalette.notFoundText"),
         openOnFocus: searchBoxOptions?.openOnFocus ?? true,
         onSelect: handleSelect
     });
@@ -326,16 +375,22 @@ export function CommandPalette<
         onOpenChange?.(open, composed);
     };
 
-    const dialog = Dialog({
+    const initialDialogOptions: DialogCompositionOptions = {
         ...compositionOptions,
         ...(dialogOptions ?? {}),
         trigger,
-        title: title ?? DEFAULT_TITLE,
-        description: getDescription(description),
+        title: getLocalizedText(paletteTitle, locale, "commandPalette.title"),
+        description: getLocalizedDescription(paletteDescription, locale),
         children: [searchBox.element],
         initialFocus: searchBox.input,
         onOpenChange: handleOpenChange
-    });
+    };
+
+    if (locale !== null) {
+        initialDialogOptions.locale = locale;
+    }
+
+    const dialog = Dialog(initialDialogOptions);
 
     let closeOnEscape = dialogOptions?.closeOnEscape ?? true;
     let cleanupEscapeKey: Cleanup | null = null;
@@ -358,6 +413,34 @@ export function CommandPalette<
             handlePaletteEscapeKeyDown,
             { capture: true }
         );
+    }
+
+    function syncLocalizedText(): void {
+        searchBox.update({
+            label: getLocalizedText(paletteSearchLabel, locale, "commandPalette.searchLabel"),
+            placeholder: getLocalizedText(palettePlaceholder, locale, "commandPalette.placeholder"),
+            notFoundText: getLocalizedText(paletteNotFoundText, locale, "commandPalette.notFoundText")
+        });
+
+        const dialogUpdate: DialogCompositionUpdateOptions = {
+            title: getLocalizedText(paletteTitle, locale, "commandPalette.title"),
+            description: getLocalizedDescription(paletteDescription, locale)
+        };
+
+        dialogUpdate.locale = locale;
+
+        dialog.update(dialogUpdate);
+    }
+
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(() => {
+            syncLocalizedText();
+        });
     }
 
     function setAttributes(): void {
@@ -407,14 +490,24 @@ export function CommandPalette<
                 setupShortcut();
             }
 
+            if ("title" in nextOptions) paletteTitle = nextOptions.title;
+            if ("description" in nextOptions) paletteDescription = nextOptions.description;
+            if ("searchLabel" in nextOptions) paletteSearchLabel = nextOptions.searchLabel;
+            if ("placeholder" in nextOptions) palettePlaceholder = nextOptions.placeholder;
+            if ("notFoundText" in nextOptions) paletteNotFoundText = nextOptions.notFoundText;
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
+
             const searchUpdate: SearchBoxUpdateOptions<TItem> = {
                 ...(nextOptions.searchBoxOptions ?? {}),
                 onSelect: handleSelect
             };
 
-            if ("searchLabel" in nextOptions) searchUpdate.label = nextOptions.searchLabel ?? null;
-            if ("placeholder" in nextOptions) searchUpdate.placeholder = nextOptions.placeholder ?? null;
-            if ("notFoundText" in nextOptions) searchUpdate.notFoundText = nextOptions.notFoundText ?? null;
+            searchUpdate.label = getLocalizedText(paletteSearchLabel, locale, "commandPalette.searchLabel");
+            searchUpdate.placeholder = getLocalizedText(palettePlaceholder, locale, "commandPalette.placeholder");
+            searchUpdate.notFoundText = getLocalizedText(paletteNotFoundText, locale, "commandPalette.notFoundText");
 
             searchBox.update(searchUpdate);
 
@@ -424,8 +517,9 @@ export function CommandPalette<
             };
 
             if (nextOptions.trigger !== undefined) dialogUpdate.trigger = nextOptions.trigger;
-            if (nextOptions.title !== undefined) dialogUpdate.title = nextOptions.title;
-            if ("description" in nextOptions) dialogUpdate.description = getDescription(nextOptions.description);
+            dialogUpdate.title = getLocalizedText(paletteTitle, locale, "commandPalette.title");
+            dialogUpdate.description = getLocalizedDescription(paletteDescription, locale);
+            dialogUpdate.locale = locale;
 
             dialog.update(dialogUpdate);
             setAttributes();
@@ -434,12 +528,14 @@ export function CommandPalette<
         destroy(): void {
             cleanupEscapeKey?.();
             cleanupShortcut?.();
+            unsubscribeLocale?.();
             searchBox.destroy();
             dialog.destroy();
         }
     }) as ComposedCommandPalette<TItem>;
 
     setAttributes();
+    syncLocaleSubscription();
     setupShortcut();
     setupEscapeKey();
 

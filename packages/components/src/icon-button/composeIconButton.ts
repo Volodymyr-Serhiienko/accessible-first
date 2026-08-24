@@ -152,6 +152,10 @@ function getIconButtonOptions(
         iconButtonOptions.size = options.size;
     }
 
+    if ("locale" in options) {
+        iconButtonOptions.locale = options.locale ?? null;
+    }
+
     return iconButtonOptions;
 }
 

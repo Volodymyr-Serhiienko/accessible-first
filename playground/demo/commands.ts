@@ -4,6 +4,7 @@ import {
     type ComposedRouteCommandPalette,
     type HashRouter
 } from "./af";
+import { playgroundLocale, t } from "./localization";
 import type { PlaygroundRoute } from "./routes";
 
 export interface PlaygroundCommandsOptions {
@@ -15,20 +16,23 @@ export function PlaygroundCommands(
     options: PlaygroundCommandsOptions
 ): ComposedRouteCommandPalette<PlaygroundRoute> {
     return RouteCommandPalette<PlaygroundRoute>({
-        trigger: "Commands",
-        title: "Playground commands",
-        description: "Search demo sections and press Enter to open the selected section.",
-        searchLabel: "Search playground commands",
-        placeholder: "Search commands",
-        notFoundText: "No commands found.",
+        trigger: t("app.commands.trigger"),
+        title: t("app.commands.title"),
+        description: t("app.commands.description"),
+        searchLabel: t("app.commands.searchLabel"),
+        placeholder: t("app.commands.placeholder"),
+        notFoundText: t("app.commands.notFoundText"),
         shortcut: [
             { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
             { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
         ],
         routes: options.routes,
+        locale: playgroundLocale,
         searchItemsOptions: {
             getDescription(route) {
-                return `Open the ${route.title} demo section.`;
+                return t("app.route.commandDescription", {
+                    title: route.title
+                });
             },
             getKeywords(route) {
                 return ["open", "go", "section", "demo", route.id, route.title, route.label];

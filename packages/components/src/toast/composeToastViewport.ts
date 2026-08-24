@@ -45,6 +45,7 @@ function getToastViewportOptions(
     if ("duration" in options) viewportOptions.duration = options.duration ?? null;
     if (options.dismissible !== undefined) viewportOptions.dismissible = options.dismissible;
     if (options.closeLabel !== undefined) viewportOptions.closeLabel = options.closeLabel;
+    if ("locale" in options) viewportOptions.locale = options.locale ?? null;
     if (options.pauseOnHover !== undefined) viewportOptions.pauseOnHover = options.pauseOnHover;
     if (options.newestOnTop !== undefined) viewportOptions.newestOnTop = options.newestOnTop;
 
