@@ -68,6 +68,9 @@ Brand({
 - `href` - Optional destination. Creation-time option.
 - `logo` - Optional logo content, usually `Image(...)`, `Icon(...)`, or trusted inline SVG.
 - `logoAspectRatio` - Optional logo slot ratio, such as `"1 / 1"` or `"3 / 1"`. Defaults to `"1 / 1"`.
+- `logoSize` - Optional CSS size for the logo slot inline size, such as `"3rem"` or `"4.5rem"`.
+- `logoMinSize` - Optional minimum logo slot size. Defaults to the CSS variable fallback.
+- `logoMaxSize` - Optional maximum logo slot size. Useful when long localized brand text wraps.
 - `logoScale` - Optional optical scale for the logo image inside the auto-sized logo slot. Defaults to `1.1`.
 - `logoOffsetY` - Optional CSS length that nudges the logo slot vertically, such as `"0.08rem"` or `"-2px"`.
 - `tagline` - Optional supporting brand text.
@@ -107,7 +110,8 @@ Logo sizing variables:
 
 - `--af-brand-logo-aspect-ratio` - logo slot ratio. Defaults to `1 / 1` for square logos.
 - `--af-brand-logo-min-size` - minimum logo size. Defaults to `2rem`.
-- `--af-brand-logo-size` - optional fixed logo size override.
+- `--af-brand-logo-size` - optional fixed logo slot inline size override.
+- `--af-brand-logo-max-size` - maximum logo size. Defaults to a responsive `clamp(...)` value.
 - `--af-brand-logo-scale` - inner logo image scale. Defaults to `1.1`.
 - `--af-brand-logo-offset-y` - optional vertical nudge for the logo slot when a specific asset needs optical adjustment.
 

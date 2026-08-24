@@ -55,6 +55,9 @@ export interface BrandOptions extends BaseCompositionOptions {
     href?: string | null;
     logo?: BrandCompositionContent | null;
     logoAspectRatio?: string | null;
+    logoSize?: string | null;
+    logoMinSize?: string | null;
+    logoMaxSize?: string | null;
     logoScale?: number | null;
     logoOffsetY?: string | null;
     tagline?: BrandCompositionContent | null;
@@ -145,6 +148,9 @@ export function Brand(options: BrandOptions): ComposedBrand {
     let composed!: ComposedBrand;
     let logoContent = options.logo;
     let logoAspectRatio = options.logoAspectRatio ?? null;
+    let logoSize = options.logoSize ?? null;
+    let logoMinSize = options.logoMinSize ?? null;
+    let logoMaxSize = options.logoMaxSize ?? null;
     let logoScale = options.logoScale ?? null;
     let logoOffsetY = options.logoOffsetY ?? null;
     let taglineContent = options.tagline;
@@ -174,25 +180,27 @@ export function Brand(options: BrandOptions): ComposedBrand {
         text.replaceChildren(name, tagline);
     }
 
-    function syncLogoTuning(): void {
-        if (logoAspectRatio === null || !logoAspectRatio.trim()) {
-            element.style.removeProperty("--af-brand-logo-aspect-ratio");
-        } else {
-            element.style.setProperty("--af-brand-logo-aspect-ratio", logoAspectRatio);
+    function syncLogoCssVariable(name: string, value: string | null): void {
+        if (value === null || !value.trim()) {
+            element.style.removeProperty(name);
+            return;
         }
+
+        element.style.setProperty(name, value);
+    }
+
+    function syncLogoTuning(): void {
+        syncLogoCssVariable("--af-brand-logo-aspect-ratio", logoAspectRatio);
+        syncLogoCssVariable("--af-brand-logo-size", logoSize);
+        syncLogoCssVariable("--af-brand-logo-min-size", logoMinSize);
+        syncLogoCssVariable("--af-brand-logo-max-size", logoMaxSize);
+        syncLogoCssVariable("--af-brand-logo-offset-y", logoOffsetY);
 
         if (logoScale === null) {
             element.style.removeProperty("--af-brand-logo-scale");
         } else {
             element.style.setProperty("--af-brand-logo-scale", String(logoScale));
         }
-
-        if (logoOffsetY === null || !logoOffsetY.trim()) {
-            element.style.removeProperty("--af-brand-logo-offset-y");
-            return;
-        }
-
-        element.style.setProperty("--af-brand-logo-offset-y", logoOffsetY);
     }
 
     function sync(): void {
@@ -268,6 +276,18 @@ export function Brand(options: BrandOptions): ComposedBrand {
 
             if ("logoAspectRatio" in nextOptions) {
                 logoAspectRatio = nextOptions.logoAspectRatio ?? null;
+            }
+
+            if ("logoSize" in nextOptions) {
+                logoSize = nextOptions.logoSize ?? null;
+            }
+
+            if ("logoMinSize" in nextOptions) {
+                logoMinSize = nextOptions.logoMinSize ?? null;
+            }
+
+            if ("logoMaxSize" in nextOptions) {
+                logoMaxSize = nextOptions.logoMaxSize ?? null;
             }
 
             if ("logoScale" in nextOptions) {

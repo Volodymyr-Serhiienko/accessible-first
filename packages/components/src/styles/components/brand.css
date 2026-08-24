@@ -1,5 +1,6 @@
 [data-af-composition="brand"] {
     min-inline-size: 0;
+    max-inline-size: 100%;
     display: inline-flex;
     align-items: center;
     color: var(--af-color-fg);
@@ -15,9 +16,10 @@ a[data-af-composition="brand"]:focus-visible {
 
 [data-af-brand-content] {
     min-inline-size: 0;
+    max-inline-size: 100%;
     display: inline-flex;
     align-items: stretch;
-    gap: var(--af-space-3);
+    gap: var(--af-brand-gap, var(--af-space-3));
 }
 
 [data-af-brand-logo] {
@@ -27,6 +29,8 @@ a[data-af-composition="brand"]:focus-visible {
     inline-size: var(--af-brand-logo-size, auto);
     min-inline-size: var(--af-brand-logo-min-size, 2rem);
     min-block-size: var(--af-brand-logo-min-size, 2rem);
+    max-inline-size: var(--af-brand-logo-max-size, clamp(3rem, 10vw, 4.5rem));
+    max-block-size: var(--af-brand-logo-max-size, clamp(3rem, 10vw, 4.5rem));
     display: block;
     flex: 0 0 auto;
     color: var(--af-color-primary);
@@ -53,6 +57,7 @@ a[data-af-composition="brand"]:focus-visible {
     min-inline-size: 0;
     display: grid;
     gap: 0.125rem;
+    overflow-wrap: break-word;
 }
 
 [data-af-brand-name] {
@@ -62,10 +67,12 @@ a[data-af-composition="brand"]:focus-visible {
     font-size: 1.125rem;
     font-weight: 800;
     line-height: 1.15;
+    overflow-wrap: break-word;
 }
 
 [data-af-brand-tagline] {
     color: var(--af-color-muted);
     font-size: 0.875rem;
     line-height: 1.2;
+    overflow-wrap: break-word;
 }

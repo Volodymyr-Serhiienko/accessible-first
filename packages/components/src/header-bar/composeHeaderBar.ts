@@ -26,6 +26,12 @@ export type HeaderBarVariant = "default" | "plain";
 export type HeaderBarSize = "md";
 
 /**
+ * HeaderBar layout behavior.
+ * "auto" adapts slots to available space, "inline" prefers one row, and "stacked" makes slots full-width.
+ */
+export type HeaderBarLayout = "auto" | "inline" | "stacked";
+
+/**
  * Options for HeaderBar().
  */
 export interface HeaderBarOptions extends BaseCompositionOptions {
@@ -34,6 +40,7 @@ export interface HeaderBarOptions extends BaseCompositionOptions {
     actions?: HeaderBarCompositionContent | null;
     variant?: HeaderBarVariant;
     size?: HeaderBarSize;
+    layout?: HeaderBarLayout;
     brandOptions?: BaseCompositionOptions;
     contentOptions?: BaseCompositionOptions;
     actionsOptions?: BaseCompositionOptions;
@@ -90,6 +97,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
     let actionsContent: HeaderBarSlotContent = normalizeSlotContent(options.actions);
     let variant: HeaderBarVariant = options.variant ?? "default";
     let size: HeaderBarSize = options.size ?? "md";
+    let layout: HeaderBarLayout = options.layout ?? "auto";
 
     let hasBrand = hasCompositionContent(brandContent);
     let hasContent = hasCompositionContent(mainContent);
@@ -105,6 +113,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
         element.setAttribute("data-af-composition", "header-bar");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
+        element.setAttribute("data-af-header-bar-layout", layout);
 
         brandSlot.setAttribute("data-af-header-bar-brand", "");
         contentSlot.setAttribute("data-af-header-bar-content", "");
@@ -170,6 +179,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
             if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
+            if (nextOptions.layout !== undefined) layout = nextOptions.layout;
 
             sync();
         },
