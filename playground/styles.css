@@ -193,16 +193,10 @@ body {
     }
 
     [data-af-composition="header-bar"] {
-        --af-header-bar-content-width: 11rem;
-        --af-header-bar-content-min-width: 8rem;
-        --af-header-bar-content-max-width: 13rem;
-        --af-header-bar-actions-gap: 0.5rem;
-    }
-
-    .playground-brand {
-        flex: 1 1 100%;
-        inline-size: 100%;
-        max-inline-size: 100%;
+        --af-header-bar-gap: 0.5rem;
+        --af-header-bar-row-gap: 0.5rem;
+        --af-header-bar-brand-width: 18rem;
+        --af-header-bar-brand-min-width: 12rem;
     }
 
     .playground-search[data-af-search-box] {
@@ -233,10 +227,10 @@ body {
     }
 
     [data-af-composition="header-bar"] {
-        --af-header-bar-content-width: 10rem;
-        --af-header-bar-content-min-width: 8rem;
-        --af-header-bar-content-max-width: 11.5rem;
-        --af-header-bar-actions-gap: 0.375rem;
+        --af-header-bar-gap: 0.375rem;
+        --af-header-bar-row-gap: 0.5rem;
+        --af-header-bar-brand-width: 16rem;
+        --af-header-bar-brand-min-width: 10rem;
     }
 
     [data-af-language-select] {

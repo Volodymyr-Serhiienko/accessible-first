@@ -69,12 +69,12 @@ Useful layout variables:
 
 - `--af-header-bar-gap` - horizontal gap between slots.
 - `--af-header-bar-row-gap` - vertical gap when slots wrap.
-- `--af-header-bar-brand-width` - preferred brand slot width.
+- `--af-header-bar-brand-width` - maximum preferred brand slot width.
 - `--af-header-bar-brand-min-width` - minimum brand slot width before wrapping.
 - `--af-header-bar-content-width` - preferred content slot width.
 - `--af-header-bar-content-min-width` - minimum content slot width before wrapping.
 - `--af-header-bar-content-max-width` - maximum content slot width.
-- `--af-header-bar-actions-gap` - gap between action controls.
+- `--af-header-bar-content-gap` - gap between multiple content-slot children.
 
 ## Accessibility Notes
 
@@ -82,4 +82,4 @@ HeaderBar is intentionally semantic-neutral. Use it inside `page.header(...)` ra
 
 Search fields and action controls keep their own labels and semantics. Do not rely on visual position alone to explain what a control does.
 
-When controls should wrap as one sequence, place them in the same slot, usually `actions`. For example, a compact search field, command button, language selector, and theme toggle should share one flex row so each item wraps only when it no longer fits. When tuning a separate content slot, adjust both the content slot variables and the child component width; a shorter search box may still occupy the old layout space if `--af-header-bar-content-width` and `--af-header-bar-content-max-width` are left large.
+The `actions` slot is layout-transparent in the default auto layout. Its children participate in the same flex row as the brand, so a compact search field, command button, language selector, and theme toggle wrap one item at a time instead of as one right-side block. When tuning a separate content slot, adjust both the content slot variables and the child component width; a shorter search box may still occupy the old layout space if `--af-header-bar-content-width` and `--af-header-bar-content-max-width` are left large.
