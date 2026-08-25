@@ -77,6 +77,20 @@
 
 [data-af-responsive-navigation-panel] {
     padding-inline: 0;
+    background: var(--af-color-bg);
+}
+
+[data-af-responsive-navigation-panel-content] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    display: grid;
+    gap: var(--af-space-3);
+    background: var(--af-color-bg);
+}
+
+[data-af-responsive-navigation-close] {
+    justify-self: start;
 }
 
 @media (max-width: 640px) {
@@ -85,6 +99,9 @@
     }
 
     [data-af-responsive-navigation-mobile] {
+        position: relative;
+        z-index: calc(var(--af-page-chrome-z-index, 800) + 20);
         display: grid;
+        background: var(--af-color-bg);
     }
 }

@@ -9,6 +9,7 @@ It should be placed inside `page.header(...)` or the `AppShell.header` slot. The
 ```ts
 page.header(
     HeaderBar({
+        brandMaxWidth: "28rem",
         brand: Brand({
             href: "#main",
             name: "Accessible First",
@@ -16,9 +17,11 @@ page.header(
         }),
         content: SearchBox({
             label: "Search app",
+            width: "16rem",
             items: searchItems
         }),
         actions: ThemeToggle({
+            display: "switch",
             variant: "secondary"
         })
     })
@@ -42,10 +45,19 @@ page.header(
 - `content` - central or flexible header content, such as search.
 - `actions` - controls such as theme, language, commands, profile, or account buttons.
 - `layout` - `"auto"`, `"inline"`, or `"stacked"`. Defaults to `"auto"`.
+- `brandMaxWidth` - Optional CSS length for the header brand slot. Use it when a localized brand name or tagline has room but wraps too early.
 - `variant` - currently `"default"` or `"plain"`. Defaults to `"default"`.
 - `size` - currently `"md"`.
 - `brandOptions`, `contentOptions`, `actionsOptions` - advanced DOM options for inner slots.
 - Base options: `id`, `className`, `attributes`.
+
+## Responsive Action Overflow
+
+For dense application headers, keep `HeaderBar` as the low-level layout and use `HeaderTools` in the `actions` slot. `HeaderTools` keeps search, commands, language, theme, and future profile controls inline while they fit, then moves the same controls into a compact overflow popover when the header becomes too narrow.
+
+When the same controls must work in both desktop and mobile layouts, move one control set between the inline area and the overflow panel instead of rendering duplicate controls. `HeaderTools` owns this pattern so applications do not need local resize probes for normal header actions.
+
+Overflow should be selected by available space, not only by a fixed mobile breakpoint. HeaderTools switches when actions would wrap below the brand row, gives the panel an accessible title and description, announces that context when opened, keeps controls full-width when the panel is narrow, and provides an explicit close action as the final keyboard stop.
 
 ## Relationship To App Shell
 
@@ -67,9 +79,11 @@ Useful hooks include `[data-af-composition="header-bar"]`, `[data-af-header-bar-
 
 Useful layout variables:
 
+- `--af-header-bar-padding-block` - vertical padding around the header contents.
+- `--af-header-bar-padding-block-start` and `--af-header-bar-padding-block-end` - optional separate top/bottom padding, useful when header tooltips need extra breathing room.
 - `--af-header-bar-gap` - horizontal gap between slots.
 - `--af-header-bar-row-gap` - vertical gap when slots wrap.
-- `--af-header-bar-brand-width` - maximum preferred brand slot width.
+- `--af-header-bar-brand-width` - maximum preferred brand slot width. Prefer `brandMaxWidth` for normal component assembly.
 - `--af-header-bar-brand-min-width` - minimum brand slot width before wrapping.
 - `--af-header-bar-content-width` - preferred content slot width.
 - `--af-header-bar-content-min-width` - minimum content slot width before wrapping.
@@ -82,4 +96,4 @@ HeaderBar is intentionally semantic-neutral. Use it inside `page.header(...)` ra
 
 Search fields and action controls keep their own labels and semantics. Do not rely on visual position alone to explain what a control does.
 
-The `actions` slot is layout-transparent in the default auto layout. Its children participate in the same flex row as the brand, so a compact search field, command button, language selector, and theme toggle wrap one item at a time instead of as one right-side block. When tuning a separate content slot, adjust both the content slot variables and the child component width; a shorter search box may still occupy the old layout space if `--af-header-bar-content-width` and `--af-header-bar-content-max-width` are left large.
+The `actions` slot is layout-transparent in the default auto layout. Its children participate in the same flex row as the brand, so a compact search field, command button, language selector, and theme toggle wrap one item at a time instead of as one right-side block. Prefer component options such as `Brand({ maxWidth })`, `HeaderBar({ brandMaxWidth })`, and `SearchBox({ minWidth, maxWidth })` before reaching for CSS variables.

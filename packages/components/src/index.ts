@@ -23,6 +23,7 @@ export * from "./form";
 export * from "./form-section";
 export * from "./foundation";
 export * from "./header-bar";
+export * from "./header-tools";
 export * from "./icon-button";
 export * from "./info-card";
 export * from "./language-select";

@@ -1,0 +1,92 @@
+[data-af-composition="header-tools"],
+[data-af-header-tools-inline] {
+    display: contents;
+}
+
+[data-af-header-tools-menu] {
+    display: none;
+    margin-inline-start: auto;
+}
+
+[data-af-header-tools-inline][hidden],
+[data-af-header-tools-menu][hidden] {
+    display: none !important;
+}
+
+[data-af-header-tools-menu]:not([hidden]) {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-self: flex-start;
+}
+
+[data-af-composition="header-bar"]:has([data-af-header-tools-menu]:not([hidden])) [data-af-header-bar-brand] {
+    min-inline-size: 0;
+    max-inline-size: calc(100% - var(--af-target-size) - var(--af-header-bar-gap));
+    flex: 1 1 0;
+}
+
+[data-af-header-tools-panel] {
+    --af-popover-max-width: var(--af-header-tools-panel-width, 22rem);
+    --af-popover-mobile-width: var(--af-header-tools-panel-mobile-width, 20rem);
+}
+
+[data-af-header-tools-title] {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+[data-af-header-tools-description] {
+    margin: 0;
+    color: var(--af-color-muted);
+}
+
+[data-af-header-tools-body],
+[data-af-header-tools-controls] {
+    min-inline-size: 0;
+    display: grid;
+    gap: var(--af-space-3);
+}
+
+[data-af-header-tools-body] > *,
+[data-af-header-tools-controls] > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+[data-af-header-tools-controls] [data-af-search-box] {
+    --af-search-box-width: 100% !important;
+    --af-search-box-min-width: 0rem !important;
+    --af-search-box-max-width: 100% !important;
+
+    inline-size: 100%;
+    max-inline-size: 100%;
+    flex: 1 1 auto;
+    margin-inline-start: 0;
+}
+
+[data-af-header-tools-controls] [data-af-search-box] [data-af-component="combobox"] {
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+[data-af-header-tools-controls] [data-af-route-command-palette],
+[data-af-header-tools-controls] [data-af-language-select] {
+    inline-size: 100%;
+}
+
+[data-af-header-tools-controls] [data-af-route-command-palette] > [data-af-component="button"],
+[data-af-header-tools-controls] > [data-af-component="button"],
+[data-af-header-tools-controls] [data-af-language-select] select {
+    inline-size: 100%;
+}
+
+[data-af-header-tools-footer] {
+    display: flex;
+    justify-content: flex-start;
+}
+
+[data-af-header-tools-footer][hidden] {
+    display: none !important;
+}

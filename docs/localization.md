@@ -25,7 +25,7 @@ Framework service text belongs in the Accessible First message registry. Example
 - toast region, close, dismiss, and fallback notification labels;
 - command palette title, description, search label, placeholder, and empty result text;
 - route command prefixes such as `Open`;
-- generic list/detail, breadcrumbs, page navigation, overflow scroller, responsive navigation, theme toggle, icon-button, and text-field fallback labels.
+- generic list/detail, breadcrumbs, page navigation, overflow scroller, responsive navigation, header tools, theme toggle, icon-button, and text-field fallback labels.
 
 Application copy stays explicit in application code or in the application's own locale files. Examples include product names, route labels, screen titles, lesson text, form labels, button text, validation copy chosen by the app, marketing text, and demo content.
 
@@ -97,9 +97,40 @@ Applications should keep one locale file near the app shell. The playground uses
 - combine it with `AccessibleFirstMessageKey`;
 - create one shared `createLocaleController()` instance;
 - export a small `t(key, params?)` helper for application-owned strings;
+- use `createLocaleRefresh()` near the app shell when composed app copy should update without reload;
 - pass the same controller to `AppShell`, `ThemeToggle`, `ToastViewport`, route navigation, command palette, dialogs, and other localized components.
 
 English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
+
+For application-owned text created during composition, use `createLocaleRefresh()` near the app shell. It subscribes to the shared locale controller and lets the app refresh header text, route search, command palettes, breadcrumbs, metadata, and the current screen without a full page reload.
+
+## Reactive App Refresh
+
+Framework-owned component service text updates inside components that receive the shared locale controller. Application-owned text produced with `t(...)` belongs to the app, so the app should refresh the affected shell regions deliberately:
+
+```ts
+const localeRefresh = createLocaleRefresh({
+    locale,
+    refresh() {
+        shell.update({
+            title: t("app.title"),
+            skipLink: t("app.skipLink"),
+            navigationLabel: t("app.navigationLabel"),
+            metadata: getAppMetadata()
+        });
+        shell.setHeader(AppHeader());
+        shell.setNavigation(AppNavigation());
+        shell.setBeforeOutlet(AppBreadcrumbs(router.getCurrentRoute()));
+        router.refresh({
+            scroll: false,
+            focusTarget: null,
+            announcement: false
+        });
+    }
+});
+```
+
+Use this layer for app chrome and currently visible route content. It is intentionally small: no virtual DOM is required, and the app decides which regions need to be recreated.
 
 ## Component Contract
 
@@ -121,6 +152,7 @@ The first migration covers these framework-owned fallbacks:
 - `Dialog`: close button text in composition and behavior fallback accessible names.
 - `IconButton`: missing accessible-name fallback.
 - `LanguageSelect`: default language picker label.
+- `LocaleRefresh`: app-owned refresh callbacks for composed shell and route text.
 - `ListDetail`: list/detail region labels.
 - `OverflowScroller`: previous/next control labels.
 - `Page`: skip-link text and default navigation label.
@@ -136,7 +168,7 @@ LanguageSelect is the current simple header control for user-selected locale cha
 
 Before many real applications depend on localization, plan these extensions deliberately:
 
-- reactive app-owned text updates without forcing a heavy runtime;
+- higher-level app text binding helpers when repeated real-app patterns prove useful;
 - date, time, number, and relative-time formatting helpers;
 - pluralization and parameter formatting conventions;
 - locale-aware search, filtering, and sorting options;

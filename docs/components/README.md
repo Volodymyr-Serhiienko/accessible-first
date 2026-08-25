@@ -37,6 +37,7 @@ Each component document should contain:
 - [Form](./form.md)
 - [FormSection](./form-section.md)
 - [HeaderBar](./header-bar.md)
+- [HeaderTools](./header-tools.md)
 - [Icon](./icon.md)
 - [IconButton](./icon-button.md)
 - [Image](./image.md)

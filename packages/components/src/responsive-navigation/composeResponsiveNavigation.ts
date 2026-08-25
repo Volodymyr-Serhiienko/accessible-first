@@ -4,8 +4,10 @@ import {
     getCompositionElementOptions,
     type BaseCompositionOptions,
     type ComposedNode,
+    toCompositionChildren,
     type CompositionContent
 } from "../composition";
+import { Button, type ComposedButton } from "../button";
 import {
     Disclosure,
     type ComposedDisclosure,
@@ -38,6 +40,11 @@ import {
 export type ResponsiveNavigationTriggerContent = CompositionContent;
 
 /**
+ * Content accepted by the mobile navigation close button.
+ */
+export type ResponsiveNavigationCloseButtonContent = CompositionContent;
+
+/**
  * Side where the mobile trigger menu icon is shown.
  */
 export type ResponsiveNavigationTriggerIconPosition = "start" | "end";
@@ -46,6 +53,7 @@ export type ResponsiveNavigationTriggerIconPosition = "start" | "end";
  * Localized message keys used by ResponsiveNavigation and its internal scroller.
  */
 export type ResponsiveNavigationMessageKey =
+    | "responsiveNavigation.close"
     | "responsiveNavigation.trigger"
     | "overflowScroller.previousLabel"
     | "overflowScroller.nextLabel";
@@ -87,6 +95,7 @@ export type ResponsiveNavigationOverflowScrollerOptions = Omit<OverflowScrollerO
 export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
     items: NavigationItem[];
     trigger?: ResponsiveNavigationTriggerContent;
+    closeButton?: ResponsiveNavigationCloseButtonContent | null;
     triggerIconPosition?: ResponsiveNavigationTriggerIconPosition;
     current?: string | null;
     locale?: ResponsiveNavigationLocalization | null;
@@ -114,6 +123,7 @@ export interface ComposedResponsiveNavigation extends ComposedNode<HTMLElement> 
     readonly desktopNavigation: ComposedNavigation;
     readonly mobileNavigation: ComposedNavigation;
     readonly mobileDisclosure: ComposedDisclosure;
+    readonly mobileCloseButton: ComposedButton;
     readonly desktopScroller: ComposedOverflowScroller;
     setItems(items: NavigationItem[]): void;
     setCurrent(match: string | null): void;
@@ -129,6 +139,19 @@ function getTriggerContent(
         locale,
         "responsiveNavigation.trigger",
         accessibleFirstEnglishMessages["responsiveNavigation.trigger"]
+    );
+}
+
+function getCloseButtonContent(
+    closeButton: ResponsiveNavigationCloseButtonContent | null | undefined,
+    locale: ResponsiveNavigationLocalization | null
+): ResponsiveNavigationCloseButtonContent | null {
+    if (closeButton === null) return null;
+
+    return closeButton ?? getLocaleText(
+        locale,
+        "responsiveNavigation.close",
+        accessibleFirstEnglishMessages["responsiveNavigation.close"]
     );
 }
 
@@ -189,6 +212,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     let variant: NavigationVariant = options.variant ?? "pills";
     let mobileVariant: NavigationVariant = options.mobileVariant ?? "pills";
     let trigger = options.trigger;
+    let closeButton = options.closeButton;
     let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "end";
     let locale: ResponsiveNavigationLocalization | null = options.locale ?? null;
     let unsubscribeLocale: (() => void) | null = null;
@@ -221,6 +245,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
 
         unsubscribeLocale = locale.subscribe(() => {
             mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
+            syncCloseButtonContent();
             desktopScroller.update(getOverflowScrollerOptions(undefined));
         });
     }
@@ -256,10 +281,49 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         true
     ));
 
-    const mobileDisclosure = Disclosure({
+    let mobileDisclosure!: ComposedDisclosure;
+
+    function restoreMobileTriggerFocus(): void {
+        const ownerWindow = mobileDisclosure.trigger.ownerDocument.defaultView ?? window;
+
+        ownerWindow.setTimeout(() => {
+            if (mobileDisclosure.trigger.isConnected) {
+                mobileDisclosure.trigger.focus({ preventScroll: true });
+            }
+        }, 0);
+    }
+
+    const mobileCloseButton = Button({
+        variant: "secondary",
+        onPress() {
+            mobileDisclosure.close();
+            restoreMobileTriggerFocus();
+        }
+    });
+
+    mobileCloseButton.element.setAttribute("data-af-responsive-navigation-close", "");
+
+    const mobilePanelContentElement = createElement("div", {
+        attributes: {
+            "data-af-responsive-navigation-panel-content": ""
+        }
+    });
+
+    mobilePanelContentElement.append(mobileNavigation.element, mobileCloseButton.element);
+
+    const mobilePanelContent: ComposedNode = {
+        element: mobilePanelContentElement,
+
+        destroy(): void {
+            mobileCloseButton.destroy();
+            mobileNavigation.destroy();
+        }
+    };
+
+    mobileDisclosure = Disclosure({
         ...(options.disclosureOptions ?? {}),
         trigger: getTriggerContent(trigger, locale),
-        panel: mobileNavigation,
+        panel: mobilePanelContent,
         variant: options.disclosureOptions?.variant ?? "plain",
         announcement: options.disclosureOptions?.announcement ?? false
     });
@@ -271,6 +335,18 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     mobileDisclosure.panel.setAttribute("data-af-responsive-navigation-panel", "");
     mobileNavigation.element.setAttribute("data-af-responsive-navigation-mobile-list", "");
 
+    function syncCloseButtonContent(): void {
+        const content = getCloseButtonContent(closeButton, locale);
+
+        mobileCloseButton.element.hidden = content === null || content === false;
+
+        if (content !== null && content !== false) {
+            mobileCloseButton.update({
+                children: toCompositionChildren(content)
+            });
+        }
+    }
+
     function syncTriggerIconPosition(): void {
         mobileDisclosure.trigger.setAttribute(
             "data-af-trigger-icon-position",
@@ -278,6 +354,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         );
     }
 
+    syncCloseButtonContent();
     syncTriggerIconPosition();
     syncLocaleSubscription();
 
@@ -311,6 +388,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         desktopScroller,
         mobileNavigation,
         mobileDisclosure,
+        mobileCloseButton,
         setItems,
         setCurrent,
 
@@ -325,6 +403,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
                 syncLocaleSubscription();
+                syncCloseButtonContent();
             }
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if (nextOptions.closeOnNavigate !== undefined) closeOnNavigate = nextOptions.closeOnNavigate;
@@ -370,6 +449,11 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
                 mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
             } else if ("locale" in nextOptions) {
                 mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
+            }
+
+            if ("closeButton" in nextOptions) {
+                closeButton = nextOptions.closeButton ?? null;
+                syncCloseButtonContent();
             }
 
             syncTriggerIconPosition();

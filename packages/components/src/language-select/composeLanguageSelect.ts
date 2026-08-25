@@ -68,6 +68,8 @@ export interface LanguageSelectOptions<
     items?: readonly LanguageSelectItem<TLocale>[];
     persist?: LocaleSetOptions["persist"];
     syncDocumentLanguage?: LocaleSetOptions["syncDocumentLanguage"];
+    width?: string | null;
+    autoWidth?: boolean;
     onLocaleChange?: LanguageSelectOnLocaleChange<TLocale> | null;
 }
 
@@ -150,6 +152,37 @@ function toSelectItems<TLocale extends LocaleCode>(
     });
 }
 
+function getTextLength(value: string | null | undefined): number {
+    return [...(value?.trim() ?? "")].length;
+}
+
+function getAutoLanguageSelectWidth(
+    items: readonly SelectCompositionItem[],
+    label: string | null
+): string {
+    const longestTextLength = Math.max(
+        4,
+        getTextLength(label),
+        ...items.map((item) => getTextLength(item.label))
+    );
+
+    return `calc(${longestTextLength}ch + 3.25rem)`;
+}
+
+function getLanguageSelectWidth(
+    width: string | null,
+    autoWidth: boolean,
+    items: readonly SelectCompositionItem[],
+    label: string | null
+): string | null {
+    const explicitWidth = width?.trim();
+
+    if (explicitWidth) return explicitWidth;
+    if (!autoWidth) return null;
+
+    return getAutoLanguageSelectWidth(items, label);
+}
+
 function getSelectLabel<TLocale extends LocaleCode>(
     options: LanguageSelectOptions<TLocale> | LanguageSelectUpdateOptions<TLocale>,
     locale: LanguageSelectOptions<TLocale>["locale"]
@@ -228,19 +261,39 @@ export function LanguageSelect<
     let currentOptions: LanguageSelectOptions<TLocale> = options;
     let persist = options.persist;
     let syncDocumentLanguage = options.syncDocumentLanguage;
+    let width = options.width ?? null;
+    let autoWidth = options.autoWidth ?? true;
     let onLocaleChange = options.onLocaleChange ?? null;
     let unsubscribeLocale: (() => void) | null = null;
 
     const initialItems = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+    const initialSelectItems = toSelectItems(initialItems, currentOptions.locale.getLocale());
+
+    function syncLanguageSelectSizing(
+        selectItems: readonly SelectCompositionItem[],
+        label: string | null
+    ): void {
+        const nextWidth = getLanguageSelectWidth(width, autoWidth, selectItems, label);
+
+        if (nextWidth === null) {
+            select.element.style.removeProperty("--af-language-select-width");
+            return;
+        }
+
+        select.element.style.setProperty("--af-language-select-width", nextWidth);
+    }
 
     function syncSelectFromLocale(): void {
         const items = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+        const label = getSelectLabel(currentOptions, currentOptions.locale);
+        const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
 
         select.update({
             value: currentOptions.locale.getLocale(),
-            label: getSelectLabel(currentOptions, currentOptions.locale),
-            items: toSelectItems(items, currentOptions.locale.getLocale())
+            label,
+            items: selectItems
         });
+        syncLanguageSelectSizing(selectItems, label);
     }
 
     function setLocale(locale: string, setOptions: LocaleSetOptions = {}): TLocale {
@@ -289,11 +342,12 @@ export function LanguageSelect<
 
     const select = Select(getSelectOptions(
         currentOptions,
-        toSelectItems(initialItems, currentOptions.locale.getLocale()),
+        initialSelectItems,
         handleValueChange
     ));
 
     select.element.setAttribute("data-af-language-select", "");
+    syncLanguageSelectSizing(initialSelectItems, getSelectLabel(currentOptions, currentOptions.locale));
 
     function syncLocaleSubscription(): void {
         unsubscribeLocale?.();
@@ -326,11 +380,16 @@ export function LanguageSelect<
             if ("onLocaleChange" in nextOptions) {
                 onLocaleChange = nextOptions.onLocaleChange ?? null;
             }
+            if ("width" in nextOptions) width = nextOptions.width ?? null;
+            if ("autoWidth" in nextOptions) autoWidth = nextOptions.autoWidth ?? true;
 
             const items = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+            const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
+            const label = getSelectLabel(currentOptions, currentOptions.locale);
 
             select.update(getSelectUpdateOptions(currentOptions, nextOptions, items));
             select.element.setAttribute("data-af-language-select", "");
+            syncLanguageSelectSizing(selectItems, label);
         },
 
         destroy(): void {

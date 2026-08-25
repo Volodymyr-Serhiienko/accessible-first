@@ -115,7 +115,7 @@ shell.render(Screen({
 
 - use `Brand` for logo, product name, home link, and optional tagline;
 - use `Navigation` or `ResponsiveNavigation` for page and app navigation;
-- use `ActionsBar` or individual controls for theme, account, language, and similar actions;
+- use `HeaderTools` for adaptive search, commands, language, theme, and future account controls;
 - add larger header patterns later only when repeated real pages prove the shape.
 
 Backgrounds, spacing, sticky behavior, and responsive shell layout should live in page or app patterns rather than in the low-level header landmark itself.
@@ -129,7 +129,7 @@ Planned shell modes should cover:
 - normal flow, where header and navigation scroll with the page;
 - sticky or fixed app chrome, where header or navigation remains visible;
 - reveal-on-scroll app chrome, where header/navigation reappears when the user scrolls back;
-- compact header actions, where search, language, theme, command palette, and future profile controls wrap or move into overflow without breaking the brand.
+- compact header actions, where `HeaderTools` keeps search, language, theme, command palette, and future profile controls inline only while they fit one header row, then moves the same controls into an overflow panel without breaking the brand. Prefer one moved control set over duplicated controls when state, shortcuts, or screen reader order could diverge.
 
 Navigation should keep real links as the baseline. SPA routing can intercept the same links, but MPA and static-page navigation should not need a different route model.
 

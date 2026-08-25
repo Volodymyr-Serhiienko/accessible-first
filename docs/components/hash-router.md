@@ -66,6 +66,7 @@ router.start();
 - Helper API: `createHashRouter(options)`
 - Activation helper: `activateHashRouterRoute(router, detail, options)`
 - Binding helper: `bindHashRouterRouteControls(router, controls)`
+- Refresh method: `router.refresh(options)`
 - Reuses: `PageOutlet`, native URL hash/history, route-aware navigation, and current-route controls with `setCurrent(...)`
 
 ## Behavior
@@ -80,6 +81,7 @@ router.start();
 - Pushes or replaces history only when asked.
 - Handles browser back/forward through `popstate` and `hashchange`.
 - Activating the current route again moves focus back into the active outlet instead of doing nothing.
+- Can re-render the current route without changing history through `router.refresh(...)`, useful for locale or theme-driven application copy updates.
 
 ## Route Shape
 
@@ -111,6 +113,27 @@ const router = createHashRouter({
 ```
 
 The router applies metadata before route-change subscribers and diagnostics run. This keeps `page.inspect()` aligned with the active route.
+
+## Refreshing Current Route
+
+Use `router.refresh(...)` when the active route should be rendered again without changing the URL or history entry. This is useful when application-owned localized text, route metadata, or route-derived content changes while the user stays on the same screen.
+
+```ts
+createLocaleRefresh({
+    locale,
+    refresh() {
+        shell.setHeader(AppHeader());
+        router.refresh({
+            scroll: false,
+            focusTarget: null,
+            announcement: false
+        });
+    }
+});
+```
+
+By default, refresh uses quiet options suitable for in-place updates. Pass `notify: true` only when route-change subscribers should treat the refresh like a route transition.
+
 ## Activation Helper
 
 Use `activateHashRouterRoute()` inside route-aware component callbacks. It prevents the native event by default and forwards the route to `router.navigate(...)`.
@@ -152,6 +175,7 @@ The helper calls `router.setNavigation(...)`, synchronizes the initial route, an
 - Search result activation uses the same focus and scroll behavior as navigation activation.
 - Re-activating the current navigation item focuses the active screen.
 - Browser back and forward restore the previous screen.
-- Header, navigation, footer, and theme controls are not recreated.
+- Header, navigation, footer, and theme controls stay stable unless the app intentionally refreshes shell chrome.
+- Locale refresh can re-render the current route without pushing history or moving focus unexpectedly.
 - Document title and metadata match the active route when configured.
 

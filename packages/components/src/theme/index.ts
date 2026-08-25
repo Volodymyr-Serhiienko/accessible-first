@@ -18,6 +18,7 @@ export type {
     ComposedThemeToggle,
     ThemeToggleAnnouncement,
     ThemeToggleChangeDetail,
+    ThemeToggleDisplay,
     ThemeToggleLocalization,
     ThemeToggleMessageKey,
     ThemeToggleOnChange,

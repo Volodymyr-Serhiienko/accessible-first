@@ -1,5 +1,17 @@
 [data-af-search-box] {
-    inline-size: min(100%, var(--af-search-box-width, 24rem));
+    --af-search-box-min-width: 10rem;
+    --af-search-box-max-width: 24rem;
+    --af-search-box-preferred-width: clamp(
+        var(--af-search-box-min-width),
+        24vw,
+        var(--af-search-box-max-width)
+    );
+
+    box-sizing: border-box;
+    inline-size: min(100%, var(--af-search-box-width, var(--af-search-box-preferred-width)));
+    min-inline-size: min(100%, var(--af-search-box-min-width));
+    max-inline-size: min(100%, var(--af-search-box-max-width));
+    flex: 0 1 var(--af-search-box-width, var(--af-search-box-preferred-width));
 }
 
 [data-af-search-box-result] {

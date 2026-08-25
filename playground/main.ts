@@ -4,13 +4,17 @@ import {
     bindHashRouterRouteControls,
     createAppDiagnosticsReport,
     createHashRouter,
+    createLocaleRefresh,
     inspectAppRoutes,
     inspectWebAppManifest,
     logAppDiagnostics,
     mount,
-    type ComposedResponsiveNavigation
+    type ComposedResponsiveNavigation,
+    type CompositionChild,
+    type DocumentMetadataUpdateOptions,
+    type HashRouterUnsubscribe
 } from "./demo/af";
-import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
+import { PlaygroundBreadcrumbs, type ComposedPlaygroundBreadcrumbs } from "./demo/breadcrumbs";
 import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
@@ -53,15 +57,8 @@ function scheduleInitialPageScroll(): void {
     });
 }
 
-const shell = AppShell({
-    title: t("app.brand.name"),
-    mainId: "main",
-    skipLink: t("app.navigation.skipLink"),
-    skipLinkTargetId: "playground-navigation",
-    navigationLabel: t("app.navigation.label"),
-    locale: playgroundLocale,
-    theme: "system",
-    metadata: {
+function getPlaygroundAppMetadata(): DocumentMetadataUpdateOptions {
+    return {
         lang: playgroundLocale.getLocale(),
         description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, and app-building patterns.",
         themeColor: "#111827",
@@ -105,7 +102,18 @@ const shell = AppShell({
             description: "Accessible First Playground demonstrates WCAG-first UI components, semantic composition, routing, diagnostics, and app-building patterns.",
             image: new URL("assets/logo-512.png", window.location.href).toString()
         }
-    },
+    };
+}
+
+const shell = AppShell({
+    title: t("app.brand.name"),
+    mainId: "main",
+    skipLink: t("app.navigation.skipLink"),
+    skipLinkTargetId: "playground-navigation",
+    navigationLabel: t("app.navigation.label"),
+    locale: playgroundLocale,
+    theme: "system",
+    metadata: getPlaygroundAppMetadata(),
     outletOptions: {
         className: "playground-route-outlet",
         label: "Playground demo content",
@@ -133,7 +141,7 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
     requireDescription: true,
     requireDocumentTitle: true,
     requireCanonical: true,
-    requireStructuredData: true,
+    requireStructuredData: true
 });
 
 function logPlaygroundDiagnostics(): void {
@@ -175,6 +183,8 @@ function logPlaygroundDiagnostics(): void {
 }
 
 let navigation!: ComposedResponsiveNavigation;
+let routeBreadcrumbs!: ComposedPlaygroundBreadcrumbs;
+let routeControlsCleanup: HashRouterUnsubscribe | null = null;
 
 const router = createHashRouter({
     routes: playgroundRoutes,
@@ -196,41 +206,60 @@ const router = createHashRouter({
     }
 });
 
-const routeBreadcrumbs = PlaygroundBreadcrumbs(router.getCurrentRoute());
-
-const playgroundCommands = PlaygroundCommands({
-    router,
-    routes: playgroundRoutes
-});
-
-shell.setHeader(HeaderDemo({
-    controls: [
+function createPlaygroundHeaderControls(): CompositionChild[] {
+    return [
         PlaygroundSearch({
             router,
-            routes: playgroundRoutes
+            routes: playgroundRoutes,
+            width: "14rem"
         }),
-        playgroundCommands
-    ]
-}));
+        PlaygroundCommands({
+            router,
+            routes: playgroundRoutes
+        })
+    ];
+}
 
-navigation = NavigationDemo({
-    current: router.getCurrentRoute().id,
-    onRouteNavigate(_route, detail) {
-        activateHashRouterRoute(router, detail, {
-            updateHistory: true,
-            scroll: true,
-            focusTarget: "outlet"
-        });
-    }
-});
+function createPlaygroundNavigation(): ComposedResponsiveNavigation {
+    return NavigationDemo({
+        current: router.getCurrentRoute().id,
+        onRouteNavigate(_route, detail) {
+            activateHashRouterRoute(router, detail, {
+                updateHistory: true,
+                scroll: true,
+                focusTarget: "outlet"
+            });
+        }
+    });
+}
 
-bindHashRouterRouteControls(router, {
-    navigation,
-    currentRouteControls: [routeBreadcrumbs]
-});
+function syncPlaygroundChrome(): void {
+    const currentRoute = router.getCurrentRoute();
 
-shell.setNavigation(navigation);
-shell.setBeforeOutlet(routeBreadcrumbs);
+    routeControlsCleanup?.();
+    navigation = createPlaygroundNavigation();
+    routeBreadcrumbs = PlaygroundBreadcrumbs(currentRoute);
+
+    shell.update({
+        title: t("app.brand.name"),
+        skipLink: t("app.navigation.skipLink"),
+        navigationLabel: t("app.navigation.label"),
+        metadata: getPlaygroundAppMetadata()
+    });
+    shell.setHeader(HeaderDemo({
+        brandMaxWidth: "28rem",
+        controls: createPlaygroundHeaderControls()
+    }));
+    shell.setNavigation(navigation);
+    shell.setBeforeOutlet(routeBreadcrumbs);
+
+    routeControlsCleanup = bindHashRouterRouteControls(router, {
+        navigation,
+        currentRouteControls: [routeBreadcrumbs]
+    });
+}
+
+syncPlaygroundChrome();
 shell.setAfterOutlet([
     ReturnToNavigationLink(() => navigation),
     notifications
@@ -238,6 +267,24 @@ shell.setAfterOutlet([
 shell.setFooter(FooterDemo());
 
 mount(shell, "#app");
+
+const localeRefresh = createLocaleRefresh({
+    locale: playgroundLocale,
+    refresh() {
+        syncPlaygroundChrome();
+        router.refresh({
+            scroll: false,
+            focusTarget: null,
+            announcement: false
+        });
+    }
+});
+
+window.addEventListener("pagehide", () => {
+    localeRefresh.destroy();
+    routeControlsCleanup?.();
+    router.stop();
+}, { once: true });
 
 router.start({
     announcement: false,

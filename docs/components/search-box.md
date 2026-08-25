@@ -28,6 +28,17 @@ SearchBox({
 });
 ```
 
+Header-sized search:
+
+```ts
+SearchBox({
+    label: "Search app",
+    placeholder: "Search",
+    width: "14rem",
+    items: searchItems
+});
+```
+
 With descriptions:
 
 ```ts
@@ -65,6 +76,9 @@ SearchBox({
 - `placeholder` - Native input placeholder.
 - `notFoundText` - Message shown when no result matches.
 - `filterItem` - Optional custom filter for result matching.
+- `width` - Optional preferred CSS length for normal component assembly, such as `"14rem"`. Use this first for headers.
+- `minWidth` - Optional advanced CSS length for the compact width floor. Defaults to the component stylesheet.
+- `maxWidth` - Optional advanced CSS length for the width ceiling. Defaults to the component stylesheet.
 - `onQueryChange` - Called when the query or selected result changes.
 - `onSelect` - Called when a result is selected.
 - most combobox options from [combobox.md](./combobox.md).
@@ -79,6 +93,15 @@ Item options:
 - `disabled` - Disables one result.
 - `data` - Optional application data carried with the result.
 - `optionOptions` - Common DOM options for the result option.
+
+## Styling
+
+SearchBox owns a responsive width by default. Prefer `width` for normal component assembly, especially in headers. Use `minWidth` and `maxWidth` only when a field should flex inside a range. Use CSS variables only for lower-level styling overrides:
+
+- `--af-search-box-min-width` - default compact width floor.
+- `--af-search-box-max-width` - default width ceiling.
+- `--af-search-box-preferred-width` - internal responsive fallback width, defaulting to a `clamp(...)` between the min and max values.
+- `--af-search-box-width` - preferred width set by the `width` option.
 
 ## Update Notes
 
@@ -105,4 +128,3 @@ Use `update({ items })` only for partial item updates matched by index.
 - Enter selects the active result.
 - Selecting a result calls `onSelect`.
 - Popup stays within the viewport on small screens.
-

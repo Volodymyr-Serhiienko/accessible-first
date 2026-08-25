@@ -30,6 +30,13 @@ export interface HashRouterNavigateOptions {
 }
 
 /**
+ * Options for re-rendering the current HashRouter route without changing location.
+ */
+export interface HashRouterRefreshOptions extends HashRouterNavigateOptions {
+    notify?: boolean;
+}
+
+/**
  * Route activation detail accepted by activateHashRouterRoute().
  */
 export interface HashRouterRouteActivationDetail<TRoute extends HashRouterRoute> {
@@ -89,6 +96,7 @@ export interface HashRouter<TRoute extends HashRouterRoute> {
     getRouteHref(routeOrId: TRoute | string): string;
     getRouteById(id: string | null | undefined): TRoute | null;
     navigate(routeOrId: TRoute | string | null | undefined, options?: HashRouterNavigateOptions): boolean;
+    refresh(options?: HashRouterRefreshOptions): boolean;
     syncFromLocation(options?: HashRouterNavigateOptions): boolean;
     setNavigation(navigation: HashRouterNavigation | null): void;
     subscribe(handler: HashRouterRouteChangeHandler<TRoute>): HashRouterUnsubscribe;
@@ -242,27 +250,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         });
     }
 
-    function navigate(
-        routeOrId: TRoute | string | null | undefined,
-        navigateOptions: HashRouterNavigateOptions = {}
-    ): boolean {
-        const route = resolveRoute(routeOrId);
-
-        if (!route) return false;
-
-        const previousRoute = currentRoute;
-        const sameRoute = currentRoute !== null && currentRoute.id === route.id;
-
-        syncHistory(route, navigateOptions);
-        syncNavigation(route);
-
-        if (sameRoute) {
-            focusOutlet(navigateOptions);
-            return true;
-        }
-
-        currentRoute = route;
-
+    function renderRoute(route: TRoute, previousRoute: TRoute | null, navigateOptions: HashRouterNavigateOptions): void {
         const documentMetadata = options.getDocumentMetadata?.(route, previousRoute) ?? null;
         const documentTitle = options.getDocumentTitle
             ? options.getDocumentTitle(route)
@@ -285,8 +273,56 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         if (documentMetadata) {
             options.updateDocumentMetadata?.(documentMetadata);
         }
+    }
 
+    function navigate(
+        routeOrId: TRoute | string | null | undefined,
+        navigateOptions: HashRouterNavigateOptions = {}
+    ): boolean {
+        const route = resolveRoute(routeOrId);
+
+        if (!route) return false;
+
+        const previousRoute = currentRoute;
+        const sameRoute = currentRoute !== null && currentRoute.id === route.id;
+
+        syncHistory(route, navigateOptions);
+        syncNavigation(route);
+
+        if (sameRoute) {
+            focusOutlet(navigateOptions);
+            return true;
+        }
+
+        currentRoute = route;
+        renderRoute(route, previousRoute, navigateOptions);
         notifyRouteChange(route, previousRoute);
+        options.inspect?.();
+
+        return true;
+    }
+
+    function refresh(refreshOptions: HashRouterRefreshOptions = {}): boolean {
+        const {
+            notify: shouldNotify = false,
+            ...navigateOptions
+        } = refreshOptions;
+        const route = getCurrentRoute();
+        const previousRoute = currentRoute;
+
+        currentRoute = route;
+        syncNavigation(route);
+        renderRoute(route, previousRoute, {
+            scroll: false,
+            focusTarget: null,
+            announcement: false,
+            ...navigateOptions
+        });
+
+        if (shouldNotify) {
+            notifyRouteChange(route, previousRoute);
+        }
+
         options.inspect?.();
 
         return true;
@@ -317,6 +353,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         getRouteHref,
         getRouteById,
         navigate,
+        refresh,
         syncFromLocation,
 
         setNavigation(nextNavigation): void {

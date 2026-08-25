@@ -10,6 +10,7 @@ Use it when a route list already describes screen ids, titles, labels, descripti
 const search = RouteSearchBox({
     label: "Search screens",
     placeholder: "Search",
+    width: "14rem",
     routes,
     notFoundText: "No matching screens found.",
     onRouteSelect(detail) {
@@ -36,6 +37,7 @@ Use `RouteSearchBox` when search results should be derived from route metadata. 
 - Calls `onRouteSelect` with the selected route.
 - Supports custom route label, description, keyword, and disabled resolvers through `searchItemsOptions`.
 - Keeps the underlying input, popup, keyboard behavior, filtering, not-found state, and mobile keyboard dismissal from `SearchBox`.
+- Inherits `SearchBox` sizing options such as `width`, `minWidth`, and `maxWidth`, so route search can be tuned directly when composing a header.
 
 ## Options
 
@@ -43,7 +45,7 @@ Use `RouteSearchBox` when search results should be derived from route metadata. 
 - `searchItemsOptions` - Options passed to `createAppRouteSearchItems()`.
 - `onRouteSelect` - Called with the selected route when a result is selected.
 - `onSelect` - Optional lower-level `SearchBox` selection callback.
-- all `SearchBox` options except `items`.
+- all `SearchBox` options except `items`, including `width`, `minWidth`, and `maxWidth`.
 
 ## Methods
 

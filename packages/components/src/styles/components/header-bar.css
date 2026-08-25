@@ -2,6 +2,8 @@
     --af-header-bar-gap: var(--af-space-4);
     --af-header-bar-row-gap: var(--af-space-3);
     --af-header-bar-padding-block: var(--af-space-4);
+    --af-header-bar-padding-block-start: var(--af-header-bar-padding-block);
+    --af-header-bar-padding-block-end: var(--af-header-bar-padding-block);
     --af-header-bar-brand-width: 24rem;
     --af-header-bar-brand-min-width: 14rem;
     --af-header-bar-content-width: 18rem;
@@ -17,7 +19,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--af-header-bar-row-gap) var(--af-header-bar-gap);
-    padding-block: var(--af-header-bar-padding-block);
+    padding-block: var(--af-header-bar-padding-block-start) var(--af-header-bar-padding-block-end);
     color: var(--af-color-fg);
     background: var(--af-color-bg);
 }

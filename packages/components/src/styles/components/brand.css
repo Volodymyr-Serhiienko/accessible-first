@@ -1,6 +1,6 @@
 [data-af-composition="brand"] {
     min-inline-size: 0;
-    max-inline-size: 100%;
+    max-inline-size: min(100%, var(--af-brand-max-width, 100%));
     display: inline-flex;
     align-items: center;
     color: var(--af-color-fg);
@@ -16,7 +16,7 @@ a[data-af-composition="brand"]:focus-visible {
 
 [data-af-brand-content] {
     min-inline-size: 0;
-    max-inline-size: 100%;
+    max-inline-size: min(100%, var(--af-brand-max-width, 100%));
     display: inline-flex;
     align-items: stretch;
     gap: var(--af-brand-gap, var(--af-space-3));

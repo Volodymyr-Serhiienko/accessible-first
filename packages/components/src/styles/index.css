@@ -18,6 +18,7 @@
 @import "./components/form.css";
 @import "./components/form-section.css";
 @import "./components/header-bar.css";
+@import "./components/header-tools.css";
 @import "./components/icon-button.css";
 @import "./components/info-card.css";
 @import "./components/language-select.css";
@@ -39,5 +40,6 @@
 @import "./components/switch.css";
 @import "./components/tabs.css";
 @import "./components/text-field.css";
+@import "./components/theme-toggle.css";
 @import "./components/toast.css";
 @import "./components/tooltip.css";

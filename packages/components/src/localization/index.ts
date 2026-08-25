@@ -4,10 +4,20 @@ export {
     getSystemLocaleCandidates,
     resolveSupportedLocale
 } from "./createLocaleController";
+export { createLocaleRefresh } from "./createLocaleRefresh";
 
 export {
     accessibleFirstEnglishMessages
 } from "./messages";
+
+export type {
+    LocaleRefreshContext,
+    LocaleRefreshController,
+    LocaleRefreshHandler,
+    LocaleRefreshLocale,
+    LocaleRefreshOptions,
+    LocaleRefreshSchedule
+} from "./createLocaleRefresh";
 
 export type {
     LocaleChangeDetail,

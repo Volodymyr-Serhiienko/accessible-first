@@ -46,6 +46,7 @@ LanguageSelect({
 - Updates `document.documentElement.lang` through the locale controller unless disabled.
 - Subscribes to locale changes and keeps the native select value synchronized.
 - Uses native select behavior on desktop and mobile.
+- Auto-sizes the native select from the longest current language name or label, with an explicit `width` override when needed.
 
 ## Options
 
@@ -54,8 +55,11 @@ LanguageSelect({
 - `label` - Optional select label. Defaults to localized `languageSelect.label`.
 - `persist` - Optional override for whether user changes are saved.
 - `syncDocumentLanguage` - Optional override for `document.lang` synchronization.
+- `width` - Optional explicit CSS width for the language control. When omitted, the control auto-sizes.
+- `autoWidth` - Set to `false` to disable automatic width calculation.
 - `onLocaleChange` - Called after a user selection changes the active locale.
-- Select options inherited from `Select`: `disabled`, `required`, `name`, `variant`, `size`, `labelOptions`, `selectOptions`, `visibleRows`.
+- Select options inherited from `Select`: `disabled`, `required`,
+ame`, `variant`, `size`, `labelOptions`, `selectOptions`, `visibleRows`.
 - Base options: `id`, `className`, `attributes`.
 
 ## Custom Items
@@ -75,7 +79,7 @@ When labels are omitted, LanguageSelect uses `Intl.DisplayNames` where available
 
 ## Runtime App Text
 
-LanguageSelect changes the locale controller. Components that subscribe to the controller update themselves. Application-owned text produced once with `t(...)` may need an app re-render or page reload until the application uses a reactive text-binding layer.
+LanguageSelect changes the locale controller. Components that subscribe to the controller update themselves. Application-owned text produced with `t(...)` should refresh through the application layer, usually with `createLocaleRefresh()` near `AppShell`.
 
 ## Styling
 
@@ -83,7 +87,7 @@ Useful hooks include `[data-af-language-select]`, `[data-af-composition="select"
 
 Useful variables:
 
-- `--af-language-select-width` - preferred control width. Defaults to `10rem`.
+- `--af-language-select-width` - preferred control width. Set automatically by default from the longest localized option label.
 - `--af-select-width` - inherited select width token.
 
 ## Manual Checks

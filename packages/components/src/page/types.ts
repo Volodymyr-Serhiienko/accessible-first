@@ -60,6 +60,18 @@ export interface PageOptions {
 }
 
 /**
+ * Runtime page options that can be safely refreshed without recreating the page shell.
+ */
+export interface PageUpdateOptions {
+    title?: string;
+    skipLink?: boolean | string;
+    skipLinkTargetId?: string;
+    navigationLabel?: string;
+    locale?: PageLocalization | null;
+    metadata?: DocumentMetadataUpdateOptions;
+}
+
+/**
  * One issue found by page.inspect().
  */
 export interface PageDiagnosticsIssue {
@@ -117,6 +129,7 @@ export interface Page extends ComposedNode {
     section(section: CompositionChild): Page;
     setMainContent(...children: CompositionChild[]): Page;
     focusMain(options?: FocusOptions): Page;
+    update(options: PageUpdateOptions): Page;
     updateMetadata(options: DocumentMetadataUpdateOptions): Page;
     footer(...children: CompositionChild[]): Page;
     appendToMain(...children: CompositionChild[]): Page;

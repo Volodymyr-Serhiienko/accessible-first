@@ -61,6 +61,7 @@ const navigation = ResponsiveNavigation({
 - Uses the same `items` for desktop and mobile layouts.
 - Shows normal navigation on wider screens and keeps long desktop navigation in one controlled horizontal scroll line.
 - Shows a disclosure-style menu trigger on small screens.
+- Adds a localized close button at the end of the mobile menu so keyboard and mobile screen-reader users have an explicit way out.
 - Closes the mobile menu after a navigation item is activated by default.
 - Keeps links as real anchors, so multi-page navigation works without a router.
 - Allows SPA-style navigation by cancelling the event in `onNavigate`.
@@ -70,6 +71,7 @@ const navigation = ResponsiveNavigation({
 
 - `items` - Required navigation items.
 - `trigger` - Mobile trigger content. Defaults to `"Menu"`.
+- `closeButton` - Mobile close button content. Defaults to localized `"Close menu"`; pass `null` to hide it when the surrounding shell provides another close route.
 - `triggerIconPosition` - Mobile trigger icon side: `"end"` or `"start"`. Defaults to `"end"`.
 - `current` - Optional current item match by item `id` or `href`.
 - `variant` - Desktop navigation variant. Defaults to `"pills"`.
@@ -102,7 +104,7 @@ Updating `items` updates both desktop and mobile navigation lists.
 
 ## Styling
 
-Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-desktop-list]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, `[data-af-trigger-icon-position]`, and `[data-af-responsive-navigation-panel]`.
+Useful hooks include `[data-af-composition="responsive-navigation"]`, `[data-af-responsive-navigation-desktop]`, `[data-af-responsive-navigation-desktop-list]`, `[data-af-responsive-navigation-mobile]`, `[data-af-responsive-navigation-trigger]`, `[data-af-trigger-icon-position]`, `[data-af-responsive-navigation-panel]`, `[data-af-responsive-navigation-panel-content]`, and `[data-af-responsive-navigation-close]`.
 
 The default breakpoint is intentionally conservative. Application shells can override layout with their own CSS when they need a different breakpoint.
 
@@ -114,5 +116,6 @@ The default breakpoint is intentionally conservative. Application shells can ove
 - Links remain reachable with Tab.
 - Focus indicators are not clipped by the horizontal desktop scroller.
 - Mobile menu closes after link activation unless `closeOnNavigate` is false.
+- Mobile close button closes the menu and restores focus to the menu trigger.
 - Current item is announced consistently in both layouts.
 - Hidden desktop/mobile duplicate links are not reachable by keyboard.

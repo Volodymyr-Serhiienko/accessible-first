@@ -27,7 +27,8 @@ import type {
     Page,
     PageDiagnosticsOptions,
     PageDiagnosticsReport,
-    PageOptions
+    PageOptions,
+    PageUpdateOptions
 } from "./types";
 
 function applyTheme(theme: ResolvedTheme): void {
@@ -107,7 +108,12 @@ export function createPage(options: PageOptions = {}): Page {
     let footerElement: HTMLElement | null = null;
     let skipLinkElement: HTMLAnchorElement | null = null;
     let metadataController: DocumentMetadataController | null = null;
+    let currentTitle = options.title;
+    let currentSkipLink = options.skipLink;
+    let currentSkipLinkTargetId = options.skipLinkTargetId;
+    let currentNavigationLabel = options.navigationLabel;
     let locale = options.locale ?? null;
+    let unsubscribeLocale: (() => void) | null = null;
 
     const pageDestroyers: Array<() => void> = [setupPageTheme(options)];
     const headerDestroyers: Array<() => void> = [];
@@ -153,8 +159,8 @@ export function createPage(options: PageOptions = {}): Page {
     }
 
     function getSkipLinkText(): string {
-        return typeof options.skipLink === "string"
-            ? options.skipLink
+        return typeof currentSkipLink === "string"
+            ? currentSkipLink
             : getLocaleText(
                 locale,
                 "page.skipLinkText",
@@ -163,39 +169,63 @@ export function createPage(options: PageOptions = {}): Page {
     }
 
     function getNavigationLabel(): string {
-        return options.navigationLabel ?? getLocaleText(
+        return currentNavigationLabel ?? getLocaleText(
             locale,
             "page.navigationLabel",
             accessibleFirstEnglishMessages["page.navigationLabel"]
         );
     }
 
-    function syncLocalizedText(): void {
-        if (skipLinkElement) {
-            skipLinkElement.textContent = getSkipLinkText();
+    function ensureSkipLinkElement(): HTMLAnchorElement {
+        if (skipLinkElement) return skipLinkElement;
+
+        skipLinkElement = createElement("a", {
+            className: "skip-link",
+            attributes: {
+                "data-af-skip-link": ""
+            }
+        });
+        root.insertBefore(skipLinkElement, root.firstChild);
+
+        return skipLinkElement;
+    }
+
+    function syncSkipLink(): void {
+        if (currentSkipLink === false) {
+            skipLinkElement?.remove();
+            skipLinkElement = null;
+            return;
         }
+
+        const link = ensureSkipLinkElement();
+
+        link.textContent = getSkipLinkText();
+        link.setAttribute("href", `#${currentSkipLinkTargetId ?? main.id}`);
+    }
+
+    function syncLocalizedText(): void {
+        syncSkipLink();
 
         if (navigationElement) {
             navigationElement.setAttribute("aria-label", getNavigationLabel());
         }
     }
 
-    if (locale?.subscribe) {
-        pageDestroyers.push(locale.subscribe(syncLocalizedText));
+    function syncLocaleSubscription(): void {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+
+        if (!locale?.subscribe) return;
+
+        unsubscribeLocale = locale.subscribe(syncLocalizedText);
     }
 
-    if (options.skipLink !== false) {
-        skipLinkElement = createElement("a", {
-            className: "skip-link",
-            text: getSkipLinkText(),
-            attributes: {
-                href: `#${options.skipLinkTargetId ?? main.id}`,
-                "data-af-skip-link": ""
-            }
-        });
-
-        root.append(skipLinkElement);
-    }
+    syncLocaleSubscription();
+    pageDestroyers.push(() => {
+        unsubscribeLocale?.();
+        unsubscribeLocale = null;
+    });
+    syncSkipLink();
 
     root.append(main);
 
@@ -302,6 +332,35 @@ export function createPage(options: PageOptions = {}): Page {
 
         focusMain(options: FocusOptions = {}): Page {
             moveFocusToMain(options);
+
+            return page;
+        },
+
+        update(nextOptions: PageUpdateOptions): Page {
+            if (nextOptions.title !== undefined) {
+                currentTitle = nextOptions.title;
+
+                if (metadataController) {
+                    ensureMetadataController().update({ title: currentTitle });
+                } else {
+                    document.title = currentTitle;
+                }
+            }
+
+            if (nextOptions.skipLink !== undefined) currentSkipLink = nextOptions.skipLink;
+            if (nextOptions.skipLinkTargetId !== undefined) currentSkipLinkTargetId = nextOptions.skipLinkTargetId;
+            if (nextOptions.navigationLabel !== undefined) currentNavigationLabel = nextOptions.navigationLabel;
+
+            if ("locale" in nextOptions) {
+                locale = nextOptions.locale ?? null;
+                syncLocaleSubscription();
+            }
+
+            if (nextOptions.metadata !== undefined) {
+                ensureMetadataController().update(nextOptions.metadata);
+            }
+
+            syncLocalizedText();
 
             return page;
         },

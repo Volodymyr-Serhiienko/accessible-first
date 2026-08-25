@@ -32,6 +32,7 @@ Brand({
         decorative: true
     }),
     logoScale: 1.1,
+    maxWidth: "24rem",
     name: "Accessible First",
     tagline: "Accessible UI by default"
 });
@@ -66,6 +67,7 @@ Brand({
 - `name` - Required brand name content.
 - `nameTag` - Native element for the brand name: `"span"`, `"p"`, `"h1"`, `"h2"`, or `"h3"`. Defaults to `"span"`. Creation-time option.
 - `href` - Optional destination. Creation-time option.
+- `maxWidth` - Optional CSS length that limits the whole brand block, such as `"24rem"` or `"28rem"`.
 - `logo` - Optional logo content, usually `Image(...)`, `Icon(...)`, or trusted inline SVG.
 - `logoAspectRatio` - Optional logo slot ratio, such as `"1 / 1"` or `"3 / 1"`. Defaults to `"1 / 1"`.
 - `logoSize` - Optional CSS size for the logo slot inline size, such as `"3rem"` or `"4.5rem"`.
@@ -106,8 +108,9 @@ brand.setLogo(null);
 
 Useful hooks include `[data-af-composition="brand"]`, `[data-af-brand-link]`, `[data-af-brand-content]`, `[data-af-brand-logo]`, `[data-af-brand-text]`, `[data-af-brand-name]`, `[data-af-brand-tagline]`, `[data-af-logo-position]`, `[data-af-variant]`, and `[data-af-size]`.
 
-Logo sizing variables:
+Brand and logo sizing variables:
 
+- `--af-brand-max-width` - maximum inline size of the whole brand block. Prefer the `maxWidth` option for normal use.
 - `--af-brand-logo-aspect-ratio` - logo slot ratio. Defaults to `1 / 1` for square logos.
 - `--af-brand-logo-min-size` - minimum logo size. Defaults to `2rem`.
 - `--af-brand-logo-size` - optional fixed logo slot inline size override.
@@ -129,5 +132,6 @@ Brand({
 - Logo is not announced twice when the brand name is visible.
 - Focus indicator is visible when the brand is a link.
 - Brand remains readable on small screens.
+- `maxWidth` can be tuned from the composition call before reaching for CSS.
 - Multi-page navigation works with a normal `href`.
 - SPA interception only happens when `event.preventDefault()` is intentionally used.

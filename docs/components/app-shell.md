@@ -86,9 +86,23 @@ This keeps the framework flexible for:
 - `setAfterOutlet(content)` - updates content after the outlet.
 - `setFooter(content)` - updates footer content.
 - `inspect(options)` - runs page diagnostics.
-- `update(options)` - updates mutable shell options.
+- `update(options)` - updates mutable shell/page options such as `title`, `skipLink`, `navigationLabel`, `locale`, `metadata`, layout, and shell slots.
 - `destroy()` - destroys layout, outlet, slots, and page.
 
+## Runtime Updates
+
+Use `shell.update(...)` for app-shell state that can change without recreating the page:
+
+```ts
+shell.update({
+    title: t("app.title"),
+    skipLink: t("app.skipLink"),
+    navigationLabel: t("app.navigationLabel"),
+    metadata: getAppMetadata()
+});
+```
+
+This is the preferred bridge for locale changes, metadata refreshes, and shell-level labels. Dynamic screen content still belongs in `shell.render(...)` or a router such as `HashRouter`.
 ## Accessibility
 
 AppShell keeps native landmarks stable while changing only the outlet content. This helps keyboard and screen reader users stay oriented during application navigation.

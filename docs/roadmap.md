@@ -36,7 +36,7 @@ These layers are strong enough to build on:
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
-- Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect.
+- Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
 
@@ -53,12 +53,12 @@ Current focus:
 ### Now
 
 - Roadmap and overview documentation cleanup.
-- Verify locale switching across AppShell, route components, command palette, search, header actions, toasts, dialogs, and text-field service messages.
+- Verify locale switching across AppShell, route components, command palette, search, header actions, toasts, dialogs, and text-field service messages without full page reload.
 - Define the next header/navigation model:
   - normal page flow;
   - sticky/fixed header and navigation;
   - refine reveal-on-scroll header/navigation behavior after mobile testing;
-  - compact responsive header action layout for search, language, theme, commands, and future profile controls.
+  - compact responsive header action layout for search, language, theme, commands, and future profile controls; `HeaderTools` is now the reusable library baseline, and locale changes now refresh app-owned shell/route content through `LocaleRefresh`.
 - Decide whether `HeaderBar` remains a low-level layout component and whether higher-level app header templates should own sticky/reveal behavior.
 - Improve mobile header compactness where search or actions take too much space.
 - Keep route wrappers safe from self-recursive `Object.assign()` update patterns.
@@ -134,8 +134,8 @@ Already started. Continue to keep all framework-owned user-facing service text b
 
 Need next:
 
-- app-owned translation file template;
-- reactive app text strategy without forcing a heavy runtime;
+- harden the app-owned translation file template against the first real app;
+- refine `LocaleRefresh` into higher-level app templates only after real repeated patterns appear;
 - locale-aware number/date formatting helpers;
 - pluralization strategy;
 - locale-aware search/sort options;
@@ -160,7 +160,7 @@ Header, navigation, search, language, theme, command palette, and future profile
 Need next:
 
 - app-level shell modes: normal, sticky/fixed, reveal-on-scroll;
-- header action wrapping and overflow strategy;
+- header action wrapping and overflow strategy built on `HeaderTools`, with later shell templates deciding when to use normal, sticky, fixed, or reveal app chrome;
 - compact search behavior;
 - desktop overflow navigation without clipped focus;
 - mobile navigation that remains visually clear and screen-reader understandable.

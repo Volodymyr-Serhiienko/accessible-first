@@ -52,6 +52,7 @@ export type BrandOnNavigate = (event: Event, brand: ComposedBrand) => void;
 export interface BrandOptions extends BaseCompositionOptions {
     name: BrandCompositionContent;
     nameTag?: BrandNameTagName;
+    maxWidth?: string | null;
     href?: string | null;
     logo?: BrandCompositionContent | null;
     logoAspectRatio?: string | null;
@@ -147,6 +148,7 @@ export function Brand(options: BrandOptions): ComposedBrand {
 
     let composed!: ComposedBrand;
     let logoContent = options.logo;
+    let maxWidth = options.maxWidth ?? null;
     let logoAspectRatio = options.logoAspectRatio ?? null;
     let logoSize = options.logoSize ?? null;
     let logoMinSize = options.logoMinSize ?? null;
@@ -180,7 +182,7 @@ export function Brand(options: BrandOptions): ComposedBrand {
         text.replaceChildren(name, tagline);
     }
 
-    function syncLogoCssVariable(name: string, value: string | null): void {
+    function syncBrandCssVariable(name: string, value: string | null): void {
         if (value === null || !value.trim()) {
             element.style.removeProperty(name);
             return;
@@ -190,11 +192,12 @@ export function Brand(options: BrandOptions): ComposedBrand {
     }
 
     function syncLogoTuning(): void {
-        syncLogoCssVariable("--af-brand-logo-aspect-ratio", logoAspectRatio);
-        syncLogoCssVariable("--af-brand-logo-size", logoSize);
-        syncLogoCssVariable("--af-brand-logo-min-size", logoMinSize);
-        syncLogoCssVariable("--af-brand-logo-max-size", logoMaxSize);
-        syncLogoCssVariable("--af-brand-logo-offset-y", logoOffsetY);
+        syncBrandCssVariable("--af-brand-max-width", maxWidth);
+        syncBrandCssVariable("--af-brand-logo-aspect-ratio", logoAspectRatio);
+        syncBrandCssVariable("--af-brand-logo-size", logoSize);
+        syncBrandCssVariable("--af-brand-logo-min-size", logoMinSize);
+        syncBrandCssVariable("--af-brand-logo-max-size", logoMaxSize);
+        syncBrandCssVariable("--af-brand-logo-offset-y", logoOffsetY);
 
         if (logoScale === null) {
             element.style.removeProperty("--af-brand-logo-scale");
@@ -272,6 +275,10 @@ export function Brand(options: BrandOptions): ComposedBrand {
             if (nextOptions.logoPosition !== undefined) {
                 logoPosition = nextOptions.logoPosition;
                 syncStructure();
+            }
+
+            if ("maxWidth" in nextOptions) {
+                maxWidth = nextOptions.maxWidth ?? null;
             }
 
             if ("logoAspectRatio" in nextOptions) {

@@ -37,6 +37,13 @@ body {
     gap: 1rem;
 }
 
+@media (min-width: 641px) {
+    [data-af-page-header] [data-af-composition="header-bar"] {
+        --af-header-bar-padding-block-start: 1.75rem;
+        --af-header-bar-padding-block-end: 1.5rem;
+    }
+}
+
 .playground-brand {
     --af-brand-logo-min-size: 3rem;
     --af-brand-logo-max-size: clamp(3.25rem, 10vw, 4.75rem);
@@ -47,15 +54,11 @@ body {
 }
 
 .playground-search[data-af-search-box] {
-    --af-search-box-width: 100%;
     --af-combobox-width: 100%;
     --playground-search-icon-size: 1rem;
     position: relative;
     box-sizing: border-box;
-    flex: 1 1 18rem;
-    inline-size: 100%;
-    min-inline-size: 0;
-    max-inline-size: 22rem;
+    margin-inline-start: auto;
 }
 
 .playground-search::before {
@@ -159,6 +162,14 @@ body {
         --playground-gutter: 0.875rem;
     }
 
+    [data-af-page-navigation]:has([data-af-responsive-navigation-mobile][data-af-open="true"]) {
+        z-index: calc(var(--af-page-chrome-z-index, 800) + 30);
+    }
+
+    [data-af-page]:has([data-af-responsive-navigation-mobile][data-af-open="true"]) [data-af-app-shell-before-outlet] {
+        visibility: hidden;
+        pointer-events: none;
+    }
 
     [data-af-composition="navigation"].playground-nav__inner {
         align-items: center;
@@ -195,26 +206,6 @@ body {
     [data-af-composition="header-bar"] {
         --af-header-bar-gap: 0.5rem;
         --af-header-bar-row-gap: 0.5rem;
-        --af-header-bar-brand-width: 18rem;
-        --af-header-bar-brand-min-width: 12rem;
-    }
-
-    .playground-search[data-af-search-box] {
-        flex: 0 1 11rem;
-        inline-size: min(100%, 11rem);
-        min-inline-size: min(100%, 8rem);
-        max-inline-size: 13rem;
-    }
-
-    .playground-search[data-af-composition="combobox"],
-    .playground-search [data-af-component="combobox"] {
-        inline-size: 100%;
-        min-inline-size: 0;
-        max-inline-size: 100%;
-    }
-
-    [data-af-language-select] {
-        --af-language-select-width: 8rem;
     }
 
     .grid-empty-cell {
@@ -229,12 +220,6 @@ body {
     [data-af-composition="header-bar"] {
         --af-header-bar-gap: 0.375rem;
         --af-header-bar-row-gap: 0.5rem;
-        --af-header-bar-brand-width: 16rem;
-        --af-header-bar-brand-min-width: 10rem;
-    }
-
-    [data-af-language-select] {
-        --af-language-select-width: 7.5rem;
     }
 
     [data-af-composition="panel"] {

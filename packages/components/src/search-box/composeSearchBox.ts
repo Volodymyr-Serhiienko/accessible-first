@@ -105,6 +105,9 @@ export interface SearchBoxOptions<TItem extends SearchBoxItem = SearchBoxItem>
     value?: string | null;
     defaultValue?: string | null;
     filterItem?: SearchBoxFilter<TItem> | null;
+    width?: string | null;
+    minWidth?: string | null;
+    maxWidth?: string | null;
     onQueryChange?: SearchBoxOnQueryChange<TItem> | null;
     onSelect?: SearchBoxOnSelect<TItem> | null;
 }
@@ -280,6 +283,9 @@ export function SearchBox<TItem extends SearchBoxItem>(
     let composed!: ComposedSearchBox<TItem>;
     let itemStates = options.items.map(createItemState);
     let filterItem = options.filterItem ?? null;
+    let width = options.width ?? null;
+    let minWidth = options.minWidth ?? null;
+    let maxWidth = options.maxWidth ?? null;
     let onQueryChange = options.onQueryChange ?? null;
     let onSelect = options.onSelect ?? null;
 
@@ -347,6 +353,9 @@ export function SearchBox<TItem extends SearchBoxItem>(
         const {
             items: _items,
             filterItem: _filterItem,
+            width: _width,
+            minWidth: _minWidth,
+            maxWidth: _maxWidth,
             onQueryChange: _onQueryChange,
             onSelect: _onSelect,
             ...comboboxOptions
@@ -372,6 +381,9 @@ export function SearchBox<TItem extends SearchBoxItem>(
         const {
             items: _items,
             filterItem: _filterItem,
+            width: _width,
+            minWidth: _minWidth,
+            maxWidth: _maxWidth,
             onQueryChange: _onQueryChange,
             onSelect: _onSelect,
             ...comboboxOptions
@@ -384,9 +396,25 @@ export function SearchBox<TItem extends SearchBoxItem>(
         };
     }
 
+    function syncSearchBoxCssVariable(name: string, value: string | null): void {
+        if (value === null || !value.trim()) {
+            combobox.element.style.removeProperty(name);
+            return;
+        }
+
+        combobox.element.style.setProperty(name, value);
+    }
+
+    function syncSearchBoxSizing(): void {
+        syncSearchBoxCssVariable("--af-search-box-width", width);
+        syncSearchBoxCssVariable("--af-search-box-min-width", minWidth);
+        syncSearchBoxCssVariable("--af-search-box-max-width", maxWidth);
+    }
+
     const combobox = Combobox(getInitialComboboxOptions());
 
     combobox.element.setAttribute("data-af-search-box", "");
+    syncSearchBoxSizing();
 
     composed = {
         element: combobox.element,
@@ -414,6 +442,18 @@ export function SearchBox<TItem extends SearchBoxItem>(
                 filterItem = nextOptions.filterItem ?? null;
             }
 
+            if ("width" in nextOptions) {
+                width = nextOptions.width ?? null;
+            }
+
+            if ("minWidth" in nextOptions) {
+                minWidth = nextOptions.minWidth ?? null;
+            }
+
+            if ("maxWidth" in nextOptions) {
+                maxWidth = nextOptions.maxWidth ?? null;
+            }
+
             if ("onQueryChange" in nextOptions) {
                 onQueryChange = nextOptions.onQueryChange ?? null;
             }
@@ -438,6 +478,7 @@ export function SearchBox<TItem extends SearchBoxItem>(
 
             combobox.update(comboboxOptions);
             combobox.element.setAttribute("data-af-search-box", "");
+            syncSearchBoxSizing();
         },
 
         destroy(): void {

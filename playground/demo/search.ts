@@ -2,7 +2,8 @@ import {
     activateHashRouterRoute,
     RouteSearchBox,
     type ComposedRouteSearchBox,
-    type HashRouter
+    type HashRouter,
+    type RouteSearchBoxOptions
 } from "./af";
 import { t } from "./localization";
 import type { PlaygroundRoute } from "./routes";
@@ -10,12 +11,15 @@ import type { PlaygroundRoute } from "./routes";
 export interface PlaygroundSearchOptions {
     router: HashRouter<PlaygroundRoute>;
     routes: PlaygroundRoute[];
+    width?: string | null;
+    minWidth?: string | null;
+    maxWidth?: string | null;
 }
 
 export function PlaygroundSearch(
     options: PlaygroundSearchOptions
 ): ComposedRouteSearchBox<PlaygroundRoute> {
-    return RouteSearchBox<PlaygroundRoute>({
+    const searchOptions: RouteSearchBoxOptions<PlaygroundRoute> = {
         className: "playground-search",
         label: t("app.search.label"),
         labelOptions: {
@@ -44,5 +48,11 @@ export function PlaygroundSearch(
                 focusTarget: "outlet"
             });
         }
-    });
+    };
+
+    if ("width" in options) searchOptions.width = options.width ?? null;
+    if ("minWidth" in options) searchOptions.minWidth = options.minWidth ?? null;
+    if ("maxWidth" in options) searchOptions.maxWidth = options.maxWidth ?? null;
+
+    return RouteSearchBox<PlaygroundRoute>(searchOptions);
 }

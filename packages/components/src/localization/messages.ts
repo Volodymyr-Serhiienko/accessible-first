@@ -13,6 +13,11 @@ export type AccessibleFirstMessageKey =
     | "dialog.alertFallbackLabel"
     | "dialog.closeText"
     | "dialog.fallbackLabel"
+    | "headerTools.closeText"
+    | "headerTools.description"
+    | "headerTools.hint"
+    | "headerTools.title"
+    | "headerTools.trigger"
     | "iconButton.fallbackLabel"
     | "languageSelect.label"
     | "listDetail.detailLabel"
@@ -21,11 +26,13 @@ export type AccessibleFirstMessageKey =
     | "overflowScroller.previousLabel"
     | "page.navigationLabel"
     | "page.skipLinkText"
+    | "responsiveNavigation.close"
     | "responsiveNavigation.trigger"
     | "routeCommandPalette.commandLabelPrefix"
     | "textField.emailPatternMismatchMessage"
     | "themeToggle.darkAnnouncement"
     | "themeToggle.lightAnnouncement"
+    | "themeToggle.switchLabel"
     | "themeToggle.toDarkLabel"
     | "themeToggle.toLightLabel"
     | "toast.closeButtonText"
@@ -48,6 +55,11 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "dialog.alertFallbackLabel": "Alert dialog",
     "dialog.closeText": "Close",
     "dialog.fallbackLabel": "Dialog",
+    "headerTools.closeText": "Close panel",
+    "headerTools.description": "Search, commands, language, theme, and other header controls.",
+    "headerTools.hint": "Header tools",
+    "headerTools.title": "Header tools",
+    "headerTools.trigger": "Header tools",
     "iconButton.fallbackLabel": "Icon button",
     "languageSelect.label": "Language",
     "listDetail.detailLabel": "Details",
@@ -56,11 +68,13 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "overflowScroller.previousLabel": "Scroll left",
     "page.navigationLabel": "Primary",
     "page.skipLinkText": "Skip to content",
+    "responsiveNavigation.close": "Close menu",
     "responsiveNavigation.trigger": "Menu",
     "routeCommandPalette.commandLabelPrefix": "Open ",
     "textField.emailPatternMismatchMessage": "Enter an email address with a domain, such as name@example.com.",
     "themeToggle.darkAnnouncement": "Dark theme enabled.",
     "themeToggle.lightAnnouncement": "Light theme enabled.",
+    "themeToggle.switchLabel": "Dark theme",
     "themeToggle.toDarkLabel": "Dark theme",
     "themeToggle.toLightLabel": "Light theme",
     "toast.closeButtonText": "Close",

@@ -1,7 +1,10 @@
 [data-af-language-select] {
-    --af-select-width: var(--af-language-select-width, 10rem);
+    box-sizing: border-box;
+    max-inline-size: 100%;
 }
 
 [data-af-language-select] [data-af-component="select"] {
-    inline-size: min(100%, var(--af-language-select-width, 10rem));
+    inline-size: var(--af-language-select-width, auto);
+    min-inline-size: 0;
+    max-inline-size: 100%;
 }

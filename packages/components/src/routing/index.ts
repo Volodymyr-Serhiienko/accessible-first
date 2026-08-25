@@ -9,6 +9,7 @@ export type {
     HashRouterNavigateOptions,
     HashRouterNavigation,
     HashRouterOptions,
+    HashRouterRefreshOptions,
     HashRouterRoute,
     HashRouterRouteActivationDetail,
     HashRouterRouteActivationOptions,

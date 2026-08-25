@@ -41,6 +41,7 @@ export interface HeaderBarOptions extends BaseCompositionOptions {
     variant?: HeaderBarVariant;
     size?: HeaderBarSize;
     layout?: HeaderBarLayout;
+    brandMaxWidth?: string | null;
     brandOptions?: BaseCompositionOptions;
     contentOptions?: BaseCompositionOptions;
     actionsOptions?: BaseCompositionOptions;
@@ -98,6 +99,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
     let variant: HeaderBarVariant = options.variant ?? "default";
     let size: HeaderBarSize = options.size ?? "md";
     let layout: HeaderBarLayout = options.layout ?? "auto";
+    let brandMaxWidth = options.brandMaxWidth ?? null;
 
     let hasBrand = hasCompositionContent(brandContent);
     let hasContent = hasCompositionContent(mainContent);
@@ -109,11 +111,21 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
 
     element.append(brandSlot, contentSlot, actionsSlot);
 
+    function syncHeaderBarCssVariable(name: string, value: string | null): void {
+        if (value === null || !value.trim()) {
+            element.style.removeProperty(name);
+            return;
+        }
+
+        element.style.setProperty(name, value);
+    }
+
     function sync(): void {
         element.setAttribute("data-af-composition", "header-bar");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
         element.setAttribute("data-af-header-bar-layout", layout);
+        syncHeaderBarCssVariable("--af-header-bar-brand-width", brandMaxWidth);
 
         brandSlot.setAttribute("data-af-header-bar-brand", "");
         contentSlot.setAttribute("data-af-header-bar-content", "");
@@ -180,6 +192,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if (nextOptions.layout !== undefined) layout = nextOptions.layout;
+            if ("brandMaxWidth" in nextOptions) brandMaxWidth = nextOptions.brandMaxWidth ?? null;
 
             sync();
         },

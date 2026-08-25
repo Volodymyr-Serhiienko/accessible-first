@@ -15,7 +15,8 @@ import {
     type Page,
     type PageDiagnosticsOptions,
     type PageDiagnosticsReport,
-    type PageOptions
+    type PageOptions,
+    type PageUpdateOptions
 } from "../page";
 import {
     applyPageLayout,
@@ -75,6 +76,12 @@ export interface AppShellOptions extends BaseCompositionOptions {
  * Options accepted by ComposedAppShell.update().
  */
 export interface AppShellUpdateOptions extends Partial<BaseCompositionOptions> {
+    title?: PageOptions["title"];
+    skipLink?: PageOptions["skipLink"];
+    skipLinkTargetId?: PageOptions["skipLinkTargetId"];
+    navigationLabel?: PageOptions["navigationLabel"];
+    locale?: PageOptions["locale"];
+    metadata?: DocumentMetadataUpdateOptions;
     header?: AppShellCompositionContent | null;
     navigation?: AppShellCompositionContent | null;
     beforeOutlet?: AppShellCompositionContent | null;
@@ -125,6 +132,23 @@ function getPageOptions(options: AppShellOptions): PageOptions {
     if (options.metadata !== undefined) pageOptions.metadata = options.metadata;
 
     return pageOptions;
+}
+
+function getPageUpdateOptions(options: AppShellUpdateOptions): PageUpdateOptions {
+    const pageOptions: PageUpdateOptions = {};
+
+    if (options.title !== undefined) pageOptions.title = options.title;
+    if (options.skipLink !== undefined) pageOptions.skipLink = options.skipLink;
+    if (options.skipLinkTargetId !== undefined) pageOptions.skipLinkTargetId = options.skipLinkTargetId;
+    if (options.navigationLabel !== undefined) pageOptions.navigationLabel = options.navigationLabel;
+    if (options.locale !== undefined) pageOptions.locale = options.locale;
+    if (options.metadata !== undefined) pageOptions.metadata = options.metadata;
+
+    return pageOptions;
+}
+
+function hasPageUpdateOptions(options: PageUpdateOptions): boolean {
+    return Object.keys(options).length > 0;
 }
 
 function getOutletOptions(options: AppShellOptions): PageOutletOptions {
@@ -351,6 +375,12 @@ export function AppShell(options: AppShellOptions = {}): ComposedAppShell {
 
             applyCompositionElementOptions(page.element, nextOptions);
             syncRootAttributes();
+
+            const pageUpdateOptions = getPageUpdateOptions(nextOptions);
+
+            if (hasPageUpdateOptions(pageUpdateOptions)) {
+                page.update(pageUpdateOptions);
+            }
 
             if ("header" in nextOptions) {
                 headerContent = normalizeSlotContent(nextOptions.header ?? null);
