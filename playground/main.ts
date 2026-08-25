@@ -1,20 +1,16 @@
 import {
     activateHashRouterRoute,
-    AppShell,
-    bindHashRouterRouteControls,
     createAppDiagnosticsReport,
-    createHashRouter,
-    createLocaleRefresh,
+    createHashRoutedApp,
     inspectAppRoutes,
     inspectWebAppManifest,
     logAppDiagnostics,
-    mount,
     type ComposedResponsiveNavigation,
     type CompositionChild,
     type DocumentMetadataUpdateOptions,
-    type HashRouterUnsubscribe
+    type HashRoutedApp
 } from "./demo/af";
-import { PlaygroundBreadcrumbs, type ComposedPlaygroundBreadcrumbs } from "./demo/breadcrumbs";
+import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
 import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
@@ -26,7 +22,8 @@ import {
     getPlaygroundRouteDescription,
     getPlaygroundRouteDocumentMetadata,
     getPlaygroundRouteDocumentTitle,
-    playgroundRoutes
+    playgroundRoutes,
+    type PlaygroundRoute
 } from "./demo/routes";
 import { PlaygroundSearch } from "./demo/search";
 import { notifications } from "./demo/status";
@@ -105,34 +102,6 @@ function getPlaygroundAppMetadata(): DocumentMetadataUpdateOptions {
     };
 }
 
-const shell = AppShell({
-    title: t("app.brand.name"),
-    mainId: "main",
-    skipLink: t("app.navigation.skipLink"),
-    skipLinkTargetId: "playground-navigation",
-    navigationLabel: t("app.navigation.label"),
-    locale: playgroundLocale,
-    theme: "system",
-    metadata: getPlaygroundAppMetadata(),
-    outletOptions: {
-        className: "playground-route-outlet",
-        label: "Playground demo content",
-        announcement: false,
-        scrollOnRender: true
-    },
-    layout: {
-        maxWidth: "var(--playground-max-width)",
-        gutter: "var(--playground-gutter)",
-        chrome: {
-            header: "normal",
-            navigation: "reveal",
-            beforeOutlet: "sticky"
-        },
-        mainGap: "1rem",
-        mainPaddingBlock: "1rem 2rem"
-    }
-});
-
 const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
     baseUrl: new URL(".", window.location.href),
     getDescription: getPlaygroundRouteDescription,
@@ -144,8 +113,11 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
     requireStructuredData: true
 });
 
+let app!: HashRoutedApp<PlaygroundRoute>;
+let currentNavigation!: ComposedResponsiveNavigation;
+
 function logPlaygroundDiagnostics(): void {
-    const pageDiagnostics = shell.inspect({
+    const pageDiagnostics = app.shell.inspect({
         log: false,
         documentMetadata: {
             requireDescription: true,
@@ -182,31 +154,9 @@ function logPlaygroundDiagnostics(): void {
     }));
 }
 
-let navigation!: ComposedResponsiveNavigation;
-let routeBreadcrumbs!: ComposedPlaygroundBreadcrumbs;
-let routeControlsCleanup: HashRouterUnsubscribe | null = null;
-
-const router = createHashRouter({
-    routes: playgroundRoutes,
-    outlet: shell.outlet,
-    getDocumentTitle: getPlaygroundRouteDocumentTitle,
-    getDocumentMetadata(route) {
-        return getPlaygroundRouteDocumentMetadata(route);
-    },
-    updateDocumentMetadata(metadata) {
-        shell.updateMetadata(metadata);
-    },
-    getAnnouncement(route) {
-        return t("app.route.loaded", {
-            title: route.title
-        });
-    },
-    inspect() {
-        logPlaygroundDiagnostics();
-    }
-});
-
-function createPlaygroundHeaderControls(): CompositionChild[] {
+function createPlaygroundHeaderControls(
+    router: HashRoutedApp<PlaygroundRoute>["router"]
+): CompositionChild[] {
     return [
         PlaygroundSearch({
             router,
@@ -220,73 +170,92 @@ function createPlaygroundHeaderControls(): CompositionChild[] {
     ];
 }
 
-function createPlaygroundNavigation(): ComposedResponsiveNavigation {
-    return NavigationDemo({
-        current: router.getCurrentRoute().id,
-        onRouteNavigate(_route, detail) {
-            activateHashRouterRoute(router, detail, {
-                updateHistory: true,
-                scroll: true,
-                focusTarget: "outlet"
-            });
-        }
-    });
-}
-
-function syncPlaygroundChrome(): void {
-    const currentRoute = router.getCurrentRoute();
-
-    routeControlsCleanup?.();
-    navigation = createPlaygroundNavigation();
-    routeBreadcrumbs = PlaygroundBreadcrumbs(currentRoute);
-
-    shell.update({
-        title: t("app.brand.name"),
-        skipLink: t("app.navigation.skipLink"),
-        navigationLabel: t("app.navigation.label"),
-        metadata: getPlaygroundAppMetadata()
-    });
-    shell.setHeader(HeaderDemo({
-        brandMaxWidth: "28rem",
-        controls: createPlaygroundHeaderControls()
-    }));
-    shell.setNavigation(navigation);
-    shell.setBeforeOutlet(routeBreadcrumbs);
-
-    routeControlsCleanup = bindHashRouterRouteControls(router, {
-        navigation,
-        currentRouteControls: [routeBreadcrumbs]
-    });
-}
-
-syncPlaygroundChrome();
-shell.setAfterOutlet([
-    ReturnToNavigationLink(() => navigation),
-    notifications
-]);
-shell.setFooter(FooterDemo());
-
-mount(shell, "#app");
-
-const localeRefresh = createLocaleRefresh({
+app = createHashRoutedApp<PlaygroundRoute>({
+    routes: playgroundRoutes,
+    mount: "#app",
+    start: false,
     locale: playgroundLocale,
-    refresh() {
-        syncPlaygroundChrome();
-        router.refresh({
-            scroll: false,
-            focusTarget: null,
-            announcement: false
+    shell: {
+        title: t("app.brand.name"),
+        mainId: "main",
+        skipLink: t("app.navigation.skipLink"),
+        skipLinkTargetId: "playground-navigation",
+        navigationLabel: t("app.navigation.label"),
+        locale: playgroundLocale,
+        theme: "system",
+        metadata: getPlaygroundAppMetadata(),
+        afterOutlet: [
+            ReturnToNavigationLink(() => currentNavigation),
+            notifications
+        ],
+        footer: FooterDemo(),
+        outletOptions: {
+            className: "playground-route-outlet",
+            label: "Playground demo content",
+            announcement: false,
+            scrollOnRender: true
+        },
+        layout: {
+            maxWidth: "var(--playground-max-width)",
+            gutter: "var(--playground-gutter)",
+            chrome: {
+                header: "normal",
+                navigation: "reveal",
+                beforeOutlet: "sticky"
+            },
+            mainGap: "1rem",
+            mainPaddingBlock: "1rem 2rem"
+        }
+    },
+    router: {
+        getDocumentTitle: getPlaygroundRouteDocumentTitle,
+        getDocumentMetadata(route) {
+            return getPlaygroundRouteDocumentMetadata(route);
+        },
+        getAnnouncement(route) {
+            return t("app.route.loaded", {
+                title: route.title
+            });
+        },
+        inspect() {
+            logPlaygroundDiagnostics();
+        }
+    },
+    renderChrome({ router, route }) {
+        const navigation = NavigationDemo({
+            current: route.id,
+            onRouteNavigate(_route, detail) {
+                activateHashRouterRoute(router, detail, {
+                    updateHistory: true,
+                    scroll: true,
+                    focusTarget: "outlet"
+                });
+            }
         });
+        const routeBreadcrumbs = PlaygroundBreadcrumbs(route);
+
+        currentNavigation = navigation;
+
+        return {
+            shell: {
+                title: t("app.brand.name"),
+                skipLink: t("app.navigation.skipLink"),
+                navigationLabel: t("app.navigation.label"),
+                metadata: getPlaygroundAppMetadata()
+            },
+            header: HeaderDemo({
+                brandMaxWidth: "28rem",
+                controls: createPlaygroundHeaderControls(router)
+            }),
+            navigation,
+            beforeOutlet: routeBreadcrumbs,
+            navigationControl: navigation,
+            currentRouteControls: [routeBreadcrumbs]
+        };
     }
 });
 
-window.addEventListener("pagehide", () => {
-    localeRefresh.destroy();
-    routeControlsCleanup?.();
-    router.stop();
-}, { once: true });
-
-router.start({
+app.start({
     announcement: false,
     scroll: false,
     focusTarget: null

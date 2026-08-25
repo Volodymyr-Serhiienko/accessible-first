@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
 - Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -52,25 +52,19 @@ Current focus:
 
 ### Now
 
-- Roadmap and overview documentation cleanup.
-- Verify locale switching across AppShell, route components, command palette, search, header actions, toasts, dialogs, and text-field service messages without full page reload.
-- Define the next header/navigation model:
-  - normal page flow;
-  - sticky/fixed header and navigation;
-  - refine reveal-on-scroll header/navigation behavior after mobile testing;
-  - compact responsive header action layout for search, language, theme, commands, and future profile controls; `HeaderTools` is now the reusable library baseline, and locale changes now refresh app-owned shell/route content through `LocaleRefresh`.
-- Decide whether `HeaderBar` remains a low-level layout component and whether higher-level app header templates should own sticky/reveal behavior.
-- Improve mobile header compactness where search or actions take too much space.
-- Keep route wrappers safe from self-recursive `Object.assign()` update patterns.
-- Prepare the first app-template plan for both SPA and MPA usage.
+- Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
+- Harden `HashRoutedApp` as the first reusable SPA runtime recipe: it wires `AppShell`, `HashRouter`, route current-state controls, metadata refresh, locale refresh, cleanup, and startup without forcing application-specific header or route content into the framework.
+- Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
+- Keep playground code focused on demo copy and examples, while moving reusable lifecycle wiring into framework helpers.
+- Prepare one SPA recipe and one MPA/native-link recipe before starting the first reference application.
 
 ### Exit Criteria For This Phase
 
 Before starting the first real application, we should have:
 
-- one clear app shell recipe for SPA;
+- one clear app shell recipe for SPA, backed by `HashRoutedApp`;
 - one clear app shell recipe for MPA/native links;
-- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, and diagnostics;
+- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
 - diagnostics reporting useful page, route, metadata, localization, and manifest issues;

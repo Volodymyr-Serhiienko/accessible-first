@@ -72,6 +72,7 @@ Each component document should contain:
 - [App Route Sitemap](./app-route-sitemap.md)
 - [DocumentMetadata](./document-metadata.md)
 - [FocusRoute](./focus-route.md)
+- [HashRoutedApp](./hash-routed-app.md)
 - [HashRouter](./hash-router.md)
 - [PageLayout](./page-layout.md)
 - [PageOutlet](./page-outlet.md)

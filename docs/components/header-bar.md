@@ -79,8 +79,8 @@ Useful hooks include `[data-af-composition="header-bar"]`, `[data-af-header-bar-
 
 Useful layout variables:
 
-- `--af-header-bar-padding-block` - vertical padding around the header contents.
-- `--af-header-bar-padding-block-start` and `--af-header-bar-padding-block-end` - optional separate top/bottom padding, useful when header tooltips need extra breathing room.
+- `--af-header-bar-padding-block` - compact vertical padding used by narrow/mobile header layouts.
+- `--af-header-bar-padding-block-start` and `--af-header-bar-padding-block-end` - top/bottom padding. Defaults are roomy enough for desktop header tooltips; mobile layouts fall back to `--af-header-bar-padding-block`.
 - `--af-header-bar-gap` - horizontal gap between slots.
 - `--af-header-bar-row-gap` - vertical gap when slots wrap.
 - `--af-header-bar-brand-width` - maximum preferred brand slot width. Prefer `brandMaxWidth` for normal component assembly.

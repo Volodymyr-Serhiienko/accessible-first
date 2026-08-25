@@ -37,12 +37,6 @@ body {
     gap: 1rem;
 }
 
-@media (min-width: 641px) {
-    [data-af-page-header] [data-af-composition="header-bar"] {
-        --af-header-bar-padding-block-start: 1.75rem;
-        --af-header-bar-padding-block-end: 1.5rem;
-    }
-}
 
 .playground-brand {
     --af-brand-logo-min-size: 3rem;

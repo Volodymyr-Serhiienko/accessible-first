@@ -47,6 +47,7 @@ export * from "./route-command-palette";
 export * from "./route-responsive-navigation";
 export * from "./route-search-box";
 export * from "./routing";
+export * from "./routed-app";
 export * from "./screen";
 export * from "./search-box";
 export * from "./select";
