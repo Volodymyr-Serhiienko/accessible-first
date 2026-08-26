@@ -27,32 +27,37 @@ const app = createLinkRoutedApp({
         appTitle: t("app.title"),
         baseUrl: window.location.origin
     },
-    renderChrome({ route }) {
-        return createAppRouteChrome({
-            routes,
-            current: route,
-            header: {
-                locale,
-                brand: {
-                    href: "/",
-                    name: t("app.title")
+    renderChrome: createLinkAppRouteChromeRenderer({
+        options() {
+            return {
+                routes,
+                header: {
+                    locale,
+                    brand: {
+                        href: "/",
+                        name: t("app.title")
+                    }
+                },
+                navigation: {
+                    id: "app-navigation",
+                    trigger: t("app.navigationTrigger"),
+                    locale
+                },
+                breadcrumbs: {
+                    label: t("app.breadcrumbsLabel")
+                },
+                search: {
+                    label: t("app.searchLabel"),
+                    placeholder: t("app.searchPlaceholder")
+                },
+                commands: {
+                    trigger: t("app.commandsTrigger"),
+                    title: t("app.commandsTitle"),
+                    searchLabel: t("app.commandsSearchLabel")
                 }
-            },
-            navigation: {
-                id: "app-navigation",
-                trigger: t("app.navigationTrigger"),
-                locale
-            },
-            breadcrumbs: {
-                label: t("app.breadcrumbsLabel")
-            },
-            search: {
-                label: t("app.searchLabel"),
-                placeholder: t("app.searchPlaceholder")
-            },
-            commands: false
-        });
-    }
+            };
+        }
+    })
 });
 ```
 
@@ -91,24 +96,29 @@ The helper owns repeatable page-shell wiring:
 
 `renderChrome(context)` receives `shell`, `routes`, the matched `route`, and refresh helpers. The route can be `null` when the current URL does not match the route list.
 
-Return only the shell regions the runtime should manage:
+Use `createLinkAppRouteChromeRenderer(...)` for the common native-link route chrome path:
 
 ```ts
-return createAppRouteChrome({
-    routes,
-    current: route,
-    header: {
-        locale,
-        brand: { href: "/", name: t("app.title") }
-    },
-    navigation: { id: "app-navigation", locale },
-    breadcrumbs: { label: t("app.breadcrumbsLabel") },
-    search: { label: t("app.searchLabel") },
-    commands: false
-});
+renderChrome: createLinkAppRouteChromeRenderer({
+    options() {
+        return {
+            routes,
+            header: {
+                locale,
+                brand: { href: "/", name: t("app.title") }
+            },
+            navigation: { id: "app-navigation", locale },
+            breadcrumbs: { label: t("app.breadcrumbsLabel") },
+            search: { label: t("app.searchLabel") },
+            commands: { trigger: t("app.commandsTrigger") }
+        };
+    }
+})
 ```
 
-Use `createAppRouteChrome(...)` for the common header/navigation/breadcrumbs/search recipe. Use `createRouteChrome(...)` directly only when the app needs custom header assembly. Use `navigationControl` for controls with `setCurrent(id)`, such as `Navigation` and `ResponsiveNavigation`. Use `currentRouteControls` for route-aware controls with `setCurrent(route)`, such as route breadcrumbs.
+This creates an `AppHeader`, route navigation, breadcrumbs, route search, command palette controls, and native-link route activation from one route list. Normal navigation links remain real links. Search and command palette selections navigate to the selected route `href` because those controls are not links themselves.
+
+Use `createLinkAppRouteChrome(...)` directly when you already have the current route in custom render code. Use `createAppRouteChrome(...)` when the app owns custom activation behavior. Use `createRouteChrome(...)` directly only when the app needs custom header assembly.
 
 ## Localization
 
@@ -136,6 +146,7 @@ Both recipes should share the same route descriptors. This keeps navigation, bre
 - Current route is detected from the expected URL part.
 - Navigation and breadcrumbs mark the current page.
 - Native links still work without JavaScript route interception.
+- Route search and command palette selections navigate to route hrefs.
 - Route metadata updates document title, description, canonical URL, and social metadata when configured.
 - Locale changes refresh app-owned header/navigation/breadcrumb text without duplicating screen-reader speech.
 - Destroying the app removes locale subscriptions and pagehide cleanup.

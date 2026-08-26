@@ -3,6 +3,12 @@ export {
     createHashAppRouteChrome,
     createHashAppRouteChromeRenderer
 } from "./createHashAppRouteChrome";
+export {
+    activateLinkAppRoute,
+    createLinkAppRouteActivationHandler,
+    createLinkAppRouteChrome,
+    createLinkAppRouteChromeRenderer
+} from "./createLinkAppRouteChrome";
 export { createRouteChrome } from "./createRouteChrome";
 
 export type {
@@ -20,6 +26,16 @@ export type {
     HashAppRouteChromeRendererOptions,
     HashAppRouteChromeRoute
 } from "./createHashAppRouteChrome";
+export type {
+    LinkAppRouteActivationOptions,
+    LinkAppRouteActivationPreventDefault,
+    LinkAppRouteChromeBaseOptions,
+    LinkAppRouteChromeCreateHandler,
+    LinkAppRouteChromeOptions,
+    LinkAppRouteChromeOptionsResolver,
+    LinkAppRouteChromeRendererOptions,
+    LinkAppRouteChromeRoute
+} from "./createLinkAppRouteChrome";
 export type {
     RouteChrome,
     RouteChromeBreadcrumbsOptions,

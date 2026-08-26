@@ -6,7 +6,9 @@ Use `createRouteChrome` when you only need route controls: responsive navigation
 
 Use `createHashAppRouteChromeRenderer` inside `HashRoutedApp.renderChrome` for the common hash-routed SPA path. Use `createHashAppRouteChrome` directly when app code already has a router and current route.
 
-Use `createAppRouteChrome` when a routed app should return ready shell slots but the app owns route activation itself, such as native-link or MPA pages.
+Use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp.renderChrome` for native-link, static-page, server-rendered, and MPA pages. It keeps navigation links native and lets route search or command palette selections navigate through route `href` values.
+
+Use `createAppRouteChrome` when a routed app should return ready shell slots but the app owns route activation itself.
 
 ## Quick Start: Hash Routed App Chrome
 
@@ -27,6 +29,42 @@ renderChrome: createHashAppRouteChromeRenderer({
                 id: "app-navigation",
                 trigger: t("app.navigation.trigger"),
                 variant: "pills",
+                locale
+            },
+            breadcrumbs: {
+                label: t("app.breadcrumbs.label")
+            },
+            search: {
+                label: t("app.search.label"),
+                placeholder: t("app.search.placeholder")
+            },
+            commands: {
+                trigger: t("app.commands.trigger"),
+                title: t("app.commands.title"),
+                searchLabel: t("app.commands.searchLabel")
+            }
+        };
+    }
+})
+```
+
+## Quick Start: Native-Link App Chrome
+
+```ts
+renderChrome: createLinkAppRouteChromeRenderer({
+    options() {
+        return {
+            routes,
+            header: {
+                locale,
+                brand: {
+                    href: "/",
+                    name: t("app.name")
+                }
+            },
+            navigation: {
+                id: "app-navigation",
+                trigger: t("app.navigation.trigger"),
                 locale
             },
             breadcrumbs: {
@@ -85,7 +123,11 @@ RouteChrome sits above individual route-aware controls and below full app templa
 
 `createHashAppRouteChrome` builds on `createAppRouteChrome` and adds standard hash-route activation defaults: update history, scroll to the outlet, and move focus into the rendered route content.
 
-`createHashAppRouteChromeRenderer` wraps that behavior as a ready `HashRoutedApp.renderChrome` callback. It supplies the current router and route from the app runtime, while app code provides only route chrome options.
+`createHashAppRouteChromeRenderer` wraps hash route chrome as a ready `HashRoutedApp.renderChrome` callback. It supplies the current router and route from the app runtime, while app code provides only route chrome options.
+
+`createLinkAppRouteChrome` builds on `createAppRouteChrome` and adds native-link activation. Real anchor clicks keep normal browser behavior. Route search and command palette selections use the route `href` because those controls are not native links themselves.
+
+`createLinkAppRouteChromeRenderer` wraps native-link route chrome as a ready `LinkRoutedApp.renderChrome` callback. It supplies the current route from the app runtime.
 
 None of these helpers create route data, screen content, app copy, metadata strategy, or a router. The application still owns those decisions.
 
@@ -116,6 +158,29 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 - `current` - current route. Defaults to `router.getCurrentRoute()`.
 - `activationOptions` - optional overrides for hash-route activation. Defaults to `updateHistory: true`, `scroll: true`, and `focusTarget: "outlet"`.
 
+## createLinkAppRouteChromeRenderer Options
+
+`createLinkAppRouteChromeRenderer` accepts:
+
+- `options` - either static link app route chrome options without `current`, or a resolver called with the current `LinkRoutedApp` context.
+- `onCreate` - optional hook called with the generated chrome and context. Use it to save generated controls such as navigation focus targets.
+
+Use a resolver when labels, metadata, or shell copy should reflect the current locale.
+
+## createLinkAppRouteChrome Options
+
+`createLinkAppRouteChrome` accepts all `createAppRouteChrome` options except `onRouteActivate`, plus:
+
+- `current` - current route. Defaults to `null` for unmatched pages.
+- `activationOptions` - href-based activation options, or `false` to disable managed activation.
+
+`activationOptions` supports:
+
+- `getHref` - route href resolver. Defaults to `getAppRouteHref(route)`.
+- `ownerWindow` - window used for programmatic navigation.
+- `replace` - use `location.replace(...)` instead of `location.assign(...)`.
+- `preventDefault` - `"auto"`, `true`, or `false`. The default `"auto"` preserves native anchor behavior and prevents non-link route selections before navigating.
+
 ## createAppRouteChrome Options
 
 `createAppRouteChrome` accepts all `createRouteChrome` options plus:
@@ -139,7 +204,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 - `navigationControl` - control suitable for routed app `navigationControl`.
 - `currentRouteControls` - controls suitable for routed app `currentRouteControls`.
 
-`createAppRouteChrome` returns the same `routeChrome` controller, plus:
+`createAppRouteChrome`, `createHashAppRouteChrome`, and `createLinkAppRouteChrome` return the same route chrome controller, plus:
 
 - `appHeader` - composed `AppHeader`, or `null`.
 - `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated.
@@ -149,7 +214,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 
 For hash-routed SPAs built with `HashRoutedApp`, prefer `createHashAppRouteChromeRenderer(...)`. Use `createHashAppRouteChrome(...)` when app code already owns the render callback. Use `createAppRouteChrome(...)` with a custom `onRouteActivate` only when the app needs non-standard activation behavior.
 
-For native-link or MPA pages, omit `onRouteActivate` when links should navigate normally. `LinkRoutedApp` can still use `navigationControl` and `currentRouteControls` to mark the current page from location matching.
+For native-link and MPA pages built with `LinkRoutedApp`, prefer `createLinkAppRouteChromeRenderer(...)`. It keeps regular navigation links real while making route search and command palette controls useful without a client-side router.
 
 ## Accessibility
 
@@ -157,14 +222,15 @@ RouteChrome does not change the accessibility behavior of the underlying control
 
 Use application-owned text for labels, placeholders, and empty states. Pass the shared locale provider to the underlying controls when their service text should update with the application locale.
 
-When using `createAppRouteChrome`, the generated `AppHeader` keeps one control set and lets `HeaderTools` move those controls between inline and overflow placement. This avoids duplicate mobile/desktop controls and keeps screen-reader order predictable.
+When using app route chrome helpers, the generated `AppHeader` keeps one control set and lets `HeaderTools` move those controls between inline and overflow placement. This avoids duplicate mobile/desktop controls and keeps screen-reader order predictable.
 
 ## Manual Checks
 
 - Hash navigation, search, and command palette activate routes with the same history, scroll, and focus behavior.
+- Native-link navigation remains a normal link, including browser behaviors such as opening in a new tab.
+- Native-link route search and command palette selections navigate to route hrefs.
 - Navigation and breadcrumbs update current state after route changes.
 - Search and commands remain usable with keyboard and screen reader navigation.
 - Header controls move into HeaderTools overflow when they do not fit.
-- Native-link apps still allow normal browser navigation when `onRouteActivate` is omitted.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
-- HashRoutedApp renderers can be expressed declaratively without repeating `router` and `current` wiring.
+- HashRoutedApp and LinkRoutedApp renderers can be expressed declaratively without repeating current-route wiring.
