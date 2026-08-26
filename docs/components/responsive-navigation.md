@@ -66,6 +66,7 @@ const navigation = ResponsiveNavigation({
 - Keeps links as real anchors, so multi-page navigation works without a router.
 - Allows SPA-style navigation by cancelling the event in `onNavigate`.
 - Mirrors current state across desktop and mobile navigation.
+- Provides `getFocusTarget()` and `getResponsiveNavigationFocusTarget(navigation)` so app flows can return focus to the visible current item, mobile trigger, or first available navigation link without knowing the internal desktop/mobile layout.
 
 ## Options
 
@@ -100,6 +101,8 @@ navigation.update({
 
 `setCurrent(value)` matches an item by `id` first and then by `href`. Pass `null` to clear current state.
 
+`getFocusTarget()` returns the best visible focus destination for workflow links such as "Back to navigation". It prefers the current desktop link, then the current mobile link, then the visible mobile trigger, then the first desktop link, and finally the navigation root.
+
 Updating `items` updates both desktop and mobile navigation lists.
 
 ## Styling
@@ -118,4 +121,5 @@ The default breakpoint is intentionally conservative. Application shells can ove
 - Mobile menu closes after link activation unless `closeOnNavigate` is false.
 - Mobile close button closes the menu and restores focus to the menu trigger.
 - Current item is announced consistently in both layouts.
+- Return-to-navigation flows focus the visible current item or mobile trigger instead of depending on app-specific DOM queries.
 - Hidden desktop/mobile duplicate links are not reachable by keyboard.

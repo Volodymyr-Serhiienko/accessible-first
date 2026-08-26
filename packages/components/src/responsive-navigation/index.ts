@@ -1,4 +1,7 @@
-export { ResponsiveNavigation } from "./composeResponsiveNavigation";
+export {
+    getResponsiveNavigationFocusTarget,
+    ResponsiveNavigation
+} from "./composeResponsiveNavigation";
 
 export type {
     ComposedResponsiveNavigation,

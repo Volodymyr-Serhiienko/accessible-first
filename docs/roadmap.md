@@ -55,7 +55,7 @@ Current focus:
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
 - Harden `HashRoutedApp` and `LinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
-- Keep playground code focused on demo copy and examples, while moving reusable lifecycle, app header, and route chrome wiring into framework helpers.
+- Keep playground code focused on demo copy and examples, while moving reusable lifecycle, app header, route chrome, and workflow focus wiring into framework helpers.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChrome` for the common chrome/activation path.
 
 ### Exit Criteria For This Phase

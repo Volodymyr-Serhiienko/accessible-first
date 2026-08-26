@@ -13,6 +13,19 @@ scheduleFocusRoute({
 });
 ```
 
+Returning to responsive navigation after a route screen:
+
+```ts
+runFocusRoute({
+    target: () => navigation.getFocusTarget(),
+    scroll: {
+        block: "nearest",
+        inline: "nearest",
+        behavior: "auto"
+    }
+});
+```
+
 With a fallback target:
 
 ```ts

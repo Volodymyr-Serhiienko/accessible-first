@@ -21,6 +21,7 @@ import {
 import {
     Navigation,
     type ComposedNavigation,
+    type ComposedNavigationItem,
     type NavigationItem,
     type NavigationNavigateDetail,
     type NavigationOptions,
@@ -125,10 +126,46 @@ export interface ComposedResponsiveNavigation extends ComposedNode<HTMLElement> 
     readonly mobileDisclosure: ComposedDisclosure;
     readonly mobileCloseButton: ComposedButton;
     readonly desktopScroller: ComposedOverflowScroller;
+    getFocusTarget(): HTMLElement;
     setItems(items: NavigationItem[]): void;
     setCurrent(match: string | null): void;
     update(options: ResponsiveNavigationUpdateOptions): void;
     destroy(): void;
+}
+
+function isElementVisible(element: HTMLElement): boolean {
+    const ownerWindow = element.ownerDocument.defaultView;
+    const style = ownerWindow?.getComputedStyle(element);
+
+    return (
+        style?.display !== "none"
+        && style?.visibility !== "hidden"
+        && element.getClientRects().length > 0
+    );
+}
+
+function getVisibleCurrentNavigationLink(
+    items: readonly ComposedNavigationItem[]
+): HTMLElement | null {
+    return items.find((item) => item.isCurrent() && isElementVisible(item.link.element))
+        ?.link.element ?? null;
+}
+
+/**
+ * Returns the best visible focus target for returning to a ResponsiveNavigation instance.
+ */
+export function getResponsiveNavigationFocusTarget(
+    navigation: ComposedResponsiveNavigation
+): HTMLElement {
+    return (
+        getVisibleCurrentNavigationLink(navigation.desktopNavigation.items)
+        ?? getVisibleCurrentNavigationLink(navigation.mobileNavigation.items)
+        ?? (isElementVisible(navigation.mobileDisclosure.trigger)
+            ? navigation.mobileDisclosure.trigger
+            : null)
+        ?? navigation.desktopNavigation.items[0]?.link.element
+        ?? navigation.element
+    );
 }
 
 function getTriggerContent(
@@ -389,6 +426,11 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
         mobileNavigation,
         mobileDisclosure,
         mobileCloseButton,
+
+        getFocusTarget(): HTMLElement {
+            return getResponsiveNavigationFocusTarget(composed);
+        },
+
         setItems,
         setCurrent,
 

@@ -36,7 +36,7 @@ Use `RouteResponsiveNavigation` when navigation items should be derived from rou
 - Mirrors current state across desktop and mobile layouts through `ResponsiveNavigation`.
 - Calls `onRouteNavigate` with the selected route when a route item is activated.
 - Supports custom route label, href, hint, and disabled resolvers through `navigationItemsOptions`.
-- Keeps the mobile disclosure behavior, desktop overflow scroller, and link semantics from `ResponsiveNavigation`.
+- Keeps the mobile disclosure behavior, desktop overflow scroller, focus-target helper, and link semantics from `ResponsiveNavigation`.
 
 ## Options
 
@@ -52,6 +52,7 @@ Use `RouteResponsiveNavigation` when navigation items should be derived from rou
 - `setRoutes(routes)` - updates the route list and replaces navigation items.
 - `getRouteFromItem(item)` - resolves a route from one generated navigation item.
 - `setCurrent(match)` - updates current route state.
+- `getFocusTarget()` - inherited from `ResponsiveNavigation`; returns the best visible destination for returning focus to navigation.
 - `update(options)` - updates route options and underlying `ResponsiveNavigation` options.
 - `destroy()` - destroys the underlying `ResponsiveNavigation`.
 
