@@ -4,22 +4,18 @@ RouteChrome contains route-aware chrome recipes for application shells.
 
 Use `createRouteChrome` when you only need route controls: responsive navigation, breadcrumbs, route search, and route command palette.
 
-Use `createAppRouteChrome` when a routed app should return ready shell slots: `AppHeader`, navigation, breadcrumbs, and route-control bindings for `HashRoutedApp` or `LinkRoutedApp`.
+Use `createHashAppRouteChrome` for hash-routed SPAs. It creates the standard hash route activation handler for navigation, route search, and commands.
 
-## Quick Start: App Route Chrome
+Use `createAppRouteChrome` when a routed app should return ready shell slots but the app owns route activation itself, such as native-link or MPA pages.
+
+## Quick Start: Hash App Route Chrome
 
 ```ts
 renderChrome({ router, route }) {
-    const activateRoute = createHashRouterRouteActivationHandler(router, {
-        updateHistory: true,
-        scroll: true,
-        focusTarget: "outlet"
-    });
-
-    return createAppRouteChrome({
+    return createHashAppRouteChrome({
+        router,
         routes,
         current: route,
-        onRouteActivate: activateRoute,
         header: {
             locale,
             brand: {
@@ -87,7 +83,9 @@ RouteChrome sits above individual route-aware controls and below full app templa
 - shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`;
 - route-control bindings that can be returned directly from `HashRoutedApp.renderChrome(...)` or `LinkRoutedApp.renderChrome(...)`.
 
-Neither helper creates route data, screen content, app copy, metadata strategy, or a router. The application still owns those decisions.
+`createHashAppRouteChrome` builds on `createAppRouteChrome` and adds standard hash-route activation defaults: update history, scroll to the outlet, and move focus into the rendered route content.
+
+None of these helpers create route data, screen content, app copy, metadata strategy, or a router. The application still owns those decisions.
 
 ## createRouteChrome Options
 
@@ -98,6 +96,14 @@ Neither helper creates route data, screen content, app copy, metadata strategy, 
 - `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search.
 - `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
 - `onRouteActivate` - shared activation callback used by navigation, search, and commands.
+
+## createHashAppRouteChrome Options
+
+`createHashAppRouteChrome` accepts all `createAppRouteChrome` options except `onRouteActivate`, plus:
+
+- `router` - required `HashRouter` used to activate routes.
+- `current` - current route. Defaults to `router.getCurrentRoute()`.
+- `activationOptions` - optional overrides for hash-route activation. Defaults to `updateHistory: true`, `scroll: true`, and `focusTarget: "outlet"`.
 
 ## createAppRouteChrome Options
 
@@ -130,7 +136,7 @@ Neither helper creates route data, screen content, app copy, metadata strategy, 
 
 ## SPA And MPA Use
 
-For hash-routed SPAs, pass `createHashRouterRouteActivationHandler(router, options)` as `onRouteActivate`.
+For hash-routed SPAs, prefer `createHashAppRouteChrome(...)`. Use `createAppRouteChrome(...)` with a custom `onRouteActivate` only when the app needs non-standard activation behavior.
 
 For native-link or MPA pages, omit `onRouteActivate` when links should navigate normally. `LinkRoutedApp` can still use `navigationControl` and `currentRouteControls` to mark the current page from location matching.
 
@@ -144,7 +150,7 @@ When using `createAppRouteChrome`, the generated `AppHeader` keeps one control s
 
 ## Manual Checks
 
-- Navigation, search, and command palette activate routes with the same scroll and focus behavior.
+- Hash navigation, search, and command palette activate routes with the same history, scroll, and focus behavior.
 - Navigation and breadcrumbs update current state after route changes.
 - Search and commands remain usable with keyboard and screen reader navigation.
 - Header controls move into HeaderTools overflow when they do not fit.

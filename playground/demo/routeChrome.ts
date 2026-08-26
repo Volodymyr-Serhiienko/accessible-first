@@ -1,6 +1,5 @@
 import {
-    createAppRouteChrome,
-    createHashRouterRouteActivationHandler,
+    createHashAppRouteChrome,
     type AppRouteChrome,
     type AppRouteDescriptor,
     type HashRouter
@@ -38,16 +37,10 @@ function getBreadcrumbParentId(route: AppRouteDescriptor): string | null {
 export function createPlaygroundRouteChrome(
     options: PlaygroundRouteChromeOptions
 ): AppRouteChrome<PlaygroundRoute, PlaygroundLocale> {
-    const activateRoute = createHashRouterRouteActivationHandler(options.router, {
-        updateHistory: true,
-        scroll: true,
-        focusTarget: "outlet"
-    });
-
-    return createAppRouteChrome<PlaygroundRoute, PlaygroundLocale>({
+    return createHashAppRouteChrome<PlaygroundRoute, PlaygroundLocale>({
+        router: options.router,
         routes: playgroundRoutes,
         current: options.current,
-        onRouteActivate: activateRoute,
         header: getPlaygroundHeaderOptions("28rem"),
         navigation: {
             id: "playground-navigation",

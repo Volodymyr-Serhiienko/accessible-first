@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, AppHeader, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, HashAppRouteChrome, AppHeader, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
 - Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -56,7 +56,7 @@ Current focus:
 - Harden `HashRoutedApp` and `LinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, while moving reusable lifecycle, app header, and route chrome wiring into framework helpers.
-- Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application.
+- Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChrome` for the common chrome/activation path.
 
 ### Exit Criteria For This Phase
 

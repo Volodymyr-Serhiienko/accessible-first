@@ -1,4 +1,5 @@
 export { createAppRouteChrome } from "./createAppRouteChrome";
+export { createHashAppRouteChrome } from "./createHashAppRouteChrome";
 export { createRouteChrome } from "./createRouteChrome";
 
 export type {
@@ -8,6 +9,10 @@ export type {
     AppRouteChromeRouteControlsPlacement,
     AppRouteChromeSlots
 } from "./createAppRouteChrome";
+export type {
+    HashAppRouteChromeOptions,
+    HashAppRouteChromeRoute
+} from "./createHashAppRouteChrome";
 export type {
     RouteChrome,
     RouteChromeBreadcrumbsOptions,

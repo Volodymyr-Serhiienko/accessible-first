@@ -4,19 +4,11 @@ AppHeader is a higher-level application header recipe built from `HeaderBar`, `B
 
 Use it when an app needs the common header stack: brand identity, route/search/command controls, language selection, theme switching, and automatic overflow into a compact tools panel when space is tight.
 
-For routed applications, prefer `createAppRouteChrome` when the header controls come from route metadata. Use `AppHeader` directly when the app is static or owns custom controls itself.
+For hash-routed applications, prefer `createHashAppRouteChrome` when the header controls come from route metadata. For native-link or MPA applications, prefer `createAppRouteChrome`. Use `AppHeader` directly when the app is static or owns custom controls itself.
 
 ## Quick Start
 
 ```ts
-const routeChrome = createRouteChrome({
-    routes,
-    current,
-    onRouteActivate,
-    search: { locale },
-    commands: { locale }
-});
-
 page.header(
     AppHeader({
         locale,
@@ -26,7 +18,12 @@ page.header(
             tagline: "WCAG-first app framework",
             logo: Image({ src: "./logo.svg", alt: "", decorative: true })
         },
-        controls: routeChrome.headerControls,
+        controls: [
+            SearchBox({
+                label: "Search app",
+                placeholder: "Search"
+            })
+        ],
         theme: {
             display: "switch",
             variant: "secondary"

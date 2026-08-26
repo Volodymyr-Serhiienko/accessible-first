@@ -30,16 +30,10 @@ const app = createHashRoutedApp({
         }
     },
     renderChrome({ router, route }) {
-        const activateRoute = createHashRouterRouteActivationHandler(router, {
-            updateHistory: true,
-            scroll: true,
-            focusTarget: "outlet"
-        });
-
-        return createAppRouteChrome({
+        return createHashAppRouteChrome({
+            router,
             routes,
             current: route,
-            onRouteActivate: activateRoute,
             header: {
                 locale,
                 brand: {
@@ -105,16 +99,10 @@ The helper owns repeatable lifecycle wiring:
 `renderChrome(context)` receives `shell`, `router`, `routes`, the current `route`, and refresh helpers. Return only the regions the app wants the runtime to manage:
 
 ```ts
-const activateRoute = createHashRouterRouteActivationHandler(router, {
-    updateHistory: true,
-    scroll: true,
-    focusTarget: "outlet"
-});
-
-return createAppRouteChrome({
+return createHashAppRouteChrome({
+    router,
     routes,
     current: route,
-    onRouteActivate: activateRoute,
     header: {
         locale,
         brand: { name: t("app.title") }
@@ -126,9 +114,7 @@ return createAppRouteChrome({
 });
 ```
 
-Use `navigationControl` for the route-aware navigation control that should mirror the current hash route. Use `currentRouteControls` for breadcrumbs or other controls with `setCurrent(...)`. Use `createHashRouterRouteActivationHandler(...)` when navigation, route search, and command palette should share the same activation behavior.
-
-Use `createAppRouteChrome(...)` when an app wants to create an `AppHeader`, route navigation, breadcrumbs, route search, and command palette controls from one route list and one shared activation handler. Use `createRouteChrome(...)` directly only when the app needs custom header assembly.
+Use `createHashAppRouteChrome(...)` for the common hash-SPA chrome path. It creates an `AppHeader`, route navigation, breadcrumbs, route search, command palette controls, and the standard route activation handler from one route list. Use `createAppRouteChrome(...)` when activation is custom, and `createRouteChrome(...)` directly only when the app needs custom header assembly.
 
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 
