@@ -52,6 +52,13 @@ export interface HashRouterRouteActivationOptions extends HashRouterNavigateOpti
 }
 
 /**
+ * Handler created for route-aware controls that activate HashRouter routes.
+ */
+export type HashRouterRouteActivationHandler<TRoute extends HashRouterRoute> = (
+    detail: HashRouterRouteActivationDetail<TRoute>
+) => boolean;
+
+/**
  * Called after HashRouter changes the active route.
  */
 export type HashRouterRouteChangeHandler<TRoute extends HashRouterRoute> = (
@@ -146,6 +153,16 @@ export function activateHashRouterRoute<TRoute extends HashRouterRoute>(
     }
 
     return router.navigate(detail.route, navigateOptions);
+}
+
+/**
+ * Creates a reusable callback for route-aware controls that activate HashRouter routes.
+ */
+export function createHashRouterRouteActivationHandler<TRoute extends HashRouterRoute>(
+    router: HashRouter<TRoute>,
+    options: HashRouterRouteActivationOptions = {}
+): HashRouterRouteActivationHandler<TRoute> {
+    return (detail) => activateHashRouterRoute(router, detail, options);
 }
 
 /**

@@ -1,8 +1,6 @@
 import {
     AppShell,
-    type AppShellCompositionContent,
     type AppShellOptions,
-    type AppShellUpdateOptions,
     type ComposedAppShell
 } from "../app-shell";
 import {
@@ -16,8 +14,7 @@ import {
     createLocaleRefresh,
     type LocaleCode,
     type LocaleRefreshController,
-    type LocaleRefreshLocale,
-    type LocaleRefreshOptions
+    type LocaleRefreshLocale
 } from "../localization";
 import {
     bindHashRouterRouteControls,
@@ -32,6 +29,13 @@ import {
     type HashRouterRouteChangeHandler,
     type HashRouterUnsubscribe
 } from "../routing";
+import {
+    applyRoutedAppChromeSlots,
+    getRoutedAppLocaleRefreshOptions,
+    setupRoutedAppPageHideCleanup,
+    type RoutedAppChromeSlots,
+    type RoutedAppLocaleRefreshOptions
+} from "./routedAppInternals";
 
 const defaultLocaleRefreshRouteOptions: HashRouterRefreshOptions = {
     scroll: false,
@@ -58,13 +62,7 @@ export interface HashRoutedAppContext<
  */
 export interface HashRoutedAppChrome<
     TRoute extends HashRouterRoute = HashRouterRoute
-> {
-    shell?: AppShellUpdateOptions;
-    header?: AppShellCompositionContent | null;
-    navigation?: AppShellCompositionContent | null;
-    beforeOutlet?: AppShellCompositionContent | null;
-    afterOutlet?: AppShellCompositionContent | null;
-    footer?: AppShellCompositionContent | null;
+> extends RoutedAppChromeSlots {
     navigationControl?: HashRouterNavigation | null;
     currentRouteControls?: readonly HashRouterCurrentRouteControl<TRoute>[];
 }
@@ -97,7 +95,7 @@ export interface HashRoutedAppRouterOptions<
  */
 export interface HashRoutedAppLocaleRefreshOptions<
     TLocale extends LocaleCode = LocaleCode
-> extends Omit<LocaleRefreshOptions<TLocale>, "locale" | "refresh"> {
+> extends RoutedAppLocaleRefreshOptions<TLocale> {
     routeOptions?: HashRouterRefreshOptions | false;
 }
 
@@ -158,25 +156,6 @@ function getLocaleRefreshRouteOptions<
     return options?.routeOptions ?? defaultLocaleRefreshRouteOptions;
 }
 
-function getLocaleRefreshOptions<
-    TLocale extends LocaleCode
->(
-    locale: LocaleRefreshLocale<TLocale>,
-    options: HashRoutedAppLocaleRefreshOptions<TLocale> | false | undefined,
-    refresh: () => void
-): LocaleRefreshOptions<TLocale> | null {
-    if (options === false) return null;
-
-    const refreshOptions: LocaleRefreshOptions<TLocale> = {
-        locale,
-        refresh
-    };
-
-    if (options?.schedule !== undefined) refreshOptions.schedule = options.schedule;
-    if (options?.immediate !== undefined) refreshOptions.immediate = options.immediate;
-
-    return refreshOptions;
-}
 
 /**
  * Creates a lightweight SPA runtime around AppShell, HashRouter, route controls, and locale refresh.
@@ -239,14 +218,6 @@ export function createHashRoutedApp<
         hasBoundNavigation = hasNavigationControl;
     }
 
-    function applyChrome(chrome: HashRoutedAppChrome<TRoute>): void {
-        if (chrome.shell !== undefined) shell.update(chrome.shell);
-        if ("header" in chrome) shell.setHeader(chrome.header ?? null);
-        if ("navigation" in chrome) shell.setNavigation(chrome.navigation ?? null);
-        if ("beforeOutlet" in chrome) shell.setBeforeOutlet(chrome.beforeOutlet ?? null);
-        if ("afterOutlet" in chrome) shell.setAfterOutlet(chrome.afterOutlet ?? null);
-        if ("footer" in chrome) shell.setFooter(chrome.footer ?? null);
-    }
 
     function refreshChrome(): void {
         if (destroyed) return;
@@ -257,7 +228,7 @@ export function createHashRoutedApp<
 
         if (!chrome) return;
 
-        applyChrome(chrome);
+        applyRoutedAppChromeSlots(shell, chrome);
         bindChromeRouteControls(chrome);
     }
 
@@ -300,7 +271,7 @@ export function createHashRoutedApp<
         if (!locale) return;
 
         const routeOptions = getLocaleRefreshRouteOptions(options.localeRefresh);
-        const refreshOptions = getLocaleRefreshOptions(locale, options.localeRefresh, () => {
+        const refreshOptions = getRoutedAppLocaleRefreshOptions(locale, options.localeRefresh, () => {
             const shouldRefreshRoute = routeOptions !== false;
             const nextRefreshOptions: HashRoutedAppRefreshOptions = {
                 chrome: true,
@@ -320,19 +291,11 @@ export function createHashRoutedApp<
     }
 
     function setupPageHideCleanup(): void {
-        if (options.destroyOnPageHide === false || typeof window === "undefined") return;
-
-        const ownerWindow = shell.element.ownerDocument.defaultView ?? window;
-        const handlePageHide = (event: PageTransitionEvent): void => {
-            if (event.persisted) return;
-
-            app.destroy();
-        };
-
-        ownerWindow.addEventListener("pagehide", handlePageHide, { once: true });
-        removePageHideListener = () => {
-            ownerWindow.removeEventListener("pagehide", handlePageHide);
-        };
+        removePageHideListener = setupRoutedAppPageHideCleanup(
+            shell,
+            () => app.destroy(),
+            options.destroyOnPageHide
+        );
     }
 
     app = {

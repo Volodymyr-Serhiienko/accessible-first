@@ -1,7 +1,9 @@
 import {
+    createHashRouterRouteActivationHandler,
     RouteResponsiveNavigation,
     type ComposedRouteResponsiveNavigation,
-    type RouteResponsiveNavigationNavigateDetail
+    type HashRouter,
+    type RouteResponsiveNavigationOnRouteNavigate
 } from "./af";
 import { playgroundLocale, t } from "./localization";
 import {
@@ -9,20 +11,26 @@ import {
     type PlaygroundRoute
 } from "./routes";
 
-export type PlaygroundRouteNavigateHandler = (
-    route: PlaygroundRoute,
-    detail: RouteResponsiveNavigationNavigateDetail<PlaygroundRoute>,
-    navigation: ComposedRouteResponsiveNavigation<PlaygroundRoute>
-) => void;
+export type PlaygroundRouteNavigateHandler = RouteResponsiveNavigationOnRouteNavigate<PlaygroundRoute>;
 
 export interface NavigationDemoOptions {
     current?: string | null;
+    router?: HashRouter<PlaygroundRoute> | null;
     onRouteNavigate?: PlaygroundRouteNavigateHandler | null;
 }
 
 export function NavigationDemo(
     options: NavigationDemoOptions = {}
 ): ComposedRouteResponsiveNavigation<PlaygroundRoute> {
+    const onRouteNavigate = options.onRouteNavigate
+        ?? (options.router
+            ? createHashRouterRouteActivationHandler(options.router, {
+                updateHistory: true,
+                scroll: true,
+                focusTarget: "outlet"
+            })
+            : null);
+
     return RouteResponsiveNavigation<PlaygroundRoute>({
         id: "playground-navigation",
         className: "playground-nav__inner",
@@ -32,8 +40,6 @@ export function NavigationDemo(
         locale: playgroundLocale,
         current: options.current ?? null,
         routes: playgroundRoutes,
-        onRouteNavigate(detail, navigation) {
-            options.onRouteNavigate?.(detail.route, detail, navigation);
-        }
+        onRouteNavigate
     });
 }

@@ -1,6 +1,7 @@
 export {
     activateHashRouterRoute,
-    createHashRouter
+    createHashRouter,
+    createHashRouterRouteActivationHandler
 } from "./createHashRouter";
 export { bindHashRouterRouteControls } from "./bindHashRouterRouteControls";
 
@@ -12,6 +13,7 @@ export type {
     HashRouterRefreshOptions,
     HashRouterRoute,
     HashRouterRouteActivationDetail,
+    HashRouterRouteActivationHandler,
     HashRouterRouteActivationOptions,
     HashRouterRouteChangeHandler,
     HashRouterUnsubscribe

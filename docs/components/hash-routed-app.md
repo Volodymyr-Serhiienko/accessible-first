@@ -29,15 +29,14 @@ const app = createHashRoutedApp({
         }
     },
     renderChrome({ router, route }) {
+        const activateRoute = createHashRouterRouteActivationHandler(router, {
+            updateHistory: true,
+            scroll: true,
+            focusTarget: "outlet"
+        });
         const navigation = AppNavigation({
             current: route.id,
-            onRouteNavigate(detail) {
-                activateHashRouterRoute(router, detail, {
-                    updateHistory: true,
-                    scroll: true,
-                    focusTarget: "outlet"
-                });
-            }
+            onRouteNavigate: activateRoute
         });
         const breadcrumbs = AppBreadcrumbs(route);
 
@@ -107,7 +106,7 @@ return {
 };
 ```
 
-Use `navigationControl` for the route-aware navigation control that should mirror the current hash route. Use `currentRouteControls` for breadcrumbs or other controls with `setCurrent(...)`.
+Use `navigationControl` for the route-aware navigation control that should mirror the current hash route. Use `currentRouteControls` for breadcrumbs or other controls with `setCurrent(...)`. Use `createHashRouterRouteActivationHandler(...)` when navigation, route search, and command palette should share the same activation behavior.
 
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 
@@ -138,7 +137,7 @@ Override this through `localeRefresh.routeOptions`, or pass `localeRefresh: fals
 
 Use `AppShell` directly for static pages or apps with custom routing. Use `HashRouter` directly when an app needs lower-level control. Use HashRoutedApp when the app follows the common Accessible First SPA recipe.
 
-Future MPA/native-link recipes should reuse the same route metadata model, but they should not depend on hash routing.
+Use `LinkRoutedApp` for native links, static pages, server-rendered pages, and MPA pages that should share the same route metadata model without hash routing.
 
 ## Manual Checks
 

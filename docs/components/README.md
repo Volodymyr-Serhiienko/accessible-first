@@ -74,6 +74,7 @@ Each component document should contain:
 - [FocusRoute](./focus-route.md)
 - [HashRoutedApp](./hash-routed-app.md)
 - [HashRouter](./hash-router.md)
+- [LinkRoutedApp](./link-routed-app.md)
 - [PageLayout](./page-layout.md)
 - [PageOutlet](./page-outlet.md)
 - [RobotsTxt](./robots-txt.md)

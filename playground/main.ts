@@ -1,5 +1,4 @@
 import {
-    activateHashRouterRoute,
     createAppDiagnosticsReport,
     createHashRoutedApp,
     inspectAppRoutes,
@@ -224,13 +223,7 @@ app = createHashRoutedApp<PlaygroundRoute>({
     renderChrome({ router, route }) {
         const navigation = NavigationDemo({
             current: route.id,
-            onRouteNavigate(_route, detail) {
-                activateHashRouterRoute(router, detail, {
-                    updateHistory: true,
-                    scroll: true,
-                    focusTarget: "outlet"
-                });
-            }
+            router
         });
         const routeBreadcrumbs = PlaygroundBreadcrumbs(route);
 

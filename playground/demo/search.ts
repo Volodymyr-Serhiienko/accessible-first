@@ -1,5 +1,5 @@
 import {
-    activateHashRouterRoute,
+    createHashRouterRouteActivationHandler,
     RouteSearchBox,
     type ComposedRouteSearchBox,
     type HashRouter,
@@ -41,13 +41,11 @@ export function PlaygroundSearch(
                 return ["component", "demo"];
             }
         },
-        onRouteSelect(detail) {
-            activateHashRouterRoute(options.router, detail, {
-                updateHistory: true,
-                scroll: true,
-                focusTarget: "outlet"
-            });
-        }
+        onRouteSelect: createHashRouterRouteActivationHandler(options.router, {
+            updateHistory: true,
+            scroll: true,
+            focusTarget: "outlet"
+        })
     };
 
     if ("width" in options) searchOptions.width = options.width ?? null;

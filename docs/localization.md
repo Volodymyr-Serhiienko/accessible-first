@@ -132,7 +132,7 @@ const localeRefresh = createLocaleRefresh({
 
 Use this layer for app chrome and currently visible route content. It is intentionally small: no virtual DOM is required, and the app decides which regions need to be recreated.
 
-For hash-routed SPAs, `createHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes.
+For hash-routed SPAs, `createHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes. For native-link or MPA pages, `createLinkRoutedApp()` can refresh app-owned chrome and route metadata without intercepting links.
 
 ## Component Contract
 

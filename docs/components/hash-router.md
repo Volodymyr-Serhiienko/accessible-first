@@ -36,16 +36,16 @@ const router = createHashRouter({
     }
 });
 
+const activateRoute = createHashRouterRouteActivationHandler(router, {
+    updateHistory: true,
+    scroll: true,
+    focusTarget: "outlet"
+});
+
 const navigation = RouteResponsiveNavigation({
     routes: router.routes,
     current: router.getCurrentRoute().id,
-    onRouteNavigate(detail) {
-        activateHashRouterRoute(router, detail, {
-            updateHistory: true,
-            scroll: true,
-            focusTarget: "outlet"
-        });
-    }
+    onRouteNavigate: activateRoute
 });
 
 const breadcrumbs = RouteBreadcrumbs({
@@ -64,7 +64,7 @@ router.start();
 ## Layers
 
 - Helper API: `createHashRouter(options)`
-- Activation helper: `activateHashRouterRoute(router, detail, options)`
+- Activation helpers: `createHashRouterRouteActivationHandler(router, options)` and `activateHashRouterRoute(router, detail, options)`
 - Binding helper: `bindHashRouterRouteControls(router, controls)`
 - Refresh method: `router.refresh(options)`
 - Reuses: `PageOutlet`, native URL hash/history, route-aware navigation, and current-route controls with `setCurrent(...)`
@@ -136,22 +136,27 @@ By default, refresh uses quiet options suitable for in-place updates. Pass `noti
 
 ## Activation Helper
 
-Use `activateHashRouterRoute()` inside route-aware component callbacks. It prevents the native event by default and forwards the route to `router.navigate(...)`.
+Use `createHashRouterRouteActivationHandler()` when several route-aware controls should share the same navigation defaults. The created callback prevents the native event by default and forwards the selected route to `router.navigate(...)`.
 
 ```ts
+const activateRoute = createHashRouterRouteActivationHandler(router, {
+    updateHistory: true,
+    scroll: true,
+    focusTarget: "outlet"
+});
+
 RouteSearchBox({
     routes,
-    onRouteSelect(detail) {
-        activateHashRouterRoute(router, detail, {
-            updateHistory: true,
-            scroll: true,
-            focusTarget: "outlet"
-        });
-    }
+    onRouteSelect: activateRoute
+});
+
+RouteCommandPalette({
+    routes,
+    onRouteSelect: activateRoute
 });
 ```
 
-This keeps navigation, route search, command palettes, and future route-aware controls using the same activation defaults.
+Use lower-level `activateHashRouterRoute(router, detail, options)` when one control needs custom behavior around a single activation.
 
 ## Binding Helper
 
@@ -178,4 +183,3 @@ The helper calls `router.setNavigation(...)`, synchronizes the initial route, an
 - Header, navigation, footer, and theme controls stay stable unless the app intentionally refreshes shell chrome.
 - Locale refresh can re-render the current route without pushing history or moving focus unexpectedly.
 - Document title and metadata match the active route when configured.
-

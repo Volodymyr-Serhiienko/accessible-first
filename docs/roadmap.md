@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
 - Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -53,17 +53,17 @@ Current focus:
 ### Now
 
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
-- Harden `HashRoutedApp` as the first reusable SPA runtime recipe: it wires `AppShell`, `HashRouter`, route current-state controls, metadata refresh, locale refresh, cleanup, and startup without forcing application-specific header or route content into the framework.
+- Harden `HashRoutedApp` and `LinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, while moving reusable lifecycle wiring into framework helpers.
-- Prepare one SPA recipe and one MPA/native-link recipe before starting the first reference application.
+- Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application.
 
 ### Exit Criteria For This Phase
 
 Before starting the first real application, we should have:
 
 - one clear app shell recipe for SPA, backed by `HashRoutedApp`;
-- one clear app shell recipe for MPA/native links;
+- one clear app shell recipe for MPA/native links, backed by `LinkRoutedApp`;
 - route metadata feeding navigation, search, breadcrumbs, metadata, command palette, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
@@ -165,8 +165,8 @@ Navigation should start from real links so MPA, static pages, server-rendered pa
 
 Need next:
 
-- MPA current-route detection examples;
-- hash-router and native-link examples side by side;
+- MPA current-route detection examples built on `LinkRoutedApp`;
+- `HashRoutedApp` and `LinkRoutedApp` examples side by side;
 - canonical URL and sitemap guidance for hash routes;
 - route diagnostics for missing titles, descriptions, hrefs, parents, and metadata.
 

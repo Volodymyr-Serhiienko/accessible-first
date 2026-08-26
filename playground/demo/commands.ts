@@ -1,5 +1,5 @@
 import {
-    activateHashRouterRoute,
+    createHashRouterRouteActivationHandler,
     RouteCommandPalette,
     type ComposedRouteCommandPalette,
     type HashRouter
@@ -38,12 +38,10 @@ export function PlaygroundCommands(
                 return ["open", "go", "section", "demo", route.id, route.title, route.label];
             }
         },
-        onRouteSelect(detail) {
-            activateHashRouterRoute(options.router, detail, {
-                updateHistory: true,
-                scroll: true,
-                focusTarget: "outlet"
-            });
-        }
+        onRouteSelect: createHashRouterRouteActivationHandler(options.router, {
+            updateHistory: true,
+            scroll: true,
+            focusTarget: "outlet"
+        })
     });
 }

@@ -33,7 +33,7 @@ AppShell is a thin composition helper. It combines:
 - `PageLayout`
 - header, navigation, main, and footer landmarks
 
-It does not own routing. Use `HashRouter` or native links on top of AppShell depending on the app model.
+It does not own routing. Use `HashRoutedApp` for hash-routed SPAs, `LinkRoutedApp` for native-link/MPA pages, or lower-level routing helpers when an app needs custom control.
 
 ## Shell Chrome Direction
 
@@ -47,7 +47,7 @@ Use [App Routes](./app-routes.md) when one route list should feed navigation, se
 
 Use `Screen` for complete application views rendered inside the shell outlet.
 
-`AppShell` owns the stable page frame. Route helpers own shared route data, including labels, hrefs, keywords, and route hierarchy. `HashRouter` or native links own navigation behavior.
+`AppShell` owns the stable page frame. Route helpers own shared route data, including labels, hrefs, keywords, and route hierarchy. `HashRoutedApp`, `LinkRoutedApp`, `HashRouter`, or native links own navigation behavior.
 
 This keeps the framework flexible for:
 
