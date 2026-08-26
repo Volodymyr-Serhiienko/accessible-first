@@ -14,6 +14,7 @@ const app = createLinkRoutedApp({
     shell: {
         title: t("app.title"),
         skipLink: t("app.skipLink"),
+        skipLinkTargetId: "app-navigation",
         navigationLabel: t("app.navigationLabel"),
         metadata: getAppMetadata(),
         content: CurrentPageContent()
@@ -27,24 +28,30 @@ const app = createLinkRoutedApp({
         baseUrl: window.location.origin
     },
     renderChrome({ route }) {
-        const navigation = AppNavigation({
-            current: route?.id ?? null
-        });
-        const breadcrumbs = AppBreadcrumbs(route);
-
-        return {
-            shell: {
-                title: t("app.title"),
-                skipLink: t("app.skipLink"),
-                navigationLabel: t("app.navigationLabel"),
-                metadata: getAppMetadata()
+        return createAppRouteChrome({
+            routes,
+            current: route,
+            header: {
+                locale,
+                brand: {
+                    href: "/",
+                    name: t("app.title")
+                }
             },
-            header: AppHeader(),
-            navigation,
-            beforeOutlet: breadcrumbs,
-            navigationControl: navigation,
-            currentRouteControls: [breadcrumbs]
-        };
+            navigation: {
+                id: "app-navigation",
+                trigger: t("app.navigationTrigger"),
+                locale
+            },
+            breadcrumbs: {
+                label: t("app.breadcrumbsLabel")
+            },
+            search: {
+                label: t("app.searchLabel"),
+                placeholder: t("app.searchPlaceholder")
+            },
+            commands: false
+        });
     }
 });
 ```
@@ -87,16 +94,21 @@ The helper owns repeatable page-shell wiring:
 Return only the shell regions the runtime should manage:
 
 ```ts
-return {
-    header: AppHeader(),
-    navigation,
-    beforeOutlet: breadcrumbs,
-    navigationControl: navigation,
-    currentRouteControls: [breadcrumbs]
-};
+return createAppRouteChrome({
+    routes,
+    current: route,
+    header: {
+        locale,
+        brand: { href: "/", name: t("app.title") }
+    },
+    navigation: { id: "app-navigation", locale },
+    breadcrumbs: { label: t("app.breadcrumbsLabel") },
+    search: { label: t("app.searchLabel") },
+    commands: false
+});
 ```
 
-Use `navigationControl` for controls with `setCurrent(id)`, such as `Navigation` and `ResponsiveNavigation`. Use `currentRouteControls` for route-aware controls with `setCurrent(route)`, such as route breadcrumbs.
+Use `createAppRouteChrome(...)` for the common header/navigation/breadcrumbs/search recipe. Use `createRouteChrome(...)` directly only when the app needs custom header assembly. Use `navigationControl` for controls with `setCurrent(id)`, such as `Navigation` and `ResponsiveNavigation`. Use `currentRouteControls` for route-aware controls with `setCurrent(route)`, such as route breadcrumbs.
 
 ## Localization
 

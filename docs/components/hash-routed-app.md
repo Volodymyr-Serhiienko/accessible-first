@@ -14,6 +14,7 @@ const app = createHashRoutedApp({
     shell: {
         title: t("app.title"),
         skipLink: t("app.skipLink"),
+        skipLinkTargetId: "app-navigation",
         navigationLabel: t("app.navigationLabel"),
         metadata: getAppMetadata(),
         outletOptions: {
@@ -22,7 +23,7 @@ const app = createHashRoutedApp({
     },
     router: {
         getDocumentTitle(route) {
-            return `${route.title} - Example App`;
+            return getRouteDocumentTitle(route);
         },
         getDocumentMetadata(route) {
             return getRouteMetadata(route);
@@ -34,25 +35,36 @@ const app = createHashRoutedApp({
             scroll: true,
             focusTarget: "outlet"
         });
-        const navigation = AppNavigation({
-            current: route.id,
-            onRouteNavigate: activateRoute
-        });
-        const breadcrumbs = AppBreadcrumbs(route);
 
-        return {
-            shell: {
-                title: t("app.title"),
-                skipLink: t("app.skipLink"),
-                navigationLabel: t("app.navigationLabel"),
-                metadata: getAppMetadata()
+        return createAppRouteChrome({
+            routes,
+            current: route,
+            onRouteActivate: activateRoute,
+            header: {
+                locale,
+                brand: {
+                    href: "#main",
+                    name: t("app.title")
+                }
             },
-            header: AppHeader({ router }),
-            navigation,
-            beforeOutlet: breadcrumbs,
-            navigationControl: navigation,
-            currentRouteControls: [breadcrumbs]
-        };
+            navigation: {
+                id: "app-navigation",
+                trigger: t("app.navigationTrigger"),
+                locale
+            },
+            breadcrumbs: {
+                label: t("app.breadcrumbsLabel")
+            },
+            search: {
+                label: t("app.searchLabel"),
+                placeholder: t("app.searchPlaceholder")
+            },
+            commands: {
+                trigger: t("app.commandsTrigger"),
+                title: t("app.commandsTitle"),
+                searchLabel: t("app.commandsSearchLabel")
+            }
+        });
     }
 });
 ```
@@ -93,22 +105,30 @@ The helper owns repeatable lifecycle wiring:
 `renderChrome(context)` receives `shell`, `router`, `routes`, the current `route`, and refresh helpers. Return only the regions the app wants the runtime to manage:
 
 ```ts
-return {
-    shell: {
-        title: t("app.title"),
-        metadata: getAppMetadata()
+const activateRoute = createHashRouterRouteActivationHandler(router, {
+    updateHistory: true,
+    scroll: true,
+    focusTarget: "outlet"
+});
+
+return createAppRouteChrome({
+    routes,
+    current: route,
+    onRouteActivate: activateRoute,
+    header: {
+        locale,
+        brand: { name: t("app.title") }
     },
-    header: AppHeader({ router }),
-    navigation,
-    beforeOutlet: breadcrumbs,
-    navigationControl: navigation,
-    currentRouteControls: [breadcrumbs]
-};
+    navigation: { id: "app-navigation", locale },
+    breadcrumbs: { label: t("app.breadcrumbsLabel") },
+    search: { label: t("app.searchLabel") },
+    commands: { trigger: t("app.commandsTrigger") }
+});
 ```
 
 Use `navigationControl` for the route-aware navigation control that should mirror the current hash route. Use `currentRouteControls` for breadcrumbs or other controls with `setCurrent(...)`. Use `createHashRouterRouteActivationHandler(...)` when navigation, route search, and command palette should share the same activation behavior.
 
-Use `createRouteChrome(...)` when an app wants to create route navigation, breadcrumbs, route search, and command palette controls from one route list and one shared activation handler.
+Use `createAppRouteChrome(...)` when an app wants to create an `AppHeader`, route navigation, breadcrumbs, route search, and command palette controls from one route list and one shared activation handler. Use `createRouteChrome(...)` directly only when the app needs custom header assembly.
 
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 

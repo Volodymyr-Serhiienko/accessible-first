@@ -1,76 +1,95 @@
 # RouteChrome
 
-RouteChrome is a small factory for creating the common route-aware controls used by application shells: responsive navigation, breadcrumbs, route search, and route command palette.
+RouteChrome contains route-aware chrome recipes for application shells.
 
-Use it when a routed app should keep route activation, current route state, search, commands, and breadcrumbs wired the same way without repeating callback glue in every app file.
+Use `createRouteChrome` when you only need route controls: responsive navigation, breadcrumbs, route search, and route command palette.
 
-## Quick Start
+Use `createAppRouteChrome` when a routed app should return ready shell slots: `AppHeader`, navigation, breadcrumbs, and route-control bindings for `HashRoutedApp` or `LinkRoutedApp`.
+
+## Quick Start: App Route Chrome
 
 ```ts
-const activateRoute = createHashRouterRouteActivationHandler(router, {
-    updateHistory: true,
-    scroll: true,
-    focusTarget: "outlet"
-});
+renderChrome({ router, route }) {
+    const activateRoute = createHashRouterRouteActivationHandler(router, {
+        updateHistory: true,
+        scroll: true,
+        focusTarget: "outlet"
+    });
 
+    return createAppRouteChrome({
+        routes,
+        current: route,
+        onRouteActivate: activateRoute,
+        header: {
+            locale,
+            brand: {
+                href: "#main",
+                name: t("app.name"),
+                tagline: t("app.tagline")
+            }
+        },
+        navigation: {
+            id: "app-navigation",
+            trigger: t("app.navigation.trigger"),
+            variant: "pills",
+            locale
+        },
+        breadcrumbs: {
+            label: t("app.breadcrumbs.label")
+        },
+        search: {
+            label: t("app.search.label"),
+            placeholder: t("app.search.placeholder")
+        },
+        commands: {
+            trigger: t("app.commands.trigger"),
+            title: t("app.commands.title"),
+            searchLabel: t("app.commands.searchLabel")
+        }
+    });
+}
+```
+
+## Quick Start: Route Controls Only
+
+```ts
 const routeChrome = createRouteChrome({
     routes,
     current: router.getCurrentRoute(),
     onRouteActivate: activateRoute,
-    navigation: {
-        id: "app-navigation",
-        variant: "pills",
-        trigger: "Sections"
-    },
-    breadcrumbs: {
-        label: "Current location"
-    },
-    search: {
-        label: "Search sections",
-        placeholder: "Search...",
-        notFoundText: "No matching sections."
-    },
-    commands: {
-        trigger: "Commands",
-        title: "Commands",
-        searchLabel: "Search commands",
-        placeholder: "Type a command..."
-    }
+    navigation: { variant: "pills" },
+    breadcrumbs: { label: "Current location" },
+    search: { label: "Search sections" },
+    commands: { trigger: "Commands", title: "Commands" }
 });
 
+shell.setHeader(AppHeader({ controls: routeChrome.headerControls }));
 shell.setNavigation(routeChrome.navigation);
 shell.setBeforeOutlet(routeChrome.breadcrumbs);
-shell.setHeader(AppHeader({ controls: routeChrome.headerControls }));
-```
-
-With `HashRoutedApp`, return the controls from `renderChrome(...)`:
-
-```ts
-return {
-    header: AppHeader({ controls: routeChrome.headerControls }),
-    navigation: routeChrome.navigation,
-    beforeOutlet: routeChrome.breadcrumbs,
-    navigationControl: routeChrome.navigationControl,
-    currentRouteControls: routeChrome.currentRouteControls
-};
 ```
 
 ## Purpose
 
-RouteChrome sits above individual route-aware components and below full app templates.
+RouteChrome sits above individual route-aware controls and below full app templates.
 
-It creates:
+`createRouteChrome` creates:
 
 - `RouteResponsiveNavigation` when `navigation` is not `false`;
 - `RouteBreadcrumbs` when `breadcrumbs` is not `false`;
 - `RouteSearchBox` when `search` options are provided;
 - `RouteCommandPalette` when `commands` options are provided;
 - shared `headerControls` containing search and commands;
-- `navigationControl` and `currentRouteControls` for `HashRoutedApp` or `LinkRoutedApp`.
+- `navigationControl` and `currentRouteControls` for routed app runtimes.
 
-It does not create a header, footer, shell, router, route list, or application copy. The app still owns those decisions.
+`createAppRouteChrome` builds on that and can also create:
 
-## Options
+- an `AppHeader` from `header` options;
+- shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`;
+- route-control bindings that can be returned directly from `HashRoutedApp.renderChrome(...)` or `LinkRoutedApp.renderChrome(...)`.
+
+Neither helper creates route data, screen content, app copy, metadata strategy, or a router. The application still owns those decisions.
+
+## createRouteChrome Options
 
 - `routes` - required route descriptors used by route-aware controls.
 - `current` - current route object, route id, `null`, or `undefined`.
@@ -80,7 +99,20 @@ It does not create a header, footer, shell, router, route list, or application c
 - `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
 - `onRouteActivate` - shared activation callback used by navigation, search, and commands.
 
-## Returned Controller
+## createAppRouteChrome Options
+
+`createAppRouteChrome` accepts all `createRouteChrome` options plus:
+
+- `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself.
+- `header.controls` - extra app controls placed beside route search and commands.
+- `header.routeControlsPlacement` - `"start"` or `"end"`. Defaults to `"start"`, so route search and commands appear before custom controls.
+- `shell` - optional `AppShell.update(...)` options returned with the chrome slots.
+- `afterOutlet` - optional content for the shell after-outlet slot.
+- `footer` - optional content for the shell footer slot.
+
+## Returned Values
+
+`createRouteChrome` returns:
 
 - `navigation` - composed route responsive navigation, or `null`.
 - `breadcrumbs` - composed route breadcrumbs, or `null`.
@@ -90,11 +122,17 @@ It does not create a header, footer, shell, router, route list, or application c
 - `navigationControl` - control suitable for routed app `navigationControl`.
 - `currentRouteControls` - controls suitable for routed app `currentRouteControls`.
 
+`createAppRouteChrome` returns the same `routeChrome` controller, plus:
+
+- `appHeader` - composed `AppHeader`, or `null`.
+- `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated.
+- `navigationControl` and `currentRouteControls` - route-control bindings ready to return from routed app render callbacks.
+
 ## SPA And MPA Use
 
 For hash-routed SPAs, pass `createHashRouterRouteActivationHandler(router, options)` as `onRouteActivate`.
 
-For native-link or MPA pages, leave `onRouteActivate` empty when links should navigate normally. `LinkRoutedApp` can still use `navigationControl` and `currentRouteControls` to mark the current page from location matching.
+For native-link or MPA pages, omit `onRouteActivate` when links should navigate normally. `LinkRoutedApp` can still use `navigationControl` and `currentRouteControls` to mark the current page from location matching.
 
 ## Accessibility
 
@@ -102,10 +140,13 @@ RouteChrome does not change the accessibility behavior of the underlying control
 
 Use application-owned text for labels, placeholders, and empty states. Pass the shared locale provider to the underlying controls when their service text should update with the application locale.
 
+When using `createAppRouteChrome`, the generated `AppHeader` keeps one control set and lets `HeaderTools` move those controls between inline and overflow placement. This avoids duplicate mobile/desktop controls and keeps screen-reader order predictable.
+
 ## Manual Checks
 
 - Navigation, search, and command palette activate routes with the same scroll and focus behavior.
 - Navigation and breadcrumbs update current state after route changes.
 - Search and commands remain usable with keyboard and screen reader navigation.
+- Header controls move into HeaderTools overflow when they do not fit.
 - Native-link apps still allow normal browser navigation when `onRouteActivate` is omitted.
 - Locale refresh recreates route chrome without duplicating route activation handlers.

@@ -1,20 +1,18 @@
 import {
-    AppHeader,
     Image,
-    type ComposedNode,
-    type CompositionChild
+    type AppRouteChromeHeaderOptions
 } from "./af";
-import { playgroundLocale, t } from "./localization";
+import {
+    playgroundLocale,
+    t,
+    type PlaygroundLocale,
+    type PlaygroundMessageKey
+} from "./localization";
 
-export interface HeaderDemoOptions {
-    brandMaxWidth?: string | null;
-    controls?: CompositionChild[];
-}
-
-export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
-    const brandMaxWidth = options.brandMaxWidth ?? "28rem";
-
-    return AppHeader({
+export function getPlaygroundHeaderOptions(
+    brandMaxWidth = "28rem"
+): AppRouteChromeHeaderOptions<PlaygroundLocale, PlaygroundMessageKey> {
+    return {
         brandMaxWidth,
         locale: playgroundLocale,
         brand: {
@@ -34,7 +32,6 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             nameTag: "h1",
             tagline: t("app.brand.tagline")
         },
-        controls: options.controls ?? [],
         language: {
             labelOptions: {
                 attributes: {
@@ -46,5 +43,5 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             display: "switch",
             variant: "secondary"
         }
-    });
+    };
 }

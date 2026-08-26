@@ -9,7 +9,6 @@ import {
     type HashRoutedApp
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
-import { HeaderDemo } from "./demo/header";
 import { playgroundLocale, t } from "./demo/localization";
 import { playgroundManifest } from "./demo/manifest";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
@@ -202,32 +201,25 @@ app = createHashRoutedApp<PlaygroundRoute>({
         }
     },
     renderChrome({ router, route }) {
-        const routeChrome = createPlaygroundRouteChrome({
+        const appChrome = createPlaygroundRouteChrome({
             router,
             current: route
         });
 
-        if (!routeChrome.navigation) {
+        if (!appChrome.routeChrome.navigation) {
             throw new Error("Playground route chrome requires navigation.");
         }
 
-        currentNavigation = routeChrome.navigation;
+        currentNavigation = appChrome.routeChrome.navigation;
 
         return {
+            ...appChrome,
             shell: {
                 title: t("app.brand.name"),
                 skipLink: t("app.navigation.skipLink"),
                 navigationLabel: t("app.navigation.label"),
                 metadata: getPlaygroundAppMetadata()
-            },
-            header: HeaderDemo({
-                brandMaxWidth: "28rem",
-                controls: [...routeChrome.headerControls]
-            }),
-            navigation: routeChrome.navigation,
-            beforeOutlet: routeChrome.breadcrumbs,
-            navigationControl: routeChrome.navigationControl,
-            currentRouteControls: routeChrome.currentRouteControls
+            }
         };
     }
 });
