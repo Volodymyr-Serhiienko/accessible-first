@@ -29,7 +29,7 @@ Framework service text belongs in the Accessible First message registry. Example
 
 Application copy stays explicit in application code or in the application's own locale files. Examples include product names, route labels, screen titles, lesson text, form labels, button text, validation copy chosen by the app, marketing text, and demo content.
 
-Developer diagnostics are a separate layer. Console diagnostics can remain English until a later diagnostics localization pass.
+Developer diagnostics are a separate layer. Console diagnostics can remain English, while localization diagnostics should still verify that user-facing service and app-owned message keys are present.
 
 ## API
 
@@ -96,6 +96,7 @@ Applications should keep one locale file near the app shell. The playground uses
 - define an app-specific message-key union;
 - combine it with `AccessibleFirstMessageKey`;
 - create one shared `createLocaleController()` instance;
+- create `createLocaleFormatter({ locale })` when app data needs localized formatting or sorting;
 - export a small `t(key, params?)` helper for application-owned strings;
 - use `createLocaleRefresh()` near the app shell when composed app copy should update without reload;
 - pass the same controller to `AppShell`, `ThemeToggle`, `ToastViewport`, route navigation, command palette, dialogs, and other localized components.
@@ -103,6 +104,40 @@ Applications should keep one locale file near the app shell. The playground uses
 English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
 
 For application-owned text created during composition, use `createLocaleRefresh()` near the app shell. It subscribes to the shared locale controller and lets the app refresh header text, route search, command palettes, breadcrumbs, metadata, and the current screen without a full page reload.
+
+## Text Direction
+
+`LocaleController` syncs both `document.documentElement.lang` and `document.documentElement.dir` by default. The built-in `getLocaleDirection(locale)` helper returns `rtl` for common right-to-left language codes and `ltr` otherwise.
+
+Applications can override direction when product rules require it:
+
+```ts
+const locale = createLocaleController({
+    supportedLocales: ["en", "ar"],
+    fallbackLocale: "en",
+    getDirection(locale) {
+        return locale === "ar" ? "rtl" : "ltr";
+    }
+});
+```
+
+Use `syncDocumentDirection: false` only when another app shell layer owns the document direction.
+
+## Formatting Helpers
+
+`createLocaleFormatter()` keeps app formatting code close to the shared locale controller without introducing a full i18n runtime:
+
+```ts
+const format = createLocaleFormatter({ locale });
+
+format.formatNumber(0.82, { style: "percent" });
+format.formatDate(new Date());
+format.formatRelativeTime(-2, "day");
+format.formatList(["Reading", "Listening", "Speaking"]);
+format.sort(routes, { getText: (route) => route.title, sensitivity: "base" });
+```
+
+Use it for application data, progress labels, dates, lesson metadata, route/result sorting, and other text that depends on the active locale. Message translation still belongs to `LocaleController`; formatting and collation belong to `LocaleFormatter`.
 
 ## Reactive App Refresh
 
@@ -133,6 +168,32 @@ const localeRefresh = createLocaleRefresh({
 Use this layer for app chrome and currently visible route content. It is intentionally small: no virtual DOM is required, and the app decides which regions need to be recreated.
 
 For hash-routed SPAs, `createHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes. For native-link or MPA pages, `createLinkRoutedApp()` can refresh app-owned chrome and route metadata without intercepting links.
+
+## Diagnostics
+
+Use `inspectLocaleController()` when an application has a known set of required service and app-owned messages:
+
+```ts
+const localeReport = inspectLocaleController(locale, {
+    requiredMessages: appRequiredMessageKeys
+});
+```
+
+The report checks supported locales, fallback/current locale consistency, unsupported message dictionaries, missing required messages, and empty message strings. It is compatible with `AppDiagnostics` custom sources:
+
+```ts
+logAppDiagnostics(createAppDiagnosticsReport({
+    sources: [
+        {
+            id: "localization",
+            label: "Localization",
+            report: localeReport
+        }
+    ]
+}));
+```
+
+`LocaleController` also exposes `getRegisteredLocales()` and `getMessages(locale)` so diagnostics and tooling can inspect dictionaries without reaching into private state.
 
 ## Component Contract
 
@@ -171,10 +232,9 @@ LanguageSelect is the current simple header control for user-selected locale cha
 Before many real applications depend on localization, plan these extensions deliberately:
 
 - higher-level app text binding helpers when repeated real-app patterns prove useful;
-- date, time, number, and relative-time formatting helpers;
 - pluralization and parameter formatting conventions;
 - locale-aware search, filtering, and sorting options;
 - document `dir` / RTL support;
-- diagnostics for missing app translations and unsupported locales.
+- richer localization diagnostics for pluralization, formatting, and RTL-specific risks.
 
 Keep geography out of default locale detection. Browser language, saved preference, URL/app context, or account preference should remain the preferred signals.

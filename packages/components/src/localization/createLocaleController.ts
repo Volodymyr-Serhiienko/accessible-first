@@ -56,6 +56,18 @@ export function getLocaleText<TKey extends string>(
 }
 
 /**
+ * Text direction resolved from a locale.
+ */
+export type LocaleDirection = "ltr" | "rtl" | "auto";
+
+/**
+ * Resolves text direction for a locale.
+ */
+export type LocaleDirectionResolver<TLocale extends LocaleCode = LocaleCode> = (
+    locale: TLocale | string
+) => LocaleDirection;
+
+/**
  * Minimal browser language source used by locale detection.
  */
 export interface LocaleNavigatorSource {
@@ -94,6 +106,7 @@ export type LocaleChangeListener<TLocale extends LocaleCode = LocaleCode> = (
 export interface LocaleSetOptions {
     persist?: boolean;
     syncDocumentLanguage?: boolean;
+    syncDocumentDirection?: boolean;
     source?: LocaleChangeSource;
 }
 
@@ -112,6 +125,8 @@ export interface LocaleControllerOptions<
     messages?: LocaleMessagesByLocale<TKey>;
     documentElement?: HTMLElement | null;
     syncDocumentLanguage?: boolean;
+    syncDocumentDirection?: boolean;
+    getDirection?: LocaleDirectionResolver<TLocale>;
     navigatorSource?: LocaleNavigatorSource | null;
 }
 
@@ -128,7 +143,22 @@ export interface LocaleController<
     getSystemCandidates(): string[];
     resolve(candidates?: string | readonly string[] | null): TLocale;
     setLocale(locale: string, options?: LocaleSetOptions): TLocale;
+    /**
+     * Registers or overrides messages for one locale.
+     */
     setMessages(locale: string, messages: LocaleMessages<TKey>): void;
+    /**
+     * Returns locale codes that currently have registered message dictionaries.
+     */
+    getRegisteredLocales(): string[];
+    /**
+     * Returns a shallow copy of the messages registered for one locale.
+     */
+    getMessages(locale?: string | null): LocaleMessages<TKey>;
+    /**
+     * Returns the text direction for a locale.
+     */
+    getDirection(locale?: string | null): LocaleDirection;
     has(key: TKey, locale?: string | null): boolean;
     t(key: TKey, params?: LocaleMessageParams): string;
     subscribe(listener: LocaleChangeListener<TLocale>): () => void;
@@ -136,6 +166,18 @@ export interface LocaleController<
 }
 
 const DEFAULT_STORAGE_KEY = "af.locale";
+
+const RTL_LOCALE_LANGUAGES = new Set([
+    "ar",
+    "dv",
+    "fa",
+    "he",
+    "ps",
+    "sd",
+    "ug",
+    "ur",
+    "yi"
+]);
 
 type LocaleMessageRegistry = Record<string, LocaleMessage>;
 
@@ -168,6 +210,17 @@ function toCandidateArray(value: string | readonly string[] | null | undefined):
     if (typeof value === "string") return [value];
 
     return [...value];
+}
+
+/**
+ * Returns the default writing direction for a locale code.
+ */
+export function getLocaleDirection(locale: string | null | undefined): LocaleDirection {
+    const normalized = normalizeLocale(locale);
+
+    if (!normalized) return "ltr";
+
+    return RTL_LOCALE_LANGUAGES.has(getLocaleLanguage(normalized)) ? "rtl" : "ltr";
 }
 
 /**
@@ -301,6 +354,10 @@ function createInitialMessages<TKey extends string>(
     return registry;
 }
 
+function getDefaultDocumentElement(element: HTMLElement | null): HTMLElement | null {
+    return element ?? (typeof document === "undefined" ? null : document.documentElement);
+}
+
 function syncDocumentLanguage(
     element: HTMLElement | null,
     locale: string,
@@ -308,11 +365,25 @@ function syncDocumentLanguage(
 ): void {
     if (!enabled) return;
 
-    const target = element ?? (typeof document === "undefined" ? null : document.documentElement);
+    const target = getDefaultDocumentElement(element);
 
     if (!target) return;
 
     target.lang = locale;
+}
+
+function syncDocumentDirection(
+    element: HTMLElement | null,
+    direction: LocaleDirection,
+    enabled: boolean
+): void {
+    if (!enabled) return;
+
+    const target = getDefaultDocumentElement(element);
+
+    if (!target) return;
+
+    target.dir = direction;
 }
 
 /**
@@ -330,6 +401,8 @@ export function createLocaleController<
     const storageKey = options.storageKey === undefined ? DEFAULT_STORAGE_KEY : options.storageKey;
     const storage = options.storage === undefined ? getDefaultStorage() : options.storage;
     const syncLanguage = options.syncDocumentLanguage ?? true;
+    const syncDirection = options.syncDocumentDirection ?? true;
+    const resolveDirection = options.getDirection ?? getLocaleDirection;
     const navigatorSource = options.navigatorSource === undefined
         ? getDefaultNavigatorSource()
         : options.navigatorSource;
@@ -350,6 +423,7 @@ export function createLocaleController<
     let destroyed = false;
 
     syncDocumentLanguage(options.documentElement ?? null, currentLocale, syncLanguage);
+    syncDocumentDirection(options.documentElement ?? null, resolveDirection(currentLocale), syncDirection);
 
     function notify(previousLocale: TLocale, source: LocaleChangeSource): void {
         const detail: LocaleChangeDetail<TLocale> = {
@@ -405,6 +479,12 @@ export function createLocaleController<
                 setOptions.syncDocumentLanguage ?? syncLanguage
             );
 
+            syncDocumentDirection(
+                options.documentElement ?? null,
+                resolveDirection(currentLocale),
+                setOptions.syncDocumentDirection ?? syncDirection
+            );
+
             if (previousLocale !== currentLocale) {
                 notify(previousLocale, setOptions.source ?? "programmatic");
             }
@@ -421,6 +501,22 @@ export function createLocaleController<
                 normalized,
                 mergeMessageRegistry(messageRegistry.get(normalized) ?? {}, localeMessages)
             );
+        },
+
+        getRegisteredLocales(): string[] {
+            return [...messageRegistry.keys()];
+        },
+
+        getMessages(locale = currentLocale): LocaleMessages<TKey | AccessibleFirstMessageKey> {
+            const normalized = normalizeLocale(locale ?? currentLocale);
+
+            if (!normalized) return {};
+
+            return { ...(messageRegistry.get(normalized) ?? {}) } as LocaleMessages<TKey | AccessibleFirstMessageKey>;
+        },
+
+        getDirection(locale = currentLocale): LocaleDirection {
+            return resolveDirection(locale ?? currentLocale);
         },
 
         has(key, locale = currentLocale): boolean {

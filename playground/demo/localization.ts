@@ -1,9 +1,11 @@
 import {
+    accessibleFirstEnglishMessages,
     createLocaleController,
     type AccessibleFirstMessageKey,
     type LocaleController,
     type LocaleMessageParams,
-    type LocaleMessages
+    type LocaleMessages,
+    type LocaleMessagesByLocale
 } from "./af";
 
 export const playgroundSupportedLocales = ["en", "uk", "ru"] as const;
@@ -178,6 +180,17 @@ const ruMessages = {
     "app.search.placeholder": "Поиск разделов"
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
+export const playgroundMessages = {
+    en: enMessages,
+    uk: ukMessages,
+    ru: ruMessages
+} satisfies LocaleMessagesByLocale<PlaygroundMessageKey>;
+
+export const playgroundRequiredMessageKeys = Array.from(new Set([
+    ...Object.keys(accessibleFirstEnglishMessages),
+    ...Object.keys(enMessages)
+])) as PlaygroundMessageKey[];
+
 export const playgroundLocale: PlaygroundLocaleController = createLocaleController<
     PlaygroundLocale,
     PlaygroundMessageKey
@@ -185,11 +198,7 @@ export const playgroundLocale: PlaygroundLocaleController = createLocaleControll
     supportedLocales: playgroundSupportedLocales,
     fallbackLocale: "en",
     storageKey: "af.playground.locale",
-    messages: {
-        en: enMessages,
-        uk: ukMessages,
-        ru: ruMessages
-    }
+    messages: playgroundMessages
 });
 
 export function t(key: PlaygroundMessageKey, params?: LocaleMessageParams): string {

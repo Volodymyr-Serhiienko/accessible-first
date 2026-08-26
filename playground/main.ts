@@ -2,6 +2,7 @@ import {
     createAppDiagnosticsReport,
     createHashRoutedApp,
     inspectAppRoutes,
+    inspectLocaleController,
     inspectWebAppManifest,
     logAppDiagnostics,
     type ComposedResponsiveNavigation,
@@ -9,7 +10,7 @@ import {
     type HashRoutedApp
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
-import { playgroundLocale, t } from "./demo/localization";
+import { playgroundLocale, playgroundRequiredMessageKeys, t } from "./demo/localization";
 import { playgroundManifest } from "./demo/manifest";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
@@ -124,6 +125,10 @@ function logPlaygroundDiagnostics(): void {
         }
     });
 
+    const localeDiagnostics = inspectLocaleController(playgroundLocale, {
+        requiredMessages: playgroundRequiredMessageKeys
+    });
+
     const manifestDiagnostics = inspectWebAppManifest(playgroundManifest, {
         requireShortName: true,
         requireDescription: true,
@@ -139,6 +144,11 @@ function logPlaygroundDiagnostics(): void {
         page: pageDiagnostics,
         routes: routeDiagnostics,
         sources: [
+            {
+                id: "localization",
+                label: "Localization",
+                report: localeDiagnostics
+            },
             {
                 id: "manifest",
                 label: "Web App Manifest",

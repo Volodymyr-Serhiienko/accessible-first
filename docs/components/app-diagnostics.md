@@ -12,6 +12,10 @@ const routeReport = inspectAppRoutes(routes, {
     requireDocumentTitle: true
 });
 
+const localeReport = inspectLocaleController(locale, {
+    requiredMessages: appRequiredMessageKeys
+});
+
 const appReport = createAppDiagnosticsReport({
     page: shell.inspect({
         log: false,
@@ -20,7 +24,14 @@ const appReport = createAppDiagnosticsReport({
             requireCanonical: true
         }
     }),
-    routes: routeReport
+    routes: routeReport,
+    sources: [
+        {
+            id: "localization",
+            label: "Localization",
+            report: localeReport
+        }
+    ]
 });
 
 logAppDiagnostics(appReport);
@@ -32,6 +43,7 @@ Accessible First diagnostics are intentionally layered:
 
 - `page.inspect()` checks the rendered DOM, landmarks, headings, ids, ARIA references, controls, component warnings, and document metadata.
 - `inspectAppRoutes()` checks the route model, route hierarchy, hrefs, and route metadata.
+- `inspectLocaleController()` checks supported locale dictionaries and required message keys.
 - `createAppDiagnosticsReport()` combines those reports into one app-level status.
 
 This keeps each inspector simple, while still giving an application a single health signal. Public app checks can combine page metadata, route metadata, web app manifest diagnostics, and later custom SEO or interaction reports.
@@ -42,7 +54,7 @@ This keeps each inspector simple, while still giving an application a single hea
 - `routes` - optional `AppRouteDiagnosticsReport`.
 - `sources` - optional custom diagnostics reports.
 
-A custom source needs an `id` and a report-like object with `status`, `issues`, and/or issue counts. This can include reports such as `inspectWebAppManifest(...)`.
+A custom source needs an `id` and a report-like object with `status`, `issues`, and/or issue counts. This can include reports such as `inspectLocaleController(...)` and `inspectWebAppManifest(...)`.
 
 ```ts
 createAppDiagnosticsReport({
@@ -91,6 +103,7 @@ For public applications, keep app diagnostics enabled in development and CI-like
 
 - App diagnostics reports one combined status.
 - Page diagnostics can be passed with `log: false` to avoid duplicate console output.
+- Localization diagnostics can be passed as a custom source to catch missing framework service text and app-owned messages.
 - Public-page metadata checks, including social metadata and JSON-LD requirements, should usually live in the page diagnostics source.
 - Route diagnostics remain visible as a source inside the app report.
 - Custom sources do not break the aggregate report when they are `null` or `undefined`.

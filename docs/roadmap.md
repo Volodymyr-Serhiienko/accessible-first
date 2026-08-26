@@ -35,8 +35,8 @@ These layers are strong enough to build on:
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
-- Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
-- Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
+- Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata, localization, and manifest checks.
+- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
 
@@ -57,6 +57,7 @@ Current focus:
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, while moving reusable lifecycle, app header, route chrome, and workflow focus wiring into framework helpers.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
+- Keep localization diagnostics wired into app health reports so missing service/app text is visible before release.
 
 ### Exit Criteria For This Phase
 
@@ -129,11 +130,11 @@ Already started. Continue to keep all framework-owned user-facing service text b
 Need next:
 
 - harden the app-owned translation file template against the first real app;
+- keep `inspectLocaleController()` in app diagnostics for required framework and app-owned message keys;
 - refine `LocaleRefresh` into higher-level app templates only after real repeated patterns appear;
-- locale-aware number/date formatting helpers;
-- pluralization strategy;
-- locale-aware search/sort options;
-- RTL direction support and diagnostics.
+- richer pluralization strategy on top of `Intl.PluralRules` categories;
+- locale-aware search/filter helpers beyond formatter-level string comparison;
+- RTL layout smoke tests and diagnostics beyond document direction synchronization.
 
 ### Theme, Tokens, And Density
 

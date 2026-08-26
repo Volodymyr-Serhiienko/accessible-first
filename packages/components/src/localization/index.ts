@@ -1,10 +1,40 @@
 export {
     createLocaleController,
     getLocaleText,
+    getLocaleDirection,
     getSystemLocaleCandidates,
     resolveSupportedLocale
 } from "./createLocaleController";
 export { createLocaleRefresh } from "./createLocaleRefresh";
+export { createLocaleFormatter } from "./createLocaleFormatter";
+export {
+    inspectLocaleController,
+    inspectLocaleMessages,
+    logLocaleDiagnostics
+} from "./inspectLocaleMessages";
+
+export type {
+    LocaleDateValue,
+    LocaleFormatter,
+    LocaleFormatterLocaleInput,
+    LocaleFormatterLocaleSource,
+    LocaleFormatterOptions,
+    LocaleListFormatOptions,
+    LocaleListFormatStyle,
+    LocaleListFormatType,
+    LocaleRelativeTimeUnit,
+    LocaleSortOptions
+} from "./createLocaleFormatter";
+
+export type {
+    LocaleControllerDiagnosticsOptions,
+    LocaleDiagnosticsCategory,
+    LocaleDiagnosticsIssue,
+    LocaleDiagnosticsLevel,
+    LocaleDiagnosticsOptions,
+    LocaleDiagnosticsReport,
+    LocaleDiagnosticsStatus
+} from "./inspectLocaleMessages";
 
 export {
     accessibleFirstEnglishMessages
