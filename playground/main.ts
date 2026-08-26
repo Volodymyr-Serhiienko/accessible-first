@@ -5,18 +5,15 @@ import {
     inspectWebAppManifest,
     logAppDiagnostics,
     type ComposedResponsiveNavigation,
-    type CompositionChild,
     type DocumentMetadataUpdateOptions,
     type HashRoutedApp
 } from "./demo/af";
-import { PlaygroundBreadcrumbs } from "./demo/breadcrumbs";
-import { PlaygroundCommands } from "./demo/commands";
 import { FooterDemo } from "./demo/footer";
 import { HeaderDemo } from "./demo/header";
 import { playgroundLocale, t } from "./demo/localization";
 import { playgroundManifest } from "./demo/manifest";
-import { NavigationDemo } from "./demo/navigation";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
+import { createPlaygroundRouteChrome } from "./demo/routeChrome";
 import {
     getPlaygroundRouteDescription,
     getPlaygroundRouteDocumentMetadata,
@@ -24,7 +21,6 @@ import {
     playgroundRoutes,
     type PlaygroundRoute
 } from "./demo/routes";
-import { PlaygroundSearch } from "./demo/search";
 import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
@@ -153,21 +149,6 @@ function logPlaygroundDiagnostics(): void {
     }));
 }
 
-function createPlaygroundHeaderControls(
-    router: HashRoutedApp<PlaygroundRoute>["router"]
-): CompositionChild[] {
-    return [
-        PlaygroundSearch({
-            router,
-            routes: playgroundRoutes,
-            width: "14rem"
-        }),
-        PlaygroundCommands({
-            router,
-            routes: playgroundRoutes
-        })
-    ];
-}
 
 app = createHashRoutedApp<PlaygroundRoute>({
     routes: playgroundRoutes,
@@ -221,13 +202,16 @@ app = createHashRoutedApp<PlaygroundRoute>({
         }
     },
     renderChrome({ router, route }) {
-        const navigation = NavigationDemo({
-            current: route.id,
-            router
+        const routeChrome = createPlaygroundRouteChrome({
+            router,
+            current: route
         });
-        const routeBreadcrumbs = PlaygroundBreadcrumbs(route);
 
-        currentNavigation = navigation;
+        if (!routeChrome.navigation) {
+            throw new Error("Playground route chrome requires navigation.");
+        }
+
+        currentNavigation = routeChrome.navigation;
 
         return {
             shell: {
@@ -238,12 +222,12 @@ app = createHashRoutedApp<PlaygroundRoute>({
             },
             header: HeaderDemo({
                 brandMaxWidth: "28rem",
-                controls: createPlaygroundHeaderControls(router)
+                controls: [...routeChrome.headerControls]
             }),
-            navigation,
-            beforeOutlet: routeBreadcrumbs,
-            navigationControl: navigation,
-            currentRouteControls: [routeBreadcrumbs]
+            navigation: routeChrome.navigation,
+            beforeOutlet: routeChrome.breadcrumbs,
+            navigationControl: routeChrome.navigationControl,
+            currentRouteControls: routeChrome.currentRouteControls
         };
     }
 });

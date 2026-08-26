@@ -108,6 +108,8 @@ return {
 
 Use `navigationControl` for the route-aware navigation control that should mirror the current hash route. Use `currentRouteControls` for breadcrumbs or other controls with `setCurrent(...)`. Use `createHashRouterRouteActivationHandler(...)` when navigation, route search, and command palette should share the same activation behavior.
 
+Use `createRouteChrome(...)` when an app wants to create route navigation, breadcrumbs, route search, and command palette controls from one route list and one shared activation handler.
+
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 
 ## Localization

@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata and manifest checks.
 - Localization baseline: LocaleController, framework service-text registry, application locale template, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -55,7 +55,7 @@ Current focus:
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
 - Harden `HashRoutedApp` and `LinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
-- Keep playground code focused on demo copy and examples, while moving reusable lifecycle wiring into framework helpers.
+- Keep playground code focused on demo copy and examples, while moving reusable lifecycle and route chrome wiring into framework helpers.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application.
 
 ### Exit Criteria For This Phase
@@ -64,7 +64,7 @@ Before starting the first real application, we should have:
 
 - one clear app shell recipe for SPA, backed by `HashRoutedApp`;
 - one clear app shell recipe for MPA/native links, backed by `LinkRoutedApp`;
-- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, locale refresh, and diagnostics;
+- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, RouteChrome, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
 - diagnostics reporting useful page, route, metadata, localization, and manifest issues;
@@ -76,7 +76,7 @@ Goal: use Accessible First to build real application screens, then promote repea
 
 Planned sequence:
 
-1. Create app templates around `AppShell`, `PageOutlet`, `PageLayout`, route metadata, metadata helpers, diagnostics, locale, and theme.
+1. Create app templates around `AppShell`, `PageOutlet`, `PageLayout`, `RouteChrome`, route metadata, metadata helpers, diagnostics, locale, and theme.
 2. Add header/navigation variants only after the template needs them:
    - top navigation;
    - sidebar navigation;

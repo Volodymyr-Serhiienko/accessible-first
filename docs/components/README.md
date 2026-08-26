@@ -79,6 +79,7 @@ Each component document should contain:
 - [PageOutlet](./page-outlet.md)
 - [RobotsTxt](./robots-txt.md)
 - [RouteBreadcrumbs](./route-breadcrumbs.md)
+- [RouteChrome](./route-chrome.md)
 - [RouteCommandPalette](./route-command-palette.md)
 - [RouteResponsiveNavigation](./route-responsive-navigation.md)
 - [RouteSearchBox](./route-search-box.md)
