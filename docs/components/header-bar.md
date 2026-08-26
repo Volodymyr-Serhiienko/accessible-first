@@ -2,6 +2,8 @@
 
 HeaderBar is a semantic-neutral layout component for the visible contents of a page or app header.
 
+For common application headers, prefer `AppHeader`. Use `HeaderBar` directly when you need low-level slot control or a custom shell pattern.
+
 It should be placed inside `page.header(...)` or the `AppShell.header` slot. The native `header` landmark is still owned by `createPage()`. HeaderBar only arranges common header content such as brand, search, theme toggle, language switcher, profile controls, or other actions.
 
 ## Quick Start

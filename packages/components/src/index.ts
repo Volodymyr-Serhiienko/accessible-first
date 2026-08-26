@@ -2,6 +2,7 @@ export * from "./accordion";
 export * from "./actions-bar";
 export * from "./alert-dialog";
 export * from "./app-diagnostics";
+export * from "./app-header";
 export * from "./app-routes";
 export * from "./app-shell";
 export * from "./badge";

@@ -67,6 +67,7 @@ Each component document should contain:
 ## App, Routing, Metadata, Diagnostics, And Helpers
 
 - [AppDiagnostics](./app-diagnostics.md)
+- [AppHeader](./app-header.md)
 - [AppShell](./app-shell.md)
 - [App Routes](./app-routes.md)
 - [App Route Sitemap](./app-route-sitemap.md)

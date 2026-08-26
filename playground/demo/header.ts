@@ -1,10 +1,6 @@
 import {
-    Brand,
-    HeaderBar,
-    HeaderTools,
+    AppHeader,
     Image,
-    LanguageSelect,
-    ThemeToggle,
     type ComposedNode,
     type CompositionChild
 } from "./af";
@@ -18,26 +14,10 @@ export interface HeaderDemoOptions {
 export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
     const brandMaxWidth = options.brandMaxWidth ?? "28rem";
 
-    const controls: CompositionChild[] = [
-        ...(options.controls ?? []),
-        LanguageSelect({
-            locale: playgroundLocale,
-            labelOptions: {
-                attributes: {
-                    "data-af-composition": "visually-hidden"
-                }
-            }
-        }),
-        ThemeToggle({
-            locale: playgroundLocale,
-            display: "switch",
-            variant: "secondary"
-        })
-    ];
-
-    return HeaderBar({
+    return AppHeader({
         brandMaxWidth,
-        brand: Brand({
+        locale: playgroundLocale,
+        brand: {
             className: "playground-brand",
             href: "#main",
             maxWidth: brandMaxWidth,
@@ -53,10 +33,18 @@ export function HeaderDemo(options: HeaderDemoOptions = {}): ComposedNode {
             name: t("app.brand.name"),
             nameTag: "h1",
             tagline: t("app.brand.tagline")
-        }),
-        actions: HeaderTools({
-            locale: playgroundLocale,
-            controls
-        })
+        },
+        controls: options.controls ?? [],
+        language: {
+            labelOptions: {
+                attributes: {
+                    "data-af-composition": "visually-hidden"
+                }
+            }
+        },
+        theme: {
+            display: "switch",
+            variant: "secondary"
+        }
     });
 }
