@@ -29,37 +29,37 @@ const app = createHashRoutedApp({
             return getRouteMetadata(route);
         }
     },
-    renderChrome({ router, route }) {
-        return createHashAppRouteChrome({
-            router,
-            routes,
-            current: route,
-            header: {
-                locale,
-                brand: {
-                    href: "#main",
-                    name: t("app.title")
+    renderChrome: createHashAppRouteChromeRenderer({
+        options() {
+            return {
+                routes,
+                header: {
+                    locale,
+                    brand: {
+                        href: "#main",
+                        name: t("app.title")
+                    }
+                },
+                navigation: {
+                    id: "app-navigation",
+                    trigger: t("app.navigationTrigger"),
+                    locale
+                },
+                breadcrumbs: {
+                    label: t("app.breadcrumbsLabel")
+                },
+                search: {
+                    label: t("app.searchLabel"),
+                    placeholder: t("app.searchPlaceholder")
+                },
+                commands: {
+                    trigger: t("app.commandsTrigger"),
+                    title: t("app.commandsTitle"),
+                    searchLabel: t("app.commandsSearchLabel")
                 }
-            },
-            navigation: {
-                id: "app-navigation",
-                trigger: t("app.navigationTrigger"),
-                locale
-            },
-            breadcrumbs: {
-                label: t("app.breadcrumbsLabel")
-            },
-            search: {
-                label: t("app.searchLabel"),
-                placeholder: t("app.searchPlaceholder")
-            },
-            commands: {
-                trigger: t("app.commandsTrigger"),
-                title: t("app.commandsTitle"),
-                searchLabel: t("app.commandsSearchLabel")
-            }
-        });
-    }
+            };
+        }
+    })
 });
 ```
 
@@ -99,22 +99,24 @@ The helper owns repeatable lifecycle wiring:
 `renderChrome(context)` receives `shell`, `router`, `routes`, the current `route`, and refresh helpers. Return only the regions the app wants the runtime to manage:
 
 ```ts
-return createHashAppRouteChrome({
-    router,
-    routes,
-    current: route,
-    header: {
-        locale,
-        brand: { name: t("app.title") }
-    },
-    navigation: { id: "app-navigation", locale },
-    breadcrumbs: { label: t("app.breadcrumbsLabel") },
-    search: { label: t("app.searchLabel") },
-    commands: { trigger: t("app.commandsTrigger") }
-});
+renderChrome: createHashAppRouteChromeRenderer({
+    options() {
+        return {
+            routes,
+            header: {
+                locale,
+                brand: { name: t("app.title") }
+            },
+            navigation: { id: "app-navigation", locale },
+            breadcrumbs: { label: t("app.breadcrumbsLabel") },
+            search: { label: t("app.searchLabel") },
+            commands: { trigger: t("app.commandsTrigger") }
+        };
+    }
+})
 ```
 
-Use `createHashAppRouteChrome(...)` for the common hash-SPA chrome path. It creates an `AppHeader`, route navigation, breadcrumbs, route search, command palette controls, and the standard route activation handler from one route list. Use `createAppRouteChrome(...)` when activation is custom, and `createRouteChrome(...)` directly only when the app needs custom header assembly.
+Use `createHashAppRouteChromeRenderer(...)` for the common hash-SPA chrome path. It creates an `AppHeader`, route navigation, breadcrumbs, route search, command palette controls, and the standard route activation handler from one route list. Use `createHashAppRouteChrome(...)` directly when you already have `router` and `current` in custom render code. Use `createAppRouteChrome(...)` when activation is custom, and `createRouteChrome(...)` directly only when the app needs custom header assembly.
 
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 

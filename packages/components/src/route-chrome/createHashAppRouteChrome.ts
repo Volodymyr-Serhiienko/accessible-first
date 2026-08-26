@@ -1,5 +1,9 @@
 import type { AppRouteDescriptor } from "../app-routes";
 import type {
+    HashRoutedAppChromeRenderer,
+    HashRoutedAppContext
+} from "../routed-app/createHashRoutedApp";
+import type {
     AccessibleFirstMessageKey,
     LocaleCode
 } from "../localization";
@@ -36,6 +40,53 @@ export interface HashAppRouteChromeOptions<
     activationOptions?: HashRouterRouteActivationOptions;
 }
 
+/**
+ * Hash app chrome options without the router-owned state supplied by HashRoutedApp.
+ */
+export type HashAppRouteChromeBaseOptions<
+    TRoute extends HashAppRouteChromeRoute = HashAppRouteChromeRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+> = Omit<HashAppRouteChromeOptions<TRoute, TLocale, TKey>, "router" | "current">;
+
+/**
+ * Creates hash app chrome options from the current HashRoutedApp render context.
+ */
+export type HashAppRouteChromeOptionsResolver<
+    TRoute extends HashAppRouteChromeRoute = HashAppRouteChromeRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+> = (
+    context: HashRoutedAppContext<TRoute>
+) => HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>;
+
+/**
+ * Called after a HashRoutedApp route chrome instance is created.
+ */
+export type HashAppRouteChromeCreateHandler<
+    TRoute extends HashAppRouteChromeRoute = HashAppRouteChromeRoute,
+    TLocale extends LocaleCode = LocaleCode
+> = (
+    chrome: AppRouteChrome<TRoute, TLocale>,
+    context: HashRoutedAppContext<TRoute>
+) => void;
+
+/**
+ * Options for createHashAppRouteChromeRenderer().
+ */
+export interface HashAppRouteChromeRendererOptions<
+    TRoute extends HashAppRouteChromeRoute = HashAppRouteChromeRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+> {
+    /** Static options or a resolver used for each HashRoutedApp chrome render. */
+    options:
+        | HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>
+        | HashAppRouteChromeOptionsResolver<TRoute, TLocale, TKey>;
+    /** Optional hook for saving generated controls such as navigation focus targets. */
+    onCreate?: HashAppRouteChromeCreateHandler<TRoute, TLocale> | null;
+}
+
 const defaultActivationOptions: HashRouterRouteActivationOptions = {
     updateHistory: true,
     scroll: true,
@@ -49,6 +100,19 @@ function getActivationOptions(
         ...defaultActivationOptions,
         ...(options ?? {})
     };
+}
+
+function getRendererChromeOptions<
+    TRoute extends HashAppRouteChromeRoute,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: HashAppRouteChromeRendererOptions<TRoute, TLocale, TKey>,
+    context: HashRoutedAppContext<TRoute>
+): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
+    return typeof options.options === "function"
+        ? options.options(context)
+        : options.options;
 }
 
 /**
@@ -76,4 +140,27 @@ export function createHashAppRouteChrome<
     };
 
     return createAppRouteChrome(nextOptions);
+}
+
+/**
+ * Creates a HashRoutedApp.renderChrome callback from declarative route chrome options.
+ */
+export function createHashAppRouteChromeRenderer<
+    TRoute extends HashAppRouteChromeRoute = HashAppRouteChromeRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+>(
+    options: HashAppRouteChromeRendererOptions<TRoute, TLocale, TKey>
+): HashRoutedAppChromeRenderer<TRoute> {
+    return (context) => {
+        const chrome = createHashAppRouteChrome<TRoute, TLocale, TKey>({
+            ...getRendererChromeOptions(options, context),
+            router: context.router,
+            current: context.route
+        });
+
+        options.onCreate?.(chrome, context);
+
+        return chrome;
+    };
 }

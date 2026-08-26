@@ -1,19 +1,26 @@
 import {
-    createHashAppRouteChrome,
-    type AppRouteChrome,
+    createHashAppRouteChromeRenderer,
     type AppRouteDescriptor,
-    type HashRouter
+    type ComposedResponsiveNavigation,
+    type DocumentMetadataUpdateOptions,
+    type HashAppRouteChromeBaseOptions,
+    type HashRoutedAppChromeRenderer
 } from "./af";
 import { getPlaygroundHeaderOptions } from "./header";
-import { playgroundLocale, t, type PlaygroundLocale } from "./localization";
+import {
+    playgroundLocale,
+    t,
+    type PlaygroundLocale,
+    type PlaygroundMessageKey
+} from "./localization";
 import {
     playgroundRoutes,
     type PlaygroundRoute
 } from "./routes";
 
-export interface PlaygroundRouteChromeOptions {
-    router: HashRouter<PlaygroundRoute>;
-    current: PlaygroundRoute;
+export interface PlaygroundRouteChromeRendererOptions {
+    getAppMetadata(): DocumentMetadataUpdateOptions;
+    onNavigation?(navigation: ComposedResponsiveNavigation): void;
 }
 
 const playgroundRootRoute: AppRouteDescriptor = {
@@ -34,13 +41,17 @@ function getBreadcrumbParentId(route: AppRouteDescriptor): string | null {
     return route.parentId ?? playgroundRootRoute.id;
 }
 
-export function createPlaygroundRouteChrome(
-    options: PlaygroundRouteChromeOptions
-): AppRouteChrome<PlaygroundRoute, PlaygroundLocale> {
-    return createHashAppRouteChrome<PlaygroundRoute, PlaygroundLocale>({
-        router: options.router,
+function getPlaygroundRouteChromeOptions(
+    options: PlaygroundRouteChromeRendererOptions
+): HashAppRouteChromeBaseOptions<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey> {
+    return {
         routes: playgroundRoutes,
-        current: options.current,
+        shell: {
+            title: t("app.brand.name"),
+            skipLink: t("app.navigation.skipLink"),
+            navigationLabel: t("app.navigation.label"),
+            metadata: options.getAppMetadata()
+        },
         header: getPlaygroundHeaderOptions("28rem"),
         navigation: {
             id: "playground-navigation",
@@ -103,6 +114,23 @@ export function createPlaygroundRouteChrome(
                     return ["open", "go", "section", "demo", route.id, route.title, route.label];
                 }
             }
+        }
+    };
+}
+
+export function createPlaygroundRouteChromeRenderer(
+    options: PlaygroundRouteChromeRendererOptions
+): HashRoutedAppChromeRenderer<PlaygroundRoute> {
+    return createHashAppRouteChromeRenderer<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
+        options: () => getPlaygroundRouteChromeOptions(options),
+        onCreate(chrome) {
+            const navigation = chrome.routeChrome.navigation;
+
+            if (!navigation) {
+                throw new Error("Playground route chrome requires navigation.");
+            }
+
+            options.onNavigation?.(navigation);
         }
     });
 }

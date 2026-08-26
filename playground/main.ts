@@ -12,7 +12,7 @@ import { FooterDemo } from "./demo/footer";
 import { playgroundLocale, t } from "./demo/localization";
 import { playgroundManifest } from "./demo/manifest";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
-import { createPlaygroundRouteChrome } from "./demo/routeChrome";
+import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
     getPlaygroundRouteDescription,
     getPlaygroundRouteDocumentMetadata,
@@ -200,28 +200,12 @@ app = createHashRoutedApp<PlaygroundRoute>({
             logPlaygroundDiagnostics();
         }
     },
-    renderChrome({ router, route }) {
-        const appChrome = createPlaygroundRouteChrome({
-            router,
-            current: route
-        });
-
-        if (!appChrome.routeChrome.navigation) {
-            throw new Error("Playground route chrome requires navigation.");
+    renderChrome: createPlaygroundRouteChromeRenderer({
+        getAppMetadata: getPlaygroundAppMetadata,
+        onNavigation(navigation) {
+            currentNavigation = navigation;
         }
-
-        currentNavigation = appChrome.routeChrome.navigation;
-
-        return {
-            ...appChrome,
-            shell: {
-                title: t("app.brand.name"),
-                skipLink: t("app.navigation.skipLink"),
-                navigationLabel: t("app.navigation.label"),
-                metadata: getPlaygroundAppMetadata()
-            }
-        };
-    }
+    })
 });
 
 app.start({

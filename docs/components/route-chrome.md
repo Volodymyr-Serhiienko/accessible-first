@@ -4,46 +4,46 @@ RouteChrome contains route-aware chrome recipes for application shells.
 
 Use `createRouteChrome` when you only need route controls: responsive navigation, breadcrumbs, route search, and route command palette.
 
-Use `createHashAppRouteChrome` for hash-routed SPAs. It creates the standard hash route activation handler for navigation, route search, and commands.
+Use `createHashAppRouteChromeRenderer` inside `HashRoutedApp.renderChrome` for the common hash-routed SPA path. Use `createHashAppRouteChrome` directly when app code already has a router and current route.
 
 Use `createAppRouteChrome` when a routed app should return ready shell slots but the app owns route activation itself, such as native-link or MPA pages.
 
-## Quick Start: Hash App Route Chrome
+## Quick Start: Hash Routed App Chrome
 
 ```ts
-renderChrome({ router, route }) {
-    return createHashAppRouteChrome({
-        router,
-        routes,
-        current: route,
-        header: {
-            locale,
-            brand: {
-                href: "#main",
-                name: t("app.name"),
-                tagline: t("app.tagline")
+renderChrome: createHashAppRouteChromeRenderer({
+    options() {
+        return {
+            routes,
+            header: {
+                locale,
+                brand: {
+                    href: "#main",
+                    name: t("app.name"),
+                    tagline: t("app.tagline")
+                }
+            },
+            navigation: {
+                id: "app-navigation",
+                trigger: t("app.navigation.trigger"),
+                variant: "pills",
+                locale
+            },
+            breadcrumbs: {
+                label: t("app.breadcrumbs.label")
+            },
+            search: {
+                label: t("app.search.label"),
+                placeholder: t("app.search.placeholder")
+            },
+            commands: {
+                trigger: t("app.commands.trigger"),
+                title: t("app.commands.title"),
+                searchLabel: t("app.commands.searchLabel")
             }
-        },
-        navigation: {
-            id: "app-navigation",
-            trigger: t("app.navigation.trigger"),
-            variant: "pills",
-            locale
-        },
-        breadcrumbs: {
-            label: t("app.breadcrumbs.label")
-        },
-        search: {
-            label: t("app.search.label"),
-            placeholder: t("app.search.placeholder")
-        },
-        commands: {
-            trigger: t("app.commands.trigger"),
-            title: t("app.commands.title"),
-            searchLabel: t("app.commands.searchLabel")
-        }
-    });
-}
+        };
+    }
+})
 ```
 
 ## Quick Start: Route Controls Only
@@ -85,6 +85,8 @@ RouteChrome sits above individual route-aware controls and below full app templa
 
 `createHashAppRouteChrome` builds on `createAppRouteChrome` and adds standard hash-route activation defaults: update history, scroll to the outlet, and move focus into the rendered route content.
 
+`createHashAppRouteChromeRenderer` wraps that behavior as a ready `HashRoutedApp.renderChrome` callback. It supplies the current router and route from the app runtime, while app code provides only route chrome options.
+
 None of these helpers create route data, screen content, app copy, metadata strategy, or a router. The application still owns those decisions.
 
 ## createRouteChrome Options
@@ -96,6 +98,15 @@ None of these helpers create route data, screen content, app copy, metadata stra
 - `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search.
 - `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
 - `onRouteActivate` - shared activation callback used by navigation, search, and commands.
+
+## createHashAppRouteChromeRenderer Options
+
+`createHashAppRouteChromeRenderer` accepts:
+
+- `options` - either static hash app route chrome options without `router` and `current`, or a resolver called with the current `HashRoutedApp` context.
+- `onCreate` - optional hook called with the generated chrome and context. Use it to save generated controls such as navigation focus targets.
+
+Use a resolver when labels, metadata, or shell copy should reflect the current locale.
 
 ## createHashAppRouteChrome Options
 
@@ -136,7 +147,7 @@ None of these helpers create route data, screen content, app copy, metadata stra
 
 ## SPA And MPA Use
 
-For hash-routed SPAs, prefer `createHashAppRouteChrome(...)`. Use `createAppRouteChrome(...)` with a custom `onRouteActivate` only when the app needs non-standard activation behavior.
+For hash-routed SPAs built with `HashRoutedApp`, prefer `createHashAppRouteChromeRenderer(...)`. Use `createHashAppRouteChrome(...)` when app code already owns the render callback. Use `createAppRouteChrome(...)` with a custom `onRouteActivate` only when the app needs non-standard activation behavior.
 
 For native-link or MPA pages, omit `onRouteActivate` when links should navigate normally. `LinkRoutedApp` can still use `navigationControl` and `currentRouteControls` to mark the current page from location matching.
 
@@ -156,3 +167,4 @@ When using `createAppRouteChrome`, the generated `AppHeader` keeps one control s
 - Header controls move into HeaderTools overflow when they do not fit.
 - Native-link apps still allow normal browser navigation when `onRouteActivate` is omitted.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
+- HashRoutedApp renderers can be expressed declaratively without repeating `router` and `current` wiring.
