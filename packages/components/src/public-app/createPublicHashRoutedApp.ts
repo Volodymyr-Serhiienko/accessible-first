@@ -1,10 +1,6 @@
-import {
-    createPublicAppDiagnosticsRunner,
-    type AppDiagnosticsReport,
-    type AppDiagnosticsRunner,
-    type PublicAppDiagnosticsPageResolver,
-    type PublicAppDiagnosticsRoutesResolver,
-    type PublicAppDiagnosticsRunnerOptions
+import type {
+    AppDiagnosticsReport,
+    AppDiagnosticsRunner
 } from "../app-diagnostics";
 import type { AppRouteDescriptor } from "../app-routes";
 import {
@@ -23,6 +19,10 @@ import type {
     HashRouterNavigateOptions,
     HashRouterRoute
 } from "../routing";
+import {
+    createPublicRoutedAppDiagnostics,
+    type PublicRoutedAppDiagnosticsOptions
+} from "./createPublicRoutedAppDiagnostics";
 
 /**
  * Route contract for public hash-routed app recipes.
@@ -41,11 +41,7 @@ export interface PublicHashRoutedAppDiagnosticsOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = string,
     TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute
-> extends Omit<PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute>, "page" | "routes"> {
-    /** Page diagnostics source. Defaults to the created app shell; pass false to omit page diagnostics. */
-    page?: PublicAppDiagnosticsPageResolver | false;
-    /** Route diagnostics source. Defaults to the app route list; pass false to omit route diagnostics. */
-    routes?: PublicAppDiagnosticsRoutesResolver<TRoute> | false;
+> extends PublicRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute> {
     /** Logs fresh diagnostics through the router inspect hook after route renders and refreshes. */
     logOnRouteChange?: boolean;
 }
@@ -114,40 +110,21 @@ function createRouterOptions<
     };
 }
 
-function createDiagnostics<
+function getDiagnosticsOptions<
     TRoute extends PublicHashRoutedAppRoute,
     TLocale extends LocaleCode,
     TKey extends string
 >(
-    app: HashRoutedApp<TRoute>,
     options: PublicHashRoutedAppOptions<TRoute, TLocale, TKey>
-): AppDiagnosticsRunner | null {
-    if (options.diagnostics === false) return null;
+): PublicRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute> | false | undefined {
+    if (options.diagnostics === false || options.diagnostics === undefined) return options.diagnostics;
 
-    const diagnosticsOptions = options.diagnostics ?? {};
     const {
-        page,
-        routes,
         logOnRouteChange: _logOnRouteChange,
-        ...runnerOptions
-    } = diagnosticsOptions;
-    const nextOptions: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute> = {
-        ...runnerOptions
-    };
+        ...diagnosticsOptions
+    } = options.diagnostics;
 
-    if (page !== false) {
-        nextOptions.page = page === undefined
-            ? () => app.shell
-            : page;
-    }
-
-    if (routes !== false) {
-        nextOptions.routes = routes === undefined
-            ? app.routes
-            : routes;
-    }
-
-    return createPublicAppDiagnosticsRunner(nextOptions);
+    return diagnosticsOptions;
 }
 
 function resetStartupScroll(
@@ -186,7 +163,7 @@ export function createPublicHashRoutedApp<
 
     const routedApp = createHashRoutedApp(routedAppOptions);
 
-    diagnostics = createDiagnostics(routedApp, options);
+    diagnostics = createPublicRoutedAppDiagnostics(routedApp, getDiagnosticsOptions(options));
 
     const publicApp: PublicHashRoutedApp<TRoute> = {
         shell: routedApp.shell,

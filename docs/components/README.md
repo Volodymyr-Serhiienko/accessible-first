@@ -80,6 +80,7 @@ Each component document should contain:
 - [PageLayout](./page-layout.md)
 - [PageOutlet](./page-outlet.md)
 - [PublicHashRoutedApp](./public-hash-routed-app.md)
+- [PublicLinkRoutedApp](./public-link-routed-app.md)
 - [RobotsTxt](./robots-txt.md)
 - [RouteBreadcrumbs](./route-breadcrumbs.md)
 - [RouteChrome](./route-chrome.md)

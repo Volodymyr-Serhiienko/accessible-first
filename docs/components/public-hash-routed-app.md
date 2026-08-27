@@ -115,7 +115,7 @@ Use `HashRoutedApp` directly when the app is private, internal, experimental, or
 
 Use `createHashRouter()` directly when the app does not use `AppShell` or needs low-level router control.
 
-Use `LinkRoutedApp` for native-link/MPA applications. A public native-link recipe can be added later if real MPA examples repeat the same diagnostics and startup setup.
+Use [PublicLinkRoutedApp](./public-link-routed-app.md) for public native-link/MPA applications that need the same diagnostics defaults without SPA route rendering.
 
 ## Manual Checks
 

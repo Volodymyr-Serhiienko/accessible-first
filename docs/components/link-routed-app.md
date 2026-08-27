@@ -63,7 +63,7 @@ const app = createLinkRoutedApp({
 
 ## Purpose
 
-LinkRoutedApp is deliberately thin. It does not intercept links, push history, or render route screens. Native browser navigation remains the routing mechanism.
+LinkRoutedApp is deliberately thin. For public native-link/MPA pages that also need app identity, route diagnostics, manifest checks, and localization checks in one entry-point recipe, use [PublicLinkRoutedApp](./public-link-routed-app.md). It does not intercept links, push history, or render route screens. Native browser navigation remains the routing mechanism.
 
 The helper owns repeatable page-shell wiring:
 

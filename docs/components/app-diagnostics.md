@@ -6,7 +6,7 @@ Use it when a real app or playground has independent checks such as page semanti
 
 ## Quick Start
 
-For public app setup, prefer `createPublicAppDiagnosticsRunner()`. It keeps strict page metadata, localization, manifest, route, and custom diagnostics declarative while computing fresh reports every time the app asks for a health check.
+For full public app entry points, prefer [PublicHashRoutedApp](./public-hash-routed-app.md) for hash SPAs or [PublicLinkRoutedApp](./public-link-routed-app.md) for native-link/MPA pages. Use `createPublicAppDiagnosticsRunner()` when an app has custom runtime wiring but still wants strict page metadata, localization, manifest, route, and custom diagnostics.
 
 ```ts
 const diagnostics = createPublicAppDiagnosticsRunner({
@@ -56,11 +56,11 @@ Accessible First diagnostics are intentionally layered:
 - `inspectAppRoutes()` checks the route model, route hierarchy, hrefs, and route metadata.
 - `inspectLocaleController()` checks supported locale dictionaries and required message keys.
 - Manifest, robots, sitemap, or app-specific reports can be added as custom sources.
-- `createPublicAppDiagnosticsRunner()` applies strict public-app defaults for document metadata and manifest checks, then adds route, locale, and custom sources.
+- `createPublicAppDiagnosticsRunner()` applies strict public-app defaults for document metadata and manifest checks, then adds route, locale, and custom sources. Public routed app recipes use it internally.
 - `createAppDiagnosticsRunner()` turns custom checks into one reusable app-level health command.
 - `createAppDiagnosticsReport()` combines already-created reports into one app-level status.
 
-This keeps each inspector simple, while still giving an application a single health signal. Public app checks can combine page metadata, route metadata, web app manifest diagnostics, localization, and later custom SEO or interaction reports.
+This keeps each inspector simple, while still giving an application a single health signal. Public app checks can combine page metadata, route metadata, web app manifest diagnostics, localization, and later custom SEO or interaction reports. `PublicHashRoutedApp` and `PublicLinkRoutedApp` wire those checks with app shell and route-list defaults.
 
 ## Public App Runner
 
@@ -91,6 +91,12 @@ Options:
 
 Use `createPublicAppPageDiagnosticsOptions()` and `createPublicAppManifestDiagnosticsOptions()` when an app wants the same strict defaults without the full runner.
 
+
+## Public Routed App Defaults
+
+`createPublicRoutedAppDiagnostics(target, options)` is the shared helper used by public routed app recipes. It defaults `page` to the created app shell and `routes` to the app route list, then forwards identity, manifest, locale, route options, and custom sources to `createPublicAppDiagnosticsRunner()`.
+
+Use it directly only when building a new app runtime recipe. Application entry files should usually use `PublicHashRoutedApp` or `PublicLinkRoutedApp` instead.
 ## Runner Options
 
 - `page` - optional page diagnostics report or function returning one.
@@ -140,7 +146,7 @@ AppDiagnostics does not change UI behavior. It helps teams catch accessibility, 
 
 Diagnostics output is developer-facing console text. It should not be treated as user-facing application copy and does not need to participate in the first user-interface localization layer.
 
-For public applications, keep app diagnostics enabled in development and CI-like preview environments. In production, log only when a developer flag is enabled.
+For public applications, keep app diagnostics enabled in development and CI-like preview environments. In production, create the runner when useful for explicit health checks, but log only when a developer flag is enabled.
 
 ## Manual Checks
 
