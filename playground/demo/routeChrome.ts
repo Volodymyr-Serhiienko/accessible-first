@@ -1,12 +1,10 @@
 import {
     createHashAppRouteChromeRenderer,
-    type AppRouteDescriptor,
     type ComposedResponsiveNavigation,
     type DocumentMetadataUpdateOptions,
     type HashAppRouteChromeBaseOptions,
     type HashRoutedAppChromeRenderer
 } from "./af";
-import { playgroundAppIdentity } from "./appIdentity";
 import { getPlaygroundHeaderOptions } from "./header";
 import {
     playgroundLocale,
@@ -22,24 +20,6 @@ import {
 export interface PlaygroundRouteChromeRendererOptions {
     getAppMetadata(): DocumentMetadataUpdateOptions;
     onNavigation?(navigation: ComposedResponsiveNavigation): void;
-}
-
-const playgroundRootRoute: AppRouteDescriptor = {
-    id: "playground",
-    title: playgroundAppIdentity.name,
-    label: "Playground",
-    href: "#markup"
-};
-
-const playgroundBreadcrumbRoutes: AppRouteDescriptor[] = [
-    playgroundRootRoute,
-    ...playgroundRoutes
-];
-
-function getBreadcrumbParentId(route: AppRouteDescriptor): string | null {
-    if (route.id === playgroundRootRoute.id) return null;
-
-    return route.parentId ?? playgroundRootRoute.id;
 }
 
 function getPlaygroundRouteChromeOptions(
@@ -64,10 +44,12 @@ function getPlaygroundRouteChromeOptions(
         },
         breadcrumbs: {
             className: "playground-breadcrumbs",
-            label: "Current playground location",
-            routes: playgroundBreadcrumbRoutes,
-            trailOptions: {
-                getParentId: getBreadcrumbParentId
+            label: t("breadcrumbs.label"),
+            root: {
+                id: "playground",
+                title: t("app.breadcrumbs.rootLabel"),
+                label: t("app.breadcrumbs.rootLabel"),
+                href: "#markup"
             }
         },
         search: {

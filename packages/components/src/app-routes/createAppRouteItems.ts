@@ -853,14 +853,14 @@ export function getAppRouteKeywords(
 }
 
 /**
- * Returns the default search result description for a route.
+ * Returns the route description used by generated search results.
  */
 export function getAppRouteDescription(route: AppRouteDescriptor): string | null {
     if ("description" in route) {
         return route.description ?? null;
     }
 
-    return `Open ${getAppRouteLabel(route)}.`;
+    return null;
 }
 
 /**

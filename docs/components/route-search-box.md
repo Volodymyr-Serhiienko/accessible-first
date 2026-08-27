@@ -42,7 +42,7 @@ Use `RouteSearchBox` when search results should be derived from route metadata. 
 ## Options
 
 - `routes` - Required route metadata list.
-- `searchItemsOptions` - Options passed to `createAppRouteSearchItems()`.
+- `searchItemsOptions` - Options passed to `createAppRouteSearchItems()`. Use `getDescription` for localized result descriptions when route metadata does not carry them directly.
 - `onRouteSelect` - Called with the selected route when a result is selected.
 - `onSelect` - Optional lower-level `SearchBox` selection callback.
 - all `SearchBox` options except `items`, including `width`, `minWidth`, `maxWidth`, `searchLocale`, `searchMode`, `caseSensitive`, and `ignoreDiacritics`.
@@ -79,7 +79,7 @@ RouteSearchBox({
 
 - Input label is announced.
 - Typing filters route labels, descriptions, and keywords with the inherited SearchBox locale-aware matching rules.
-- Search result descriptions explain what opens.
+- Search result descriptions explain what opens when descriptions are provided by route metadata or `searchItemsOptions.getDescription`.
 - Disabled routes are not selectable.
 - Selecting a result calls `onRouteSelect` with the original route.
 - Updating routes replaces the result list.

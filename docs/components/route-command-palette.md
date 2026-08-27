@@ -50,7 +50,7 @@ Keep direct navigation available. On mobile screen readers, route search can be 
 - Converts routes into CommandPalette items.
 - Uses the route label/title as command text.
 - Adds route descriptions and keywords through app route search helpers.
-- Prefixes command labels with `Open ` by default.
+- Prefixes command labels with a localized action prefix (`Open ` in English) by default.
 - Calls `onRouteSelect(...)` with the selected route.
 - Keeps the route object available as `detail.route` and `detail.command.data`.
 - Inherits closing, Escape behavior, shortcuts, focus behavior, and search behavior from CommandPalette.
@@ -60,7 +60,7 @@ Keep direct navigation available. On mobile screen readers, route search can be 
 - `routes` - route metadata list.
 - `trigger` - content for the trigger button.
 - `searchItemsOptions` - resolvers for generated labels, descriptions, keywords, and disabled state.
-- `commandLabelPrefix` - prefix for generated command labels. Defaults to `Open `. Use `null` for no prefix.
+- `commandLabelPrefix` - prefix for generated command labels. Defaults to the localized route-command prefix. Use `null` for no prefix.
 - `onRouteSelect` - called when a route command is selected.
 - `onSelect` - lower-level CommandPalette selection callback.
 
@@ -76,7 +76,7 @@ RouteCommandPalette({
 });
 ```
 
-Use the default `Open ` prefix when search results should read as actions. Use `null` when route labels are already action-oriented or when shorter results are better.
+Use the default localized prefix when search results should read as actions. Use `null` when route labels are already action-oriented or when shorter results are better.
 
 ## Search Metadata
 

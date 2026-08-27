@@ -1,4 +1,9 @@
-import type { AppRouteDescriptor } from "../app-routes";
+import {
+    getAppRouteParentId,
+    type AppRouteDescriptor,
+    type AppRouteParentIdResolver,
+    type AppRouteTrailOptions
+} from "../app-routes";
 import type { CompositionChild } from "../composition";
 import {
     RouteBreadcrumbs,
@@ -47,13 +52,24 @@ export type RouteChromeNavigationOptions<
 > = Omit<RouteResponsiveNavigationOptions<TRoute>, "routes" | "current" | "onRouteNavigate">;
 
 /**
+ * Synthetic root route prepended to breadcrumb trails by createRouteChrome().
+ */
+export type RouteChromeBreadcrumbsRoot = AppRouteDescriptor | null;
+
+/**
  * Breadcrumb options owned by createRouteChrome().
  */
 export interface RouteChromeBreadcrumbsOptions<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
-> extends Omit<RouteBreadcrumbsOptions<AppRouteDescriptor>, "routes" | "current"> {
+> extends Omit<RouteBreadcrumbsOptions<AppRouteDescriptor>, "routes" | "current" | "trailOptions"> {
+    /** Optional route list used only for breadcrumbs, useful for adding synthetic routes. */
     routes?: readonly AppRouteDescriptor[];
+    /** Current route override for breadcrumbs. Defaults to the route chrome current route. */
     current?: RouteBreadcrumbsCurrent<TRoute>;
+    /** Optional synthetic root route used as the parent for routes without parentId. */
+    root?: RouteChromeBreadcrumbsRoot;
+    /** Breadcrumb trail options. root augments getParentId unless the resolver returns a value. */
+    trailOptions?: AppRouteTrailOptions<AppRouteDescriptor>;
 }
 
 /**
@@ -133,6 +149,50 @@ function getBreadcrumbCurrent<TRoute extends AppRouteDescriptor>(
     return current;
 }
 
+function getBreadcrumbRoutes<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: RouteChromeBreadcrumbsOptions<TRoute> | undefined
+): AppRouteDescriptor[] {
+    const root = options?.root ?? null;
+    const breadcrumbRoutes = [...(options?.routes ?? routes)];
+
+    if (!root || breadcrumbRoutes.some((route) => route.id === root.id)) return breadcrumbRoutes;
+
+    return [root, ...breadcrumbRoutes];
+}
+
+function getRootedBreadcrumbParentId(
+    route: AppRouteDescriptor,
+    root: AppRouteDescriptor,
+    getParentId: AppRouteParentIdResolver<AppRouteDescriptor> | undefined
+): string | null | undefined {
+    if (route.id === root.id) return null;
+
+    const parentId = getParentId?.(route);
+
+    if (parentId !== undefined) return parentId;
+
+    return getAppRouteParentId(route) ?? root.id;
+}
+
+function getBreadcrumbTrailOptions<TRoute extends AppRouteDescriptor>(
+    options: RouteChromeBreadcrumbsOptions<TRoute> | undefined
+): AppRouteTrailOptions<AppRouteDescriptor> | undefined {
+    const root = options?.root ?? null;
+    const trailOptions = options?.trailOptions;
+
+    if (!root) return trailOptions;
+
+    const nextOptions: AppRouteTrailOptions<AppRouteDescriptor> = {
+        ...(trailOptions ?? {})
+    };
+    const getParentId = trailOptions?.getParentId;
+
+    nextOptions.getParentId = (route) => getRootedBreadcrumbParentId(route, root, getParentId);
+
+    return nextOptions;
+}
+
 /**
  * Creates the common route-aware chrome controls used by routed app recipes.
  */
@@ -165,16 +225,22 @@ export function createRouteChrome<
 
     if (options.breadcrumbs !== false) {
         const {
-            routes: breadcrumbRoutes,
+            routes: _breadcrumbRoutes,
             current: _current,
+            root: _root,
+            trailOptions: _trailOptions,
             ...breadcrumbOptions
         } = options.breadcrumbs ?? {};
-
-        breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>({
+        const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
             ...breadcrumbOptions,
-            routes: breadcrumbRoutes ?? routes,
+            routes: getBreadcrumbRoutes(routes, options.breadcrumbs),
             current: getBreadcrumbCurrent(current, options.breadcrumbs)
-        });
+        };
+        const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
+
+        if (trailOptions !== undefined) routeBreadcrumbsOptions.trailOptions = trailOptions;
+
+        breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>(routeBreadcrumbsOptions);
 
         currentRouteControls.push({
             setCurrent(nextCurrent): void {

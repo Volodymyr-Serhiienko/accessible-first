@@ -19,6 +19,7 @@ renderChrome: createHashAppRouteChromeRenderer({
             routes,
             header: {
                 locale,
+                identity: appIdentity,
                 brand: {
                     href: "#main",
                     name: t("app.name"),
@@ -32,7 +33,12 @@ renderChrome: createHashAppRouteChromeRenderer({
                 locale
             },
             breadcrumbs: {
-                label: t("app.breadcrumbs.label")
+                label: t("app.breadcrumbs.label"),
+                root: {
+                    id: "home",
+                    title: t("app.home"),
+                    href: "#home"
+                }
             },
             search: {
                 label: t("app.search.label"),
@@ -57,6 +63,7 @@ renderChrome: createLinkAppRouteChromeRenderer({
             routes,
             header: {
                 locale,
+                identity: appIdentity,
                 brand: {
                     href: "/",
                     name: t("app.name")
@@ -68,7 +75,12 @@ renderChrome: createLinkAppRouteChromeRenderer({
                 locale
             },
             breadcrumbs: {
-                label: t("app.breadcrumbs.label")
+                label: t("app.breadcrumbs.label"),
+                root: {
+                    id: "home",
+                    title: t("app.home"),
+                    href: "#home"
+                }
             },
             search: {
                 label: t("app.search.label"),
@@ -117,7 +129,7 @@ RouteChrome sits above individual route-aware controls and below full app templa
 
 `createAppRouteChrome` builds on that and can also create:
 
-- an `AppHeader` from `header` options;
+- an `AppHeader` from `header` options, including identity-derived brand defaults when `header.identity` is supplied;
 - shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`;
 - route-control bindings that can be returned directly from `HashRoutedApp.renderChrome(...)` or `LinkRoutedApp.renderChrome(...)`.
 
@@ -136,7 +148,9 @@ None of these helpers create route data, screen content, app copy, metadata stra
 - `routes` - required route descriptors used by route-aware controls.
 - `current` - current route object, route id, `null`, or `undefined`.
 - `navigation` - options passed to `RouteResponsiveNavigation`, or `false` to disable navigation.
-- `breadcrumbs` - options passed to `RouteBreadcrumbs`, or `false` to disable breadcrumbs. Pass `breadcrumbs.routes` when breadcrumbs need a synthetic root route.
+- `breadcrumbs` - options passed to `RouteBreadcrumbs`, or `false` to disable breadcrumbs.
+- `breadcrumbs.root` - optional synthetic root route prepended to breadcrumb trails. Routes without `parentId` become children of this root unless `trailOptions.getParentId` returns another value.
+- `breadcrumbs.routes` - optional breadcrumb-only route list when breadcrumbs need a custom hierarchy.
 - `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search.
 - `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
 - `onRouteActivate` - shared activation callback used by navigation, search, and commands.

@@ -123,6 +123,8 @@ SearchBox({
 
 Use [RouteSearchBox](./route-search-box.md) when you want a composed route search component instead of manually wiring `SearchBox`. Use [RouteCommandPalette](./route-command-palette.md) when the same route metadata should power a command palette.
 
+If a route has no `description`, generated search items stay description-free. Add localized action text through resolvers when search results should explain what opens:
+
 Customize generated search data with resolvers:
 
 ```ts
@@ -166,7 +168,7 @@ const items = createAppRouteBreadcrumbItems(
 Breadcrumbs({ items });
 ```
 
-By default, the last route in the trail becomes the current page and is not linked. Use `linkCurrent` only when the current breadcrumb should remain a link.
+By default, the last route in the trail becomes the current page and is not linked. Use `linkCurrent` only when the current breadcrumb should remain a link. In routed app chrome, use `breadcrumbs.root` for the common synthetic Home/root breadcrumb instead of building a second route list by hand.
 
 Customize generated breadcrumb data with resolvers:
 
@@ -314,7 +316,7 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
 - `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
 - `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
-- `getAppRouteDescription(route)` - returns route description or a default open message.
+- `getAppRouteDescription(route)` - returns route description or `null`.
 - `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
 - `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
 - `createAppRouteDocumentMetadata(route, options)` - creates document metadata update options from route metadata.

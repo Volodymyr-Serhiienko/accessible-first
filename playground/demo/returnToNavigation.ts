@@ -1,31 +1,25 @@
 import {
-    Link,
-    runFocusRoute,
+    FocusRouteLink,
     type ComposedNode,
     type ComposedResponsiveNavigation
 } from "./af";
+import { t } from "./localization";
 
 export function ReturnToNavigationLink(
     getNavigation: () => ComposedResponsiveNavigation
 ): ComposedNode {
-    return Link({
+    return FocusRouteLink({
         className: "playground-return-link",
         href: "#playground-navigation",
-        text: "Back to section navigation",
+        text: t("app.navigation.returnLink"),
         variant: "standalone",
-        hint: "Moves focus back to the current playground navigation item.",
+        hint: t("app.navigation.returnHint"),
         hintDisplay: "description",
-        onNavigate(event) {
-            event.preventDefault();
-
-            runFocusRoute({
-                target: () => getNavigation().getFocusTarget(),
-                scroll: {
-                    block: "nearest",
-                    inline: "nearest",
-                    behavior: "auto"
-                }
-            });
+        focusTarget: () => getNavigation().getFocusTarget(),
+        scroll: {
+            block: "nearest",
+            inline: "nearest",
+            behavior: "auto"
         }
     });
 }

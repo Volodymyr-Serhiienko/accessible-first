@@ -14,6 +14,7 @@ export const playgroundSupportedLocales = ["en", "uk", "ru"] as const;
 export type PlaygroundLocale = typeof playgroundSupportedLocales[number];
 
 export type PlaygroundAppMessageKey =
+    | "app.breadcrumbs.rootLabel"
     | "app.brand.homeLabel"
     | "app.brand.name"
     | "app.brand.tagline"
@@ -24,6 +25,8 @@ export type PlaygroundAppMessageKey =
     | "app.commands.title"
     | "app.commands.trigger"
     | "app.navigation.label"
+    | "app.navigation.returnHint"
+    | "app.navigation.returnLink"
     | "app.navigation.skipLink"
     | "app.navigation.trigger"
     | "app.notifications.label"
@@ -45,6 +48,7 @@ const enMessages = {
     "app.brand.homeLabel": "Accessible First Playground home",
     "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first components and page composition",
+    "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Search demo sections and press Enter to open the selected section.",
     "app.commands.notFoundText": "No commands found.",
     "app.commands.placeholder": "Search commands",
@@ -52,6 +56,8 @@ const enMessages = {
     "app.commands.title": "Playground commands",
     "app.commands.trigger": "Commands",
     "app.navigation.label": "Playground sections",
+    "app.navigation.returnHint": "Moves focus back to the current section navigation item.",
+    "app.navigation.returnLink": "Back to section navigation",
     "app.navigation.skipLink": "Skip to section navigation",
     "app.navigation.trigger": "Sections",
     "app.notifications.label": "Playground notifications",
@@ -104,6 +110,7 @@ const ukMessages = {
     "app.brand.homeLabel": "Головна сторінка Accessible First Playground",
     "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first компоненти та семантична композиція сторінок",
+    "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Знайдіть деморозділ і натисніть Enter, щоб відкрити його.",
     "app.commands.notFoundText": "Команди не знайдено.",
     "app.commands.placeholder": "Пошук команд",
@@ -111,6 +118,8 @@ const ukMessages = {
     "app.commands.title": "Команди playground",
     "app.commands.trigger": "Команди",
     "app.navigation.label": "Розділи playground",
+    "app.navigation.returnHint": "Переміщує фокус назад на поточний пункт навігації розділів.",
+    "app.navigation.returnLink": "Повернутися до навігації розділів",
     "app.navigation.skipLink": "Перейти до навігації розділів",
     "app.navigation.trigger": "Розділи",
     "app.notifications.label": "Сповіщення playground",
@@ -163,6 +172,7 @@ const ruMessages = {
     "app.brand.homeLabel": "Главная страница Accessible First Playground",
     "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first компоненты и семантическая композиция страниц",
+    "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Найдите демо-раздел и нажмите Enter, чтобы открыть его.",
     "app.commands.notFoundText": "Команды не найдены.",
     "app.commands.placeholder": "Поиск команд",
@@ -170,6 +180,8 @@ const ruMessages = {
     "app.commands.title": "Команды playground",
     "app.commands.trigger": "Команды",
     "app.navigation.label": "Разделы playground",
+    "app.navigation.returnHint": "Перемещает фокус обратно на текущий пункт навигации разделов.",
+    "app.navigation.returnLink": "Вернуться к навигации разделов",
     "app.navigation.skipLink": "Перейти к навигации разделов",
     "app.navigation.trigger": "Разделы",
     "app.notifications.label": "Уведомления playground",

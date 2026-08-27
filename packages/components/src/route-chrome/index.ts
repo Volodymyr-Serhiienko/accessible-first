@@ -39,6 +39,7 @@ export type {
 export type {
     RouteChrome,
     RouteChromeBreadcrumbsOptions,
+    RouteChromeBreadcrumbsRoot,
     RouteChromeCommandPaletteOptions,
     RouteChromeCurrentRouteControl,
     RouteChromeNavigationControl,

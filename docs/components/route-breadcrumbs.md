@@ -27,6 +27,8 @@ Use `Breadcrumbs` when you already have explicit breadcrumb items.
 
 Use `RouteBreadcrumbs` when breadcrumb items should be derived from route metadata. This keeps hierarchy, labels, hrefs, and current-page state consistent with `Navigation`, `ResponsiveNavigation`, `SearchBox`, and `HashRouter`.
 
+When breadcrumbs are part of a routed app shell, `createRouteChrome()` can add a synthetic `breadcrumbs.root` route so app code does not need a separate breadcrumb-only route list for the common Home / Current page pattern.
+
 ## Layers
 
 - Composition API: `RouteBreadcrumbs(options)`
