@@ -75,7 +75,7 @@ The recipe owns only repeated public native-link app wiring:
 - creates the underlying `LinkRoutedApp`;
 - defaults diagnostics `page` to the app shell;
 - defaults diagnostics `routes` to the app route list;
-- creates `createPublicAppDiagnosticsRunner()` with app identity, route, locale, manifest, page, and custom sources;
+- creates `createPublicAppDiagnosticsRunner()` with app identity, identity-aware route diagnostics, locale, manifest, page, and custom sources;
 - can log diagnostics after creation or after manual `refresh(...)` calls;
 - exposes diagnostics methods on the returned controller.
 
@@ -90,6 +90,7 @@ Diagnostics options:
 - `diagnostics` - public diagnostics options, or `false` to disable diagnostics.
 - `diagnostics.page` - page diagnostics source. Defaults to the created app shell. Pass `false` to omit page diagnostics.
 - `diagnostics.routes` - route diagnostics source. Defaults to the app route list. Pass `false` to omit route diagnostics.
+- `diagnostics.routeOptions` - route diagnostics and identity-aware route metadata defaults used when diagnostics inspect a route list.
 - `diagnostics.logOnCreate` - logs diagnostics once after app and diagnostics setup.
 - `diagnostics.logOnRefresh` - logs diagnostics after refresh calls made through the public app controller.
 

@@ -186,11 +186,14 @@ createAppRouteBreadcrumbItems(routeTrail, {
 
 ## Document Metadata
 
-Use `createAppRouteDocumentMetadata()` when route metadata should also drive the browser document metadata:
+Use `createAppRouteDocumentMetadata()` when route metadata should also drive the browser document metadata. For public apps with an `AppIdentity`, prefer `createAppIdentityRouteDocumentMetadata()` and `createAppIdentityRouteDiagnosticsOptions()` from AppIdentity so route metadata and diagnostics automatically share the app title, base URL, and generated WebPage JSON-LD defaults:
 
 ```ts
-const metadata = createAppRouteDocumentMetadata(currentRoute, {
-    appTitle: "Language App"
+const metadata = createAppIdentityRouteDocumentMetadata(appIdentity, currentRoute, {
+    baseUrl: "https://example.com/app/",
+    getDescription(route) {
+        return route.description ?? null;
+    }
 });
 
 shell.updateMetadata(metadata);
@@ -321,6 +324,11 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `logAppRouteDiagnostics(report)` - logs a compact route diagnostics report to the console.
 - `getAppRouteKeywords(route, extraKeywords)` - returns normalized search keywords.
 - `normalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
+
+Related AppIdentity helpers:
+
+- `createAppIdentityRouteDocumentMetadata(identity, route, options)` - creates route metadata with shared AppIdentity defaults and generated WebPage JSON-LD.
+- `createAppIdentityRouteDiagnosticsOptions(identity, options)` - creates route diagnostics options from the same identity-aware route defaults.
 
 ## Accessibility
 

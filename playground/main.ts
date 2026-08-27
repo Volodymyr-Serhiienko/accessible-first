@@ -16,9 +16,9 @@ import {
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
-    getPlaygroundRouteDescription,
     getPlaygroundRouteDocumentMetadata,
     getPlaygroundRouteDocumentTitle,
+    playgroundRouteOptions,
     playgroundRoutes,
     type PlaygroundRoute
 } from "./demo/routes";
@@ -89,12 +89,7 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
             dir: "ltr",
             id: "."
         },
-        routeOptions: {
-            baseUrl: new URL(".", window.location.href),
-            getDescription: getPlaygroundRouteDescription,
-            getDocumentTitle: getPlaygroundRouteDocumentTitle,
-            getMetadata: getPlaygroundRouteDocumentMetadata
-        },
+        routeOptions: playgroundRouteOptions,
         locale: playgroundLocale,
         localeOptions: {
             requiredMessages: playgroundRequiredMessageKeys

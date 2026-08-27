@@ -1,10 +1,22 @@
 import {
+    createAppRouteDocumentMetadata,
+    getAppRouteCanonical,
+    getAppRouteDocumentDescription,
+    getAppRouteDocumentTitle,
+    type AppRouteDescriptor,
+    type AppRouteDiagnosticsOptions,
+    type AppRouteDocumentMetadataOptions,
+    type AppRouteDocumentTitleResolver,
+    type AppRouteParentIdResolver
+} from "../app-routes";
+import {
     createAppDocumentMetadata,
     type AppDocumentMetadataOptions,
     type AppDocumentMetadataSoftwareApplicationOptions,
     type DocumentMetadataIconOptions,
     type DocumentMetadataOpenGraphImage,
     type DocumentMetadataOpenGraphOptions,
+    type DocumentMetadataStructuredData,
     type DocumentMetadataStructuredDataValue,
     type DocumentMetadataTwitterOptions,
     type DocumentMetadataUpdateOptions,
@@ -116,6 +128,40 @@ export interface AppIdentityDocumentMetadataOptions extends Partial<AppDocumentM
  * Web app manifest overrides accepted by createAppIdentityWebAppManifest().
  */
 export interface AppIdentityWebAppManifestOptions extends Partial<AppWebAppManifestOptions> {}
+
+/**
+ * Route metadata defaults accepted by createAppIdentityRouteDocumentMetadataOptions().
+ */
+export interface AppIdentityRouteDocumentMetadataOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> extends AppRouteDocumentMetadataOptions<TRoute> {
+    /** Generates Schema.org WebPage JSON-LD when getStructuredData is not provided. Defaults to true. */
+    webPageStructuredData?: boolean;
+    /** Schema.org WebSite name used by generated WebPage JSON-LD. Defaults to identity.name. */
+    webSiteName?: string | null;
+    /** Schema.org WebSite URL used by generated WebPage JSON-LD. Defaults to identity.url, then baseUrl. */
+    webSiteUrl?: DocumentMetadataUrlValue | null;
+}
+
+/**
+ * Route diagnostics defaults accepted by createAppIdentityRouteDiagnosticsOptions().
+ */
+export interface AppIdentityRouteDiagnosticsOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> extends AppIdentityRouteDocumentMetadataOptions<TRoute> {
+    /** Parent route resolver used by route hierarchy diagnostics. */
+    getParentId?: AppRouteParentIdResolver<TRoute>;
+    /** Document title resolver used by diagnostics. Defaults to the generated route metadata title. */
+    getDocumentTitle?: AppRouteDocumentTitleResolver<TRoute>;
+    /** Requires each route to provide a document description. */
+    requireDescription?: boolean;
+    /** Requires each route to provide a document title. */
+    requireDocumentTitle?: boolean;
+    /** Requires each route to provide a canonical URL. */
+    requireCanonical?: boolean;
+    /** Requires each route to provide JSON-LD structured data. */
+    requireStructuredData?: boolean;
+}
 
 function createAppIdentityIcons(
     icons: AppIdentityIconSetOptions | null | undefined
@@ -231,6 +277,168 @@ function assignDefinedAppMetadataOption<TKey extends keyof AppDocumentMetadataOp
     value: AppDocumentMetadataOptions[TKey] | undefined
 ): void {
     if (value !== undefined) options[key] = value;
+}
+
+function assignDefinedRouteDiagnosticsOption<
+    TRoute extends AppRouteDescriptor,
+    TKey extends keyof AppRouteDiagnosticsOptions<TRoute>
+>(
+    options: AppRouteDiagnosticsOptions<TRoute>,
+    key: TKey,
+    value: AppRouteDiagnosticsOptions<TRoute>[TKey] | undefined
+): void {
+    if (value !== undefined) options[key] = value;
+}
+
+function stringifyAppIdentityRouteUrl(value: DocumentMetadataUrlValue | null | undefined): string | null {
+    if (value === null || value === undefined) return null;
+
+    return value instanceof URL ? value.toString() : value;
+}
+
+function getIdentityRouteWebSiteName<TRoute extends AppRouteDescriptor>(
+    identity: AppIdentity,
+    options: AppIdentityRouteDocumentMetadataOptions<TRoute>
+): string | null {
+    if ("webSiteName" in options) return options.webSiteName ?? null;
+
+    return identity.name;
+}
+
+function getIdentityRouteWebSiteUrl<TRoute extends AppRouteDescriptor>(
+    identity: AppIdentity,
+    options: AppIdentityRouteDocumentMetadataOptions<TRoute>
+): DocumentMetadataUrlValue | null {
+    if ("webSiteUrl" in options) return options.webSiteUrl ?? null;
+
+    return identity.url ?? options.baseUrl ?? null;
+}
+
+function createAppIdentityRouteWebPageStructuredData<TRoute extends AppRouteDescriptor>(
+    identity: AppIdentity,
+    route: TRoute,
+    identityOptions: AppIdentityRouteDocumentMetadataOptions<TRoute>,
+    routeOptions: AppRouteDocumentMetadataOptions<TRoute>
+): DocumentMetadataStructuredData {
+    const title = getAppRouteDocumentTitle(route, routeOptions);
+    const description = routeOptions.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+    const canonical = getAppRouteCanonical(route, routeOptions);
+    const webSiteName = getIdentityRouteWebSiteName(identity, identityOptions);
+    const webSiteUrl = stringifyAppIdentityRouteUrl(getIdentityRouteWebSiteUrl(identity, identityOptions));
+    const data: { [key: string]: DocumentMetadataStructuredDataValue } = {
+        "@context": "https://schema.org",
+        "@type": "WebPage"
+    };
+
+    if (title !== null) data.name = title;
+    if (description !== null) data.description = description;
+    if (canonical !== null) data.url = stringifyAppIdentityRouteUrl(canonical);
+
+    if (webSiteName !== null || webSiteUrl !== null) {
+        const isPartOf: { [key: string]: DocumentMetadataStructuredDataValue } = {
+            "@type": "WebSite"
+        };
+
+        if (webSiteName !== null) isPartOf.name = webSiteName;
+        if (webSiteUrl !== null) isPartOf.url = webSiteUrl;
+
+        data.isPartOf = isPartOf;
+    }
+
+    return data;
+}
+
+/**
+ * Creates route metadata options from an AppIdentity plus route-level overrides.
+ */
+export function createAppIdentityRouteDocumentMetadataOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+>(
+    identity: AppIdentity,
+    options: AppIdentityRouteDocumentMetadataOptions<TRoute> = {}
+): AppRouteDocumentMetadataOptions<TRoute> {
+    const {
+        webPageStructuredData,
+        webSiteName: _webSiteName,
+        webSiteUrl: _webSiteUrl,
+        ...appRouteOptions
+    } = options;
+    const routeOptions: AppRouteDocumentMetadataOptions<TRoute> = {
+        ...appRouteOptions
+    };
+
+    routeOptions.appTitle = "appTitle" in options
+        ? options.appTitle ?? null
+        : identity.name;
+    routeOptions.baseUrl = "baseUrl" in options
+        ? options.baseUrl ?? null
+        : identity.url;
+
+    if (webPageStructuredData !== false && appRouteOptions.getStructuredData === undefined) {
+        routeOptions.getStructuredData = (route) => createAppIdentityRouteWebPageStructuredData(
+            identity,
+            route,
+            options,
+            routeOptions
+        );
+    }
+
+    return routeOptions;
+}
+
+/**
+ * Creates route document metadata from an AppIdentity plus route-level overrides.
+ */
+export function createAppIdentityRouteDocumentMetadata<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+>(
+    identity: AppIdentity,
+    route: TRoute,
+    options: AppIdentityRouteDocumentMetadataOptions<TRoute> = {}
+): DocumentMetadataUpdateOptions {
+    return createAppRouteDocumentMetadata(
+        route,
+        createAppIdentityRouteDocumentMetadataOptions(identity, options)
+    );
+}
+
+/**
+ * Creates route diagnostics options from an AppIdentity plus route-level metadata defaults.
+ */
+export function createAppIdentityRouteDiagnosticsOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+>(
+    identity: AppIdentity,
+    options: AppIdentityRouteDiagnosticsOptions<TRoute> = {}
+): AppRouteDiagnosticsOptions<TRoute> {
+    const {
+        getParentId,
+        getDocumentTitle,
+        requireDescription,
+        requireDocumentTitle,
+        requireCanonical,
+        requireStructuredData,
+        ...metadataOptions
+    } = options;
+    const routeMetadataOptions = createAppIdentityRouteDocumentMetadataOptions(identity, metadataOptions);
+    const diagnosticsOptions: AppRouteDiagnosticsOptions<TRoute> = {
+        getDocumentTitle: getDocumentTitle
+            ?? ((route) => getAppRouteDocumentTitle(route, routeMetadataOptions))
+    };
+
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "baseUrl", routeMetadataOptions.baseUrl);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getHref", routeMetadataOptions.getHref);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getCanonical", routeMetadataOptions.getCanonical);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getStructuredData", routeMetadataOptions.getStructuredData);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getDescription", routeMetadataOptions.getDescription);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getMetadata", routeMetadataOptions.getMetadata);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "getParentId", getParentId);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "requireDescription", requireDescription);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "requireDocumentTitle", requireDocumentTitle);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "requireCanonical", requireCanonical);
+    assignDefinedRouteDiagnosticsOption(diagnosticsOptions, "requireStructuredData", requireStructuredData);
+
+    return diagnosticsOptions;
 }
 
 /**

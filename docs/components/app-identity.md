@@ -31,6 +31,16 @@ const metadata = createAppIdentityDocumentMetadata(appIdentity, {
     robots: "index, follow"
 });
 
+const routeOptions = {
+    baseUrl: new URL(".", window.location.href),
+    getDescription(route) {
+        return t(`route.${route.id}.description`);
+    }
+};
+
+const routeMetadata = createAppIdentityRouteDocumentMetadata(appIdentity, route, routeOptions);
+const routeDiagnosticsOptions = createAppIdentityRouteDiagnosticsOptions(appIdentity, routeOptions);
+
 const manifest = createAppIdentityWebAppManifest(appIdentity, {
     lang: "en",
     dir: "ltr",
@@ -67,12 +77,49 @@ Real apps often repeat identity values in several places:
 - `name`, `description`, `lang`, `url`, `themeColor`, `manifestHref`, SVG icon, preview image, image alt text, social descriptions, and SoftwareApplication defaults;
 - app or route code can override any metadata field through the second argument.
 
+`createAppIdentityRouteDocumentMetadata()` maps identity values to route metadata:
+
+- app title, base URL, route title, route description resolver, canonical URL, and generated WebPage JSON-LD;
+- route metadata and explicit resolvers still override generated defaults.
+
+`createAppIdentityRouteDiagnosticsOptions()` maps the same identity-aware route defaults to public route diagnostics, including generated document titles, canonical URL checks, and generated WebPage JSON-LD checks.
+
 `createAppIdentityWebAppManifest()` maps identity values to `createAppWebAppManifest()`:
 
 - `name`, `shortName`, `description`, `lang`, `dir`, `themeColor`, `backgroundColor`, categories, and generated icon set;
 - deployment code can override manifest fields through the second argument.
 
-`createPublicAppDiagnosticsRunner()` can also use `identity` to create the manifest diagnostics source automatically, while `identityManifestOptions` keeps deployment-specific manifest values explicit.
+`createPublicAppDiagnosticsRunner()` and public routed app recipes can also use `identity` to create the manifest diagnostics source automatically, while `identityManifestOptions` keeps deployment-specific manifest values explicit.
+
+
+## Route Metadata
+
+`createAppIdentityRouteDocumentMetadata(identity, route, options)` combines an `AppIdentity` with one route descriptor. It uses the identity name as the default app title, uses `identity.url` as the default base URL when available, and generates Schema.org `WebPage` JSON-LD when `getStructuredData` is not provided.
+
+```ts
+const metadata = createAppIdentityRouteDocumentMetadata(appIdentity, route, {
+    baseUrl: new URL(".", window.location.href),
+    getDescription(route) {
+        return t(`route.${route.id}.description`);
+    }
+});
+```
+
+Use `createAppIdentityRouteDocumentMetadataOptions(identity, options)` when route metadata should share identity defaults but route code will call `createAppRouteDocumentMetadata()` itself.
+
+Use `createAppIdentityRouteDiagnosticsOptions(identity, options)` when public route diagnostics should inspect the same metadata defaults. This keeps app title, base URL, route descriptions, canonical URLs, and generated `WebPage` JSON-LD aligned without duplicating resolver code.
+
+Additional route metadata options:
+
+- `webPageStructuredData` - set to `false` to skip generated `WebPage` JSON-LD when `getStructuredData` is not provided.
+- `webSiteName` - WebSite name used by generated `isPartOf`. Defaults to `identity.name`.
+- `webSiteUrl` - WebSite URL used by generated `isPartOf`. Defaults to `identity.url`, then `baseUrl`.
+
+Additional route diagnostics options:
+
+- `getParentId` - parent route resolver for hierarchy diagnostics.
+- `getDocumentTitle` - diagnostics-only document title resolver. Defaults to the generated route metadata title.
+- `requireDescription`, `requireDocumentTitle`, `requireCanonical`, `requireStructuredData` - per-app diagnostics requirements. Public app diagnostics already enables these by default.
 
 ## Options
 
@@ -127,4 +174,5 @@ Keep stable identity data in one app-owned module. Keep translatable screen text
 - Public descriptions do not drift between document metadata and manifest setup.
 - Icons referenced by metadata and manifest exist in the deployed public path.
 - Localized metadata overrides still use the same identity baseline.
+- Route metadata helpers still produce canonical URLs and WebPage JSON-LD from the shared identity.
 - Public diagnostics remain healthy after changing identity fields.

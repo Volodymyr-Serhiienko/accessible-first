@@ -78,6 +78,7 @@ The recipe owns only repeated public-app lifecycle wiring:
 
 - creates the underlying `HashRoutedApp` with delayed startup;
 - creates `createPublicAppDiagnosticsRunner()` after the shell exists;
+- pairs naturally with `createAppIdentityRouteDocumentMetadata()` and identity-aware route diagnostics for route document metadata and health checks;
 - defaults diagnostics `page` to the app shell;
 - defaults diagnostics `routes` to the app route list;
 - can log diagnostics from the router inspect hook after route renders;
@@ -96,6 +97,7 @@ Additional options:
 - `diagnostics` - public diagnostics options, or `false` to disable diagnostics.
 - `diagnostics.page` - page diagnostics source. Defaults to the created app shell. Pass `false` to omit page diagnostics.
 - `diagnostics.routes` - route diagnostics source. Defaults to the app route list. Pass `false` to omit route diagnostics.
+- `diagnostics.routeOptions` - route diagnostics and identity-aware route metadata defaults used when diagnostics inspect a route list.
 - `diagnostics.logOnRouteChange` - logs a fresh diagnostics report from the router inspect hook after route renders and refreshes.
 - `initialScrollReset` - options for `resetInitialScrollPosition()`, or `false` to disable startup scroll reset.
 - `start` - starts automatically by default. Pass `false` when external setup needs to call `app.start(...)` later.

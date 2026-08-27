@@ -1,7 +1,7 @@
 import {
-    createAppRouteDocumentMetadata,
+    createAppIdentityRouteDocumentMetadata,
     createAppRouteNavigationItems,
-    type AppRouteDocumentMetadataOptions,
+    type AppIdentityRouteDiagnosticsOptions,
     type ComposedNode,
     type DocumentMetadataUpdateOptions
 } from "./af";
@@ -135,30 +135,17 @@ export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
         ?? `${route.title} demo in the ${playgroundAppIdentity.name}.`;
 }
 
-const playgroundRouteMetadataOptions: AppRouteDocumentMetadataOptions<PlaygroundRoute> = {
-    appTitle: playgroundAppIdentity.name,
+export const playgroundRouteOptions: AppIdentityRouteDiagnosticsOptions<PlaygroundRoute> = {
     baseUrl: new URL(".", window.location.href),
-    getDescription: getPlaygroundRouteDescription,
-    getStructuredData(route) {
-        const description = getPlaygroundRouteDescription(route);
-
-        return {
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: `${route.title} - ${playgroundAppIdentity.name}`,
-            description,
-            url: new URL(`#${route.id}`, window.location.href).toString(),
-            isPartOf: {
-                "@type": "WebSite",
-                name: playgroundAppIdentity.name,
-                url: new URL(".", window.location.href).toString()
-            }
-        };
-    }
+    getDescription: getPlaygroundRouteDescription
 };
 
 export function getPlaygroundRouteDocumentMetadata(
     route: PlaygroundRoute
 ): DocumentMetadataUpdateOptions {
-    return createAppRouteDocumentMetadata(route, playgroundRouteMetadataOptions);
+    return createAppIdentityRouteDocumentMetadata(
+        playgroundAppIdentity,
+        route,
+        playgroundRouteOptions
+    );
 }

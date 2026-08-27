@@ -64,13 +64,13 @@ This keeps each inspector simple, while still giving an application a single hea
 
 ## Public App Runner
 
-`createPublicAppDiagnosticsRunner()` is a small recipe over `createAppDiagnosticsRunner()`. It can inspect a `Page`, `AppShell`, existing page diagnostics report, route list, or existing route diagnostics report, then adds localization and web app manifest sources when provided. If `identity` is provided and `manifest` is omitted, it generates the manifest diagnostics source from `AppIdentity`.
+`createPublicAppDiagnosticsRunner()` is a small recipe over `createAppDiagnosticsRunner()`. It can inspect a `Page`, `AppShell`, existing page diagnostics report, route list, or existing route diagnostics report, then adds localization and web app manifest sources when provided. If `identity` is provided and `manifest` is omitted, it generates the manifest diagnostics source from `AppIdentity`. If `identity` is provided with route lists, route diagnostics use identity-aware route metadata defaults for generated document titles, canonical URLs, and WebPage JSON-LD unless the app overrides them.
 
 Defaults:
 
 - page document metadata requires description, canonical, robots, manifest, Open Graph, Twitter/X, and JSON-LD;
 - page diagnostics use `log: false` so the app report is not duplicated by a separate page report;
-- route lists use public route diagnostics defaults for descriptions, document titles, canonical URLs, and structured data;
+- route lists use public route diagnostics defaults for descriptions, document titles, canonical URLs, and structured data; with `identity`, route options are expanded through `createAppIdentityRouteDiagnosticsOptions()`;
 - identity can generate the manifest diagnostics source when no explicit manifest is provided;
 - manifest diagnostics require short name, description, start URL, display mode, icons, maskable icon, theme color, and background color.
 
@@ -81,7 +81,7 @@ Options:
 - `identity` - optional `AppIdentity` used to derive manifest diagnostics when `manifest` is not provided.
 - `identityManifestOptions` - manifest overrides used when diagnostics generate a manifest from identity.
 - `routes` - optional route list, route diagnostics report, or resolver.
-- `routeOptions` - route diagnostics overrides used when `routes` is a route list.
+- `routeOptions` - route diagnostics and identity-aware route metadata defaults used when `routes` is a route list.
 - `locale` - optional locale controller or resolver.
 - `localeOptions` - localization diagnostics options, such as required message keys.
 - `manifest` - optional web app manifest object or resolver. Pass `false` to skip manifest diagnostics even when `identity` is provided.

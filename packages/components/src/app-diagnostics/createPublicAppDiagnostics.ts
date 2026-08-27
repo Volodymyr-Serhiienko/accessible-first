@@ -1,12 +1,13 @@
 import {
+    createAppIdentityRouteDiagnosticsOptions,
     createAppIdentityWebAppManifest,
     type AppIdentity,
+    type AppIdentityRouteDiagnosticsOptions,
     type AppIdentityWebAppManifestOptions
 } from "../app-identity";
 import {
     inspectPublicAppRoutes,
     type AppRouteDescriptor,
-    type AppRouteDiagnosticsOptions,
     type AppRouteDiagnosticsReport
 } from "../app-routes";
 import {
@@ -129,8 +130,8 @@ export interface PublicAppDiagnosticsRunnerOptions<
     identityManifestOptions?: AppIdentityWebAppManifestOptions;
     /** Route descriptors, route diagnostics report, or lazy resolver. Route lists use public-app diagnostics defaults. */
     routes?: PublicAppDiagnosticsRoutesResolver<TRoute>;
-    /** Route diagnostics overrides used when routes is a route descriptor list. */
-    routeOptions?: AppRouteDiagnosticsOptions<TRoute>;
+    /** Route diagnostics and identity-aware metadata defaults used when routes is a route descriptor list. */
+    routeOptions?: AppIdentityRouteDiagnosticsOptions<TRoute>;
     /** Locale controller or resolver used for the localization source. */
     locale?: PublicAppDiagnosticsLocaleResolver<TLocale, TKey>;
     /** Locale diagnostics options, such as required app and framework message keys. */
@@ -196,13 +197,18 @@ function isPublicAppDiagnosticsRouteList<TRoute extends AppRouteDescriptor>(
 
 function resolvePublicAppRouteReport<TRoute extends AppRouteDescriptor>(
     routes: PublicAppDiagnosticsRoutesResolver<TRoute>,
-    routeOptions: AppRouteDiagnosticsOptions<TRoute> | undefined
+    routeOptions: AppIdentityRouteDiagnosticsOptions<TRoute> | undefined,
+    identity: AppIdentity | null
 ): AppRouteDiagnosticsReport<TRoute> | null {
     const resolvedRoutes = resolvePublicAppDiagnosticsValue(routes);
 
     if (!resolvedRoutes) return null;
     if (isPublicAppDiagnosticsRouteList(resolvedRoutes)) {
-        return inspectPublicAppRoutes(resolvedRoutes, routeOptions);
+        const diagnosticsOptions = identity
+            ? createAppIdentityRouteDiagnosticsOptions(identity, routeOptions)
+            : routeOptions;
+
+        return inspectPublicAppRoutes(resolvedRoutes, diagnosticsOptions);
     }
 
     return resolvedRoutes;
@@ -309,7 +315,8 @@ export function createPublicAppDiagnosticsRunner<
     if (options.routes !== undefined) {
         runnerOptions.routes = () => resolvePublicAppRouteReport(
             options.routes,
-            options.routeOptions
+            options.routeOptions,
+            resolvePublicAppDiagnosticsValue(options.identity)
         );
     }
 

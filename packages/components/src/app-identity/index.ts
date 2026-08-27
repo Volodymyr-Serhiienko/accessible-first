@@ -1,6 +1,9 @@
 export {
     createAppIdentity,
     createAppIdentityDocumentMetadata,
+    createAppIdentityRouteDiagnosticsOptions,
+    createAppIdentityRouteDocumentMetadata,
+    createAppIdentityRouteDocumentMetadataOptions,
     createAppIdentityWebAppManifest
 } from "./createAppIdentity";
 
@@ -10,6 +13,8 @@ export type {
     AppIdentityIconSet,
     AppIdentityIconSetOptions,
     AppIdentityOptions,
+    AppIdentityRouteDiagnosticsOptions,
+    AppIdentityRouteDocumentMetadataOptions,
     AppIdentitySoftwareApplicationOptions,
     AppIdentityWebAppManifestOptions
 } from "./createAppIdentity";
