@@ -290,12 +290,14 @@ export function createAppIdentityDocumentMetadata(
     if (identity.logoAlt !== null) metadataOptions.imageAlt = identity.logoAlt;
 
     assignDefinedAppMetadataOption(metadataOptions, "title", options.title);
+    assignDefinedAppMetadataOption(metadataOptions, "lang", options.lang);
     assignDefinedAppMetadataOption(metadataOptions, "description", options.description);
     assignDefinedAppMetadataOption(metadataOptions, "viewport", options.viewport);
     assignDefinedAppMetadataOption(metadataOptions, "themeColor", options.themeColor);
     assignDefinedAppMetadataOption(metadataOptions, "icons", options.icons);
     assignDefinedAppMetadataOption(metadataOptions, "url", options.url);
     assignDefinedAppMetadataOption(metadataOptions, "canonical", options.canonical);
+    assignDefinedAppMetadataOption(metadataOptions, "siteName", options.siteName);
     assignDefinedAppMetadataOption(metadataOptions, "robots", options.robots);
     assignDefinedAppMetadataOption(metadataOptions, "manifest", options.manifest);
     assignDefinedAppMetadataOption(metadataOptions, "image", options.image);

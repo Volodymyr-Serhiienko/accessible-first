@@ -72,6 +72,8 @@ Real apps often repeat identity values in several places:
 - `name`, `shortName`, `description`, `lang`, `dir`, `themeColor`, `backgroundColor`, categories, and generated icon set;
 - deployment code can override manifest fields through the second argument.
 
+`createPublicAppDiagnosticsRunner()` can also use `identity` to create the manifest diagnostics source automatically, while `identityManifestOptions` keeps deployment-specific manifest values explicit.
+
 ## Options
 
 `createAppIdentity()` accepts:
@@ -98,7 +100,7 @@ Real apps often repeat identity values in several places:
 
 ## Overrides
 
-Use overrides when route, locale, or deployment code needs more specific values:
+Use overrides when route, locale, or deployment code needs more specific values. Metadata overrides accept the same app-level fields as `createAppDocumentMetadata()`, including `lang`, `title`, `description`, `canonical`, `siteName`, social metadata, icons, and structured data:
 
 ```ts
 createAppIdentityDocumentMetadata(appIdentity, {

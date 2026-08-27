@@ -28,6 +28,7 @@ export type {
     AppDiagnosticsStatus
 } from "./createAppDiagnostics";
 export type {
+    PublicAppDiagnosticsIdentityResolver,
     PublicAppDiagnosticsInspectablePage,
     PublicAppDiagnosticsLocaleResolver,
     PublicAppDiagnosticsManifestResolver,

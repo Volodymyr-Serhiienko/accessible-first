@@ -1,4 +1,9 @@
 import {
+    createAppIdentityWebAppManifest,
+    type AppIdentity,
+    type AppIdentityWebAppManifestOptions
+} from "../app-identity";
+import {
     inspectPublicAppRoutes,
     type AppRouteDescriptor,
     type AppRouteDiagnosticsOptions,
@@ -90,7 +95,14 @@ export type PublicAppDiagnosticsLocaleResolver<
 /**
  * Manifest diagnostics source accepted by createPublicAppDiagnosticsRunner().
  */
-export type PublicAppDiagnosticsManifestResolver = PublicAppDiagnosticsResolver<WebAppManifest>;
+export type PublicAppDiagnosticsManifestResolver =
+    | PublicAppDiagnosticsResolver<WebAppManifest>
+    | false;
+
+/**
+ * App identity source accepted by createPublicAppDiagnosticsRunner().
+ */
+export type PublicAppDiagnosticsIdentityResolver = PublicAppDiagnosticsResolver<AppIdentity>;
 
 /**
  * Route list or route diagnostics report accepted by createPublicAppDiagnosticsRunner().
@@ -111,6 +123,10 @@ export interface PublicAppDiagnosticsRunnerOptions<
     page?: PublicAppDiagnosticsPageResolver;
     /** Page diagnostics overrides merged on top of public-app metadata defaults. */
     pageOptions?: PageDiagnosticsOptions;
+    /** App identity used to derive manifest diagnostics when manifest is not provided. */
+    identity?: PublicAppDiagnosticsIdentityResolver;
+    /** Manifest overrides used when manifest diagnostics are generated from identity. */
+    identityManifestOptions?: AppIdentityWebAppManifestOptions;
     /** Route descriptors, route diagnostics report, or lazy resolver. Route lists use public-app diagnostics defaults. */
     routes?: PublicAppDiagnosticsRoutesResolver<TRoute>;
     /** Route diagnostics overrides used when routes is a route descriptor list. */
@@ -192,6 +208,18 @@ function resolvePublicAppRouteReport<TRoute extends AppRouteDescriptor>(
     return resolvedRoutes;
 }
 
+function resolvePublicAppManifest(
+    manifest: PublicAppDiagnosticsManifestResolver,
+    identity: AppIdentity | null,
+    identityManifestOptions: AppIdentityWebAppManifestOptions | undefined
+): WebAppManifest | null {
+    if (manifest === false) return null;
+    if (manifest !== undefined) return resolvePublicAppDiagnosticsValue(manifest);
+    if (!identity) return null;
+
+    return createAppIdentityWebAppManifest(identity, identityManifestOptions);
+}
+
 function createPublicAppDiagnosticSources<
     TLocale extends LocaleCode,
     TKey extends string,
@@ -201,7 +229,12 @@ function createPublicAppDiagnosticSources<
 ): readonly AppDiagnosticsSourceOptions[] {
     const sources: AppDiagnosticsSourceOptions[] = [];
     const locale = resolvePublicAppDiagnosticsValue(options.locale);
-    const manifest = resolvePublicAppDiagnosticsValue(options.manifest);
+    const identity = resolvePublicAppDiagnosticsValue(options.identity);
+    const manifest = resolvePublicAppManifest(
+        options.manifest,
+        identity,
+        options.identityManifestOptions
+    );
 
     if (locale) {
         sources.push({

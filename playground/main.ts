@@ -7,8 +7,8 @@ import {
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
 import { getPlaygroundAppMetadata } from "./demo/appMetadata";
+import { playgroundAppIdentity } from "./demo/appIdentity";
 import { playgroundLocale, playgroundRequiredMessageKeys, t } from "./demo/localization";
-import { playgroundManifest } from "./demo/manifest";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
@@ -27,6 +27,12 @@ let currentNavigation!: ComposedResponsiveNavigation;
 
 const playgroundDiagnostics = createPublicAppDiagnosticsRunner({
     page: () => app.shell,
+    identity: playgroundAppIdentity,
+    identityManifestOptions: {
+        lang: "en",
+        dir: "ltr",
+        id: "."
+    },
     routes: playgroundRoutes,
     routeOptions: {
         baseUrl: new URL(".", window.location.href),
@@ -37,8 +43,7 @@ const playgroundDiagnostics = createPublicAppDiagnosticsRunner({
     locale: playgroundLocale,
     localeOptions: {
         requiredMessages: playgroundRequiredMessageKeys
-    },
-    manifest: playgroundManifest
+    }
 });
 
 function logPlaygroundDiagnostics(): void {
