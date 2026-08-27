@@ -32,7 +32,7 @@ These layers are strong enough to build on:
 - Behavior modules: roving focus, live regions, disclosure, dialog, tabs, listbox, typeahead, selection, menu, popover positioning, dismissable layer, overlay stack, form-field semantics, validation announcements.
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
-- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
+- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Table, Screen, ListDetail.
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, LinkRoutedApp, PublicLinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
@@ -101,7 +101,7 @@ Do not create every possible component immediately. Build components when they u
 
 High-priority candidates:
 
-- DataTable / Table primitives for structured data with captions, sorting, selection, and responsive alternatives.
+- DataTable extensions on top of native Table for sorting, selection, pagination, and responsive card alternatives.
 - Pagination and result summary helpers.
 - Drawer / SidePanel / Sheet for non-modal and modal side content, especially mobile layouts.
 - Toolbar improvements and command/action grouping.

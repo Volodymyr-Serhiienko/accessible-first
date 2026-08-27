@@ -36,6 +36,7 @@ import {
     SelectDemo,
     SettingsGroupDemo,
     SwitchDemo,
+    TableDemo,
     TabsDemo,
     TextFieldDemo,
     ToastDemo,
@@ -68,6 +69,7 @@ export const playgroundRoutes: PlaygroundRoute[] = [
     { id: "badge", label: "Badge", title: "Badge", render: BadgeDemo },
     { id: "progress", label: "Progress", title: "Progress", render: ProgressDemo },
     { id: "description-list", label: "DescriptionList", title: "DescriptionList", render: DescriptionListDemo },
+    { id: "table", label: "Table", title: "Table", render: TableDemo },
     { id: "empty-state", label: "EmptyState", title: "EmptyState", render: EmptyStateDemo },
     { id: "info-card", label: "InfoCard", title: "InfoCard", render: InfoCardDemo },
 

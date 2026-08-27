@@ -29,6 +29,7 @@ export { ScreenDemo } from "./screen";
 export { SelectDemo } from "./select";
 export { SettingsGroupDemo } from "./settingsGroup";
 export { SwitchDemo } from "./switch";
+export { TableDemo } from "./table";
 export { TabsDemo } from "./tabs";
 export { TextFieldDemo } from "./textField";
 export { ToastDemo } from "./toast";

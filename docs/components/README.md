@@ -58,6 +58,7 @@ Each component document should contain:
 - [Select](./select.md)
 - [SettingsGroup](./settings-group.md)
 - [Switch](./switch.md)
+- [Table](./table.md)
 - [Tabs](./tabs.md)
 - [TextField](./text-field.md)
 - [ThemeToggle](./theme-toggle.md)
