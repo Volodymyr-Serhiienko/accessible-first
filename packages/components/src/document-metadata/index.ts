@@ -1,3 +1,8 @@
+export { createAppDocumentMetadata } from "./createAppDocumentMetadata";
+export type {
+    AppDocumentMetadataOptions,
+    AppDocumentMetadataSoftwareApplicationOptions
+} from "./createAppDocumentMetadata";
 export {
     createDocumentMetadata,
     DEFAULT_DOCUMENT_VIEWPORT,

@@ -1,5 +1,6 @@
 import {
     createAppDiagnosticsRunner,
+    createAppDocumentMetadata,
     createHashRoutedApp,
     inspectAppRoutes,
     inspectLocaleController,
@@ -26,11 +27,15 @@ import { notifications } from "./demo/status";
 import "../packages/components/src/styles/index.css";
 
 function getPlaygroundAppMetadata(): DocumentMetadataUpdateOptions {
-    return {
+    const appUrl = new URL(".", window.location.href);
+    const previewImageUrl = new URL("assets/logo-512.png", window.location.href);
+
+    return createAppDocumentMetadata({
+        name: t("app.brand.name"),
         lang: playgroundLocale.getLocale(),
         description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, and app-building patterns.",
         themeColor: "#111827",
-        canonical: new URL(".", window.location.href),
+        url: appUrl,
         robots: "index, follow",
         manifest: "site.webmanifest",
         icons: [
@@ -39,40 +44,27 @@ function getPlaygroundAppMetadata(): DocumentMetadataUpdateOptions {
                 type: "image/svg+xml"
             }
         ],
+        image: {
+            url: previewImageUrl,
+            type: "image/png",
+            width: 512,
+            height: 512,
+            alt: "Accessible First AF logo"
+        },
         openGraph: {
-            title: t("app.brand.name"),
-            type: "website",
-            url: new URL(".", window.location.href),
-            description: "Accessible First Playground demonstrates WCAG-first UI components and app-building patterns.",
-            siteName: "Accessible First",
-            image: {
-                url: new URL("assets/logo-512.png", window.location.href),
-                type: "image/png",
-                width: 512,
-                height: 512,
-                alt: "Accessible First AF logo"
-            }
+            description: "Accessible First Playground demonstrates WCAG-first UI components and app-building patterns."
         },
         twitter: {
-            card: "summary",
-            title: t("app.brand.name"),
-            description: "WCAG-first components, semantic composition, routing, diagnostics, and app-building patterns.",
-            image: new URL("assets/logo-512.png", window.location.href),
-            imageAlt: "Accessible First AF logo"
+            description: "WCAG-first components, semantic composition, routing, diagnostics, and app-building patterns."
         },
-        structuredData: {
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
+        softwareApplication: {
             name: "Accessible First Playground",
-            applicationCategory: "DeveloperApplication",
-            operatingSystem: "Web",
-            url: new URL(".", window.location.href).toString(),
             description: "Accessible First Playground demonstrates WCAG-first UI components, semantic composition, routing, diagnostics, and app-building patterns.",
-            image: new URL("assets/logo-512.png", window.location.href).toString()
+            applicationCategory: "DeveloperApplication",
+            operatingSystem: "Web"
         }
-    };
+    });
 }
-
 const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
     baseUrl: new URL(".", window.location.href),
     getDescription: getPlaygroundRouteDescription,

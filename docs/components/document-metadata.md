@@ -6,6 +6,39 @@ Use it when an app should set a useful document title, language, description, re
 
 ## Quick Start
 
+For public apps, prefer `createAppDocumentMetadata()`. It turns one app identity into document title, language, description, canonical URL, social preview metadata, optional manifest/icon links, and optional SoftwareApplication JSON-LD.
+
+```ts
+AppShell({
+    title: "Language App",
+    metadata: createAppDocumentMetadata({
+        name: "Language App",
+        lang: "en",
+        description: "Accessible language learning app.",
+        themeColor: "#111827",
+        url: "https://example.com/app",
+        robots: "index, follow",
+        manifest: "site.webmanifest",
+        icons: [
+            { href: "assets/logo.svg", type: "image/svg+xml" }
+        ],
+        image: {
+            url: "https://example.com/social-preview.png",
+            alt: "Language App preview"
+        },
+        twitter: {
+            card: "summary_large_image"
+        },
+        softwareApplication: {
+            applicationCategory: "EducationalApplication",
+            operatingSystem: "Web"
+        }
+    })
+});
+```
+
+Use `createDocumentMetadata()` directly when an app needs exact manual control over every tag.
+
 ```ts
 createDocumentMetadata({
     title: "Language App",
@@ -42,27 +75,49 @@ createDocumentMetadata({
     ]
 });
 ```
-
-With AppShell:
-
-```ts
-AppShell({
-    title: "Language App",
-    metadata: {
-        lang: "en",
-        description: "Accessible language learning app.",
-        themeColor: "#111827",
-        icons: [{ href: "assets/logo.svg", type: "image/svg+xml" }]
-    }
-});
-```
-
 ## Purpose
 
 Document metadata is part of page health. It helps browsers, assistive technology, search engines, saved shortcuts, and mobile devices understand the app.
 
-`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving deeper SEO checks for later expansion.
+`DocumentMetadata` is intentionally small. It covers the metadata that almost every real app needs first, while leaving deeper SEO checks for later expansion. `createAppDocumentMetadata()` adds a small public-app recipe on top so apps do not repeat the same Open Graph, Twitter, canonical, icon, and JSON-LD wiring.
 
+## App Metadata Recipe
+
+`createAppDocumentMetadata(options)` is a convenience layer over `DocumentMetadataUpdateOptions`. It does not localize or invent application copy. The app still passes every user-facing string, while the helper fills common metadata relationships from those values.
+
+Important options:
+
+- `name` - required app, product, or site name. Used as the default document title and social site name.
+- `title` - optional document and social title. Defaults to `name`.
+- `description` - optional meta description and generated social description.
+- `url` - public app URL. Used as the default canonical and shared URL.
+- `canonical` - canonical URL override. Defaults to `url` when provided.
+- `siteName` - Open Graph site name. Defaults to `name`.
+- `image` - shared preview image for Open Graph, Twitter, and generated SoftwareApplication JSON-LD.
+- `imageAlt` - Twitter image alt fallback when `image` is only a URL.
+- `openGraph` - object for overrides, `null` to remove managed Open Graph tags, or `false` to skip generated Open Graph metadata.
+- `twitter` - object for overrides, `null` to remove managed Twitter tags, or `false` to skip generated Twitter metadata.
+- `structuredData` - custom JSON-LD, `null` to remove managed JSON-LD, or `false` to skip generated structured data.
+- `softwareApplication` - generates Schema.org `SoftwareApplication` JSON-LD when `structuredData` is not provided.
+
+```ts
+const metadata = createAppDocumentMetadata({
+    name: t("app.name"),
+    lang: locale.getLocale(),
+    description: t("app.description"),
+    url: new URL(".", window.location.href),
+    image: {
+        url: new URL("assets/preview.png", window.location.href),
+        alt: t("app.previewAlt")
+    },
+    softwareApplication: {
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web"
+    }
+});
+```
+
+Pass a custom `structuredData` object for pages that are not software applications, such as articles, courses, FAQ pages, products, or marketing sites.
 ## Options
 
 - `document` - target document. Defaults to the current `document`. Creation-time option.
@@ -222,12 +277,3 @@ shell.inspect({
 - Open Graph and Twitter/X preview tags use meaningful titles, descriptions, URLs, and image alt text.
 - JSON-LD structured data is valid JSON and uses an appropriate Schema.org type for the page.
 - Icons resolve correctly after deployment, including GitHub Pages base paths.
-
-
-
-
-
-
-
-
-

@@ -34,7 +34,7 @@ These layers are strong enough to build on:
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader, FocusRoute.
-- Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
+- Metadata and public-web helpers: DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, route diagnostics, metadata, localization, and manifest checks.
 - Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
@@ -65,7 +65,7 @@ Before starting the first real application, we should have:
 
 - one clear app shell recipe for SPA, backed by `HashRoutedApp`;
 - one clear app shell recipe for MPA/native links, backed by `LinkRoutedApp`;
-- route metadata feeding navigation, search, breadcrumbs, metadata, command palette, RouteChrome, locale refresh, and diagnostics;
+- app metadata and route metadata feeding navigation, search, breadcrumbs, document metadata, command palette, RouteChrome, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
 - diagnostics reporting useful page, route, metadata, localization, manifest, and app-owned health issues;
