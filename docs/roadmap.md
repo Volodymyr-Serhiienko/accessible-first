@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Table, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
 - Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -53,7 +53,7 @@ Current focus:
 ### Now
 
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
-- Harden `HashRoutedApp`, `PublicHashRoutedApp`, `LinkRoutedApp`, and `PublicLinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus identity-driven route metadata synchronization for normal links.
+- Harden `PublicHashAppTemplate` and `PublicLinkAppTemplate` as the first reusable public app templates: SPA route rendering for hash routes, and native-link/MPA chrome plus identity-driven route metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
@@ -64,7 +64,7 @@ Current focus:
 Before starting the first real application, we should have:
 
 - one clear public SPA template, backed by `PublicHashAppTemplate`, `PublicHashRoutedApp`, and the lower-level `HashRoutedApp`;
-- one clear public MPA/native-link recipe, backed by `PublicLinkRoutedApp` and the lower-level `LinkRoutedApp`;
+- one clear public MPA/native-link template, backed by `PublicLinkAppTemplate`, `PublicLinkRoutedApp`, and the lower-level `LinkRoutedApp`;
 - app-owned identity and route metadata feeding navigation, search, breadcrumbs, document metadata, WebPage JSON-LD, web app manifests, command palette, RouteChrome, public routed app recipes, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
@@ -77,7 +77,7 @@ Goal: use Accessible First to build real application screens, then promote repea
 
 Planned sequence:
 
-1. Harden app templates around `AppShell`, `PageOutlet`, `PageLayout`, `RouteChrome`, route metadata, metadata helpers, diagnostics, locale, and theme.
+1. Harden app templates around `PublicHashAppTemplate`, `PublicLinkAppTemplate`, `AppShell`, `PageOutlet`, `PageLayout`, `RouteChrome`, route metadata, metadata helpers, diagnostics, locale, and theme.
 2. Add header/navigation variants only after the template needs them:
    - top navigation;
    - sidebar navigation;
@@ -166,7 +166,7 @@ Navigation should start from real links so MPA, static pages, server-rendered pa
 
 Need next:
 
-- MPA current-route detection and native-link route chrome examples built on `LinkRoutedApp`;
+- MPA current-route detection and native-link route chrome examples built on `PublicLinkAppTemplate` and `LinkRoutedApp`;
 - `HashRoutedApp` and `LinkRoutedApp` examples side by side;
 - canonical URL and sitemap guidance for hash routes;
 - route diagnostics for missing titles, descriptions, hrefs, parents, and metadata.

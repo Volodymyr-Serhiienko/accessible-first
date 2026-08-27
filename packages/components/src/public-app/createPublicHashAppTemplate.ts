@@ -1,10 +1,5 @@
-import type { AppShellOptions, AppShellUpdateOptions } from "../app-shell";
-import type { DocumentMetadataOptions, DocumentMetadataUpdateOptions } from "../document-metadata";
-import type {
-    LocaleCode,
-    LocaleController,
-    LocaleTextProvider
-} from "../localization";
+import type { AppShellUpdateOptions } from "../app-shell";
+import type { LocaleCode } from "../localization";
 import {
     createHashAppRouteChromeRenderer,
     type HashAppRouteChromeBaseOptions,
@@ -22,35 +17,30 @@ import {
     type PublicHashRoutedAppOptions,
     type PublicHashRoutedAppRoute
 } from "./createPublicHashRoutedApp";
+import {
+    getPublicAppTemplateShellOptions,
+    getPublicAppTemplateShellUpdateOptions,
+    hasPublicAppTemplateShellUpdateOptions,
+    isPublicAppTemplateLocaleController,
+    type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
+    type PublicAppTemplateShellOptions as SharedPublicAppTemplateShellOptions,
+    type PublicAppTemplateValue as SharedPublicAppTemplateValue
+} from "./publicAppTemplateInternals";
 
 /**
- * Static value or lazy resolver accepted by public app templates.
+ * Static value or lazy resolver accepted by public hash app templates.
  */
-export type PublicHashAppTemplateValue<TValue> = TValue | (() => TValue);
+export type PublicHashAppTemplateValue<TValue> = SharedPublicAppTemplateValue<TValue>;
 
 /**
  * Initial metadata accepted by PublicHashAppTemplate shell options.
  */
-export type PublicHashAppTemplateMetadata = DocumentMetadataOptions | false;
+export type PublicHashAppTemplateMetadata = SharedPublicAppTemplateMetadata;
 
 /**
  * Shell options accepted by createPublicHashAppTemplate().
  */
-export interface PublicHashAppTemplateShellOptions extends Omit<
-    AppShellOptions,
-    "title" | "skipLink" | "navigationLabel" | "locale" | "metadata"
-> {
-    /** Document/app title, or a resolver re-read during locale refresh. */
-    title?: PublicHashAppTemplateValue<AppShellOptions["title"]>;
-    /** Skip-link text/setting, or a resolver re-read during locale refresh. */
-    skipLink?: PublicHashAppTemplateValue<AppShellOptions["skipLink"]>;
-    /** Navigation landmark label, or a resolver re-read during locale refresh. */
-    navigationLabel?: PublicHashAppTemplateValue<AppShellOptions["navigationLabel"]>;
-    /** Page fallback-text locale override. Defaults to the app locale when it exposes t(). */
-    locale?: AppShellOptions["locale"];
-    /** Initial metadata, or a resolver re-read during locale refresh. */
-    metadata?: PublicHashAppTemplateValue<PublicHashAppTemplateMetadata>;
-}
+export interface PublicHashAppTemplateShellOptions extends SharedPublicAppTemplateShellOptions {}
 
 /**
  * RouteChrome options accepted by createPublicHashAppTemplate().
@@ -92,112 +82,6 @@ const defaultStartOptions: HashRouterNavigateOptions = {
     focusTarget: null
 };
 
-function resolveTemplateValue<TValue>(
-    value: PublicHashAppTemplateValue<TValue> | undefined
-): TValue | undefined {
-    return typeof value === "function"
-        ? (value as () => TValue)()
-        : value;
-}
-
-function isLocaleTextProvider(value: unknown): value is LocaleTextProvider<string> {
-    return Boolean(
-        value
-        && typeof value === "object"
-        && "t" in value
-        && typeof (value as LocaleTextProvider<string>).t === "function"
-    );
-}
-
-function isLocaleController<
-    TLocale extends LocaleCode,
-    TKey extends string
->(value: unknown): value is LocaleController<TLocale, TKey> {
-    return Boolean(
-        value
-        && typeof value === "object"
-        && "getMessages" in value
-        && typeof (value as LocaleController<TLocale, TKey>).getMessages === "function"
-        && "has" in value
-        && typeof (value as LocaleController<TLocale, TKey>).has === "function"
-    );
-}
-
-function getShellLocale<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>): AppShellOptions["locale"] | undefined {
-    if (options.shell && "locale" in options.shell) return options.shell.locale;
-    if (isLocaleTextProvider(options.locale)) return options.locale;
-
-    return undefined;
-}
-
-function getTemplateShellOptions<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>): AppShellOptions {
-    const shellOptions = options.shell ?? {};
-    const {
-        title,
-        skipLink,
-        navigationLabel,
-        locale: _locale,
-        metadata,
-        theme,
-        ...baseShellOptions
-    } = shellOptions;
-    const shell: AppShellOptions = {
-        ...baseShellOptions,
-        mainId: baseShellOptions.mainId ?? "main",
-        theme: theme ?? "system"
-    };
-    const shellLocale = getShellLocale(options);
-    const resolvedTitle = resolveTemplateValue(title);
-    const resolvedSkipLink = resolveTemplateValue(skipLink);
-    const resolvedNavigationLabel = resolveTemplateValue(navigationLabel);
-    const resolvedMetadata = resolveTemplateValue(metadata);
-
-    if (resolvedTitle !== undefined) shell.title = resolvedTitle;
-    if (resolvedSkipLink !== undefined) shell.skipLink = resolvedSkipLink;
-    if (resolvedNavigationLabel !== undefined) shell.navigationLabel = resolvedNavigationLabel;
-    if (shellLocale !== undefined) shell.locale = shellLocale;
-    if (resolvedMetadata !== undefined) shell.metadata = resolvedMetadata;
-
-    return shell;
-}
-
-function getTemplateShellUpdateOptions<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>): AppShellUpdateOptions {
-    const shellOptions = options.shell ?? {};
-    const updateOptions: AppShellUpdateOptions = {};
-    const shellLocale = getShellLocale(options);
-    const resolvedTitle = resolveTemplateValue(shellOptions.title);
-    const resolvedSkipLink = resolveTemplateValue(shellOptions.skipLink);
-    const resolvedNavigationLabel = resolveTemplateValue(shellOptions.navigationLabel);
-    const resolvedMetadata = resolveTemplateValue(shellOptions.metadata);
-
-    if (resolvedTitle !== undefined) updateOptions.title = resolvedTitle;
-    if (resolvedSkipLink !== undefined) updateOptions.skipLink = resolvedSkipLink;
-    if (shellOptions.skipLinkTargetId !== undefined) updateOptions.skipLinkTargetId = shellOptions.skipLinkTargetId;
-    if (resolvedNavigationLabel !== undefined) updateOptions.navigationLabel = resolvedNavigationLabel;
-    if (shellLocale !== undefined) updateOptions.locale = shellLocale;
-    if (resolvedMetadata !== undefined && resolvedMetadata !== false) {
-        updateOptions.metadata = resolvedMetadata as DocumentMetadataUpdateOptions;
-    }
-
-    return updateOptions;
-}
-
-function hasTemplateShellUpdateOptions(options: AppShellUpdateOptions): boolean {
-    return Object.keys(options).length > 0;
-}
-
 function resolveRouteChromeOptions<
     TRoute extends PublicHashRoutedAppRoute,
     TLocale extends LocaleCode,
@@ -219,7 +103,7 @@ function withTemplateShellUpdate<
     routeChromeOptions: HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>,
     shellUpdateOptions: AppShellUpdateOptions
 ): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-    if (!hasTemplateShellUpdateOptions(shellUpdateOptions) && routeChromeOptions.shell === undefined) {
+    if (!hasPublicAppTemplateShellUpdateOptions(shellUpdateOptions) && routeChromeOptions.shell === undefined) {
         return routeChromeOptions;
     }
 
@@ -245,7 +129,7 @@ function createTemplateRouteChromeRenderer<
         options(context: HashRoutedAppContext<TRoute>): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
             return withTemplateShellUpdate(
                 resolveRouteChromeOptions(options.routeChrome as PublicHashAppTemplateRouteChromeOptions<TRoute, TLocale, TKey>, context),
-                getTemplateShellUpdateOptions(options)
+                getPublicAppTemplateShellUpdateOptions(options)
             );
         }
     };
@@ -271,7 +155,7 @@ function getTemplateDiagnosticsOptions<
 
     const diagnosticsOptions = options.diagnostics ?? {};
 
-    if (diagnosticsOptions.locale !== undefined || !isLocaleController<TLocale, TKey>(options.locale)) {
+    if (diagnosticsOptions.locale !== undefined || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
         return diagnosticsOptions;
     }
 
@@ -299,7 +183,7 @@ export function createPublicHashAppTemplate<
     } = options;
     const appOptions: PublicHashRoutedAppOptions<TRoute, TLocale, TKey> = {
         ...publicAppOptions,
-        shell: getTemplateShellOptions(options)
+        shell: getPublicAppTemplateShellOptions(options)
     };
     const diagnostics = getTemplateDiagnosticsOptions(options);
     const renderChrome = createTemplateRouteChromeRenderer(options);

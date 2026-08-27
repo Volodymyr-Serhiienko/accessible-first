@@ -1,5 +1,6 @@
 export { createPublicHashAppTemplate } from "./createPublicHashAppTemplate";
 export { createPublicHashRoutedApp } from "./createPublicHashRoutedApp";
+export { createPublicLinkAppTemplate } from "./createPublicLinkAppTemplate";
 export { createPublicLinkRoutedApp } from "./createPublicLinkRoutedApp";
 export { createPublicRoutedAppDiagnostics } from "./createPublicRoutedAppDiagnostics";
 
@@ -19,6 +20,14 @@ export type {
     PublicHashRoutedAppRoute,
     PublicHashRoutedAppRouteMetadataOptions
 } from "./createPublicHashRoutedApp";
+export type {
+    PublicLinkAppTemplate,
+    PublicLinkAppTemplateMetadata,
+    PublicLinkAppTemplateOptions,
+    PublicLinkAppTemplateRouteChromeOptions,
+    PublicLinkAppTemplateShellOptions,
+    PublicLinkAppTemplateValue
+} from "./createPublicLinkAppTemplate";
 export type {
     PublicLinkRoutedApp,
     PublicLinkRoutedAppDiagnosticsOptions,

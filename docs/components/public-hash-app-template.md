@@ -129,6 +129,8 @@ Use `PublicHashAppTemplate` for normal public SPAs.
 
 Use `PublicHashRoutedApp` when the app needs to assemble `renderChrome` manually but still wants public diagnostics and startup scroll reset.
 
+Use `PublicLinkAppTemplate` for public native-link and MPA pages that should keep normal browser navigation.
+
 Use `HashRoutedApp` when the app is private/internal or does not need public metadata and diagnostics recipes.
 
 Use `HashRouter` directly when the app does not use `AppShell`.

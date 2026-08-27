@@ -1,6 +1,6 @@
 # PublicLinkRoutedApp
 
-PublicLinkRoutedApp is the public-site native-link recipe for Accessible First applications. It combines `LinkRoutedApp` with public diagnostics so static pages, server-rendered pages, and MPA pages can share the same app identity, route metadata, manifest checks, localization checks, and route health reports as SPAs.
+PublicLinkRoutedApp is the lower-level public-site native-link recipe for Accessible First applications. It combines `LinkRoutedApp` with public diagnostics so static pages, server-rendered pages, and MPA pages can share the same app identity, route metadata, manifest checks, localization checks, and route health reports as SPAs. For the standard app-template path, prefer [PublicLinkAppTemplate](./public-link-app-template.md).
 
 Use it when normal browser navigation should remain the routing mechanism, but each page still wants Accessible First app chrome and public readiness checks.
 
@@ -111,6 +111,8 @@ The returned controller behaves like `LinkRoutedApp` and adds:
 - `logDiagnostics()` - logs and returns a fresh diagnostics report.
 
 ## When To Use Lower Layers
+
+Use `PublicLinkAppTemplate` for normal public native-link or MPA pages with standard shell and route chrome wiring.
 
 Use `LinkRoutedApp` directly when the page is private, internal, or does not need public metadata/manifest/localization diagnostics.
 
