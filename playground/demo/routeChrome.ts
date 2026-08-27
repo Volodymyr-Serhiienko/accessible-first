@@ -1,6 +1,6 @@
 import {
     createHashAppRouteChromeRenderer,
-    type ComposedResponsiveNavigation,
+    type AppShellCompositionContent,
     type DocumentMetadataUpdateOptions,
     type HashAppRouteChromeBaseOptions,
     type HashRoutedAppChromeRenderer
@@ -19,7 +19,7 @@ import {
 
 export interface PlaygroundRouteChromeRendererOptions {
     getAppMetadata(): DocumentMetadataUpdateOptions;
-    onNavigation?(navigation: ComposedResponsiveNavigation): void;
+    afterOutlet?: AppShellCompositionContent | null;
 }
 
 function getPlaygroundRouteChromeOptions(
@@ -101,7 +101,21 @@ function getPlaygroundRouteChromeOptions(
                     return ["open", "go", "section", "demo", route.id, route.title, route.label];
                 }
             }
-        }
+        },
+        navigationReturnLink: {
+            className: "playground-return-link",
+            href: "#playground-navigation",
+            text: t("app.navigation.returnLink"),
+            variant: "standalone",
+            hint: t("app.navigation.returnHint"),
+            hintDisplay: "description",
+            scroll: {
+                block: "nearest",
+                inline: "nearest",
+                behavior: "auto"
+            }
+        },
+        afterOutlet: options.afterOutlet
     };
 }
 
@@ -109,15 +123,6 @@ export function createPlaygroundRouteChromeRenderer(
     options: PlaygroundRouteChromeRendererOptions
 ): HashRoutedAppChromeRenderer<PlaygroundRoute> {
     return createHashAppRouteChromeRenderer<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
-        options: () => getPlaygroundRouteChromeOptions(options),
-        onCreate(chrome) {
-            const navigation = chrome.routeChrome.navigation;
-
-            if (!navigation) {
-                throw new Error("Playground route chrome requires navigation.");
-            }
-
-            options.onNavigation?.(navigation);
-        }
+        options: () => getPlaygroundRouteChromeOptions(options)
     });
 }

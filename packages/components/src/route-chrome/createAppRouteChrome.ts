@@ -8,11 +8,19 @@ import type {
     AppShellUpdateOptions
 } from "../app-shell";
 import type { AppRouteDescriptor } from "../app-routes";
-import type { CompositionChild } from "../composition";
+import {
+    toCompositionChildren,
+    type CompositionChild
+} from "../composition";
 import type {
     AccessibleFirstMessageKey,
     LocaleCode
 } from "../localization";
+import {
+    ResponsiveNavigationFocusLink,
+    type ComposedResponsiveNavigationFocusLink,
+    type ResponsiveNavigationFocusLinkOptions
+} from "../responsive-navigation";
 import {
     createRouteChrome,
     type RouteChrome,
@@ -40,6 +48,14 @@ export interface AppRouteChromeHeaderOptions<
 }
 
 /**
+ * Options for the optional after-outlet link that returns focus to route navigation.
+ */
+export type AppRouteChromeNavigationReturnLinkOptions = Omit<
+    ResponsiveNavigationFocusLinkOptions,
+    "navigation"
+>;
+
+/**
  * Shell slots produced by createAppRouteChrome().
  */
 export interface AppRouteChromeSlots {
@@ -63,6 +79,8 @@ export interface AppRouteChromeOptions<
     shell?: AppShellUpdateOptions;
     /** AppHeader recipe options. Use false to clear/omit the managed header slot. */
     header?: AppRouteChromeHeaderOptions<TLocale, TKey> | false;
+    /** Optional after-outlet link that returns focus to the generated route navigation. */
+    navigationReturnLink?: AppRouteChromeNavigationReturnLinkOptions | false | null;
     /** Optional content returned for the shell after-outlet slot. */
     afterOutlet?: AppShellCompositionContent | null;
     /** Optional content returned for the shell footer slot. */
@@ -149,6 +167,38 @@ function createAppRouteHeader<
     });
 }
 
+function createNavigationReturnLink<TRoute extends AppRouteDescriptor>(
+    routeChrome: RouteChrome<TRoute>,
+    options: AppRouteChromeNavigationReturnLinkOptions | false | null | undefined
+): ComposedResponsiveNavigationFocusLink | null {
+    if (!options || !routeChrome.navigation) return null;
+
+    return ResponsiveNavigationFocusLink({
+        ...options,
+        navigation: routeChrome.navigation
+    });
+}
+
+function getAfterOutletContent<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: AppRouteChromeOptions<TRoute, TLocale, TKey>,
+    navigationReturnLink: ComposedResponsiveNavigationFocusLink | null
+): AppShellCompositionContent | undefined {
+    const hasAfterOutlet = "afterOutlet" in options;
+
+    if (!navigationReturnLink) {
+        return hasAfterOutlet ? options.afterOutlet ?? null : undefined;
+    }
+
+    return [
+        navigationReturnLink,
+        ...toCompositionChildren(hasAfterOutlet ? options.afterOutlet : null)
+    ];
+}
+
 /**
  * Creates a route-aware AppHeader, navigation, breadcrumbs, and route-control bindings for app shells.
  */
@@ -159,6 +209,8 @@ export function createAppRouteChrome<
 >(options: AppRouteChromeOptions<TRoute, TLocale, TKey>): AppRouteChrome<TRoute, TLocale> {
     const routeChrome = createRouteChrome(getRouteChromeOptions(options));
     const appHeader = createAppRouteHeader<TLocale, TKey>(routeChrome.headerControls, options.header);
+    const navigationReturnLink = createNavigationReturnLink(routeChrome, options.navigationReturnLink);
+    const afterOutlet = getAfterOutletContent(options, navigationReturnLink);
     const appRouteChrome: AppRouteChrome<TRoute, TLocale> = {
         routeChrome,
         appHeader,
@@ -170,7 +222,7 @@ export function createAppRouteChrome<
 
     if (appHeader || options.header === false) appRouteChrome.header = appHeader;
     if (options.shell !== undefined) appRouteChrome.shell = options.shell;
-    if ("afterOutlet" in options) appRouteChrome.afterOutlet = options.afterOutlet ?? null;
+    if (afterOutlet !== undefined) appRouteChrome.afterOutlet = afterOutlet;
     if ("footer" in options) appRouteChrome.footer = options.footer ?? null;
 
     return appRouteChrome;

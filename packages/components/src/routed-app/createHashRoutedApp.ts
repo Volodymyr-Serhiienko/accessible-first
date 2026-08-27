@@ -156,7 +156,6 @@ function getLocaleRefreshRouteOptions<
     return options?.routeOptions ?? defaultLocaleRefreshRouteOptions;
 }
 
-
 /**
  * Creates a lightweight SPA runtime around AppShell, HashRouter, route controls, and locale refresh.
  */
@@ -217,7 +216,6 @@ export function createHashRoutedApp<
         });
         hasBoundNavigation = hasNavigationControl;
     }
-
 
     function refreshChrome(): void {
         if (destroyed) return;

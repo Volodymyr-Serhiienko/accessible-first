@@ -103,7 +103,7 @@ navigation.update({
 
 `getFocusTarget()` returns the best visible focus destination for workflow links such as "Back to navigation". It prefers the current desktop link, then the current mobile link, then the visible mobile trigger, then the first desktop link, and finally the navigation root.
 
-Use `ResponsiveNavigationFocusLink()` when the return route should be a visible link:
+Use `ResponsiveNavigationFocusLink()` when the return route should be a visible link. In routed apps built with RouteChrome, prefer `navigationReturnLink` on `createAppRouteChrome`, `createHashAppRouteChromeRenderer`, or `createLinkAppRouteChromeRenderer` so the recipe wires the navigation reference automatically:
 
 ```ts
 ResponsiveNavigationFocusLink({

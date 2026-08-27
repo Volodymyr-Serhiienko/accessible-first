@@ -64,7 +64,7 @@ Real application flows often need focus movement that is not just normal Tab ord
 
 FocusRoute gives these flows one reusable helper instead of copying local focus glue into every demo or app screen.
 
-Use `FocusRouteLink` when the focus route should be exposed as a visible link, such as "Return to selected item". Use `ResponsiveNavigationFocusLink` for the common "Back to navigation" flow. These links keep a real `href` for semantics and fallback, prevent normal navigation by default, then move focus to the configured target.
+Use `FocusRouteLink` when the focus route should be exposed as a visible link, such as "Return to selected item". Use `ResponsiveNavigationFocusLink` for the common "Back to navigation" flow. These links keep a real `href` for semantics and fallback, prevent normal navigation by default, then move focus to the configured target. In routed apps built with RouteChrome, prefer the higher-level `navigationReturnLink` option so the chrome recipe connects the link to the generated responsive navigation for you.
 
 ## Accessibility
 

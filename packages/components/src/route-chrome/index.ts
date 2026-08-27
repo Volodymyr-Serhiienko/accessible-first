@@ -14,6 +14,7 @@ export { createRouteChrome } from "./createRouteChrome";
 export type {
     AppRouteChrome,
     AppRouteChromeHeaderOptions,
+    AppRouteChromeNavigationReturnLinkOptions,
     AppRouteChromeOptions,
     AppRouteChromeRouteControlsPlacement,
     AppRouteChromeSlots

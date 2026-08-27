@@ -1,6 +1,5 @@
 import {
     createPublicHashRoutedApp,
-    type ComposedResponsiveNavigation,
     type PublicHashRoutedApp
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
@@ -13,7 +12,6 @@ import {
     type PlaygroundLocale,
     type PlaygroundMessageKey
 } from "./demo/localization";
-import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
     playgroundRouteOptions,
@@ -25,7 +23,6 @@ import { notifications } from "./demo/status";
 import "../packages/components/src/styles/index.css";
 
 let app!: PublicHashRoutedApp<PlaygroundRoute>;
-let currentNavigation!: ComposedResponsiveNavigation;
 
 app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
     routes: playgroundRoutes,
@@ -42,10 +39,6 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
         locale: playgroundLocale,
         theme: "system",
         metadata: getPlaygroundAppMetadata(),
-        afterOutlet: [
-            ReturnToNavigationLink(() => currentNavigation),
-            notifications
-        ],
         footer: FooterDemo(),
         outletOptions: {
             className: "playground-route-outlet",
@@ -74,9 +67,7 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
     },
     renderChrome: createPlaygroundRouteChromeRenderer({
         getAppMetadata: getPlaygroundAppMetadata,
-        onNavigation(navigation) {
-            currentNavigation = navigation;
-        }
+        afterOutlet: notifications
     }),
     diagnostics: {
         identityManifestOptions: {

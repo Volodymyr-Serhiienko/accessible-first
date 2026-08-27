@@ -154,7 +154,6 @@ export interface LinkRoutedApp<
     isDestroyed(): boolean;
 }
 
-
 function getRouteFromCurrent<TRoute extends AppRouteDescriptor>(
     routes: readonly TRoute[],
     current: LinkRoutedAppCurrent<TRoute>
@@ -241,7 +240,6 @@ export function createLinkRoutedApp<
         currentRouteControls = chrome.currentRouteControls ?? [];
         syncRouteControls();
     }
-
 
     function refreshChrome(): void {
         if (destroyed) return;

@@ -48,6 +48,10 @@ renderChrome: createHashAppRouteChromeRenderer({
                 trigger: t("app.commands.trigger"),
                 title: t("app.commands.title"),
                 searchLabel: t("app.commands.searchLabel")
+            },
+            navigationReturnLink: {
+                text: t("app.navigation.returnLink"),
+                href: "#app-navigation"
             }
         };
     }
@@ -90,6 +94,10 @@ renderChrome: createLinkAppRouteChromeRenderer({
                 trigger: t("app.commands.trigger"),
                 title: t("app.commands.title"),
                 searchLabel: t("app.commands.searchLabel")
+            },
+            navigationReturnLink: {
+                text: t("app.navigation.returnLink"),
+                href: "#app-navigation"
             }
         };
     }
@@ -130,7 +138,7 @@ RouteChrome sits above individual route-aware controls and below full app templa
 `createAppRouteChrome` builds on that and can also create:
 
 - an `AppHeader` from `header` options, including identity-derived brand defaults when `header.identity` is supplied;
-- shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`;
+- shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`, including optional after-outlet navigation return links;
 - route-control bindings that can be returned directly from `HashRoutedApp.renderChrome(...)` or `LinkRoutedApp.renderChrome(...)`.
 
 `createHashAppRouteChrome` builds on `createAppRouteChrome` and adds standard hash-route activation defaults: update history, scroll to the outlet, and move focus into the rendered route content.
@@ -203,7 +211,8 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 - `header.controls` - extra app controls placed beside route search and commands.
 - `header.routeControlsPlacement` - `"start"` or `"end"`. Defaults to `"start"`, so route search and commands appear before custom controls.
 - `shell` - optional `AppShell.update(...)` options returned with the chrome slots.
-- `afterOutlet` - optional content for the shell after-outlet slot.
+- `navigationReturnLink` - optional `ResponsiveNavigationFocusLink` options without `navigation`; creates an after-outlet link that returns focus to the generated route navigation.
+- `afterOutlet` - optional content for the shell after-outlet slot. When `navigationReturnLink` is also provided, the generated return link is prepended before this content.
 - `footer` - optional content for the shell footer slot.
 
 ## Returned Values
@@ -221,7 +230,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 `createAppRouteChrome`, `createHashAppRouteChrome`, and `createLinkAppRouteChrome` return the same route chrome controller, plus:
 
 - `appHeader` - composed `AppHeader`, or `null`.
-- `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated.
+- `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated. `afterOutlet` can include the generated `navigationReturnLink` plus app-provided after-outlet content.
 - `navigationControl` and `currentRouteControls` - route-control bindings ready to return from routed app render callbacks.
 
 ## SPA And MPA Use
@@ -248,3 +257,4 @@ When using app route chrome helpers, the generated `AppHeader` keeps one control
 - Header controls move into HeaderTools overflow when they do not fit.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
 - HashRoutedApp and LinkRoutedApp renderers can be expressed declaratively without repeating current-route wiring.
+- Optional navigation return links move focus back to the visible route navigation target without app-owned navigation references.
