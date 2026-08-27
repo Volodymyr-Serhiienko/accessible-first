@@ -1,5 +1,6 @@
 export {
     createAppDiagnosticsReport,
+    createAppDiagnosticsRunner,
     createAppDiagnosticsSourceReport,
     logAppDiagnostics
 } from "./createAppDiagnostics";
@@ -10,7 +11,12 @@ export type {
     AppDiagnosticsLevel,
     AppDiagnosticsOptions,
     AppDiagnosticsReport,
+    AppDiagnosticsReportResolver,
+    AppDiagnosticsRunner,
+    AppDiagnosticsRunnerLog,
+    AppDiagnosticsRunnerOptions,
     AppDiagnosticsSourceOptions,
     AppDiagnosticsSourceReport,
+    AppDiagnosticsSourcesResolver,
     AppDiagnosticsStatus
 } from "./createAppDiagnostics";

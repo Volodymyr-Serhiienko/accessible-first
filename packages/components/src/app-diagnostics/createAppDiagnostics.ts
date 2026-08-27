@@ -62,6 +62,37 @@ export interface AppDiagnosticsOptions {
 }
 
 /**
+ * Static or lazy diagnostics report accepted by createAppDiagnosticsRunner().
+ */
+export type AppDiagnosticsReportResolver<
+    TReport extends AppDiagnosticsCompatibleReport = AppDiagnosticsCompatibleReport
+> = TReport | null | undefined | (() => TReport | null | undefined);
+
+/**
+ * Static or lazy custom diagnostics sources accepted by createAppDiagnosticsRunner().
+ */
+export type AppDiagnosticsSourcesResolver =
+    | readonly AppDiagnosticsSourceOptions[]
+    | null
+    | undefined
+    | (() => readonly AppDiagnosticsSourceOptions[] | null | undefined);
+
+/**
+ * Logging behavior for createAppDiagnosticsRunner().
+ */
+export type AppDiagnosticsRunnerLog = boolean | ((report: AppDiagnosticsReport) => void);
+
+/**
+ * Options for createAppDiagnosticsRunner().
+ */
+export interface AppDiagnosticsRunnerOptions {
+    page?: AppDiagnosticsReportResolver<PageDiagnosticsReport>;
+    routes?: AppDiagnosticsReportResolver<AppRouteDiagnosticsReport>;
+    sources?: AppDiagnosticsSourcesResolver;
+    log?: AppDiagnosticsRunnerLog;
+}
+
+/**
  * Combined app diagnostics report.
  */
 export interface AppDiagnosticsReport {
@@ -71,6 +102,14 @@ export interface AppDiagnosticsReport {
     errorCount: number;
     warningCount: number;
     infoCount: number;
+}
+
+/**
+ * Reusable app diagnostics controller for declarative app setup.
+ */
+export interface AppDiagnosticsRunner {
+    inspect(): AppDiagnosticsReport;
+    log(): AppDiagnosticsReport;
 }
 
 function getAppDiagnosticsStatus(
@@ -104,6 +143,28 @@ function normalizeReportStatus(
     }
 
     return getAppDiagnosticsStatus(errorCount, warningCount);
+}
+
+function resolveAppDiagnosticsReport<
+    TReport extends AppDiagnosticsCompatibleReport
+>(
+    resolver: AppDiagnosticsReportResolver<TReport>
+): TReport | null {
+    if (typeof resolver === "function") {
+        return resolver() ?? null;
+    }
+
+    return resolver ?? null;
+}
+
+function resolveAppDiagnosticsSources(
+    resolver: AppDiagnosticsSourcesResolver
+): readonly AppDiagnosticsSourceOptions[] {
+    const sources = typeof resolver === "function"
+        ? resolver()
+        : resolver;
+
+    return sources ?? [];
 }
 
 /**
@@ -170,6 +231,44 @@ export function createAppDiagnosticsReport(
         errorCount,
         warningCount,
         infoCount
+    };
+}
+
+/**
+ * Creates a reusable diagnostics runner for apps that need fresh reports on demand.
+ */
+export function createAppDiagnosticsRunner(
+    options: AppDiagnosticsRunnerOptions = {}
+): AppDiagnosticsRunner {
+    function inspect(): AppDiagnosticsReport {
+        const page = resolveAppDiagnosticsReport(options.page);
+        const routes = resolveAppDiagnosticsReport(options.routes);
+        const sources = resolveAppDiagnosticsSources(options.sources);
+        const reportOptions: AppDiagnosticsOptions = {};
+
+        if (page) reportOptions.page = page;
+        if (routes) reportOptions.routes = routes;
+        if (sources.length > 0) reportOptions.sources = sources;
+
+        return createAppDiagnosticsReport(reportOptions);
+    }
+
+    function log(): AppDiagnosticsReport {
+        const report = inspect();
+        const logOption = options.log;
+
+        if (typeof logOption === "function") {
+            logOption(report);
+        } else if (logOption !== false) {
+            logAppDiagnostics(report);
+        }
+
+        return report;
+    }
+
+    return {
+        inspect,
+        log
     };
 }
 

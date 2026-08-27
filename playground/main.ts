@@ -1,10 +1,9 @@
 import {
-    createAppDiagnosticsReport,
+    createAppDiagnosticsRunner,
     createHashRoutedApp,
     inspectAppRoutes,
     inspectLocaleController,
     inspectWebAppManifest,
-    logAppDiagnostics,
     type ComposedResponsiveNavigation,
     type DocumentMetadataUpdateOptions,
     type HashRoutedApp
@@ -111,8 +110,8 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
 let app!: HashRoutedApp<PlaygroundRoute>;
 let currentNavigation!: ComposedResponsiveNavigation;
 
-function logPlaygroundDiagnostics(): void {
-    const pageDiagnostics = app.shell.inspect({
+const playgroundDiagnostics = createAppDiagnosticsRunner({
+    page: () => app.shell.inspect({
         log: false,
         documentMetadata: {
             requireDescription: true,
@@ -123,41 +122,36 @@ function logPlaygroundDiagnostics(): void {
             requireTwitter: true,
             requireStructuredData: true
         }
-    });
+    }),
+    routes: routeDiagnostics,
+    sources: () => [
+        {
+            id: "localization",
+            label: "Localization",
+            report: inspectLocaleController(playgroundLocale, {
+                requiredMessages: playgroundRequiredMessageKeys
+            })
+        },
+        {
+            id: "manifest",
+            label: "Web App Manifest",
+            report: inspectWebAppManifest(playgroundManifest, {
+                requireShortName: true,
+                requireDescription: true,
+                requireStartUrl: true,
+                requireDisplay: true,
+                requireIcons: true,
+                requireThemeColor: true,
+                requireBackgroundColor: true,
+                requireMaskableIcon: true
+            })
+        }
+    ]
+});
 
-    const localeDiagnostics = inspectLocaleController(playgroundLocale, {
-        requiredMessages: playgroundRequiredMessageKeys
-    });
-
-    const manifestDiagnostics = inspectWebAppManifest(playgroundManifest, {
-        requireShortName: true,
-        requireDescription: true,
-        requireStartUrl: true,
-        requireDisplay: true,
-        requireIcons: true,
-        requireThemeColor: true,
-        requireBackgroundColor: true,
-        requireMaskableIcon: true
-    });
-
-    logAppDiagnostics(createAppDiagnosticsReport({
-        page: pageDiagnostics,
-        routes: routeDiagnostics,
-        sources: [
-            {
-                id: "localization",
-                label: "Localization",
-                report: localeDiagnostics
-            },
-            {
-                id: "manifest",
-                label: "Web App Manifest",
-                report: manifestDiagnostics
-            }
-        ]
-    }));
+function logPlaygroundDiagnostics(): void {
+    playgroundDiagnostics.log();
 }
-
 
 app = createHashRoutedApp<PlaygroundRoute>({
     routes: playgroundRoutes,
