@@ -35,7 +35,7 @@ These layers are strong enough to build on:
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Screen, ListDetail.
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, route-derived metadata helpers.
-- Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, route diagnostics, metadata, localization, and manifest checks.
+- Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, metadata, localization, and manifest checks.
 - Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
@@ -68,7 +68,7 @@ Before starting the first real application, we should have:
 - app-owned identity and route metadata feeding navigation, search, breadcrumbs, document metadata, web app manifests, command palette, RouteChrome, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
-- diagnostics reporting useful page, route, metadata, localization, manifest, and app-owned health issues through a public app diagnostics recipe;
+- diagnostics reporting useful page, route-list, metadata, localization, manifest, and app-owned health issues through a public app diagnostics recipe;
 - playground sections stable enough for desktop and mobile smoke checks.
 
 ## Next Phase: Application Templates And First Reference App

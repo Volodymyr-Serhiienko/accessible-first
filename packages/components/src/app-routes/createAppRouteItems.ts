@@ -201,6 +201,19 @@ export interface AppRouteDiagnosticsReport<
 }
 
 /**
+ * Strict route metadata checks recommended for public apps and indexed route sets.
+ */
+export const PUBLIC_APP_ROUTE_DIAGNOSTICS: Readonly<Pick<
+    AppRouteDiagnosticsOptions<AppRouteDescriptor>,
+    "requireDescription" | "requireDocumentTitle" | "requireCanonical" | "requireStructuredData"
+>> = Object.freeze({
+    requireDescription: true,
+    requireDocumentTitle: true,
+    requireCanonical: true,
+    requireStructuredData: true
+});
+
+/**
  * Options for createAppRouteNavigationItems().
  */
 export interface AppRouteNavigationItemsOptions<TRoute extends AppRouteDescriptor> {
@@ -394,6 +407,28 @@ function hasAppRouteParentCycle<TRoute extends AppRouteDescriptor>(
     }
 
     return false;
+}
+
+/**
+ * Creates route diagnostics options with public-app metadata requirements enabled.
+ */
+export function createPublicAppRouteDiagnosticsOptions<TRoute extends AppRouteDescriptor>(
+    options: AppRouteDiagnosticsOptions<TRoute> = {}
+): AppRouteDiagnosticsOptions<TRoute> {
+    return {
+        ...PUBLIC_APP_ROUTE_DIAGNOSTICS,
+        ...options
+    };
+}
+
+/**
+ * Inspects route descriptors with public-app metadata requirements enabled.
+ */
+export function inspectPublicAppRoutes<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: AppRouteDiagnosticsOptions<TRoute> = {}
+): AppRouteDiagnosticsReport<TRoute> {
+    return inspectAppRoutes(routes, createPublicAppRouteDiagnosticsOptions(options));
 }
 
 /**

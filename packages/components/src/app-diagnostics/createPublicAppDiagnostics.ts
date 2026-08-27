@@ -1,5 +1,8 @@
-import type {
-    AppRouteDiagnosticsReport
+import {
+    inspectPublicAppRoutes,
+    type AppRouteDescriptor,
+    type AppRouteDiagnosticsOptions,
+    type AppRouteDiagnosticsReport
 } from "../app-routes";
 import {
     inspectLocaleController,
@@ -19,7 +22,6 @@ import {
 } from "../web-app-manifest";
 import {
     createAppDiagnosticsRunner,
-    type AppDiagnosticsReportResolver,
     type AppDiagnosticsRunner,
     type AppDiagnosticsRunnerLog,
     type AppDiagnosticsRunnerOptions,
@@ -91,18 +93,28 @@ export type PublicAppDiagnosticsLocaleResolver<
 export type PublicAppDiagnosticsManifestResolver = PublicAppDiagnosticsResolver<WebAppManifest>;
 
 /**
+ * Route list or route diagnostics report accepted by createPublicAppDiagnosticsRunner().
+ */
+export type PublicAppDiagnosticsRoutesResolver<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = PublicAppDiagnosticsResolver<AppRouteDiagnosticsReport<TRoute> | readonly TRoute[]>;
+
+/**
  * Options for createPublicAppDiagnosticsRunner().
  */
 export interface PublicAppDiagnosticsRunnerOptions<
     TLocale extends LocaleCode = LocaleCode,
-    TKey extends string = string
+    TKey extends string = string,
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
 > {
     /** Page, AppShell, PageDiagnosticsReport, or lazy resolver used for the page source. */
     page?: PublicAppDiagnosticsPageResolver;
     /** Page diagnostics overrides merged on top of public-app metadata defaults. */
     pageOptions?: PageDiagnosticsOptions;
-    /** Route diagnostics report or resolver. Route inspection remains app-specific. */
-    routes?: AppDiagnosticsReportResolver<AppRouteDiagnosticsReport>;
+    /** Route descriptors, route diagnostics report, or lazy resolver. Route lists use public-app diagnostics defaults. */
+    routes?: PublicAppDiagnosticsRoutesResolver<TRoute>;
+    /** Route diagnostics overrides used when routes is a route descriptor list. */
+    routeOptions?: AppRouteDiagnosticsOptions<TRoute>;
     /** Locale controller or resolver used for the localization source. */
     locale?: PublicAppDiagnosticsLocaleResolver<TLocale, TKey>;
     /** Locale diagnostics options, such as required app and framework message keys. */
@@ -160,11 +172,32 @@ function resolvePublicAppPageReport(
     return resolvedPage.inspect(createPublicAppPageDiagnosticsOptions(pageOptions));
 }
 
+function isPublicAppDiagnosticsRouteList<TRoute extends AppRouteDescriptor>(
+    value: AppRouteDiagnosticsReport<TRoute> | readonly TRoute[]
+): value is readonly TRoute[] {
+    return Array.isArray(value);
+}
+
+function resolvePublicAppRouteReport<TRoute extends AppRouteDescriptor>(
+    routes: PublicAppDiagnosticsRoutesResolver<TRoute>,
+    routeOptions: AppRouteDiagnosticsOptions<TRoute> | undefined
+): AppRouteDiagnosticsReport<TRoute> | null {
+    const resolvedRoutes = resolvePublicAppDiagnosticsValue(routes);
+
+    if (!resolvedRoutes) return null;
+    if (isPublicAppDiagnosticsRouteList(resolvedRoutes)) {
+        return inspectPublicAppRoutes(resolvedRoutes, routeOptions);
+    }
+
+    return resolvedRoutes;
+}
+
 function createPublicAppDiagnosticSources<
     TLocale extends LocaleCode,
-    TKey extends string
+    TKey extends string,
+    TRoute extends AppRouteDescriptor
 >(
-    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey>
+    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute>
 ): readonly AppDiagnosticsSourceOptions[] {
     const sources: AppDiagnosticsSourceOptions[] = [];
     const locale = resolvePublicAppDiagnosticsValue(options.locale);
@@ -227,9 +260,10 @@ export function createPublicAppManifestDiagnosticsOptions(
  */
 export function createPublicAppDiagnosticsRunner<
     TLocale extends LocaleCode = LocaleCode,
-    TKey extends string = string
+    TKey extends string = string,
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
 >(
-    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey> = {}
+    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute> = {}
 ): AppDiagnosticsRunner {
     const runnerOptions: AppDiagnosticsRunnerOptions = {
         sources: () => createPublicAppDiagnosticSources(options)
@@ -239,7 +273,13 @@ export function createPublicAppDiagnosticsRunner<
         runnerOptions.page = () => resolvePublicAppPageReport(options.page, options.pageOptions);
     }
 
-    if (options.routes !== undefined) runnerOptions.routes = options.routes;
+    if (options.routes !== undefined) {
+        runnerOptions.routes = () => resolvePublicAppRouteReport(
+            options.routes,
+            options.routeOptions
+        );
+    }
+
     if (options.log !== undefined) runnerOptions.log = options.log;
 
     return createAppDiagnosticsRunner(runnerOptions);

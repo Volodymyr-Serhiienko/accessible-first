@@ -29,8 +29,8 @@ const breadcrumbItems = createAppRouteBreadcrumbItems(routeTrail);
 const metadata = createAppRouteDocumentMetadata(routes[1], {
     appTitle: "Example App"
 });
-const routeReport = inspectAppRoutes(routes, {
-    requireDescription: true
+const routeReport = inspectPublicAppRoutes(routes, {
+    baseUrl: "https://example.com/app/"
 });
 
 logAppRouteDiagnostics(routeReport);
@@ -232,15 +232,11 @@ This lets one route descriptor feed navigation, search, breadcrumbs, command pal
 
 ## Route Diagnostics
 
-Use `inspectAppRoutes()` during development when one route list drives navigation, search, breadcrumbs, routing, and document metadata:
+Use `inspectPublicAppRoutes()` for public apps and indexed route sets that should provide descriptions, document titles, canonical URLs, and structured data. Use `inspectAppRoutes()` directly for private apps or custom requirements:
 
 ```ts
-const report = inspectAppRoutes(routes, {
-    baseUrl: "https://example.com/app/",
-    requireDescription: true,
-    requireDocumentTitle: true,
-    requireCanonical: true,
-    requireStructuredData: true
+const report = inspectPublicAppRoutes(routes, {
+    baseUrl: "https://example.com/app/"
 });
 
 logAppRouteDiagnostics(report);
@@ -258,7 +254,7 @@ Diagnostics check route structure before the application grows around it:
 When descriptions, titles, canonical URLs, or structured data are resolved by application logic, pass the same resolvers used by routing or metadata:
 
 ```ts
-inspectAppRoutes(routes, {
+inspectPublicAppRoutes(routes, {
     baseUrl: "https://example.com/app/",
     getDescription(route) {
         return route.description ?? `Open ${route.title}.`;
@@ -268,11 +264,7 @@ inspectAppRoutes(routes, {
     },
     getStructuredData(route) {
         return route.metadata?.structuredData ?? null;
-    },
-    requireDescription: true,
-    requireDocumentTitle: true,
-    requireCanonical: true,
-    requireStructuredData: true
+    }
 });
 ```
 
@@ -317,19 +309,18 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteById(routes, id)` - finds a route by id.
 - `getAppRouteByLocation(routes, options)` - finds the route matching a URL/location.
 - `getAppRouteLabel(route)` - returns `route.label ?? route.title`.
-- `getAppRouteHref(route)` - returns explicit `href`, 
-ull`, or `#id`.
-- `getAppRouteParentId(route)` - returns explicit `parentId` or 
-ull`.
+- `getAppRouteHref(route)` - returns explicit `href`, `null`, or `#id`.
+- `getAppRouteParentId(route)` - returns explicit `parentId` or `null`.
 - `getAppRouteDescription(route)` - returns route description or a default open message.
 - `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
 - `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
 - `createAppRouteDocumentMetadata(route, options)` - creates document metadata update options from route metadata.
+- `createPublicAppRouteDiagnosticsOptions(options)` - merges route diagnostics options with public-app metadata requirements.
 - `inspectAppRoutes(routes, options)` - checks route ids, hrefs, parent hierarchy, and optional metadata requirements.
+- `inspectPublicAppRoutes(routes, options)` - checks routes with public-app metadata requirements enabled.
 - `logAppRouteDiagnostics(report)` - logs a compact route diagnostics report to the console.
 - `getAppRouteKeywords(route, extraKeywords)` - returns normalized search keywords.
-- 
-ormalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
+- `normalizeAppRouteText(value)` - normalizes ids, labels, and titles for search.
 
 ## Accessibility
 
@@ -362,14 +353,3 @@ Keep routing itself separate. `HashRouter`, native links, or another router can 
 - Route ids stay stable across releases.
 - Parent route ids do not create cycles.
 - Route diagnostics report `healthy` or only expected warnings during development.
-
-
-
-
-
-
-
-
-
-
-

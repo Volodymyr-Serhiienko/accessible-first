@@ -33,5 +33,6 @@ export type {
     PublicAppDiagnosticsManifestResolver,
     PublicAppDiagnosticsPageResolver,
     PublicAppDiagnosticsResolver,
+    PublicAppDiagnosticsRoutesResolver,
     PublicAppDiagnosticsRunnerOptions
 } from "./createPublicAppDiagnostics";

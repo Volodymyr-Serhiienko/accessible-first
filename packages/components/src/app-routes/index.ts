@@ -2,6 +2,7 @@ export {
     createAppRouteBreadcrumbItems,
     createAppRouteDocumentMetadata,
     createAppRouteNavigationItems,
+    createPublicAppRouteDiagnosticsOptions,
     createAppRouteSearchItems,
     createAppRouteTrail,
     getAppRouteById,
@@ -15,8 +16,10 @@ export {
     getAppRouteLabel,
     getAppRouteParentId,
     inspectAppRoutes,
+    inspectPublicAppRoutes,
     logAppRouteDiagnostics,
-    normalizeAppRouteText
+    normalizeAppRouteText,
+    PUBLIC_APP_ROUTE_DIAGNOSTICS
 } from "./createAppRouteItems";
 export {
     createAppRouteSitemapEntries,

@@ -11,12 +11,10 @@ For public app setup, prefer `createPublicAppDiagnosticsRunner()`. It keeps stri
 ```ts
 const diagnostics = createPublicAppDiagnosticsRunner({
     page: () => app.shell,
-    routes: inspectAppRoutes(routes, {
-        requireDescription: true,
-        requireDocumentTitle: true,
-        requireCanonical: true,
-        requireStructuredData: true
-    }),
+    routes,
+    routeOptions: {
+        baseUrl: "https://example.com/app/"
+    },
     locale,
     localeOptions: {
         requiredMessages: appRequiredMessageKeys
@@ -61,19 +59,21 @@ This keeps each inspector simple, while still giving an application a single hea
 
 ## Public App Runner
 
-`createPublicAppDiagnosticsRunner()` is a small recipe over `createAppDiagnosticsRunner()`. It can inspect a `Page`, `AppShell`, or existing page diagnostics report, then adds localization and web app manifest sources when provided.
+`createPublicAppDiagnosticsRunner()` is a small recipe over `createAppDiagnosticsRunner()`. It can inspect a `Page`, `AppShell`, existing page diagnostics report, route list, or existing route diagnostics report, then adds localization and web app manifest sources when provided.
 
 Defaults:
 
 - page document metadata requires description, canonical, robots, manifest, Open Graph, Twitter/X, and JSON-LD;
 - page diagnostics use `log: false` so the app report is not duplicated by a separate page report;
+- route lists use public route diagnostics defaults for descriptions, document titles, canonical URLs, and structured data;
 - manifest diagnostics require short name, description, start URL, display mode, icons, maskable icon, theme color, and background color.
 
 Options:
 
 - `page` - optional `Page`, `AppShell`, page diagnostics report, or lazy resolver.
 - `pageOptions` - overrides merged on top of public page diagnostics defaults.
-- `routes` - optional route diagnostics report or resolver.
+- `routes` - optional route list, route diagnostics report, or resolver.
+- `routeOptions` - route diagnostics overrides used when `routes` is a route list.
 - `locale` - optional locale controller or resolver.
 - `localeOptions` - localization diagnostics options, such as required message keys.
 - `manifest` - optional web app manifest object or resolver.
@@ -86,7 +86,7 @@ Use `createPublicAppPageDiagnosticsOptions()` and `createPublicAppManifestDiagno
 ## Runner Options
 
 - `page` - optional page diagnostics report or function returning one.
-- `routes` - optional route diagnostics report or function returning one.
+- `routes` - optional route diagnostics report or function returning one. Public runners may also accept route lists through `routes` plus `routeOptions`.
 - `sources` - optional custom diagnostics sources or function returning sources.
 - `log` - optional logging behavior. Pass `false` to disable default console logging, or pass a custom function.
 

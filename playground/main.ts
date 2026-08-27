@@ -1,7 +1,6 @@
 import {
     createPublicAppDiagnosticsRunner,
     createHashRoutedApp,
-    inspectAppRoutes,
     resetInitialScrollPosition,
     type ComposedResponsiveNavigation,
     type HashRoutedApp
@@ -23,23 +22,18 @@ import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
 
-const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
-    baseUrl: new URL(".", window.location.href),
-    getDescription: getPlaygroundRouteDescription,
-    getDocumentTitle: getPlaygroundRouteDocumentTitle,
-    getMetadata: getPlaygroundRouteDocumentMetadata,
-    requireDescription: true,
-    requireDocumentTitle: true,
-    requireCanonical: true,
-    requireStructuredData: true
-});
-
 let app!: HashRoutedApp<PlaygroundRoute>;
 let currentNavigation!: ComposedResponsiveNavigation;
 
 const playgroundDiagnostics = createPublicAppDiagnosticsRunner({
     page: () => app.shell,
-    routes: routeDiagnostics,
+    routes: playgroundRoutes,
+    routeOptions: {
+        baseUrl: new URL(".", window.location.href),
+        getDescription: getPlaygroundRouteDescription,
+        getDocumentTitle: getPlaygroundRouteDocumentTitle,
+        getMetadata: getPlaygroundRouteDocumentMetadata
+    },
     locale: playgroundLocale,
     localeOptions: {
         requiredMessages: playgroundRequiredMessageKeys
