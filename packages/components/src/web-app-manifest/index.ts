@@ -1,3 +1,5 @@
+export { createAppWebAppManifest } from "./createAppWebAppManifest";
+
 export {
     createWebAppManifest,
     createWebAppManifestJson,
@@ -5,6 +7,11 @@ export {
     logWebAppManifestDiagnostics,
     stringifyWebAppManifest
 } from "./createWebAppManifest";
+
+export type {
+    AppWebAppManifestIconSetOptions,
+    AppWebAppManifestOptions
+} from "./createAppWebAppManifest";
 
 export type {
     WebAppManifest,
