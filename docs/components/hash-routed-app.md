@@ -65,7 +65,7 @@ const app = createHashRoutedApp({
 
 ## Purpose
 
-HashRoutedApp is deliberately thin. It does not invent route data, app copy, visual layout, or a virtual DOM. The application still owns routes, header content, navigation composition, breadcrumbs, route screens, and translations.
+HashRoutedApp is deliberately thin. For public SPAs that also need app identity, route diagnostics, manifest checks, and startup scroll reset in one entry-point recipe, use [PublicHashRoutedApp](./public-hash-routed-app.md). It does not invent route data, app copy, visual layout, or a virtual DOM. The application still owns routes, header content, navigation composition, breadcrumbs, route screens, and translations.
 
 The helper owns repeatable lifecycle wiring:
 

@@ -1,14 +1,18 @@
 import {
-    createPublicAppDiagnosticsRunner,
-    createHashRoutedApp,
-    resetInitialScrollPosition,
+    createPublicHashRoutedApp,
     type ComposedResponsiveNavigation,
-    type HashRoutedApp
+    type PublicHashRoutedApp
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
 import { getPlaygroundAppMetadata } from "./demo/appMetadata";
 import { playgroundAppIdentity } from "./demo/appIdentity";
-import { playgroundLocale, playgroundRequiredMessageKeys, t } from "./demo/localization";
+import {
+    playgroundLocale,
+    playgroundRequiredMessageKeys,
+    t,
+    type PlaygroundLocale,
+    type PlaygroundMessageKey
+} from "./demo/localization";
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
@@ -22,38 +26,12 @@ import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
 
-let app!: HashRoutedApp<PlaygroundRoute>;
+let app!: PublicHashRoutedApp<PlaygroundRoute>;
 let currentNavigation!: ComposedResponsiveNavigation;
 
-const playgroundDiagnostics = createPublicAppDiagnosticsRunner({
-    page: () => app.shell,
-    identity: playgroundAppIdentity,
-    identityManifestOptions: {
-        lang: "en",
-        dir: "ltr",
-        id: "."
-    },
-    routes: playgroundRoutes,
-    routeOptions: {
-        baseUrl: new URL(".", window.location.href),
-        getDescription: getPlaygroundRouteDescription,
-        getDocumentTitle: getPlaygroundRouteDocumentTitle,
-        getMetadata: getPlaygroundRouteDocumentMetadata
-    },
-    locale: playgroundLocale,
-    localeOptions: {
-        requiredMessages: playgroundRequiredMessageKeys
-    }
-});
-
-function logPlaygroundDiagnostics(): void {
-    playgroundDiagnostics.log();
-}
-
-app = createHashRoutedApp<PlaygroundRoute>({
+app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
     routes: playgroundRoutes,
     mount: "#app",
-    start: false,
     locale: playgroundLocale,
     shell: {
         title: t("app.brand.name"),
@@ -96,9 +74,6 @@ app = createHashRoutedApp<PlaygroundRoute>({
             return t("app.route.loaded", {
                 title: route.title
             });
-        },
-        inspect() {
-            logPlaygroundDiagnostics();
         }
     },
     renderChrome: createPlaygroundRouteChromeRenderer({
@@ -106,13 +81,29 @@ app = createHashRoutedApp<PlaygroundRoute>({
         onNavigation(navigation) {
             currentNavigation = navigation;
         }
-    })
+    }),
+    diagnostics: {
+        identity: playgroundAppIdentity,
+        identityManifestOptions: {
+            lang: "en",
+            dir: "ltr",
+            id: "."
+        },
+        routeOptions: {
+            baseUrl: new URL(".", window.location.href),
+            getDescription: getPlaygroundRouteDescription,
+            getDocumentTitle: getPlaygroundRouteDocumentTitle,
+            getMetadata: getPlaygroundRouteDocumentMetadata
+        },
+        locale: playgroundLocale,
+        localeOptions: {
+            requiredMessages: playgroundRequiredMessageKeys
+        },
+        logOnRouteChange: true
+    },
+    startOptions: {
+        announcement: false,
+        scroll: false,
+        focusTarget: null
+    }
 });
-
-app.start({
-    announcement: false,
-    scroll: false,
-    focusTarget: null
-});
-
-resetInitialScrollPosition();

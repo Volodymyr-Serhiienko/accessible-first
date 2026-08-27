@@ -41,6 +41,7 @@ export * from "./page-layout";
 export * from "./page-outlet";
 export * from "./popover";
 export * from "./progress";
+export * from "./public-app";
 export * from "./radio-group";
 export * from "./responsive-navigation";
 export * from "./robots-txt";
