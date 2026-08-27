@@ -7,6 +7,7 @@ import {
     type LocaleMessages,
     type LocaleMessagesByLocale
 } from "./af";
+import { playgroundAppIdentity } from "./appIdentity";
 
 export const playgroundSupportedLocales = ["en", "uk", "ru"] as const;
 
@@ -42,7 +43,7 @@ export type PlaygroundLocaleController =
 
 const enMessages = {
     "app.brand.homeLabel": "Accessible First Playground home",
-    "app.brand.name": "Accessible First Playground",
+    "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first components and page composition",
     "app.commands.description": "Search demo sections and press Enter to open the selected section.",
     "app.commands.notFoundText": "No commands found.",
@@ -101,7 +102,7 @@ const ukMessages = {
     "toast.fallbackDescription": "Сповіщення",
     "toast.label": "Сповіщення",
     "app.brand.homeLabel": "Головна сторінка Accessible First Playground",
-    "app.brand.name": "Accessible First Playground",
+    "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first компоненти та семантична композиція сторінок",
     "app.commands.description": "Знайдіть деморозділ і натисніть Enter, щоб відкрити його.",
     "app.commands.notFoundText": "Команди не знайдено.",
@@ -160,7 +161,7 @@ const ruMessages = {
     "toast.fallbackDescription": "Уведомление",
     "toast.label": "Уведомления",
     "app.brand.homeLabel": "Главная страница Accessible First Playground",
-    "app.brand.name": "Accessible First Playground",
+    "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first компоненты и семантическая композиция страниц",
     "app.commands.description": "Найдите демо-раздел и нажмите Enter, чтобы открыть его.",
     "app.commands.notFoundText": "Команды не найдены.",

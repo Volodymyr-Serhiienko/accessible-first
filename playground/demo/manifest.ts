@@ -2,6 +2,7 @@ import {
     createAppWebAppManifest,
     type WebAppManifest
 } from "./af";
+import { playgroundAppIdentity } from "./appIdentity";
 
 /**
  * Playground manifest source used by diagnostics.
@@ -10,17 +11,17 @@ import {
  * becomes part of the project workflow.
  */
 export const playgroundManifest: WebAppManifest = createAppWebAppManifest({
-    name: "Accessible First Playground",
-    shortName: "Accessible First",
-    description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, diagnostics, and app-building patterns.",
+    name: playgroundAppIdentity.name,
+    shortName: playgroundAppIdentity.shortName,
+    description: playgroundAppIdentity.description,
     lang: "en",
     dir: "ltr",
     id: ".",
-    themeColor: "#111827",
-    categories: ["developer", "productivity", "accessibility"],
+    themeColor: playgroundAppIdentity.themeColor,
+    categories: playgroundAppIdentity.categories,
     iconSet: {
-        svg: "assets/logo.svg",
-        png192: "assets/logo-192.png",
-        png512: "assets/logo-512.png"
+        svg: playgroundAppIdentity.icons.svg,
+        png192: playgroundAppIdentity.icons.png192,
+        png512: playgroundAppIdentity.icons.png512
     }
 });

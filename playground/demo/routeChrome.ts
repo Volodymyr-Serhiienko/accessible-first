@@ -6,6 +6,7 @@ import {
     type HashAppRouteChromeBaseOptions,
     type HashRoutedAppChromeRenderer
 } from "./af";
+import { playgroundAppIdentity } from "./appIdentity";
 import { getPlaygroundHeaderOptions } from "./header";
 import {
     playgroundLocale,
@@ -25,7 +26,7 @@ export interface PlaygroundRouteChromeRendererOptions {
 
 const playgroundRootRoute: AppRouteDescriptor = {
     id: "playground",
-    title: "Accessible First Playground",
+    title: playgroundAppIdentity.name,
     label: "Playground",
     href: "#markup"
 };

@@ -5,6 +5,7 @@ import {
     type ComposedNode,
     type DocumentMetadataUpdateOptions
 } from "./af";
+import { playgroundAppIdentity } from "./appIdentity";
 import {
     AccordionDemo,
     ActionsBarDemo,
@@ -114,7 +115,7 @@ function normalizeRouteId(value: string): string {
 
 export function getPlaygroundRouteDocumentTitle(route: PlaygroundRoute): string {
     return getPlaygroundRouteDocumentMetadata(route).title
-        ?? `${route.title} - Accessible First Playground`;
+        ?? `${route.title} - ${playgroundAppIdentity.name}`;
 }
 
 export function getPlaygroundRouteById(id: string | null | undefined): PlaygroundRoute | null {
@@ -131,11 +132,11 @@ export function getPlaygroundRouteByHash(hash = window.location.hash): Playgroun
 
 export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
     return route.description
-        ?? `${route.title} demo in the Accessible First Playground.`;
+        ?? `${route.title} demo in the ${playgroundAppIdentity.name}.`;
 }
 
 const playgroundRouteMetadataOptions: AppRouteDocumentMetadataOptions<PlaygroundRoute> = {
-    appTitle: "Accessible First Playground",
+    appTitle: playgroundAppIdentity.name,
     baseUrl: new URL(".", window.location.href),
     getDescription: getPlaygroundRouteDescription,
     getStructuredData(route) {
@@ -144,12 +145,12 @@ const playgroundRouteMetadataOptions: AppRouteDocumentMetadataOptions<Playground
         return {
             "@context": "https://schema.org",
             "@type": "WebPage",
-            name: `${route.title} - Accessible First Playground`,
+            name: `${route.title} - ${playgroundAppIdentity.name}`,
             description,
             url: new URL(`#${route.id}`, window.location.href).toString(),
             isPartOf: {
                 "@type": "WebSite",
-                name: "Accessible First Playground",
+                name: playgroundAppIdentity.name,
                 url: new URL(".", window.location.href).toString()
             }
         };
