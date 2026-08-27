@@ -68,6 +68,7 @@ Each component document should contain:
 
 - [AppDiagnostics](./app-diagnostics.md)
 - [AppHeader](./app-header.md)
+- [AppIdentity](./app-identity.md)
 - [AppShell](./app-shell.md)
 - [App Routes](./app-routes.md)
 - [App Route Sitemap](./app-route-sitemap.md)

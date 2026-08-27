@@ -1,7 +1,9 @@
+import { createAppIdentity } from "./af";
+
 /**
  * Playground-owned public app identity shared by metadata, manifest, routes, and localized chrome.
  */
-export const playgroundAppIdentity = {
+export const playgroundAppIdentity = createAppIdentity({
     name: "Accessible First Playground",
     shortName: "Accessible First",
     description: "Accessible First Playground demonstrates accessible UI components, semantic composition, routing, search, diagnostics, and app-building patterns.",
@@ -21,4 +23,4 @@ export const playgroundAppIdentity = {
         applicationCategory: "DeveloperApplication",
         operatingSystem: "Web"
     }
-} as const;
+});

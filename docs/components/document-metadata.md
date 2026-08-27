@@ -121,9 +121,12 @@ Pass a custom `structuredData` object for pages that are not software applicatio
 
 ## Shared App Identity
 
-For real apps, keep stable public identity in one app-owned module and pass it into both `createAppDocumentMetadata()` and `createAppWebAppManifest()`. Good candidates are the app name, short name, brand color, manifest href, icon paths, preview image, and Schema.org application category.
+For real apps, prefer `createAppIdentity()` when stable public identity is reused by document metadata, web app manifest, diagnostics, route setup, and app chrome. Then pass that identity into `createAppIdentityDocumentMetadata()` for the common metadata baseline.
+
+Use direct `createAppDocumentMetadata()` calls when an app already has its own identity model or needs a one-off metadata object.
 
 Keep user-facing copy localizable when it changes with the active locale. The framework should provide recipes and defaults, while the application owns the actual product text.
+
 ## Options
 
 - `document` - target document. Defaults to the current `document`. Creation-time option.
