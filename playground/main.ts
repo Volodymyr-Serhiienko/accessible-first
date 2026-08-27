@@ -16,8 +16,6 @@ import {
 import { ReturnToNavigationLink } from "./demo/returnToNavigation";
 import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
 import {
-    getPlaygroundRouteDocumentMetadata,
-    getPlaygroundRouteDocumentTitle,
     playgroundRouteOptions,
     playgroundRoutes,
     type PlaygroundRoute
@@ -33,6 +31,8 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
     routes: playgroundRoutes,
     mount: "#app",
     locale: playgroundLocale,
+    identity: playgroundAppIdentity,
+    routeMetadata: playgroundRouteOptions,
     shell: {
         title: t("app.brand.name"),
         mainId: "main",
@@ -66,10 +66,6 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
         }
     },
     router: {
-        getDocumentTitle: getPlaygroundRouteDocumentTitle,
-        getDocumentMetadata(route) {
-            return getPlaygroundRouteDocumentMetadata(route);
-        },
         getAnnouncement(route) {
             return t("app.route.loaded", {
                 title: route.title
@@ -83,13 +79,11 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
         }
     }),
     diagnostics: {
-        identity: playgroundAppIdentity,
         identityManifestOptions: {
             lang: "en",
             dir: "ltr",
             id: "."
         },
-        routeOptions: playgroundRouteOptions,
         locale: playgroundLocale,
         localeOptions: {
             requiredMessages: playgroundRequiredMessageKeys

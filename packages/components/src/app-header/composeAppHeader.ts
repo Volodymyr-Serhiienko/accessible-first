@@ -1,8 +1,14 @@
+import type { AppIdentity } from "../app-identity";
 import {
     Brand,
+    type BrandCompositionContent,
     type BrandOptions,
     type ComposedBrand
 } from "../brand";
+import {
+    Image,
+    type CompositionChild
+} from "../composition";
 import {
     HeaderBar,
     type ComposedHeaderBar,
@@ -29,7 +35,6 @@ import {
     type ComposedThemeToggle,
     type ThemeToggleOptions
 } from "../theme";
-import type { CompositionChild } from "../composition";
 
 /**
  * Content accepted by AppHeader slots.
@@ -43,6 +48,15 @@ export type AppHeaderLocale<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
 > = LocaleController<TLocale, TKey | AccessibleFirstMessageKey>;
+
+/**
+ * Brand options managed by AppHeader.
+ * When identity is supplied, name and logo can be omitted and derived from it.
+ */
+export interface AppHeaderBrandOptions extends Partial<Omit<BrandOptions, "name">> {
+    /** Visible brand name. Defaults to identity.name when AppHeader.identity is supplied. */
+    name?: BrandOptions["name"];
+}
 
 /**
  * LanguageSelect options managed by AppHeader. The locale comes from AppHeader.locale.
@@ -69,8 +83,10 @@ export interface AppHeaderOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
 > extends Omit<HeaderBarOptions, "brand" | "actions"> {
-    /** Brand options used to create the standard Brand component. */
-    brand?: BrandOptions | false | null;
+    /** Stable app identity used for default brand name and logo. */
+    identity?: AppIdentity | null;
+    /** Brand options used to create the standard Brand component. Use false or null to omit it. */
+    brand?: AppHeaderBrandOptions | false | null;
     /** Already-composed brand content. Takes priority over brand when supplied. */
     brandContent?: AppHeaderCompositionContent | null;
     /** Shared locale controller for language, theme, and header tools service text. */
@@ -107,14 +123,51 @@ function getBrandMaxWidth<TLocale extends LocaleCode, TKey extends string>(
     return options.brand.maxWidth ?? null;
 }
 
-function createBrandControl(options: BrandOptions, brandMaxWidth: string | null): ComposedBrand {
-    const brandOptions: BrandOptions = { ...options };
+function createIdentityLogo(identity: AppIdentity): BrandCompositionContent | null {
+    if (!identity.icons.svg) return null;
+
+    return Image({
+        src: identity.icons.svg.toString(),
+        alt: "",
+        decorative: true
+    });
+}
+
+function getBrandName(
+    options: AppHeaderBrandOptions,
+    identity: AppIdentity | null
+): BrandOptions["name"] | null {
+    return options.name ?? identity?.name ?? null;
+}
+
+function createBrandControl(
+    options: AppHeaderBrandOptions | false | null | undefined,
+    identity: AppIdentity | null,
+    brandMaxWidth: string | null
+): ComposedBrand | null {
+    if (options === false || options === null) return null;
+
+    const brandOptions: AppHeaderBrandOptions = { ...(options ?? {}) };
+    const name = getBrandName(brandOptions, identity);
+
+    if (name === null) return null;
+
+    const resolvedOptions: BrandOptions = {
+        ...brandOptions,
+        name
+    };
 
     if (brandMaxWidth !== null && !("maxWidth" in brandOptions)) {
-        brandOptions.maxWidth = brandMaxWidth;
+        resolvedOptions.maxWidth = brandMaxWidth;
     }
 
-    return Brand(brandOptions);
+    if (!("logo" in brandOptions) && identity) {
+        const logo = createIdentityLogo(identity);
+
+        if (logo !== null) resolvedOptions.logo = logo;
+    }
+
+    return Brand(resolvedOptions);
 }
 
 function createLanguageControl<
@@ -188,13 +241,23 @@ export function AppHeader<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
 >(options: AppHeaderOptions<TLocale, TKey> = {}): ComposedAppHeader<TLocale> {
+    const {
+        brand: _brandOptions,
+        brandContent: _brandContentOptions,
+        controls: _controlsOptions,
+        identity: _identityOptions,
+        language: _languageOptions,
+        locale: _localeOptions,
+        theme: _themeOptions,
+        tools: _toolsOptions,
+        ...headerBarOptions
+    } = options;
     const brandMaxWidth = getBrandMaxWidth(options);
+    const identity = options.identity ?? null;
     const locale = options.locale ?? null;
     const brandControl = "brandContent" in options
         ? null
-        : options.brand
-            ? createBrandControl(options.brand, brandMaxWidth)
-            : null;
+        : createBrandControl(options.brand, identity, brandMaxWidth);
     const brandContent = "brandContent" in options
         ? options.brandContent ?? null
         : brandControl;
@@ -210,7 +273,7 @@ export function AppHeader<
     const toolsControl = createToolsControl(locale, controls, options.tools);
     const actions = getActionsContent(controls, toolsControl, options.tools);
     const header = HeaderBar({
-        ...options,
+        ...headerBarOptions,
         brandMaxWidth,
         brand: brandContent,
         actions

@@ -8,7 +8,7 @@ It can render as a home link when `href` is provided, or as a static identity bl
 
 Use `Brand` when a page needs a consistent product, site, or app identity with optional logo, name, and tagline.
 
-Use a regular heading when the text is only the page title. Use `Image` directly when an image is not acting as part of a brand identity.
+Use a regular heading when the text is only the page title. Use `Image` directly when an image is not acting as part of a brand identity. Use `AppHeader({ identity })` when an app header should derive a default brand from `AppIdentity`.
 
 ## Quick Start
 

@@ -89,7 +89,7 @@ Real apps often repeat identity values in several places:
 - `name`, `shortName`, `description`, `lang`, `dir`, `themeColor`, `backgroundColor`, categories, and generated icon set;
 - deployment code can override manifest fields through the second argument.
 
-`createPublicAppDiagnosticsRunner()` and public routed app recipes can also use `identity` to create the manifest diagnostics source automatically, while `identityManifestOptions` keeps deployment-specific manifest values explicit.
+`createPublicAppDiagnosticsRunner()` and public routed app recipes can also use `identity` to create the manifest diagnostics source automatically, while `identityManifestOptions` keeps deployment-specific manifest values explicit. Public routed app recipes accept top-level `identity` and `routeMetadata` so document titles, route descriptions, canonical URLs, generated `WebPage` JSON-LD, and route diagnostics can share the same source of truth.
 
 
 ## Route Metadata

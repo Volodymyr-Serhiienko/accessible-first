@@ -7,10 +7,19 @@ Use it when normal browser navigation should remain the routing mechanism, but e
 ## Quick Start
 
 ```ts
+const routeMetadata = {
+    baseUrl: window.location.origin,
+    getDescription(route) {
+        return t(`route.${route.id}.description`);
+    }
+};
+
 const app = createPublicLinkRoutedApp({
     routes,
     mount: "#app",
     locale,
+    identity: appIdentity,
+    routeMetadata,
     shell: {
         title: t("app.title"),
         skipLink: t("app.skipLink"),
@@ -23,16 +32,13 @@ const app = createPublicLinkRoutedApp({
         matchMode: "pathname",
         baseUrl: window.location.origin
     },
-    routeMetadata: {
-        appTitle: t("app.title"),
-        baseUrl: window.location.origin
-    },
     renderChrome: createLinkAppRouteChromeRenderer({
         options() {
             return {
                 routes,
                 header: {
                     locale,
+                    identity: appIdentity,
                     brand: {
                         href: "/",
                         name: t("app.title")
@@ -50,14 +56,10 @@ const app = createPublicLinkRoutedApp({
         }
     }),
     diagnostics: {
-        identity: appIdentity,
         identityManifestOptions: {
             lang: "en",
             dir: "ltr",
             id: "/"
-        },
-        routeOptions: {
-            baseUrl: window.location.origin
         },
         locale,
         localeOptions: {
@@ -73,6 +75,7 @@ const app = createPublicLinkRoutedApp({
 The recipe owns only repeated public native-link app wiring:
 
 - creates the underlying `LinkRoutedApp`;
+- creates identity-aware route document metadata from top-level `identity` and `routeMetadata`;
 - defaults diagnostics `page` to the app shell;
 - defaults diagnostics `routes` to the app route list;
 - creates `createPublicAppDiagnosticsRunner()` with app identity, identity-aware route diagnostics, locale, manifest, page, and custom sources;
@@ -83,14 +86,19 @@ It does not intercept links, render SPA screens, push history, or replace normal
 
 ## Options
 
-`createPublicLinkRoutedApp()` accepts all `createLinkRoutedApp()` options and adds `diagnostics`.
+`createPublicLinkRoutedApp()` accepts all `createLinkRoutedApp()` options and adds public-app defaults.
+
+Additional options:
+
+- `identity` - optional public app identity used by route metadata, diagnostics, and generated manifest diagnostics.
+- `routeMetadata` - identity-aware route metadata defaults, or `false` to disable route metadata automation.
 
 Diagnostics options:
 
 - `diagnostics` - public diagnostics options, or `false` to disable diagnostics.
 - `diagnostics.page` - page diagnostics source. Defaults to the created app shell. Pass `false` to omit page diagnostics.
 - `diagnostics.routes` - route diagnostics source. Defaults to the app route list. Pass `false` to omit route diagnostics.
-- `diagnostics.routeOptions` - route diagnostics and identity-aware route metadata defaults used when diagnostics inspect a route list.
+- `diagnostics.routeOptions` - route diagnostics metadata defaults used when diagnostics inspect a route list. Defaults to top-level `routeMetadata` when provided.
 - `diagnostics.logOnCreate` - logs diagnostics once after app and diagnostics setup.
 - `diagnostics.logOnRefresh` - logs diagnostics after refresh calls made through the public app controller.
 

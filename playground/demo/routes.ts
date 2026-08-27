@@ -1,9 +1,7 @@
 import {
-    createAppIdentityRouteDocumentMetadata,
     createAppRouteNavigationItems,
     type AppIdentityRouteDiagnosticsOptions,
-    type ComposedNode,
-    type DocumentMetadataUpdateOptions
+    type ComposedNode
 } from "./af";
 import { playgroundAppIdentity } from "./appIdentity";
 import {
@@ -113,11 +111,6 @@ function normalizeRouteId(value: string): string {
     return value.replace(/^#/, "").trim();
 }
 
-export function getPlaygroundRouteDocumentTitle(route: PlaygroundRoute): string {
-    return getPlaygroundRouteDocumentMetadata(route).title
-        ?? `${route.title} - ${playgroundAppIdentity.name}`;
-}
-
 export function getPlaygroundRouteById(id: string | null | undefined): PlaygroundRoute | null {
     if (!id) return null;
 
@@ -139,13 +132,3 @@ export const playgroundRouteOptions: AppIdentityRouteDiagnosticsOptions<Playgrou
     baseUrl: new URL(".", window.location.href),
     getDescription: getPlaygroundRouteDescription
 };
-
-export function getPlaygroundRouteDocumentMetadata(
-    route: PlaygroundRoute
-): DocumentMetadataUpdateOptions {
-    return createAppIdentityRouteDocumentMetadata(
-        playgroundAppIdentity,
-        route,
-        playgroundRouteOptions
-    );
-}

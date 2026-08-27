@@ -7,13 +7,15 @@ export type {
     PublicHashRoutedAppDiagnosticsOptions,
     PublicHashRoutedAppInitialScrollReset,
     PublicHashRoutedAppOptions,
-    PublicHashRoutedAppRoute
+    PublicHashRoutedAppRoute,
+    PublicHashRoutedAppRouteMetadataOptions
 } from "./createPublicHashRoutedApp";
 export type {
     PublicLinkRoutedApp,
     PublicLinkRoutedAppDiagnosticsOptions,
     PublicLinkRoutedAppOptions,
-    PublicLinkRoutedAppRoute
+    PublicLinkRoutedAppRoute,
+    PublicLinkRoutedAppRouteMetadataOptions
 } from "./createPublicLinkRoutedApp";
 export type {
     PublicRoutedAppDiagnosticsOptions,

@@ -12,11 +12,12 @@ For hash-routed applications, prefer `createHashAppRouteChrome` when the header 
 page.header(
     AppHeader({
         locale,
+        identity: appIdentity,
         brand: {
             href: "#main",
-            name: "Accessible First",
-            tagline: "WCAG-first app framework",
-            logo: Image({ src: "./logo.svg", alt: "", decorative: true })
+            name: t("app.title"),
+            tagline: t("app.tagline"),
+            logoScale: 1.1
         },
         controls: [
             SearchBox({
@@ -32,9 +33,20 @@ page.header(
 );
 ```
 
+Minimal identity-driven header:
+
+```ts
+AppHeader({
+    locale,
+    identity: appIdentity
+});
+```
+
 ## Behavior
 
-- Creates a standard brand slot with `Brand` when `brand` options are supplied.
+- Creates a standard brand slot with `Brand` when `brand` options or `identity` are supplied.
+- Derives the default brand name from `identity.name` when `brand.name` is omitted.
+- Derives a decorative brand logo from `identity.icons.svg` when `brand.logo` is omitted.
 - Accepts already-composed brand content through `brandContent` for advanced layouts.
 - Places custom `controls` before generated language and theme controls.
 - Adds `LanguageSelect` automatically when `locale` is supplied, unless `language: false` is set.
@@ -44,8 +56,9 @@ page.header(
 
 ## Options
 
-- `brand` - `Brand` options for the standard app brand. Use `false` or `null` to omit it.
-- `brandContent` - custom composed brand content. Takes priority over `brand`.
+- `identity` - optional `AppIdentity` used for default brand name and SVG logo.
+- `brand` - `Brand` options for the standard app brand. `name` can be omitted when `identity` is supplied. Use `false` or `null` to omit the generated brand.
+- `brandContent` - custom composed brand content. Takes priority over `identity` and `brand`.
 - `locale` - shared `LocaleController` for language, theme, and header tools service text.
 - `controls` - app-specific controls, such as route search, command palette, profile actions, or settings buttons.
 - `language` - `LanguageSelect` options without `locale`. Use `false` to omit the generated selector.
@@ -65,6 +78,8 @@ Prefer component options such as `brandMaxWidth`, `Brand({ maxWidth })`, `Search
 
 AppHeader is a recipe, not a landmark. Put it inside the page or app shell header slot so the surrounding page object owns the native `header` landmark.
 
+The generated identity logo is decorative because the adjacent brand name gives the header a stable accessible name. Use an informative `brand.logo` only when the image itself conveys additional information.
+
 The generated language selector, theme toggle, and overflow tools keep their own labels, hints, announcements, and locale subscriptions. Custom controls should follow the same rule: the header arranges controls, but each control owns its accessible name and behavior.
 
 Use `HeaderTools` overflow for responsive headers instead of duplicating desktop and mobile controls. Moving one control set avoids duplicate shortcuts, stale state, and confusing screen-reader order.
@@ -73,6 +88,7 @@ Use `HeaderTools` overflow for responsive headers instead of duplicating desktop
 
 - Wide layouts keep brand and controls inline when they fit.
 - Narrow layouts keep the brand visible and move controls into the HeaderTools panel.
+- Identity-driven headers show the expected brand name and logo.
 - The HeaderTools trigger exposes a short tooltip/hint.
 - Opening the tools panel announces its title and description once.
 - Language and theme controls update when the shared locale changes.

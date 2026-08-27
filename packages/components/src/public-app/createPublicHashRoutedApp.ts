@@ -2,7 +2,16 @@ import type {
     AppDiagnosticsReport,
     AppDiagnosticsRunner
 } from "../app-diagnostics";
-import type { AppRouteDescriptor } from "../app-routes";
+import type {
+    AppIdentity,
+    AppIdentityRouteDocumentMetadataOptions
+} from "../app-identity";
+import {
+    createAppRouteDocumentMetadata,
+    getAppRouteDocumentTitle,
+    type AppRouteDescriptor,
+    type AppRouteDocumentMetadataOptions
+} from "../app-routes";
 import {
     resetInitialScrollPosition,
     type InitialScrollResetController,
@@ -23,6 +32,10 @@ import {
     createPublicRoutedAppDiagnostics,
     type PublicRoutedAppDiagnosticsOptions
 } from "./createPublicRoutedAppDiagnostics";
+import {
+    applyPublicAppIdentityDiagnosticsDefaults,
+    createPublicAppRouteDocumentMetadataOptions
+} from "./publicAppInternals";
 
 /**
  * Route contract for public hash-routed app recipes.
@@ -33,6 +46,13 @@ export type PublicHashRoutedAppRoute = AppRouteDescriptor & HashRouterRoute;
  * Initial scroll reset behavior accepted by createPublicHashRoutedApp().
  */
 export type PublicHashRoutedAppInitialScrollReset = InitialScrollResetOptions | false;
+
+/**
+ * Route metadata automation accepted by createPublicHashRoutedApp().
+ */
+export type PublicHashRoutedAppRouteMetadataOptions<
+    TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute
+> = AppIdentityRouteDocumentMetadataOptions<TRoute> | false;
 
 /**
  * Diagnostics options accepted by createPublicHashRoutedApp().
@@ -54,6 +74,10 @@ export interface PublicHashRoutedAppOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = string
 > extends Omit<HashRoutedAppOptions<TRoute, TLocale>, "start"> {
+    /** Stable public app identity used by route metadata, diagnostics, and manifest helpers. */
+    identity?: AppIdentity | null;
+    /** Identity-aware route metadata defaults, or false to disable route metadata automation. */
+    routeMetadata?: PublicHashRoutedAppRouteMetadataOptions<TRoute>;
     /** Starts the hash router after diagnostics are connected. Defaults to true. */
     start?: boolean;
     /** Resets browser-restored page scroll after startup. Pass false to disable. */
@@ -87,6 +111,23 @@ function shouldLogDiagnosticsOnRouteChange<
         && options.diagnostics?.logOnRouteChange === true;
 }
 
+function getRouteDocumentMetadataOptions<
+    TRoute extends PublicHashRoutedAppRoute,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: PublicHashRoutedAppOptions<TRoute, TLocale, TKey>
+): AppRouteDocumentMetadataOptions<TRoute> | null {
+    const routeMetadataOptions = createPublicAppRouteDocumentMetadataOptions(
+        options.identity,
+        options.routeMetadata
+    );
+
+    return routeMetadataOptions === undefined || routeMetadataOptions === false
+        ? null
+        : routeMetadataOptions;
+}
+
 function createRouterOptions<
     TRoute extends PublicHashRoutedAppRoute,
     TLocale extends LocaleCode,
@@ -98,16 +139,33 @@ function createRouterOptions<
     const routerOptions = options.router;
     const userInspect = routerOptions?.inspect ?? null;
     const shouldLogDiagnostics = shouldLogDiagnosticsOnRouteChange(options);
+    const routeMetadataOptions = getRouteDocumentMetadataOptions(options);
+    const nextOptions: HashRoutedAppRouterOptions<TRoute> = {
+        ...(routerOptions ?? {})
+    };
+    let hasGeneratedOptions = false;
 
-    if (!userInspect && !shouldLogDiagnostics) return routerOptions;
+    if (routeMetadataOptions) {
+        if (nextOptions.getDocumentTitle === undefined) {
+            nextOptions.getDocumentTitle = (route) => getAppRouteDocumentTitle(route, routeMetadataOptions);
+            hasGeneratedOptions = true;
+        }
 
-    return {
-        ...(routerOptions ?? {}),
-        inspect() {
+        if (nextOptions.getDocumentMetadata === undefined) {
+            nextOptions.getDocumentMetadata = (route) => createAppRouteDocumentMetadata(route, routeMetadataOptions);
+            hasGeneratedOptions = true;
+        }
+    }
+
+    if (userInspect || shouldLogDiagnostics) {
+        nextOptions.inspect = () => {
             userInspect?.();
             if (shouldLogDiagnostics) getDiagnostics()?.log();
-        }
-    };
+        };
+        hasGeneratedOptions = true;
+    }
+
+    return hasGeneratedOptions ? nextOptions : routerOptions;
 }
 
 function getDiagnosticsOptions<
@@ -117,14 +175,19 @@ function getDiagnosticsOptions<
 >(
     options: PublicHashRoutedAppOptions<TRoute, TLocale, TKey>
 ): PublicRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute> | false | undefined {
-    if (options.diagnostics === false || options.diagnostics === undefined) return options.diagnostics;
+    if (options.diagnostics === false) return false;
 
+    const diagnosticsOptions: PublicHashRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute> = options.diagnostics ?? {};
     const {
         logOnRouteChange: _logOnRouteChange,
-        ...diagnosticsOptions
-    } = options.diagnostics;
+        ...publicDiagnosticsOptions
+    } = diagnosticsOptions;
 
-    return diagnosticsOptions;
+    return applyPublicAppIdentityDiagnosticsDefaults(
+        publicDiagnosticsOptions,
+        options.identity,
+        options.routeMetadata
+    );
 }
 
 function resetStartupScroll(
@@ -145,7 +208,9 @@ export function createPublicHashRoutedApp<
 >(options: PublicHashRoutedAppOptions<TRoute, TLocale, TKey>): PublicHashRoutedApp<TRoute> {
     const {
         diagnostics: _diagnostics,
+        identity: _identity,
         initialScrollReset,
+        routeMetadata: _routeMetadata,
         start,
         ...hashRoutedAppOptions
     } = options;

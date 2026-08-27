@@ -1,7 +1,5 @@
-import {
-    Image,
-    type AppRouteChromeHeaderOptions
-} from "./af";
+import { type AppRouteChromeHeaderOptions } from "./af";
+import { playgroundAppIdentity } from "./appIdentity";
 import {
     playgroundLocale,
     t,
@@ -14,20 +12,15 @@ export function getPlaygroundHeaderOptions(
 ): AppRouteChromeHeaderOptions<PlaygroundLocale, PlaygroundMessageKey> {
     return {
         brandMaxWidth,
+        identity: playgroundAppIdentity,
         locale: playgroundLocale,
         brand: {
             className: "playground-brand",
             href: "#main",
-            maxWidth: brandMaxWidth,
             label: t("app.brand.homeLabel"),
             logoAspectRatio: "1 / 1",
             logoScale: 1.6,
             logoOffsetY: "0.2rem",
-            logo: Image({
-                src: "./assets/logo.svg",
-                alt: "",
-                decorative: true
-            }),
             name: t("app.brand.name"),
             nameTag: "h1",
             tagline: t("app.brand.tagline")

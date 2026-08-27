@@ -7,10 +7,19 @@ Use it when a hash-routed app has public-app requirements: route metadata, app i
 ## Quick Start
 
 ```ts
+const routeMetadata = {
+    baseUrl: new URL(".", window.location.href),
+    getDescription(route) {
+        return t(`route.${route.id}.description`);
+    }
+};
+
 const app = createPublicHashRoutedApp({
     routes,
     mount: "#app",
     locale,
+    identity: appIdentity,
+    routeMetadata,
     shell: {
         title: t("app.title"),
         mainId: "main",
@@ -22,11 +31,8 @@ const app = createPublicHashRoutedApp({
         }
     },
     router: {
-        getDocumentTitle(route) {
-            return getRouteDocumentTitle(route);
-        },
-        getDocumentMetadata(route) {
-            return getRouteMetadata(route);
+        getAnnouncement(route) {
+            return t("app.routeLoaded", { title: route.title });
         }
     },
     renderChrome: createHashAppRouteChromeRenderer({
@@ -35,6 +41,7 @@ const app = createPublicHashRoutedApp({
                 routes,
                 header: {
                     locale,
+                    identity: appIdentity,
                     brand: { name: t("app.title") }
                 },
                 navigation: {
@@ -49,14 +56,10 @@ const app = createPublicHashRoutedApp({
         }
     }),
     diagnostics: {
-        identity: appIdentity,
         identityManifestOptions: {
             lang: "en",
             dir: "ltr",
             id: "."
-        },
-        routeOptions: {
-            baseUrl: new URL(".", window.location.href)
         },
         locale,
         localeOptions: {
@@ -78,7 +81,8 @@ The recipe owns only repeated public-app lifecycle wiring:
 
 - creates the underlying `HashRoutedApp` with delayed startup;
 - creates `createPublicAppDiagnosticsRunner()` after the shell exists;
-- pairs naturally with `createAppIdentityRouteDocumentMetadata()` and identity-aware route diagnostics for route document metadata and health checks;
+- creates identity-aware route document metadata from top-level `identity` and `routeMetadata` unless low-level router metadata resolvers override it;
+- feeds the same identity-aware route metadata defaults into route diagnostics;
 - defaults diagnostics `page` to the app shell;
 - defaults diagnostics `routes` to the app route list;
 - can log diagnostics from the router inspect hook after route renders;
@@ -94,10 +98,12 @@ It does not invent route data, page copy, translations, visual design, metadata 
 
 Additional options:
 
+- `identity` - optional public app identity used by route metadata, diagnostics, and generated manifest diagnostics.
+- `routeMetadata` - identity-aware route metadata defaults, or `false` to disable route metadata automation.
 - `diagnostics` - public diagnostics options, or `false` to disable diagnostics.
 - `diagnostics.page` - page diagnostics source. Defaults to the created app shell. Pass `false` to omit page diagnostics.
 - `diagnostics.routes` - route diagnostics source. Defaults to the app route list. Pass `false` to omit route diagnostics.
-- `diagnostics.routeOptions` - route diagnostics and identity-aware route metadata defaults used when diagnostics inspect a route list.
+- `diagnostics.routeOptions` - route diagnostics metadata defaults used when diagnostics inspect a route list. Defaults to top-level `routeMetadata` when provided.
 - `diagnostics.logOnRouteChange` - logs a fresh diagnostics report from the router inspect hook after route renders and refreshes.
 - `initialScrollReset` - options for `resetInitialScrollPosition()`, or `false` to disable startup scroll reset.
 - `start` - starts automatically by default. Pass `false` when external setup needs to call `app.start(...)` later.
