@@ -58,12 +58,12 @@ SearchBox({
 ## Layers
 
 - Composition API: `SearchBox(options)`
-- Reuses: `Combobox`, search text normalization, and composition content for result rows
+- Reuses: `Combobox`, locale-aware search text normalization, and composition content for result rows
 
 ## Behavior
 
 - Opens and filters results using the underlying `Combobox`.
-- Searches result label, description, and keywords.
+- Searches result label, description, and keywords with locale-aware normalization.
 - Shows a not-found result when configured.
 - Keeps the input value readable by using each result label as the selected text.
 - Calls `onQueryChange` when the input text changes.
@@ -76,6 +76,10 @@ SearchBox({
 - `placeholder` - Native input placeholder.
 - `notFoundText` - Message shown when no result matches.
 - `filterItem` - Optional custom filter for result matching.
+- `searchLocale` - Optional locale/controller used by the default search normalizer. Pass the shared `LocaleController` when search should follow manual language changes.
+- `searchMode` - Optional default matching mode: `all-words`, `any-word`, `contains`, `starts-with`, or `exact`. Defaults to `all-words`.
+- `caseSensitive` - Makes the default filter case-sensitive when `true`.
+- `ignoreDiacritics` - Ignores combining accent marks by default. Pass `false` for strict matching.
 - `width` - Optional preferred CSS length for normal component assembly, such as `"14rem"`. Use this first for headers.
 - `minWidth` - Optional advanced CSS length for the compact width floor. Defaults to the component stylesheet.
 - `maxWidth` - Optional advanced CSS length for the width ceiling. Defaults to the component stylesheet.
@@ -102,6 +106,21 @@ SearchBox owns a responsive width by default. Prefer `width` for normal componen
 - `--af-search-box-max-width` - default width ceiling.
 - `--af-search-box-preferred-width` - internal responsive fallback width, defaulting to a `clamp(...)` between the min and max values.
 - `--af-search-box-width` - preferred width set by the `width` option.
+
+## Locale-Aware Search
+
+The default filter uses `normalizeLocaleSearchText()` and `matchesLocaleSearchText()` from the localization layer. This keeps simple in-memory search useful across languages without adding a heavy search engine.
+
+```ts
+SearchBox({
+    label: "Search lessons",
+    searchLocale: locale,
+    searchMode: "all-words",
+    items: lessonItems
+});
+```
+
+Use `filterItem` for application-specific ranking or server-driven filtering. Custom filters receive both `query` and `normalizedQuery`.
 
 ## Update Notes
 

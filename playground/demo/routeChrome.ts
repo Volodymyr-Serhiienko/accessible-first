@@ -81,6 +81,7 @@ function getPlaygroundRouteChromeOptions(
             openOnFocus: false,
             notFoundText: t("app.search.notFoundText"),
             width: "14rem",
+            searchLocale: playgroundLocale,
             searchItemsOptions: {
                 getDescription(route) {
                     return t("app.route.searchDescription", {
@@ -104,6 +105,9 @@ function getPlaygroundRouteChromeOptions(
                 { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
             ],
             locale: playgroundLocale,
+            searchBoxOptions: {
+                searchLocale: playgroundLocale
+            },
             searchItemsOptions: {
                 getDescription(route) {
                     return t("app.route.commandDescription", {

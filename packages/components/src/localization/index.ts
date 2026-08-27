@@ -8,10 +8,24 @@ export {
 export { createLocaleRefresh } from "./createLocaleRefresh";
 export { createLocaleFormatter } from "./createLocaleFormatter";
 export {
+    filterLocaleSearchItems,
+    matchesLocaleSearchText,
+    normalizeLocaleSearchText
+} from "./createLocaleSearch";
+export {
     inspectLocaleController,
     inspectLocaleMessages,
     logLocaleDiagnostics
 } from "./inspectLocaleMessages";
+
+export type {
+    LocaleSearchFilterOptions,
+    LocaleSearchLocaleInput,
+    LocaleSearchLocaleSource,
+    LocaleSearchMatchMode,
+    LocaleSearchMatchOptions,
+    LocaleSearchNormalizeOptions
+} from "./createLocaleSearch";
 
 export type {
     LocaleDateValue,

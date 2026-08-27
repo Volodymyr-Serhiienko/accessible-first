@@ -36,7 +36,7 @@ These layers are strong enough to build on:
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, LinkRoutedApp, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader, FocusRoute.
 - Metadata and public-web helpers: DocumentMetadata, WebAppManifest, sitemap helper, robots.txt helper, route-derived metadata helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation, route diagnostics, metadata, localization, and manifest checks.
-- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
+- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
 
@@ -133,7 +133,7 @@ Need next:
 - keep `inspectLocaleController()` in app diagnostics for required framework and app-owned message keys;
 - refine `LocaleRefresh` into higher-level app templates only after real repeated patterns appear;
 - richer pluralization strategy on top of `Intl.PluralRules` categories;
-- locale-aware search/filter helpers beyond formatter-level string comparison;
+- locale-aware indexed/server-backed search patterns beyond lightweight in-memory filtering;
 - RTL layout smoke tests and diagnostics beyond document direction synchronization.
 
 ### Theme, Tokens, And Density

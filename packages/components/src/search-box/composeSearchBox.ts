@@ -14,6 +14,13 @@ import {
     type ComposedNode,
     type ElementAttributes
 } from "../composition";
+import {
+    matchesLocaleSearchText,
+    normalizeLocaleSearchText,
+    type LocaleSearchLocaleInput,
+    type LocaleSearchMatchMode,
+    type LocaleSearchMatchOptions
+} from "../localization";
 
 /**
  * One searchable item accepted by SearchBox().
@@ -105,6 +112,10 @@ export interface SearchBoxOptions<TItem extends SearchBoxItem = SearchBoxItem>
     value?: string | null;
     defaultValue?: string | null;
     filterItem?: SearchBoxFilter<TItem> | null;
+    searchLocale?: LocaleSearchLocaleInput | null;
+    searchMode?: LocaleSearchMatchMode;
+    caseSensitive?: boolean;
+    ignoreDiacritics?: boolean;
     width?: string | null;
     minWidth?: string | null;
     maxWidth?: string | null;
@@ -148,10 +159,6 @@ interface SearchBoxItemState<TItem extends SearchBoxItem> {
     searchText: string;
 }
 
-function normalizeSearchText(value: string): string {
-    return value.replace(/\s+/g, " ").trim().toLowerCase();
-}
-
 function getSearchText(item: SearchBoxItem): string {
     return [
         item.label,
@@ -168,15 +175,12 @@ function createItemState<TItem extends SearchBoxItem>(item: TItem): SearchBoxIte
 }
 
 function defaultFilter<TItem extends SearchBoxItem>(
-    context: SearchBoxFilterContext<TItem>
+    context: SearchBoxFilterContext<TItem>,
+    options: LocaleSearchMatchOptions
 ): boolean {
-    if (!context.normalizedQuery) return true;
-
-    const words = context.normalizedQuery.split(" ").filter(Boolean);
-    const haystack = normalizeSearchText(context.searchText);
-
-    return words.every((word) => haystack.includes(word));
+    return matchesLocaleSearchText(context.searchText, context.query, options);
 }
+
 
 function createResultContent(item: SearchBoxItem): HTMLElement {
     const children = [
@@ -283,6 +287,10 @@ export function SearchBox<TItem extends SearchBoxItem>(
     let composed!: ComposedSearchBox<TItem>;
     let itemStates = options.items.map(createItemState);
     let filterItem = options.filterItem ?? null;
+    let searchLocale = options.searchLocale ?? null;
+    let searchMode = options.searchMode ?? "all-words";
+    let caseSensitive = options.caseSensitive ?? false;
+    let ignoreDiacritics = options.ignoreDiacritics ?? true;
     let width = options.width ?? null;
     let minWidth = options.minWidth ?? null;
     let maxWidth = options.maxWidth ?? null;
@@ -301,6 +309,15 @@ export function SearchBox<TItem extends SearchBoxItem>(
         return itemStates.find((state) => state.item.id === value) ?? null;
     }
 
+    function getSearchMatchOptions(): LocaleSearchMatchOptions {
+        return {
+            locale: searchLocale,
+            mode: searchMode,
+            caseSensitive,
+            ignoreDiacritics
+        };
+    }
+
     function filterComboboxOption(context: { inputValue: string; option: HTMLElement }): boolean {
         const state = getItemState(context.option.getAttribute("data-af-search-box-result-id"));
 
@@ -308,12 +325,12 @@ export function SearchBox<TItem extends SearchBoxItem>(
 
         const filterContext: SearchBoxFilterContext<TItem> = {
             query: context.inputValue,
-            normalizedQuery: normalizeSearchText(context.inputValue),
+            normalizedQuery: normalizeLocaleSearchText(context.inputValue, getSearchMatchOptions()),
             item: state.item,
             searchText: state.searchText
         };
 
-        return filterItem?.(filterContext) ?? defaultFilter(filterContext);
+        return filterItem?.(filterContext) ?? defaultFilter(filterContext, getSearchMatchOptions());
     }
 
     const handleValueChange: NonNullable<ComboboxCompositionOptions["onValueChange"]> = (detail): void => {
@@ -353,6 +370,10 @@ export function SearchBox<TItem extends SearchBoxItem>(
         const {
             items: _items,
             filterItem: _filterItem,
+            searchLocale: _searchLocale,
+            searchMode: _searchMode,
+            caseSensitive: _caseSensitive,
+            ignoreDiacritics: _ignoreDiacritics,
             width: _width,
             minWidth: _minWidth,
             maxWidth: _maxWidth,
@@ -381,6 +402,10 @@ export function SearchBox<TItem extends SearchBoxItem>(
         const {
             items: _items,
             filterItem: _filterItem,
+            searchLocale: _searchLocale,
+            searchMode: _searchMode,
+            caseSensitive: _caseSensitive,
+            ignoreDiacritics: _ignoreDiacritics,
             width: _width,
             minWidth: _minWidth,
             maxWidth: _maxWidth,
@@ -440,6 +465,22 @@ export function SearchBox<TItem extends SearchBoxItem>(
         update(nextOptions): void {
             if ("filterItem" in nextOptions) {
                 filterItem = nextOptions.filterItem ?? null;
+            }
+
+            if ("searchLocale" in nextOptions) {
+                searchLocale = nextOptions.searchLocale ?? null;
+            }
+
+            if ("searchMode" in nextOptions) {
+                searchMode = nextOptions.searchMode ?? "all-words";
+            }
+
+            if ("caseSensitive" in nextOptions) {
+                caseSensitive = nextOptions.caseSensitive ?? false;
+            }
+
+            if ("ignoreDiacritics" in nextOptions) {
+                ignoreDiacritics = nextOptions.ignoreDiacritics ?? true;
             }
 
             if ("width" in nextOptions) {

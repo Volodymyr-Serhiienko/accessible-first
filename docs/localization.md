@@ -169,6 +169,20 @@ Use this layer for app chrome and currently visible route content. It is intenti
 
 For hash-routed SPAs, `createHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes. For native-link or MPA pages, `createLinkRoutedApp()` can refresh app-owned chrome and route metadata without intercepting links.
 
+## Search And Filtering
+
+Use `normalizeLocaleSearchText()`, `matchesLocaleSearchText()`, and `filterLocaleSearchItems()` for lightweight in-memory search that respects the active locale and can ignore diacritics by default:
+
+```ts
+const results = filterLocaleSearchItems(lessons, query, {
+    locale,
+    getText: (lesson) => lesson.title,
+    getKeywords: (lesson) => lesson.tags
+});
+```
+
+`SearchBox` uses the same helpers for its default in-memory filter. Larger applications can still replace this with indexed or server-backed search while keeping the same component APIs.
+
 ## Diagnostics
 
 Use `inspectLocaleController()` when an application has a known set of required service and app-owned messages:
