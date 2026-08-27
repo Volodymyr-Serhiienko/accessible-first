@@ -4,6 +4,13 @@ export {
     createAppDiagnosticsSourceReport,
     logAppDiagnostics
 } from "./createAppDiagnostics";
+export {
+    createPublicAppDiagnosticsRunner,
+    createPublicAppManifestDiagnosticsOptions,
+    createPublicAppPageDiagnosticsOptions,
+    PUBLIC_APP_DOCUMENT_METADATA_DIAGNOSTICS,
+    PUBLIC_APP_MANIFEST_DIAGNOSTICS
+} from "./createPublicAppDiagnostics";
 
 export type {
     AppDiagnosticsCompatibleReport,
@@ -20,3 +27,11 @@ export type {
     AppDiagnosticsSourcesResolver,
     AppDiagnosticsStatus
 } from "./createAppDiagnostics";
+export type {
+    PublicAppDiagnosticsInspectablePage,
+    PublicAppDiagnosticsLocaleResolver,
+    PublicAppDiagnosticsManifestResolver,
+    PublicAppDiagnosticsPageResolver,
+    PublicAppDiagnosticsResolver,
+    PublicAppDiagnosticsRunnerOptions
+} from "./createPublicAppDiagnostics";

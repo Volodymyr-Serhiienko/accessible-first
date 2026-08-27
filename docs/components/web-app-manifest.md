@@ -74,6 +74,8 @@ The low-level helper keeps common manifest fields typed while still allowing fut
 
 `createAppWebAppManifest()` is the app-level recipe. It keeps repeated public-app defaults in one place and expands common icon files into full manifest icon records.
 
+Use the same app-owned identity source for document metadata and manifest options. This keeps values such as `name`, `shortName`, `themeColor`, `manifestHref`, icons, and categories from drifting apart while still leaving generated files and deployment-specific paths under application control.
+
 ## Defaults
 
 `createAppWebAppManifest()` applies app-level defaults:

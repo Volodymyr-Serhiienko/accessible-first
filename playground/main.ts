@@ -1,9 +1,7 @@
 import {
-    createAppDiagnosticsRunner,
+    createPublicAppDiagnosticsRunner,
     createHashRoutedApp,
     inspectAppRoutes,
-    inspectLocaleController,
-    inspectWebAppManifest,
     resetInitialScrollPosition,
     type ComposedResponsiveNavigation,
     type HashRoutedApp
@@ -39,43 +37,14 @@ const routeDiagnostics = inspectAppRoutes(playgroundRoutes, {
 let app!: HashRoutedApp<PlaygroundRoute>;
 let currentNavigation!: ComposedResponsiveNavigation;
 
-const playgroundDiagnostics = createAppDiagnosticsRunner({
-    page: () => app.shell.inspect({
-        log: false,
-        documentMetadata: {
-            requireDescription: true,
-            requireCanonical: true,
-            requireRobots: true,
-            requireManifest: true,
-            requireOpenGraph: true,
-            requireTwitter: true,
-            requireStructuredData: true
-        }
-    }),
+const playgroundDiagnostics = createPublicAppDiagnosticsRunner({
+    page: () => app.shell,
     routes: routeDiagnostics,
-    sources: () => [
-        {
-            id: "localization",
-            label: "Localization",
-            report: inspectLocaleController(playgroundLocale, {
-                requiredMessages: playgroundRequiredMessageKeys
-            })
-        },
-        {
-            id: "manifest",
-            label: "Web App Manifest",
-            report: inspectWebAppManifest(playgroundManifest, {
-                requireShortName: true,
-                requireDescription: true,
-                requireStartUrl: true,
-                requireDisplay: true,
-                requireIcons: true,
-                requireThemeColor: true,
-                requireBackgroundColor: true,
-                requireMaskableIcon: true
-            })
-        }
-    ]
+    locale: playgroundLocale,
+    localeOptions: {
+        requiredMessages: playgroundRequiredMessageKeys
+    },
+    manifest: playgroundManifest
 });
 
 function logPlaygroundDiagnostics(): void {

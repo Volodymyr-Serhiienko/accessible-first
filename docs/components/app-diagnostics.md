@@ -6,36 +6,28 @@ Use it when a real app or playground has independent checks such as page semanti
 
 ## Quick Start
 
-For app setup, prefer `createAppDiagnosticsRunner()`. It keeps diagnostics declarative and computes fresh reports every time the app asks for a health check.
+For public app setup, prefer `createPublicAppDiagnosticsRunner()`. It keeps strict page metadata, localization, manifest, route, and custom diagnostics declarative while computing fresh reports every time the app asks for a health check.
 
 ```ts
-const diagnostics = createAppDiagnosticsRunner({
-    page: () => app.shell.inspect({
-        log: false,
-        documentMetadata: {
-            requireDescription: true,
-            requireCanonical: true
-        }
-    }),
+const diagnostics = createPublicAppDiagnosticsRunner({
+    page: () => app.shell,
     routes: inspectAppRoutes(routes, {
         requireDescription: true,
-        requireDocumentTitle: true
+        requireDocumentTitle: true,
+        requireCanonical: true,
+        requireStructuredData: true
     }),
-    sources: () => [
-        {
-            id: "localization",
-            label: "Localization",
-            report: inspectLocaleController(locale, {
-                requiredMessages: appRequiredMessageKeys
-            })
-        }
-    ]
+    locale,
+    localeOptions: {
+        requiredMessages: appRequiredMessageKeys
+    },
+    manifest
 });
 
 diagnostics.log();
 ```
 
-Use `createAppDiagnosticsReport()` directly when you already have all reports and only need to combine them once.
+Use `createAppDiagnosticsRunner()` when the app is private or needs fully custom source wiring. Use `createAppDiagnosticsReport()` directly when you already have all reports and only need to combine them once.
 
 ```ts
 const report = createAppDiagnosticsReport({
@@ -61,10 +53,35 @@ Accessible First diagnostics are intentionally layered:
 - `inspectAppRoutes()` checks the route model, route hierarchy, hrefs, and route metadata.
 - `inspectLocaleController()` checks supported locale dictionaries and required message keys.
 - Manifest, robots, sitemap, or app-specific reports can be added as custom sources.
-- `createAppDiagnosticsRunner()` turns those checks into one reusable app-level health command.
+- `createPublicAppDiagnosticsRunner()` applies strict public-app defaults for document metadata and manifest checks, then adds route, locale, and custom sources.
+- `createAppDiagnosticsRunner()` turns custom checks into one reusable app-level health command.
 - `createAppDiagnosticsReport()` combines already-created reports into one app-level status.
 
 This keeps each inspector simple, while still giving an application a single health signal. Public app checks can combine page metadata, route metadata, web app manifest diagnostics, localization, and later custom SEO or interaction reports.
+
+## Public App Runner
+
+`createPublicAppDiagnosticsRunner()` is a small recipe over `createAppDiagnosticsRunner()`. It can inspect a `Page`, `AppShell`, or existing page diagnostics report, then adds localization and web app manifest sources when provided.
+
+Defaults:
+
+- page document metadata requires description, canonical, robots, manifest, Open Graph, Twitter/X, and JSON-LD;
+- page diagnostics use `log: false` so the app report is not duplicated by a separate page report;
+- manifest diagnostics require short name, description, start URL, display mode, icons, maskable icon, theme color, and background color.
+
+Options:
+
+- `page` - optional `Page`, `AppShell`, page diagnostics report, or lazy resolver.
+- `pageOptions` - overrides merged on top of public page diagnostics defaults.
+- `routes` - optional route diagnostics report or resolver.
+- `locale` - optional locale controller or resolver.
+- `localeOptions` - localization diagnostics options, such as required message keys.
+- `manifest` - optional web app manifest object or resolver.
+- `manifestOptions` - overrides merged on top of public manifest diagnostics defaults.
+- `sources` - optional custom diagnostics sources or resolver.
+- `log` - optional logging behavior.
+
+Use `createPublicAppPageDiagnosticsOptions()` and `createPublicAppManifestDiagnosticsOptions()` when an app wants the same strict defaults without the full runner.
 
 ## Runner Options
 
@@ -123,6 +140,6 @@ For public applications, keep app diagnostics enabled in development and CI-like
 - Page diagnostics can be passed with `log: false` to avoid duplicate console output.
 - Lazy runner sources update when locale, metadata, or route chrome changes.
 - Localization diagnostics can be passed as a custom source to catch missing framework service text and app-owned messages.
-- Public-page metadata checks, including social metadata and JSON-LD requirements, should usually live in the page diagnostics source.
+- Public-page metadata checks, including social metadata and JSON-LD requirements, should usually use `createPublicAppDiagnosticsRunner()` or `createPublicAppPageDiagnosticsOptions()`.
 - Route diagnostics remain visible as a source inside the app report.
 - Custom sources do not break the aggregate report when they are `null` or `undefined`.

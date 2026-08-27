@@ -118,6 +118,12 @@ const metadata = createAppDocumentMetadata({
 ```
 
 Pass a custom `structuredData` object for pages that are not software applications, such as articles, courses, FAQ pages, products, or marketing sites.
+
+## Shared App Identity
+
+For real apps, keep stable public identity in one app-owned module and pass it into both `createAppDocumentMetadata()` and `createAppWebAppManifest()`. Good candidates are the app name, short name, brand color, manifest href, icon paths, preview image, and Schema.org application category.
+
+Keep user-facing copy localizable when it changes with the active locale. The framework should provide recipes and defaults, while the application owns the actual product text.
 ## Options
 
 - `document` - target document. Defaults to the current `document`. Creation-time option.
