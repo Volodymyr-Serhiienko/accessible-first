@@ -4,6 +4,7 @@ import {
     inspectAppRoutes,
     inspectLocaleController,
     inspectWebAppManifest,
+    resetInitialScrollPosition,
     type ComposedResponsiveNavigation,
     type DocumentMetadataUpdateOptions,
     type HashRoutedApp
@@ -23,30 +24,6 @@ import {
 import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
-
-function scrollToPageStart(): void {
-    window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "auto"
-    });
-}
-
-function scheduleInitialPageScroll(): void {
-    if ("scrollRestoration" in window.history) {
-        window.history.scrollRestoration = "manual";
-    }
-
-    scrollToPageStart();
-
-    window.requestAnimationFrame(() => {
-        scrollToPageStart();
-
-        window.requestAnimationFrame(() => {
-            scrollToPageStart();
-        });
-    });
-}
 
 function getPlaygroundAppMetadata(): DocumentMetadataUpdateOptions {
     return {
@@ -218,4 +195,4 @@ app.start({
     focusTarget: null
 });
 
-scheduleInitialPageScroll();
+resetInitialScrollPosition();

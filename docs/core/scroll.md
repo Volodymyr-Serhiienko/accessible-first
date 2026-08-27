@@ -24,6 +24,34 @@ Multiple locks on the same document are reference-counted. This allows nested ov
 
 ---
 
+### resetInitialScrollPosition()
+
+Resets the page scroll position during application startup.
+
+```ts
+resetInitialScrollPosition();
+```
+
+The helper performs one immediate scroll reset and repeats it for a few animation frames. This is useful for SPAs, playgrounds, restored browser tabs, and mobile browsers that may restore the old scroll position after the first render.
+
+```ts
+resetInitialScrollPosition({
+    top: 0,
+    left: 0,
+    frameCount: 2,
+    manualRestoration: true
+});
+```
+
+It returns a controller when pending animation-frame resets need to be canceled.
+
+```ts
+const reset = resetInitialScrollPosition();
+
+reset.cancel();
+```
+
+---
 ### isScrollable()
 
 Determines whether a specified HTML element is scrollable.

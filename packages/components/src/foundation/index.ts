@@ -24,3 +24,8 @@ export type {
     ComponentLifecycleOptions,
     ComponentState
 } from "./types";
+export {
+    resetInitialScrollPosition,
+    type InitialScrollResetController,
+    type InitialScrollResetOptions
+} from "../../../core/src/scroll";

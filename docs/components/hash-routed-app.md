@@ -134,6 +134,21 @@ When `locale` is provided, HashRoutedApp creates a `LocaleRefresh` subscription.
 
 Override this through `localeRefresh.routeOptions`, or pass `localeRefresh: false` when the application owns refresh behavior manually.
 
+## Startup Scroll
+
+When an SPA starts with `scroll: false` and `focusTarget: null`, the browser may still restore an old page position before or after the first route render. Use `resetInitialScrollPosition()` after `app.start(...)` when the initial page should always open at the top.
+
+```ts
+app.start({
+    announcement: false,
+    scroll: false,
+    focusTarget: null
+});
+
+resetInitialScrollPosition();
+```
+
+Route changes should still use router or PageOutlet scroll/focus options. `resetInitialScrollPosition()` is only for initial application startup.
 ## Methods
 
 - `mount(target, options)` - mounts the shell when it was not mounted during creation.

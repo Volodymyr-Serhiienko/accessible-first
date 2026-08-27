@@ -28,7 +28,7 @@ Accessible First should provide:
 
 These layers are strong enough to build on:
 
-- Platform utilities: DOM, events, IDs, keyboard helpers, focus helpers, ARIA helpers, scroll utilities, collection helpers.
+- Platform utilities: DOM, events, IDs, keyboard helpers, focus helpers, ARIA helpers, scroll utilities including startup scroll reset, collection helpers.
 - Behavior modules: roving focus, live regions, disclosure, dialog, tabs, listbox, typeahead, selection, menu, popover positioning, dismissable layer, overlay stack, form-field semantics, validation announcements.
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
@@ -55,7 +55,7 @@ Current focus:
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
 - Harden `HashRoutedApp` and `LinkRoutedApp` as the first reusable app runtime recipes: SPA route rendering for hash routes, and native-link/MPA chrome plus metadata synchronization for normal links.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
-- Keep playground code focused on demo copy and examples, while moving reusable lifecycle, app header, route chrome, and workflow focus wiring into framework helpers.
+- Keep playground code focused on demo copy and examples, while moving reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
 
