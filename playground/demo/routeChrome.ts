@@ -1,9 +1,6 @@
 import {
-    createHashAppRouteChromeRenderer,
     type AppShellCompositionContent,
-    type DocumentMetadataUpdateOptions,
-    type HashAppRouteChromeBaseOptions,
-    type HashRoutedAppChromeRenderer
+    type HashAppRouteChromeBaseOptions
 } from "./af";
 import { getPlaygroundHeaderOptions } from "./header";
 import {
@@ -17,22 +14,15 @@ import {
     type PlaygroundRoute
 } from "./routes";
 
-export interface PlaygroundRouteChromeRendererOptions {
-    getAppMetadata(): DocumentMetadataUpdateOptions;
+export interface PlaygroundRouteChromeOptions {
     afterOutlet?: AppShellCompositionContent | null;
 }
 
-function getPlaygroundRouteChromeOptions(
-    options: PlaygroundRouteChromeRendererOptions
+export function getPlaygroundRouteChromeOptions(
+    options: PlaygroundRouteChromeOptions = {}
 ): HashAppRouteChromeBaseOptions<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey> {
     return {
         routes: playgroundRoutes,
-        shell: {
-            title: t("app.brand.name"),
-            skipLink: t("app.navigation.skipLink"),
-            navigationLabel: t("app.navigation.label"),
-            metadata: options.getAppMetadata()
-        },
         header: getPlaygroundHeaderOptions("28rem"),
         navigation: {
             id: "playground-navigation",
@@ -117,12 +107,4 @@ function getPlaygroundRouteChromeOptions(
         },
         afterOutlet: options.afterOutlet
     };
-}
-
-export function createPlaygroundRouteChromeRenderer(
-    options: PlaygroundRouteChromeRendererOptions
-): HashRoutedAppChromeRenderer<PlaygroundRoute> {
-    return createHashAppRouteChromeRenderer<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
-        options: () => getPlaygroundRouteChromeOptions(options)
-    });
 }

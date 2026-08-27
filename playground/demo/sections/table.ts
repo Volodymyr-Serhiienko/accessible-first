@@ -1,17 +1,4 @@
-import {
-    Badge,
-    Button,
-    Grid,
-    H3,
-    P,
-    Panel,
-    Section,
-    Stack,
-    Table,
-    type BadgeVariant,
-    type ComposedNode,
-    type TableColumn
-} from "../af";
+import { Badge, Button, Grid, H3, P, Panel, Section, Stack, Table, type BadgeVariant, type ComposedNode, type TableColumn } from "../af";
 import { announce } from "../status";
 
 interface VocabularyReviewRow {

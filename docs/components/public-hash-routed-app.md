@@ -1,8 +1,8 @@
 # PublicHashRoutedApp
 
-PublicHashRoutedApp is the public-site SPA recipe for Accessible First applications. It combines `HashRoutedApp` with public diagnostics and startup scroll reset so real apps do not repeat the same setup code in every entry file.
+PublicHashRoutedApp is the lower-level public-site SPA recipe for Accessible First applications. It combines `HashRoutedApp` with public diagnostics and startup scroll reset so real apps do not repeat lifecycle setup code. For the standard app-template path, prefer [PublicHashAppTemplate](./public-hash-app-template.md).
 
-Use it when a hash-routed app has public-app requirements: route metadata, app identity, localization diagnostics, manifest checks, and first-load scroll behavior.
+Use it when a hash-routed app has public-app requirements but needs to assemble `shell` and `renderChrome` manually: route metadata, app identity, localization diagnostics, manifest checks, and first-load scroll behavior.
 
 ## Quick Start
 
@@ -119,7 +119,7 @@ The returned controller behaves like `HashRoutedApp` and adds:
 
 ## When To Use Lower Layers
 
-Use `HashRoutedApp` directly when the app is private, internal, experimental, or needs custom startup behavior.
+Use `PublicHashAppTemplate` for normal public SPAs with standard shell and route chrome wiring. Use `HashRoutedApp` directly when the app is private, internal, experimental, or needs custom startup behavior.
 
 Use `createHashRouter()` directly when the app does not use `AppShell` or needs low-level router control.
 

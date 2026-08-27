@@ -1,6 +1,6 @@
 import {
-    createPublicHashRoutedApp,
-    type PublicHashRoutedApp
+    createPublicHashAppTemplate,
+    type PublicHashAppTemplate
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
 import { getPlaygroundAppMetadata } from "./demo/appMetadata";
@@ -12,7 +12,7 @@ import {
     type PlaygroundLocale,
     type PlaygroundMessageKey
 } from "./demo/localization";
-import { createPlaygroundRouteChromeRenderer } from "./demo/routeChrome";
+import { getPlaygroundRouteChromeOptions } from "./demo/routeChrome";
 import {
     playgroundRouteOptions,
     playgroundRoutes,
@@ -22,23 +22,20 @@ import { notifications } from "./demo/status";
 
 import "../packages/components/src/styles/index.css";
 
-let app!: PublicHashRoutedApp<PlaygroundRoute>;
+let app!: PublicHashAppTemplate<PlaygroundRoute>;
 
-app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
+app = createPublicHashAppTemplate<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
     routes: playgroundRoutes,
     mount: "#app",
     locale: playgroundLocale,
     identity: playgroundAppIdentity,
     routeMetadata: playgroundRouteOptions,
     shell: {
-        title: t("app.brand.name"),
-        mainId: "main",
-        skipLink: t("app.navigation.skipLink"),
+        title: () => t("app.brand.name"),
+        skipLink: () => t("app.navigation.skipLink"),
         skipLinkTargetId: "playground-navigation",
-        navigationLabel: t("app.navigation.label"),
-        locale: playgroundLocale,
-        theme: "system",
-        metadata: getPlaygroundAppMetadata(),
+        navigationLabel: () => t("app.navigation.label"),
+        metadata: getPlaygroundAppMetadata,
         footer: FooterDemo(),
         outletOptions: {
             className: "playground-route-outlet",
@@ -65,8 +62,7 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
             });
         }
     },
-    renderChrome: createPlaygroundRouteChromeRenderer({
-        getAppMetadata: getPlaygroundAppMetadata,
+    routeChrome: () => getPlaygroundRouteChromeOptions({
         afterOutlet: notifications
     }),
     diagnostics: {
@@ -75,15 +71,9 @@ app = createPublicHashRoutedApp<PlaygroundRoute, PlaygroundLocale, PlaygroundMes
             dir: "ltr",
             id: "."
         },
-        locale: playgroundLocale,
         localeOptions: {
             requiredMessages: playgroundRequiredMessageKeys
         },
         logOnRouteChange: true
-    },
-    startOptions: {
-        announcement: false,
-        scroll: false,
-        focusTarget: null
     }
 });
