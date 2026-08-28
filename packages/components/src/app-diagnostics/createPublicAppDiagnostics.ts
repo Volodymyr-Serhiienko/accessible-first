@@ -93,6 +93,10 @@ export type PublicAppDiagnosticsLocaleResolver<
     TKey extends string = string
 > = PublicAppDiagnosticsResolver<LocaleController<TLocale, TKey>>;
 
+interface PublicAppDiagnosticsRequiredMessages<TKey extends string> {
+    readonly requiredMessageKeys: readonly TKey[];
+}
+
 /**
  * Manifest diagnostics source accepted by createPublicAppDiagnosticsRunner().
  */
@@ -177,6 +181,34 @@ function isInspectablePage(value: unknown): value is PublicAppDiagnosticsInspect
     );
 }
 
+function hasPublicAppDiagnosticsRequiredMessages<TKey extends string>(
+    value: unknown
+): value is PublicAppDiagnosticsRequiredMessages<TKey> {
+    return Boolean(
+        value
+        && typeof value === "object"
+        && "requiredMessageKeys" in value
+        && Array.isArray((value as { requiredMessageKeys?: unknown }).requiredMessageKeys)
+    );
+}
+
+function getPublicAppLocaleDiagnosticsOptions<
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    locale: LocaleController<TLocale, TKey>,
+    options: LocaleControllerDiagnosticsOptions<TLocale, TKey> | undefined
+): LocaleControllerDiagnosticsOptions<TLocale, TKey> | undefined {
+    if (options?.requiredMessages !== undefined || !hasPublicAppDiagnosticsRequiredMessages<TKey>(locale)) {
+        return options;
+    }
+
+    return {
+        ...(options ?? {}),
+        requiredMessages: locale.requiredMessageKeys
+    };
+}
+
 function resolvePublicAppPageReport(
     page: PublicAppDiagnosticsPageResolver,
     pageOptions: PageDiagnosticsOptions | undefined
@@ -246,7 +278,10 @@ function createPublicAppDiagnosticSources<
         sources.push({
             id: "localization",
             label: "Localization",
-            report: inspectLocaleController(locale, options.localeOptions)
+            report: inspectLocaleController(
+                locale,
+                getPublicAppLocaleDiagnosticsOptions(locale, options.localeOptions)
+            )
         });
     }
 

@@ -133,6 +133,23 @@ function getPublicAppTemplateShellLocale(
 }
 
 /**
+ * Resolves declarative route chrome options and merges resolver-backed shell refresh updates.
+ */
+export function resolvePublicAppTemplateRouteChromeOptions<
+    TOptions extends { shell?: AppShellUpdateOptions },
+    TContext
+>(
+    routeChrome: PublicAppTemplateContextValue<TOptions, TContext>,
+    context: TContext,
+    templateOptions: PublicAppTemplateBaseOptions
+): TOptions {
+    return withPublicAppTemplateShellUpdate(
+        resolvePublicAppTemplateContextValue(routeChrome, context),
+        getPublicAppTemplateShellUpdateOptions(templateOptions)
+    );
+}
+
+/**
  * Adds resolver-backed shell updates to route chrome options when locale refresh needs them.
  */
 export function withPublicAppTemplateShellUpdate<

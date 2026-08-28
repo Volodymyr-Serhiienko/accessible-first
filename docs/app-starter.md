@@ -125,11 +125,9 @@ export const appLocalization = createAppLocalization<AppLocale, AppMessageKey>({
     messages
 });
 
-export const locale = appLocalization.locale;
+export const locale = appLocalization;
 
 export const format = appLocalization.format;
-
-export const requiredMessageKeys = appLocalization.requiredMessageKeys;
 
 export function t(key: AppMessageKey, params?: LocaleMessageParams): string {
     return appLocalization.t(key, params);
@@ -295,20 +293,17 @@ Start with the default chrome. `routeText.breadcrumbItemsOptions` can be passed 
 
 ```ts
 import { type PublicHashRoutedAppDiagnosticsOptions } from "@accessible-first/components";
-import { requiredMessageKeys, type AppLocale, type AppMessageKey } from "./localization";
+import type { AppLocale, AppMessageKey } from "./localization";
 import type { AppRoute } from "./routes";
 
 export function getDiagnosticsOptions(): PublicHashRoutedAppDiagnosticsOptions<AppLocale, AppMessageKey, AppRoute> {
     return {
-        localeOptions: {
-            requiredMessages: requiredMessageKeys
-        },
         logOnRouteChange: true
     };
 }
 ```
 
-Diagnostics should be part of the starter, not an afterthought. They keep route, localization, metadata, manifest, and page structure problems visible during development.
+Diagnostics should be part of the starter, not an afterthought. When `locale` is the `createAppLocalization()` result, public app diagnostics read `requiredMessageKeys` automatically. They keep route, localization, metadata, manifest, and page structure problems visible during development.
 
 ## Step 9: Create App Factory
 

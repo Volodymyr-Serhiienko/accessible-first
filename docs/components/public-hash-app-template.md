@@ -65,9 +65,6 @@ const app = createPublicHashAppTemplate({
         }
     }),
     diagnostics: {
-        localeOptions: {
-            requiredMessages: requiredMessageKeys
-        },
         logOnRouteChange: true
     }
 });

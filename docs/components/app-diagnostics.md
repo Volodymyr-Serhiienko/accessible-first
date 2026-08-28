@@ -22,9 +22,6 @@ const diagnostics = createPublicAppDiagnosticsRunner({
         baseUrl: "https://example.com/app/"
     },
     locale,
-    localeOptions: {
-        requiredMessages: requiredMessageKeys
-    }
 });
 
 diagnostics.log();
@@ -83,7 +80,7 @@ Options:
 - `routes` - optional route list, route diagnostics report, or resolver.
 - `routeOptions` - route diagnostics and identity-aware route metadata defaults used when `routes` is a route list. Public routed app recipes can default this from top-level `routeMetadata`.
 - `locale` - optional locale controller or resolver.
-- `localeOptions` - localization diagnostics options, such as required message keys.
+- `localeOptions` - localization diagnostics options, such as required message keys. Public diagnostics infer `requiredMessageKeys` automatically when `locale` is a `createAppLocalization()` result, so pass this only for manual controllers or explicit overrides.
 - `manifest` - optional web app manifest object or resolver. Pass `false` to skip manifest diagnostics even when `identity` is provided.
 - `manifestOptions` - overrides merged on top of public manifest diagnostics defaults.
 - `sources` - optional custom diagnostics sources or resolver.

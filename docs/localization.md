@@ -98,9 +98,8 @@ const appLocalization = createAppLocalization<"en" | "uk" | "ru", AppMessageKey>
     messages
 });
 
-export const locale = appLocalization.locale;
+export const locale = appLocalization;
 export const format = appLocalization.format;
-export const requiredMessageKeys = appLocalization.requiredMessageKeys;
 export const t = appLocalization.t;
 ```
 
@@ -111,7 +110,7 @@ Applications should keep one locale file near the app shell. The playground uses
 - define the supported locale tuple;
 - define an app-specific message-key union;
 - combine it with `AccessibleFirstMessageKey`;
-- create one shared `createAppLocalization()` result for `locale`, `format`, `requiredMessageKeys`, and `t()`;
+- create one shared `createAppLocalization()` result for locale state, formatting, diagnostics keys, and `t()`;
 - use lower-level `createLocaleController()`, `createLocaleFormatter()`, or `createRequiredLocaleMessageKeys()` directly only when the app needs custom wiring;
 - use `createLocaleRefresh()` near the app shell when composed app copy should update without reload;
 - use `localeKeys` plus `createLocalizedAppRouteText()` when route labels, hints, descriptions, document titles, and search keywords belong in locale files;
@@ -206,7 +205,7 @@ const results = filterLocaleSearchItems(lessons, query, {
 
 ## Diagnostics
 
-Use `appLocalization.requiredMessageKeys` in starter apps, or `createRequiredLocaleMessageKeys()` when the app wires localization manually:
+`createAppLocalization()` exposes `requiredMessageKeys`, and public diagnostics read them automatically when the bundle is passed as `locale`. Use `createRequiredLocaleMessageKeys()` only when the app wires localization manually:
 
 ```ts
 const requiredMessages = createRequiredLocaleMessageKeys<AppMessageKey>(

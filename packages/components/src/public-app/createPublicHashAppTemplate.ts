@@ -20,9 +20,7 @@ import {
 import {
     getPublicAppTemplateDiagnosticsOptions,
     getPublicAppTemplateShellOptions,
-    getPublicAppTemplateShellUpdateOptions,
-    resolvePublicAppTemplateContextValue,
-    withPublicAppTemplateShellUpdate,
+    resolvePublicAppTemplateRouteChromeOptions,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
     type PublicAppTemplateShellOptions as SharedPublicAppTemplateShellOptions,
     type PublicAppTemplateValue as SharedPublicAppTemplateValue
@@ -96,10 +94,7 @@ function createTemplateRouteChromeRenderer<
 
     const rendererOptions = {
         options(context: HashRoutedAppContext<TRoute>): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-            return withPublicAppTemplateShellUpdate(
-                resolvePublicAppTemplateContextValue(routeChrome, context),
-                getPublicAppTemplateShellUpdateOptions(options)
-            );
+            return resolvePublicAppTemplateRouteChromeOptions(routeChrome, context, options);
         }
     };
 

@@ -1,7 +1,7 @@
 import {
     createAppLocalization,
     type AccessibleFirstMessageKey,
-    type LocaleController,
+    type AppLocalization,
     type LocaleMessageParams,
     type LocaleMessages,
     type LocaleMessagesByLocale
@@ -46,7 +46,7 @@ export type PlaygroundMessageKey =
     | PlaygroundRouteMessageKey;
 
 export type PlaygroundLocaleController =
-    LocaleController<PlaygroundLocale, PlaygroundMessageKey>;
+    AppLocalization<PlaygroundLocale, PlaygroundMessageKey>;
 
 const enRouteMessages = {
     "routes.markup.title": "Markup",
@@ -170,6 +170,7 @@ const ruRouteMessages = {
     "routes.list-detail.title": "Список и детали",
     "routes.checks.title": "Ручные проверки"
 } satisfies LocaleMessages<PlaygroundRouteMessageKey>;
+
 const enMessages = {
     ...enRouteMessages,
     "app.brand.homeLabel": "Accessible First Playground home",
@@ -365,11 +366,10 @@ export const playgroundLocalization = createAppLocalization<PlaygroundLocale, Pl
     messages: playgroundMessages
 });
 
-export const playgroundLocale: PlaygroundLocaleController = playgroundLocalization.locale;
+export const playgroundLocale: PlaygroundLocaleController = playgroundLocalization;
 
 export const playgroundFormat = playgroundLocalization.format;
 
-export const playgroundRequiredMessageKeys = playgroundLocalization.requiredMessageKeys;
 
 export function t(key: PlaygroundMessageKey, params?: LocaleMessageParams): string {
     return playgroundLocalization.t(key, params);

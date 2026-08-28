@@ -1,6 +1,5 @@
 import { type PublicHashRoutedAppDiagnosticsOptions } from "./af";
 import {
-    playgroundRequiredMessageKeys,
     type PlaygroundLocale,
     type PlaygroundMessageKey
 } from "./localization";
@@ -19,9 +18,6 @@ export function getPlaygroundDiagnosticsOptions(): PublicHashRoutedAppDiagnostic
             lang: "en",
             dir: "ltr",
             id: "."
-        },
-        localeOptions: {
-            requiredMessages: playgroundRequiredMessageKeys
         },
         logOnRouteChange: true
     };

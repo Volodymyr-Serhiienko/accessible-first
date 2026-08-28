@@ -62,9 +62,6 @@ const app = createPublicLinkRoutedApp({
             id: "/"
         },
         locale,
-        localeOptions: {
-            requiredMessages: requiredMessageKeys
-        },
         logOnCreate: true
     }
 });

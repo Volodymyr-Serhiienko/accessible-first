@@ -4,7 +4,6 @@ import {
     type LocaleCode,
     type LocaleController,
     type LocaleControllerOptions,
-    type LocaleMessageParams,
     type LocaleMessages,
     type LocaleRequiredMessagesSource
 } from "./createLocaleController";
@@ -54,15 +53,13 @@ export interface AppLocalizationOptions<
 export interface AppLocalization<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
-> {
-    /** Shared controller for framework service text and application-owned messages. */
+> extends LocaleController<TLocale, AppLocalizationMessageKey<TKey>> {
+    /** Shared controller alias for code that prefers explicit property access. */
     readonly locale: LocaleController<TLocale, AppLocalizationMessageKey<TKey>>;
     /** Intl-backed formatter that follows the current application locale. */
     readonly format: LocaleFormatter<TLocale>;
     /** Required framework and app-owned message keys intended for localization diagnostics. */
     readonly requiredMessageKeys: readonly AppLocalizationMessageKey<TKey>[];
-    /** Convenience translator bound to the shared locale controller. */
-    t(key: AppLocalizationMessageKey<TKey>, params?: LocaleMessageParams): string;
 }
 
 function normalizeAppLocalizationLocale(value: string | null | undefined): string | null {
@@ -161,12 +158,9 @@ export function createAppLocalization<
     );
 
     return {
+        ...locale,
         locale,
         format,
-        requiredMessageKeys,
-
-        t(key, params): string {
-            return locale.t(key, params);
-        }
+        requiredMessageKeys
     };
 }
