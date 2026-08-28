@@ -74,7 +74,7 @@ export const appIdentity = createAppIdentity({
 - one shared `createAppLocalization()` result;
 - exported controller-compatible `locale`, `format`, and `t(key, params?)`; public diagnostics can read required message keys from the localization bundle.
 
-`routes.ts` should define one route list and, for routed apps, one `createAppRouteRegistry()` result. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, safe route lookup, and diagnostics. Localized apps can add `localeKeys` to routes or keep the pure route list in `routes.ts` and put localized route resolvers in `routeText.ts`. Use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
+`routes.ts` should define one route list and, for routed apps, one `createAppRouteRegistry()` result. The same route descriptors and route text bundle should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, safe route lookup, and diagnostics. Localized apps can add `localeKeys` to routes or keep the pure route list in `routes.ts` and put localized route resolvers in `routeText.ts`. Use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
 
 ## Runtime Entry
 
@@ -105,7 +105,7 @@ export function createApp() {
 }
 ```
 
-Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation. Public app templates pass the declared route list into route chrome automatically and can consume `routeText` for metadata and route announcements; lower-level `createRouteChrome()` and manual renderers still accept explicit `routes`.
+Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation. Public app templates pass the declared route list and `routeText` defaults into route chrome automatically and can consume `routeText` for metadata and route announcements; lower-level `createRouteChrome()` and manual renderers still accept explicit `routes` and `routeText`.
 
 ## Shell And Chrome
 

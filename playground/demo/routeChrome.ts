@@ -30,8 +30,7 @@ export function getPlaygroundRouteChromeOptions(
             trigger: t("app.navigation.trigger"),
             triggerIconPosition: "start",
             variant: "pills",
-            locale: playgroundLocale,
-            navigationItemsOptions: playgroundRouteText.navigationItemsOptions
+            locale: playgroundLocale
         },
         breadcrumbs: {
             className: "playground-breadcrumbs",
@@ -41,8 +40,7 @@ export function getPlaygroundRouteChromeOptions(
                 title: t("app.breadcrumbs.rootLabel"),
                 label: t("app.breadcrumbs.rootLabel"),
                 href: "#markup"
-            },
-            breadcrumbItemsOptions: playgroundRouteText.breadcrumbItemsOptions
+            }
         },
         search: {
             className: "playground-search",
@@ -58,7 +56,6 @@ export function getPlaygroundRouteChromeOptions(
             width: "14rem",
             searchLocale: playgroundLocale,
             searchItemsOptions: {
-                ...playgroundRouteText.searchItemsOptions,
                 getDescription(route) {
                     return t("app.route.searchDescription", {
                         title: getPlaygroundRouteTitle(route)
@@ -89,7 +86,6 @@ export function getPlaygroundRouteChromeOptions(
                 searchLocale: playgroundLocale
             },
             searchItemsOptions: {
-                ...playgroundRouteText.searchItemsOptions,
                 getDescription(route) {
                     return t("app.route.commandDescription", {
                         title: getPlaygroundRouteTitle(route)

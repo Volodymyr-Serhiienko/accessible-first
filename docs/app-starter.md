@@ -207,7 +207,7 @@ export const routeMetadata: AppIdentityRouteDiagnosticsOptions<AppRoute> = {
 };
 ```
 
-Route text should feed navigation, breadcrumbs, search, command palette, route announcements, metadata, sitemap, and diagnostics from one place. Public app templates can merge `routeText.routeOptions` into `routeMetadata` and use `routeText.getLoadedAnnouncement` for SPA route speech, so the app only adds deployment-specific metadata such as `baseUrl`. Use the shared `routeLoadedAnnouncementKey` first; add per-route `localeKeys.loadedAnnouncement` only when a screen needs a custom spoken phrase.
+Route text should feed navigation, breadcrumbs, search, command palette, route announcements, metadata, sitemap, and diagnostics from one place. Public app templates can merge `routeText.routeOptions` into `routeMetadata`, inject route chrome item defaults, and use `routeText.getLoadedAnnouncement` for SPA route speech, so the app only adds deployment-specific metadata such as `baseUrl`. Use the shared `routeLoadedAnnouncementKey` first; add per-route `localeKeys.loadedAnnouncement` only when a screen needs a custom spoken phrase.
 
 ## Step 6: Create Shell
 
@@ -245,7 +245,6 @@ Use resolver functions for locale-dependent shell text. Public app templates re-
 ```ts
 import { type PublicHashAppTemplateRouteChromeBaseOptions } from "@accessible-first/components";
 import { locale, t, type AppLocale, type AppMessageKey } from "./localization";
-import { routeText } from "./routeText";
 import { type AppRoute } from "./routes";
 import { appIdentity } from "./identity";
 
@@ -262,30 +261,26 @@ export function getRouteChromeOptions(): PublicHashAppTemplateRouteChromeBaseOpt
         },
         navigation: {
             id: "app-navigation",
-            locale,
-            navigationItemsOptions: routeText.navigationItemsOptions
+            locale
         },
         breadcrumbs: {
-            label: "Current location",
-            breadcrumbItemsOptions: routeText.breadcrumbItemsOptions
+            label: "Current location"
         },
         search: {
             label: "Search screens",
-            searchLocale: locale,
-            searchItemsOptions: routeText.searchItemsOptions
+            searchLocale: locale
         },
         commands: {
             trigger: "Commands",
             title: "Commands",
             searchLabel: "Search commands",
-            locale,
-            searchItemsOptions: routeText.searchItemsOptions
+            locale
         }
     };
 }
 ```
 
-Start with the default chrome. Public app templates inject the app route list into route chrome automatically, so `routeChrome.ts` only needs route-specific options when it wants an override. `routeText.breadcrumbItemsOptions` can be passed directly even when breadcrumbs use a synthetic root route. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
+Start with the default chrome. Public app templates inject the app route list and shared `routeText` defaults into route chrome automatically, so `routeChrome.ts` only needs route-specific options when it wants an override. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
 
 ## Step 8: Create Diagnostics
 

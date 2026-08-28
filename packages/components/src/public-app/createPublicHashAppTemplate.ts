@@ -45,7 +45,7 @@ export type PublicHashAppTemplateMetadata = SharedPublicAppTemplateMetadata;
 export interface PublicHashAppTemplateShellOptions extends SharedPublicAppTemplateShellOptions {}
 
 /**
- * Localized route text bundle accepted by createPublicHashAppTemplate().
+ * Localized route text bundle accepted by createPublicHashAppTemplate() for metadata, route chrome, and route announcements.
  */
 export type PublicHashAppTemplateRouteText<
     TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute
@@ -92,7 +92,7 @@ export interface PublicHashAppTemplateOptions<
 > extends Omit<PublicHashRoutedAppOptions<TRoute, TLocale, TKey>, "shell" | "renderChrome"> {
     /** AppShell settings with template defaults and locale-refresh support. */
     shell?: PublicHashAppTemplateShellOptions;
-    /** Localized route text defaults for route metadata and SPA route-loaded announcements. */
+    /** Localized route text defaults for route metadata, route chrome, and SPA route-loaded announcements. */
     routeText?: PublicHashAppTemplateRouteText<TRoute> | false;
     /** Declarative RouteChrome options, or false to omit managed route chrome. */
     routeChrome?: PublicHashAppTemplateRouteChromeOptions<TRoute, TLocale, TKey> | false;

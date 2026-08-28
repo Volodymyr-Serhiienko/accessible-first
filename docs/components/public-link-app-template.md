@@ -85,7 +85,7 @@ The template owns:
 - passing a compatible app locale into `AppShell` fallback text;
 - refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
-- creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list when route chrome omits `routes`;
+- creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
 The application still owns:
@@ -109,7 +109,7 @@ The application still owns:
 - `identity` - optional public app identity used by metadata, diagnostics, and manifest helpers.
 - `routeMetadata` - identity-aware route metadata defaults, or `false`. When `routeText` is provided, these options override merged route-text metadata defaults.
 - `shell` - `PublicLinkAppTemplateShellOptions`.
-- `routeText` - optional localized route text bundle. Defaults route metadata text unless explicitly overridden.
+- `routeText` - optional localized route text bundle. Defaults route metadata text and route chrome item text unless explicitly overridden.
 - `routeChrome` - static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list.
 - `onRouteChromeCreate` - optional hook called after route chrome is created.
 - `current`, `location`, `matchLocation` - native-link route matching options passed through to `LinkRoutedApp`.

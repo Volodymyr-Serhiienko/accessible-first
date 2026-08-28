@@ -16,11 +16,28 @@ import type {
 } from "../localization";
 
 /**
- * Localized route text bundle accepted by public app templates.
+ * Localized route text bundle accepted by public app templates for metadata, route chrome, and route announcements.
  */
 export type PublicAppTemplateRouteText<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
-> = Pick<LocalizedAppRouteText<TRoute>, "routeOptions" | "getLoadedAnnouncement">;
+> = Pick<
+    LocalizedAppRouteText<TRoute>,
+    | "routeOptions"
+    | "getLoadedAnnouncement"
+    | "navigationItemsOptions"
+    | "searchItemsOptions"
+    | "breadcrumbItemsOptions"
+>;
+
+/**
+ * Route text defaults safe to inject into route chrome controls.
+ */
+export type PublicAppTemplateRouteChromeRouteText<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = Partial<Pick<
+    PublicAppTemplateRouteText<TRoute>,
+    "navigationItemsOptions" | "searchItemsOptions" | "breadcrumbItemsOptions"
+>>;
 
 /**
  * Static value or zero-argument resolver accepted by public app templates.
@@ -158,21 +175,32 @@ function getPublicAppTemplateShellLocale(
  * Resolves declarative route chrome options and merges resolver-backed shell refresh updates.
  */
 export function resolvePublicAppTemplateRouteChromeOptions<
-    TRoute,
-    TOptions extends { routes: readonly TRoute[]; shell?: AppShellUpdateOptions },
+    TRoute extends AppRouteDescriptor,
+    TOptions extends {
+        routes: readonly TRoute[];
+        shell?: AppShellUpdateOptions;
+        routeText?: PublicAppTemplateRouteChromeRouteText<TRoute> | false;
+    },
     TContext
 >(
     routeChrome: PublicAppTemplateContextValue<PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions>, TContext>,
     context: TContext,
-    templateOptions: PublicAppTemplateBaseOptions & { routes: readonly TRoute[] }
+    templateOptions: PublicAppTemplateBaseOptions & {
+        routes: readonly TRoute[];
+        routeText?: PublicAppTemplateRouteText<TRoute> | false;
+    }
 ): TOptions {
     const routeChromeOptions = resolvePublicAppTemplateContextValue(routeChrome, context);
+    const nextOptions = {
+        ...routeChromeOptions,
+        routes: routeChromeOptions.routes ?? templateOptions.routes
+    } as TOptions & { routeText?: PublicAppTemplateRouteChromeRouteText<TRoute> | false };
+    const routeText = routeChromeOptions.routeText ?? templateOptions.routeText;
+
+    if (routeText !== undefined) nextOptions.routeText = routeText;
 
     return withPublicAppTemplateShellUpdate(
-        {
-            ...routeChromeOptions,
-            routes: routeChromeOptions.routes ?? templateOptions.routes
-        } as TOptions,
+        nextOptions as TOptions,
         getPublicAppTemplateShellUpdateOptions(templateOptions)
     );
 }

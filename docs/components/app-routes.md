@@ -143,7 +143,7 @@ const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
 });
 ```
 
-The returned helper exposes resolvers and ready-to-pass options. These options can be used directly by route-aware components and by RouteChrome, including breadcrumbs that add a synthetic root route:
+The returned helper exposes resolvers and ready-to-pass options. These options can be used directly by route-aware components, or passed once through RouteChrome so navigation, search, commands, and breadcrumbs share the same route text defaults:
 
 ```ts
 RouteResponsiveNavigation({
@@ -160,6 +160,16 @@ RouteBreadcrumbs({
     routes,
     current,
     breadcrumbItemsOptions: routeText.breadcrumbItemsOptions
+});
+
+createRouteChrome({
+    routes,
+    current,
+    routeText,
+    navigation: {},
+    breadcrumbs: {},
+    search: { label: t("app.search.label") },
+    commands: { trigger: t("app.commands.trigger") }
 });
 
 createAppRouteDocumentMetadata(currentRoute, {

@@ -4,7 +4,9 @@ import {
     getAppRouteParentId,
     type AppRouteBreadcrumbItemsOptions,
     type AppRouteDescriptor,
+    type AppRouteNavigationItemsOptions,
     type AppRouteParentIdResolver,
+    type AppRouteSearchItemsOptions,
     type AppRouteTrailOptions
 } from "../app-routes";
 import type { CompositionChild } from "../composition";
@@ -95,6 +97,20 @@ export type RouteChromeCommandPaletteOptions<
 > = Omit<RouteCommandPaletteOptions<TRoute>, "routes" | "onRouteSelect">;
 
 /**
+ * Route text defaults used by createRouteChrome() for route-derived control labels, hints, descriptions, and keywords.
+ */
+export interface RouteChromeRouteTextOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> {
+    /** Navigation item resolvers used when navigation does not override them. */
+    readonly navigationItemsOptions?: AppRouteNavigationItemsOptions<TRoute>;
+    /** Search item resolvers used when search or commands do not override them. */
+    readonly searchItemsOptions?: AppRouteSearchItemsOptions<TRoute>;
+    /** Breadcrumb item resolvers used when breadcrumbs do not override them. */
+    readonly breadcrumbItemsOptions?: AppRouteBreadcrumbItemsOptions<TRoute>;
+}
+
+/**
  * Navigation-like control returned by createRouteChrome().
  */
 export interface RouteChromeNavigationControl {
@@ -118,6 +134,8 @@ export interface RouteChromeOptions<
 > {
     routes: readonly TRoute[];
     current?: TRoute | string | null;
+    /** Shared route text defaults for navigation, breadcrumbs, search, and commands. */
+    routeText?: RouteChromeRouteTextOptions<TRoute> | false;
     navigation?: RouteChromeNavigationOptions<TRoute> | false;
     breadcrumbs?: RouteChromeBreadcrumbsOptions<TRoute> | false;
     search?: RouteChromeSearchOptions<TRoute> | false;
@@ -263,6 +281,46 @@ function createRouteChromeBreadcrumbItemsOptions<TRoute extends AppRouteDescript
     return nextOptions;
 }
 
+function mergeRouteChromeItemOptions<TOptions extends object>(
+    defaults: TOptions | undefined,
+    overrides: TOptions | undefined
+): TOptions | undefined {
+    if (defaults === undefined) return overrides;
+    if (overrides === undefined) return defaults;
+
+    return {
+        ...defaults,
+        ...overrides
+    };
+}
+
+function getRouteChromeRouteText<TRoute extends AppRouteDescriptor>(
+    options: RouteChromeOptions<TRoute>
+): RouteChromeRouteTextOptions<TRoute> | null {
+    return options.routeText === false ? null : options.routeText ?? null;
+}
+
+function getRouteChromeNavigationItemsOptions<TRoute extends AppRouteDescriptor>(
+    routeText: RouteChromeRouteTextOptions<TRoute> | null,
+    options: RouteChromeNavigationOptions<TRoute> | undefined
+): AppRouteNavigationItemsOptions<TRoute> | undefined {
+    return mergeRouteChromeItemOptions(routeText?.navigationItemsOptions, options?.navigationItemsOptions);
+}
+
+function getRouteChromeSearchItemsOptions<TRoute extends AppRouteDescriptor>(
+    routeText: RouteChromeRouteTextOptions<TRoute> | null,
+    options: RouteChromeSearchOptions<TRoute> | RouteChromeCommandPaletteOptions<TRoute> | undefined
+): AppRouteSearchItemsOptions<TRoute> | undefined {
+    return mergeRouteChromeItemOptions(routeText?.searchItemsOptions, options?.searchItemsOptions);
+}
+
+function getRouteChromeBreadcrumbItemsOptions<TRoute extends AppRouteDescriptor>(
+    routeText: RouteChromeRouteTextOptions<TRoute> | null,
+    options: RouteChromeBreadcrumbsOptions<TRoute> | undefined
+): AppRouteBreadcrumbItemsOptions<TRoute> | undefined {
+    return mergeRouteChromeItemOptions(routeText?.breadcrumbItemsOptions, options?.breadcrumbItemsOptions);
+}
+
 /**
  * Creates the common route-aware chrome controls used by routed app recipes.
  */
@@ -273,6 +331,7 @@ export function createRouteChrome<
     const onRouteActivate = options.onRouteActivate ?? null;
     const current = options.current ?? null;
     const currentId = getCurrentId(current);
+    const routeText = getRouteChromeRouteText(options);
     const headerControls: CompositionChild[] = [];
     const currentRouteControls: RouteChromeCurrentRouteControl<TRoute>[] = [];
 
@@ -287,7 +346,9 @@ export function createRouteChrome<
             routes,
             current: currentId
         };
+        const navigationItemsOptions = getRouteChromeNavigationItemsOptions(routeText, options.navigation);
 
+        if (navigationItemsOptions !== undefined) navigationOptions.navigationItemsOptions = navigationItemsOptions;
         if (onRouteActivate) navigationOptions.onRouteNavigate = onRouteActivate;
 
         navigation = RouteResponsiveNavigation<TRoute>(navigationOptions);
@@ -299,7 +360,7 @@ export function createRouteChrome<
             current: _current,
             root: _root,
             trailOptions: _trailOptions,
-            breadcrumbItemsOptions,
+            breadcrumbItemsOptions: _breadcrumbItemsOptions,
             ...breadcrumbOptions
         } = options.breadcrumbs ?? {};
         const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
@@ -308,6 +369,7 @@ export function createRouteChrome<
             current: getBreadcrumbCurrent(current, options.breadcrumbs)
         };
         const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
+        const breadcrumbItemsOptions = getRouteChromeBreadcrumbItemsOptions(routeText, options.breadcrumbs);
         const routeBreadcrumbItemsOptions = createRouteChromeBreadcrumbItemsOptions(
             routes,
             breadcrumbItemsOptions
@@ -332,7 +394,9 @@ export function createRouteChrome<
             ...options.search,
             routes
         };
+        const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.search);
 
+        if (searchItemsOptions !== undefined) searchOptions.searchItemsOptions = searchItemsOptions;
         if (onRouteActivate) searchOptions.onRouteSelect = onRouteActivate;
 
         search = RouteSearchBox<TRoute>(searchOptions);
@@ -344,7 +408,9 @@ export function createRouteChrome<
             ...options.commands,
             routes
         };
+        const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.commands);
 
+        if (searchItemsOptions !== undefined) commandOptions.searchItemsOptions = searchItemsOptions;
         if (onRouteActivate) commandOptions.onRouteSelect = onRouteActivate;
 
         commands = RouteCommandPalette<TRoute>(commandOptions);

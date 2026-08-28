@@ -85,7 +85,7 @@ The template owns:
 - refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
 - using `routeText.getLoadedAnnouncement` for SPA route announcements when the router does not override `getAnnouncement`;
-- creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list when route chrome omits `routes`;
+- creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
 The application still owns:
@@ -108,7 +108,7 @@ The application still owns:
 - `identity` - optional public app identity used by metadata, diagnostics, and manifest helpers.
 - `routeMetadata` - identity-aware route metadata defaults, or `false`. When `routeText` is provided, these options override merged route-text metadata defaults.
 - `shell` - `PublicHashAppTemplateShellOptions`.
-- `routeText` - optional localized route text bundle. Defaults route metadata text and SPA route-loaded announcements unless explicitly overridden.
+- `routeText` - optional localized route text bundle. Defaults route metadata text, route chrome item text, and SPA route-loaded announcements unless explicitly overridden.
 - `routeChrome` - static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list.
 - `onRouteChromeCreate` - optional hook called after route chrome is created.
 - `router` - low-level hash router options that still belong to the app, such as `getAnnouncement`.
@@ -152,4 +152,4 @@ The default first-load behavior is intentionally quiet because route content is 
 - Route changes still move focus to useful content and announce route changes when configured.
 - Locale changes refresh shell title, skip-link text, navigation label, outlet options, metadata, and route chrome without a page reload.
 - Diagnostics include locale checks when a full `LocaleController` is passed.
-- Navigation, search, commands, breadcrumbs, and return-to-navigation link still share the same route activation behavior.
+- Navigation, search, commands, breadcrumbs, and return-to-navigation link still share the same route activation behavior and route text defaults.

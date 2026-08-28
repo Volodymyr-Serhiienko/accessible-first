@@ -96,7 +96,7 @@ Shared options depend on the selected mode, but the intended application model i
 - `locale` - shared locale controller or compatible locale provider.
 - `identity` - stable app identity for metadata, manifest, and diagnostics.
 - `routeMetadata` - identity-aware route metadata defaults, or `false`; when `routeText` is provided, these values override merged route-text metadata defaults.
-- `routeText` - optional localized route text bundle used for route metadata and, in hash mode, route-loaded announcements.
+- `routeText` - optional localized route text bundle used for route metadata, route chrome item text, and, in hash mode, route-loaded announcements.
 - `shell` - app shell configuration with template-friendly resolver support for title, skip link, navigation label, metadata, and outlet options.
 - `routeChrome` - declarative route chrome options, a resolver, or `false`. Omit `routeChrome.routes` to use the template route list.
 - `diagnostics` - public app diagnostics options, or `false`.
@@ -126,5 +126,5 @@ For new public apps, prefer route metadata and native hrefs wherever possible. H
 - Hash mode starts and renders the initial route as before.
 - Link mode detects the current native-link route from the configured location.
 - Locale changes refresh app-owned shell, outlet, and chrome text.
-- Navigation, breadcrumbs, search, and command palette share route metadata.
+- Navigation, breadcrumbs, search, and command palette share route metadata and route text defaults.
 - Diagnostics still include route, metadata, localization, manifest, and app-owned checks when configured.

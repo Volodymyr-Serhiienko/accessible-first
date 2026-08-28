@@ -112,6 +112,7 @@ function getRouteChromeOptions<
     };
 
     if ("current" in options) routeChromeOptions.current = options.current ?? null;
+    if (options.routeText !== undefined) routeChromeOptions.routeText = options.routeText;
     if (options.navigation !== undefined) routeChromeOptions.navigation = options.navigation;
     if (options.breadcrumbs !== undefined) routeChromeOptions.breadcrumbs = options.breadcrumbs;
     if (options.search !== undefined) routeChromeOptions.search = options.search;

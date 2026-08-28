@@ -110,6 +110,7 @@ renderChrome: createLinkAppRouteChromeRenderer({
 const routeChrome = createRouteChrome({
     routes,
     current: router.getCurrentRoute(),
+    routeText,
     onRouteActivate: activateRoute,
     navigation: { variant: "pills" },
     breadcrumbs: { label: "Current location" },
@@ -155,6 +156,7 @@ None of these helpers create route data, screen content, app copy, metadata stra
 
 - `routes` - required route descriptors used by route-aware controls.
 - `current` - current route object, route id, `null`, or `undefined`.
+- `routeText` - shared route text defaults for navigation labels, breadcrumbs, route search, and command palette route items. Control-specific options override these defaults. Use `false` to opt out when a lower layer should stay fully manual.
 - `navigation` - options passed to `RouteResponsiveNavigation`, or `false` to disable navigation.
 - `breadcrumbs` - options passed to `RouteBreadcrumbs`, or `false` to disable breadcrumbs.
 - `breadcrumbs.root` - optional synthetic root route prepended to breadcrumb trails. Routes without `parentId` become children of this root unless `trailOptions.getParentId` returns another value.
@@ -244,7 +246,7 @@ For native-link and MPA pages built with `LinkRoutedApp`, prefer `createLinkAppR
 
 RouteChrome does not change the accessibility behavior of the underlying controls. Navigation remains real links, breadcrumbs remain a navigation landmark, search remains a combobox-based search control, and commands remain a dialog-based command palette.
 
-Use application-owned text for labels, placeholders, and empty states. Pass the shared locale provider to the underlying controls when their service text should update with the application locale.
+Use application-owned text for labels, placeholders, and empty states. Pass the shared locale provider to the underlying controls when their service text should update with the application locale. When route labels, descriptions, and keywords come from one localized `routeText` bundle, pass it once through `routeText` and override only the controls that need custom wording.
 
 When using app route chrome helpers, the generated `AppHeader` keeps one control set and lets `HeaderTools` move those controls between inline and overflow placement. This avoids duplicate mobile/desktop controls and keeps screen-reader order predictable.
 
@@ -257,6 +259,6 @@ When using app route chrome helpers, the generated `AppHeader` keeps one control
 - Search and commands remain usable with keyboard and screen reader navigation.
 - Header controls move into HeaderTools overflow when they do not fit.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
-- Localized route text can be passed directly to navigation, search, commands, and breadcrumbs, including breadcrumbs with a synthetic root route.
+- Localized route text can be passed once through `routeText` and inherited by navigation, search, commands, and breadcrumbs, including breadcrumbs with a synthetic root route.
 - HashRoutedApp and LinkRoutedApp renderers can be expressed declaratively without repeating current-route wiring.
 - Optional navigation return links move focus back to the visible route navigation target without app-owned navigation references.

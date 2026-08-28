@@ -48,5 +48,6 @@ export type {
     RouteChromeOnRouteActivate,
     RouteChromeOptions,
     RouteChromeRouteActivationDetail,
+    RouteChromeRouteTextOptions,
     RouteChromeSearchOptions
 } from "./createRouteChrome";

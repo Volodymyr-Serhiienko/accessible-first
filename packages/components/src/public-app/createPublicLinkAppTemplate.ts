@@ -44,7 +44,7 @@ export type PublicLinkAppTemplateMetadata = SharedPublicAppTemplateMetadata;
 export interface PublicLinkAppTemplateShellOptions extends SharedPublicAppTemplateShellOptions {}
 
 /**
- * Localized route text bundle accepted by createPublicLinkAppTemplate().
+ * Localized route text bundle accepted by createPublicLinkAppTemplate() for metadata and route chrome.
  */
 export type PublicLinkAppTemplateRouteText<
     TRoute extends PublicLinkRoutedAppRoute = PublicLinkRoutedAppRoute
@@ -91,7 +91,7 @@ export interface PublicLinkAppTemplateOptions<
 > extends Omit<PublicLinkRoutedAppOptions<TRoute, TLocale, TKey>, "shell" | "renderChrome"> {
     /** AppShell settings with template defaults and locale-refresh support. */
     shell?: PublicLinkAppTemplateShellOptions;
-    /** Localized route text defaults for route metadata. */
+    /** Localized route text defaults for route metadata and route chrome. */
     routeText?: PublicLinkAppTemplateRouteText<TRoute> | false;
     /** Declarative RouteChrome options, or false to omit managed route chrome. */
     routeChrome?: PublicLinkAppTemplateRouteChromeOptions<TRoute, TLocale, TKey> | false;
