@@ -45,7 +45,8 @@ export type PublicHashAppTemplateMetadata = SharedPublicAppTemplateMetadata;
 export interface PublicHashAppTemplateShellOptions extends SharedPublicAppTemplateShellOptions {}
 
 /**
- * Localized route text bundle accepted by createPublicHashAppTemplate() for metadata, route chrome, and route announcements.
+ * Localized route text bundle accepted by createPublicHashAppTemplate() for metadata,
+ * route chrome, and route announcements.
  */
 export type PublicHashAppTemplateRouteText<
     TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute

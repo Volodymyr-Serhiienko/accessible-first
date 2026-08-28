@@ -210,7 +210,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 
 `createAppRouteChrome` accepts all `createRouteChrome` options plus:
 
-- `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself.
+- `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself. When `header.locale` is provided, navigation, breadcrumbs, route search, and route commands use it by default unless the control overrides its own locale/search locale.
 - `header.controls` - extra app controls placed beside route search and commands.
 - `header.routeControlsPlacement` - `"start"` or `"end"`. Defaults to `"start"`, so route search and commands appear before custom controls.
 - `shell` - optional `AppShell.update(...)` options returned with the chrome slots.
@@ -257,6 +257,7 @@ When using app route chrome helpers, the generated `AppHeader` keeps one control
 - Native-link route search and command palette selections navigate to route hrefs.
 - Navigation and breadcrumbs update current state after route changes.
 - Search and commands remain usable with keyboard and screen reader navigation.
+- Header locale defaults flow into navigation, breadcrumbs, route search, and route commands unless a control opts out or overrides its own locale.
 - Header controls move into HeaderTools overflow when they do not fit.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
 - Localized route text can be passed once through `routeText` and inherited by navigation, search, commands, and breadcrumbs, including breadcrumbs with a synthetic root route.

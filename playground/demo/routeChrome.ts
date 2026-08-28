@@ -4,7 +4,6 @@ import {
 } from "./af";
 import { getPlaygroundHeaderOptions } from "./header";
 import {
-    playgroundLocale,
     t,
     type PlaygroundLocale,
     type PlaygroundMessageKey
@@ -29,8 +28,7 @@ export function getPlaygroundRouteChromeOptions(
             className: "playground-nav__inner",
             trigger: t("app.navigation.trigger"),
             triggerIconPosition: "start",
-            variant: "pills",
-            locale: playgroundLocale
+            variant: "pills"
         },
         breadcrumbs: {
             className: "playground-breadcrumbs",
@@ -54,7 +52,6 @@ export function getPlaygroundRouteChromeOptions(
             openOnFocus: false,
             notFoundText: t("app.search.notFoundText"),
             width: "14rem",
-            searchLocale: playgroundLocale,
             searchItemsOptions: {
                 getDescription(route) {
                     return t("app.route.searchDescription", {
@@ -81,10 +78,6 @@ export function getPlaygroundRouteChromeOptions(
                 { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
                 { key: "k", code: "KeyK", metaKey: true, allowInEditable: true }
             ],
-            locale: playgroundLocale,
-            searchBoxOptions: {
-                searchLocale: playgroundLocale
-            },
             searchItemsOptions: {
                 getDescription(route) {
                     return t("app.route.commandDescription", {

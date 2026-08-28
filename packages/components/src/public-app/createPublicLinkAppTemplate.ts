@@ -144,7 +144,8 @@ function createTemplateRouteChromeRenderer<
 }
 
 /**
- * Creates an opinionated public native-link or MPA app from shell, route chrome, diagnostics, locale, and metadata options.
+ * Creates an opinionated public native-link or MPA app from shell, route chrome,
+ * diagnostics, locale, and metadata options.
  */
 export function createPublicLinkAppTemplate<
     TRoute extends PublicLinkRoutedAppRoute,

@@ -1,5 +1,6 @@
 import {
     AppHeader,
+    type AppHeaderLocale,
     type AppHeaderOptions,
     type ComposedAppHeader
 } from "../app-header";
@@ -24,9 +25,13 @@ import {
 import {
     createRouteChrome,
     type RouteChrome,
+    type RouteChromeBreadcrumbsOptions,
+    type RouteChromeCommandPaletteOptions,
     type RouteChromeCurrentRouteControl,
     type RouteChromeNavigationControl,
-    type RouteChromeOptions
+    type RouteChromeNavigationOptions,
+    type RouteChromeOptions,
+    type RouteChromeSearchOptions
 } from "./createRouteChrome";
 
 /**
@@ -77,7 +82,10 @@ export interface AppRouteChromeOptions<
 > extends RouteChromeOptions<TRoute> {
     /** Optional shell updates to return with the generated chrome slots. */
     shell?: AppShellUpdateOptions;
-    /** AppHeader recipe options. Use false to clear/omit the managed header slot. */
+    /**
+     * AppHeader recipe options. Use false to clear/omit the managed header slot.
+     * Its locale becomes the default locale for route controls.
+     */
     header?: AppRouteChromeHeaderOptions<TLocale, TKey> | false;
     /** Optional after-outlet link that returns focus to the generated route navigation. */
     navigationReturnLink?: AppRouteChromeNavigationReturnLinkOptions | false | null;
@@ -100,6 +108,91 @@ export interface AppRouteChrome<
     readonly currentRouteControls: readonly RouteChromeCurrentRouteControl<TRoute>[];
 }
 
+function getDefaultRouteControlLocale<
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    header: AppRouteChromeHeaderOptions<TLocale, TKey> | false | undefined
+): AppHeaderLocale<TLocale, TKey> | null {
+    if (!header) return null;
+
+    return header.locale ?? null;
+}
+
+function getNavigationOptions<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: RouteChromeNavigationOptions<TRoute> | false | undefined,
+    locale: AppHeaderLocale<TLocale, TKey> | null
+): RouteChromeNavigationOptions<TRoute> | false | undefined {
+    if (options === false || locale === null || options?.locale !== undefined) return options;
+
+    return {
+        ...(options ?? {}),
+        locale
+    };
+}
+
+function getBreadcrumbOptions<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: RouteChromeBreadcrumbsOptions<TRoute> | false | undefined,
+    locale: AppHeaderLocale<TLocale, TKey> | null
+): RouteChromeBreadcrumbsOptions<TRoute> | false | undefined {
+    if (options === false || locale === null || options?.locale !== undefined) return options;
+
+    return {
+        ...(options ?? {}),
+        locale
+    };
+}
+
+function getSearchOptions<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: RouteChromeSearchOptions<TRoute> | false | undefined,
+    locale: AppHeaderLocale<TLocale, TKey> | null
+): RouteChromeSearchOptions<TRoute> | false | undefined {
+    if (options === false || options === undefined || locale === null || options.searchLocale !== undefined) {
+        return options;
+    }
+
+    return {
+        ...options,
+        searchLocale: locale
+    };
+}
+
+function getCommandOptions<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: RouteChromeCommandPaletteOptions<TRoute> | false | undefined,
+    locale: AppHeaderLocale<TLocale, TKey> | null
+): RouteChromeCommandPaletteOptions<TRoute> | false | undefined {
+    if (options === false || options === undefined || locale === null) return options;
+
+    const commandOptions: RouteChromeCommandPaletteOptions<TRoute> = { ...options };
+
+    if (commandOptions.locale === undefined) commandOptions.locale = locale;
+
+    if (commandOptions.searchBoxOptions?.searchLocale === undefined) {
+        commandOptions.searchBoxOptions = {
+            ...(commandOptions.searchBoxOptions ?? {}),
+            searchLocale: locale
+        };
+    }
+
+    return commandOptions;
+}
+
 function getRouteChromeOptions<
     TRoute extends AppRouteDescriptor,
     TLocale extends LocaleCode,
@@ -107,16 +200,21 @@ function getRouteChromeOptions<
 >(
     options: AppRouteChromeOptions<TRoute, TLocale, TKey>
 ): RouteChromeOptions<TRoute> {
+    const defaultLocale = getDefaultRouteControlLocale(options.header);
     const routeChromeOptions: RouteChromeOptions<TRoute> = {
         routes: options.routes
     };
+    const navigation = getNavigationOptions(options.navigation, defaultLocale);
+    const breadcrumbs = getBreadcrumbOptions(options.breadcrumbs, defaultLocale);
+    const search = getSearchOptions(options.search, defaultLocale);
+    const commands = getCommandOptions(options.commands, defaultLocale);
 
     if ("current" in options) routeChromeOptions.current = options.current ?? null;
     if (options.routeText !== undefined) routeChromeOptions.routeText = options.routeText;
-    if (options.navigation !== undefined) routeChromeOptions.navigation = options.navigation;
-    if (options.breadcrumbs !== undefined) routeChromeOptions.breadcrumbs = options.breadcrumbs;
-    if (options.search !== undefined) routeChromeOptions.search = options.search;
-    if (options.commands !== undefined) routeChromeOptions.commands = options.commands;
+    if (navigation !== undefined) routeChromeOptions.navigation = navigation;
+    if (breadcrumbs !== undefined) routeChromeOptions.breadcrumbs = breadcrumbs;
+    if (search !== undefined) routeChromeOptions.search = search;
+    if (commands !== undefined) routeChromeOptions.commands = commands;
     if ("onRouteActivate" in options) {
         routeChromeOptions.onRouteActivate = options.onRouteActivate ?? null;
     }

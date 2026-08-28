@@ -260,7 +260,10 @@ export function getPublicAppTemplateDiagnosticsOptions<
 
     const diagnosticsOptions = (options.diagnostics ?? {}) as TDiagnosticsOptions;
 
-    if (diagnosticsOptions.locale !== undefined || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
+    if (
+        diagnosticsOptions.locale !== undefined
+        || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)
+    ) {
         return diagnosticsOptions;
     }
 
