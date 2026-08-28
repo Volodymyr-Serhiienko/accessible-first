@@ -1,6 +1,6 @@
 # App Routes
 
-App route helpers turn one route list into shared navigation, search, breadcrumb, route-trail, and document metadata.
+App route helpers turn one route list into shared lookup, navigation, search, breadcrumb, route-trail, and document metadata.
 
 Use them when an application has screens, pages, or demo sections that should appear in navigation, search, breadcrumbs, routing, document titles, or document metadata from the same source of truth.
 
@@ -22,14 +22,16 @@ const routes = [
     }
 ];
 
-const navigationItems = createAppRouteNavigationItems(routes);
-const searchItems = createAppRouteSearchItems(routes);
-const routeTrail = createAppRouteTrail(routes, "settings");
+const routeRegistry = createAppRouteRegistry({ routes, defaultRoute: "home" });
+const navigationItems = createAppRouteNavigationItems(routeRegistry.routes);
+const searchItems = createAppRouteSearchItems(routeRegistry.routes);
+const routeTrail = createAppRouteTrail(routeRegistry.routes, "settings");
 const breadcrumbItems = createAppRouteBreadcrumbItems(routeTrail);
 const metadata = createAppRouteDocumentMetadata(routes[1], {
     appTitle: "Example App"
 });
-const routeReport = inspectPublicAppRoutes(routes, {
+const currentRoute = routeRegistry.resolveHash(window.location.hash);
+const routeReport = inspectPublicAppRoutes(routeRegistry.routes, {
     baseUrl: "https://example.com/app/"
 });
 
@@ -45,7 +47,7 @@ Application screens are often described several times:
 - once for search;
 - sometimes again for breadcrumbs or command menus.
 
-App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `RouteResponsiveNavigation`, `SearchBox`, `RouteSearchBox`, `CommandPalette`, `RouteCommandPalette`, `Breadcrumbs`, `RouteBreadcrumbs`, route activation helpers, and app-level routing code.
+App route helpers reduce that duplication. A route descriptor can feed `Navigation`, `ResponsiveNavigation`, `RouteResponsiveNavigation`, `SearchBox`, `RouteSearchBox`, `CommandPalette`, `RouteCommandPalette`, `Breadcrumbs`, `RouteBreadcrumbs`, route activation helpers, route registry lookup, and app-level routing code.
 
 ## Route Descriptor
 
@@ -81,6 +83,33 @@ Supported fields:
 - `disabled` - disables generated navigation or search items.
 - `hint` - optional navigation hint.
 
+## Route Registry
+
+Use `createAppRouteRegistry()` when an app needs one small lookup object beside its route list:
+
+```ts
+const routeRegistry = createAppRouteRegistry({
+    routes,
+    defaultRoute: "home"
+});
+
+const current = routeRegistry.resolveHash(window.location.hash);
+const settings = routeRegistry.getById("settings");
+```
+
+The registry keeps route lookup behavior consistent across playgrounds, generated starters, SPAs, and MPA helpers. It accepts normal ids, hash-prefixed ids, and encoded hash fragments. Use nullable methods when a missing route is expected, and fallback methods when the app should always land on a safe route.
+
+Returned helpers:
+
+- `routes` - copied readonly route list.
+- `defaultRoute` / `getDefaultRoute()` - resolved default route.
+- `getById(id)` - nullable id lookup.
+- `getByHash(hash?)` - nullable hash lookup, defaulting to `window.location.hash` in browsers.
+- `getByLocation(options?)` - nullable URL/location lookup for native-link and MPA pages.
+- `resolve(routeOrId)` - nullable route object or id lookup.
+- `resolveHash(hash?)` - hash lookup with default-route fallback.
+- `resolveOrDefault(routeOrId)` - route object or id lookup with default-route fallback.
+- `require(routeOrId)` - route object or id lookup that throws for unknown routes.
 ## Localized Route Text
 
 Use `createLocalizedAppRouteText()` when route labels, descriptions, hints, document titles, search keywords, and diagnostics text should come from the application locale file.
@@ -370,6 +399,7 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 
 ## Helpers
 
+- `createAppRouteRegistry(options)` - creates a route lookup registry from one route list.
 - `createAppRouteNavigationItems(routes, options)` - creates `NavigationItem[]`.
 - `createAppRouteSearchItems(routes, options)` - creates `SearchBoxItem[]` with route data attached.
 - `createAppRouteTrail(routes, routeOrId, options)` - creates a parent-to-current route trail.

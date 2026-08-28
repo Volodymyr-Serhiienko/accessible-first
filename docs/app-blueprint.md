@@ -10,7 +10,7 @@ A new Accessible First application should start with the same reliable foundatio
 
 - app identity shared by metadata, manifest, diagnostics, and header brand;
 - locale controller and app-owned translations;
-- route descriptors used by navigation, breadcrumbs, search, commands, metadata, and diagnostics;
+- route descriptors and route registry used by navigation, breadcrumbs, search, commands, metadata, diagnostics, and safe route lookup;
 - public app template selected as hash-SPA or native-link/MPA;
 - app shell with header, navigation, main outlet, optional before/after outlet content, and footer;
 - route focus behavior that works for desktop keyboard and mobile screen reader users;
@@ -75,7 +75,7 @@ export const appIdentity = createAppIdentity({
 - optional `createLocaleFormatter()`;
 - small `t(key, params?)` helper.
 
-`routes.ts` should define one route list. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, and diagnostics. Localized apps can add `localeKeys` to routes or keep the pure route list in `routes.ts` and put localized route resolvers in `routeText.ts`. Use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
+`routes.ts` should define one route list and, for routed apps, one `createAppRouteRegistry()` result. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, safe route lookup, and diagnostics. Localized apps can add `localeKeys` to routes or keep the pure route list in `routes.ts` and put localized route resolvers in `routeText.ts`. Use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
 
 ## Runtime Entry
 

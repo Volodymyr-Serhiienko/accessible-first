@@ -22,6 +22,9 @@ export {
     PUBLIC_APP_ROUTE_DIAGNOSTICS
 } from "./createAppRouteItems";
 export {
+    createAppRouteRegistry
+} from "./createAppRouteRegistry";
+export {
     createLocalizedAppRouteText
 } from "./createLocalizedAppRouteText";
 export {
@@ -61,6 +64,11 @@ export type {
     AppRouteStructuredDataResolver,
     AppRouteTrailOptions
 } from "./createAppRouteItems";
+export type {
+    AppRouteRegistry,
+    AppRouteRegistryOptions,
+    AppRouteRegistryRouteInput
+} from "./createAppRouteRegistry";
 export type {
     AppRouteLocaleTextKeys,
     AppRouteLocaleTextKeysResolver,

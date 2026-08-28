@@ -1,4 +1,7 @@
-import { type ComposedNode } from "./af";
+import {
+    createAppRouteRegistry,
+    type ComposedNode
+} from "./af";
 import {
     AccordionDemo,
     ActionsBarDemo,
@@ -104,20 +107,16 @@ export const playgroundRoutes: PlaygroundRoute[] = [
     { id: "checks", label: "Manual checks", title: "Manual checks", render: ChecksDemo }
 ];
 
-export const initialPlaygroundRoute = markupRoute;
+/**
+ * Route registry shared by playground routing, route text, and app chrome helpers.
+ */
+export const playgroundRouteRegistry = createAppRouteRegistry({
+    routes: playgroundRoutes,
+    defaultRoute: markupRoute
+});
 
-function normalizeRouteId(value: string): string {
-    return value.replace(/^#/, "").trim();
-}
+export const initialPlaygroundRoute = playgroundRouteRegistry.defaultRoute;
 
-export function getPlaygroundRouteById(id: string | null | undefined): PlaygroundRoute | null {
-    if (!id) return null;
+export const getPlaygroundRouteById = playgroundRouteRegistry.getById;
 
-    const routeId = normalizeRouteId(id);
-
-    return playgroundRoutes.find((route) => route.id === routeId) ?? null;
-}
-
-export function getPlaygroundRouteByHash(hash = window.location.hash): PlaygroundRoute {
-    return getPlaygroundRouteById(hash) ?? initialPlaygroundRoute;
-}
+export const getPlaygroundRouteByHash = playgroundRouteRegistry.resolveHash;
