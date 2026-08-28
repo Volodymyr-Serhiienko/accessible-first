@@ -27,6 +27,8 @@ export interface AppRouteLocaleTextKeys<TKey extends string = string> {
     hint?: TKey | null;
     /** Message key for the document title. Falls back to route.documentTitle or the localized route title. */
     documentTitle?: TKey | null;
+    /** Message key for the spoken route-loaded announcement. Falls back to routeLoadedAnnouncementKey. */
+    loadedAnnouncement?: TKey | null;
     /** Extra searchable message keys for route search and command palettes. */
     keywords?: readonly TKey[] | null;
 }
@@ -275,7 +277,10 @@ export function createLocalizedAppRouteText<
     }
 
     function getLoadedAnnouncement(route: TRoute): string | false {
-        const key = options.routeLoadedAnnouncementKey;
+        const routeKey = getRouteKeys(route)?.loadedAnnouncement;
+        const key = routeKey === undefined
+            ? options.routeLoadedAnnouncementKey
+            : routeKey;
 
         if (key === null) return false;
 

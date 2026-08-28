@@ -212,7 +212,7 @@ export const routeMetadata: AppIdentityRouteDiagnosticsOptions<AppRoute> = {
 };
 ```
 
-Route text should feed navigation, breadcrumbs, search, command palette, route announcements, metadata, sitemap, and diagnostics from one place.
+Route text should feed navigation, breadcrumbs, search, command palette, route announcements, metadata, sitemap, and diagnostics from one place. Use the shared `routeLoadedAnnouncementKey` first; add per-route `localeKeys.loadedAnnouncement` only when a screen needs a custom spoken phrase.
 
 ## Step 6: Create Shell
 

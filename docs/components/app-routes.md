@@ -130,6 +130,7 @@ const routes: AppRoute[] = [
             title: "routes.lessons.title",
             label: "routes.lessons.label",
             description: "routes.lessons.description",
+            loadedAnnouncement: "routes.lessons.loaded",
             keywords: ["routes.lessons.keyword.study"]
         },
         render: LessonsScreen
@@ -182,7 +183,7 @@ createHashRouter({
 
 `routeText.routeOptions` combines the document-title, route-title, and description resolvers for app metadata and route diagnostics. Use the narrower `documentMetadataOptions` or `diagnosticsOptions` only when a lower-level helper needs one side of that pair.
 
-`routeText.getLoadedAnnouncement` is a router-compatible resolver for spoken SPA route changes. Set `routeLoadedAnnouncementKey` to an app-owned locale key such as `app.route.loaded`, usually with a `{title}` parameter. If the key is omitted, the resolver announces the localized route title. If the key is `null`, it returns `false` so route announcements can be disabled deliberately.
+`routeText.getLoadedAnnouncement` is a router-compatible resolver for spoken SPA route changes. Set `routeLoadedAnnouncementKey` to an app-owned locale key such as `app.route.loaded`, usually with a `{title}` parameter. A route can override that shared phrase with `localeKeys.loadedAnnouncement`; setting either key to `null` disables the route-loaded announcement for that level. If no key is provided, the resolver announces the localized route title.
 
 `localeKeys` is intentionally optional. Missing keys fall back to route fields, so routes stay useful for diagnostics, development, and unsupported locales. Use `getKeys` when an application stores translation keys in a different shape, and `getParams` when route messages need extra interpolation data.
 
