@@ -20,9 +20,9 @@ const app = createPublicLinkAppTemplate({
         navigationLabel: () => t("app.navigationLabel"),
         metadata: getAppMetadata,
         content: CurrentPageContent(),
-        outletOptions: {
+        outletOptions: () => ({
             label: t("app.contentLabel")
-        },
+        }),
         layout: {
             maxWidth: "72rem",
             gutter: "1rem",
@@ -84,7 +84,7 @@ The template owns:
 - creating `PublicLinkRoutedApp`;
 - default `mainId: "main"` and `theme: "system"`;
 - passing a compatible app locale into `AppShell` fallback text;
-- refreshing shell title, skip-link text, navigation label, and metadata during locale refresh;
+- refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
@@ -121,8 +121,9 @@ Shell options are normal `AppShell` options, with these additions:
 - `skipLink` can be a string/boolean or resolver.
 - `navigationLabel` can be a string or resolver.
 - `metadata` can be metadata, `false`, or a resolver.
+- `outletOptions` can be PageOutlet options or a zero-argument resolver.
 
-Use resolvers for localized shell text so the template can refresh them when the locale changes.
+Use resolvers for localized shell text and outlet labels so the template can refresh them when the locale changes.
 
 ## When To Use Lower Layers
 
@@ -146,5 +147,5 @@ Keep `skipLinkTargetId` aligned with the generated navigation id when the first 
 - Navigation and breadcrumbs mark the current page.
 - Native links still navigate normally.
 - Route search and command palette selections navigate to route hrefs.
-- Locale changes refresh shell title, skip-link text, navigation label, metadata, and route chrome on the current page.
+- Locale changes refresh shell title, skip-link text, navigation label, outlet options, metadata, and route chrome on the current page.
 - Diagnostics include locale checks when a full `LocaleController` is passed.

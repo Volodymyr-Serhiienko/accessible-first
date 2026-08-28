@@ -81,6 +81,69 @@ Supported fields:
 - `disabled` - disables generated navigation or search items.
 - `hint` - optional navigation hint.
 
+## Localized Route Text
+
+Use `createLocalizedAppRouteText()` when route labels, descriptions, hints, document titles, search keywords, and diagnostics text should come from the application locale file.
+
+Routes can keep readable fallback text and add app-owned `localeKeys`:
+
+```ts
+type AppRoute = AppRouteDescriptor & AppRouteLocaleTextRoute<AppMessageKey> & {
+    render(): ComposedNode;
+};
+
+const routes: AppRoute[] = [
+    {
+        id: "lessons",
+        title: "Lessons",
+        description: "Browse language lessons.",
+        localeKeys: {
+            title: "routes.lessons.title",
+            label: "routes.lessons.label",
+            description: "routes.lessons.description",
+            keywords: ["routes.lessons.keyword.study"]
+        },
+        render: LessonsScreen
+    }
+];
+
+const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
+    locale
+});
+```
+
+The returned helper exposes resolvers and ready-to-pass options:
+
+```ts
+RouteResponsiveNavigation({
+    routes,
+    navigationItemsOptions: routeText.navigationItemsOptions
+});
+
+RouteSearchBox({
+    routes,
+    searchItemsOptions: routeText.searchItemsOptions
+});
+
+RouteBreadcrumbs({
+    routes,
+    current,
+    breadcrumbItemsOptions: routeText.breadcrumbItemsOptions
+});
+
+createAppRouteDocumentMetadata(currentRoute, {
+    ...routeText.documentMetadataOptions,
+    appTitle: t("app.title")
+});
+
+inspectPublicAppRoutes(routes, {
+    ...routeText.diagnosticsOptions,
+    baseUrl: "https://example.com/app/"
+});
+```
+
+`localeKeys` is intentionally optional. Missing keys fall back to route fields, so routes stay useful for diagnostics, development, and unsupported locales. Use `getKeys` when an application stores translation keys in a different shape, and `getParams` when route messages need extra interpolation data.
+
 ## Navigation Items
 
 ```ts
@@ -320,6 +383,7 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
 - `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
 - `createAppRouteDocumentMetadata(route, options)` - creates document metadata update options from route metadata.
+- `createLocalizedAppRouteText(options)` - creates localized route text resolvers and ready-to-pass navigation, search, breadcrumbs, metadata, and diagnostics options.
 - `createPublicAppRouteDiagnosticsOptions(options)` - merges route diagnostics options with public-app metadata requirements.
 - `inspectAppRoutes(routes, options)` - checks route ids, hrefs, parent hierarchy, and optional metadata requirements.
 - `inspectPublicAppRoutes(routes, options)` - checks routes with public-app metadata requirements enabled.

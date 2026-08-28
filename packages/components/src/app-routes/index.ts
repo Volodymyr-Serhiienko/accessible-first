@@ -22,6 +22,9 @@ export {
     PUBLIC_APP_ROUTE_DIAGNOSTICS
 } from "./createAppRouteItems";
 export {
+    createLocalizedAppRouteText
+} from "./createLocalizedAppRouteText";
+export {
     createAppRouteSitemapEntries,
     createAppRouteSitemapXml,
     inspectAppRouteSitemap,
@@ -58,6 +61,14 @@ export type {
     AppRouteStructuredDataResolver,
     AppRouteTrailOptions
 } from "./createAppRouteItems";
+export type {
+    AppRouteLocaleTextKeys,
+    AppRouteLocaleTextKeysResolver,
+    AppRouteLocaleTextParamsResolver,
+    AppRouteLocaleTextRoute,
+    LocalizedAppRouteText,
+    LocalizedAppRouteTextOptions
+} from "./createLocalizedAppRouteText";
 export type {
     AppRouteSitemapChangeFrequency,
     AppRouteSitemapChangeFrequencyResolver,

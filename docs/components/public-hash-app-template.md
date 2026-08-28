@@ -20,9 +20,9 @@ const app = createPublicHashAppTemplate({
         navigationLabel: () => t("app.navigationLabel"),
         metadata: getAppMetadata,
         footer: Footer(),
-        outletOptions: {
+        outletOptions: () => ({
             label: t("app.contentLabel")
-        },
+        }),
         layout: {
             maxWidth: "72rem",
             gutter: "1rem",
@@ -83,7 +83,7 @@ The template owns:
 - default quiet startup options: no first-load announcement, no forced initial scroll, no first-load focus jump;
 - default `mainId: "main"` and `theme: "system"`;
 - passing a compatible app locale into `AppShell` fallback text;
-- refreshing shell title, skip-link text, navigation label, and metadata during locale refresh;
+- refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
@@ -120,8 +120,9 @@ Shell options are normal `AppShell` options, with these additions:
 - `skipLink` can be a string/boolean or resolver.
 - `navigationLabel` can be a string or resolver.
 - `metadata` can be metadata, `false`, or a resolver.
+- `outletOptions` can be PageOutlet options or a zero-argument resolver.
 
-Use resolvers for localized shell text so the template can refresh them when the locale changes.
+Use resolvers for localized shell text and outlet labels so the template can refresh them when the locale changes.
 
 ## When To Use Lower Layers
 
@@ -147,6 +148,6 @@ The default first-load behavior is intentionally quiet because route content is 
 
 - The initial route renders without a first-load focus jump.
 - Route changes still move focus to useful content and announce route changes when configured.
-- Locale changes refresh shell title, skip-link text, navigation label, metadata, and route chrome without a page reload.
+- Locale changes refresh shell title, skip-link text, navigation label, outlet options, metadata, and route chrome without a page reload.
 - Diagnostics include locale checks when a full `LocaleController` is passed.
 - Navigation, search, commands, breadcrumbs, and return-to-navigation link still share the same route activation behavior.

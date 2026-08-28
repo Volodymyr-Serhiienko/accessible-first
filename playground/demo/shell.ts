@@ -14,12 +14,12 @@ export function getPlaygroundShellOptions(): PublicHashAppTemplateShellOptions {
         navigationLabel: () => t("app.navigation.label"),
         metadata: getPlaygroundAppMetadata,
         footer: FooterDemo(),
-        outletOptions: {
+        outletOptions: () => ({
             className: "playground-route-outlet",
-            label: "Playground demo content",
+            label: t("app.route.outletLabel"),
             announcement: false,
             scrollOnRender: true
-        },
+        }),
         layout: {
             maxWidth: "var(--playground-max-width)",
             gutter: "var(--playground-gutter)",

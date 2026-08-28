@@ -1,4 +1,8 @@
-import type { AppShellOptions, AppShellUpdateOptions } from "../app-shell";
+import type {
+    AppShellOptions,
+    AppShellOutletOptions,
+    AppShellUpdateOptions
+} from "../app-shell";
 import type { DocumentMetadataOptions, DocumentMetadataUpdateOptions } from "../document-metadata";
 import type {
     LocaleCode,
@@ -21,7 +25,7 @@ export type PublicAppTemplateMetadata = DocumentMetadataOptions | false;
  */
 export interface PublicAppTemplateShellOptions extends Omit<
     AppShellOptions,
-    "title" | "skipLink" | "navigationLabel" | "locale" | "metadata"
+    "title" | "skipLink" | "navigationLabel" | "locale" | "metadata" | "outletOptions"
 > {
     /** Document/app title, or a resolver re-read during locale refresh. */
     title?: PublicAppTemplateValue<AppShellOptions["title"]>;
@@ -33,6 +37,8 @@ export interface PublicAppTemplateShellOptions extends Omit<
     locale?: AppShellOptions["locale"];
     /** Initial metadata, or a resolver re-read during locale refresh. */
     metadata?: PublicAppTemplateValue<PublicAppTemplateMetadata>;
+    /** PageOutlet options, or a resolver re-read during locale refresh. */
+    outletOptions?: PublicAppTemplateValue<AppShellOutletOptions>;
 }
 
 /**
@@ -109,6 +115,7 @@ export function getPublicAppTemplateShellOptions(
         navigationLabel,
         locale: _locale,
         metadata,
+        outletOptions,
         theme,
         ...baseShellOptions
     } = shellOptions;
@@ -122,12 +129,14 @@ export function getPublicAppTemplateShellOptions(
     const resolvedSkipLink = resolvePublicAppTemplateValue(skipLink);
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(navigationLabel);
     const resolvedMetadata = resolvePublicAppTemplateValue(metadata);
+    const resolvedOutletOptions = resolvePublicAppTemplateValue(outletOptions);
 
     if (resolvedTitle !== undefined) shell.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) shell.skipLink = resolvedSkipLink;
     if (resolvedNavigationLabel !== undefined) shell.navigationLabel = resolvedNavigationLabel;
     if (shellLocale !== undefined) shell.locale = shellLocale;
     if (resolvedMetadata !== undefined) shell.metadata = resolvedMetadata;
+    if (resolvedOutletOptions !== undefined) shell.outletOptions = resolvedOutletOptions;
 
     return shell;
 }
@@ -145,6 +154,7 @@ export function getPublicAppTemplateShellUpdateOptions(
     const resolvedSkipLink = resolvePublicAppTemplateValue(shellOptions.skipLink);
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(shellOptions.navigationLabel);
     const resolvedMetadata = resolvePublicAppTemplateValue(shellOptions.metadata);
+    const resolvedOutletOptions = resolvePublicAppTemplateValue(shellOptions.outletOptions);
 
     if (resolvedTitle !== undefined) updateOptions.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) updateOptions.skipLink = resolvedSkipLink;
@@ -154,6 +164,7 @@ export function getPublicAppTemplateShellUpdateOptions(
     if (resolvedMetadata !== undefined && resolvedMetadata !== false) {
         updateOptions.metadata = resolvedMetadata as DocumentMetadataUpdateOptions;
     }
+    if (resolvedOutletOptions !== undefined) updateOptions.outletOptions = resolvedOutletOptions;
 
     return updateOptions;
 }

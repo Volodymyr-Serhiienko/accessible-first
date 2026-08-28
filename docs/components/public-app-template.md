@@ -19,7 +19,10 @@ const app = createPublicAppTemplate({
         title: () => t("app.title"),
         skipLink: () => t("app.skipLink"),
         skipLinkTargetId: "app-navigation",
-        metadata: getAppMetadata
+        metadata: getAppMetadata,
+        outletOptions: () => ({
+            label: t("app.contentLabel")
+        })
     },
     routeChrome: () => ({
         routes,
@@ -48,7 +51,10 @@ const app = createPublicAppTemplate({
     shell: {
         title: () => t("app.title"),
         content: CurrentPageContent(),
-        metadata: getAppMetadata
+        metadata: getAppMetadata,
+        outletOptions: () => ({
+            label: t("app.contentLabel")
+        })
     },
     matchLocation: {
         matchMode: "pathname",
@@ -86,7 +92,7 @@ Shared options depend on the selected mode, but the intended application model i
 - `locale` - shared locale controller or compatible locale provider.
 - `identity` - stable app identity for metadata, manifest, and diagnostics.
 - `routeMetadata` - identity-aware route metadata defaults, or `false`.
-- `shell` - app shell configuration with template-friendly resolver support.
+- `shell` - app shell configuration with template-friendly resolver support for title, skip link, navigation label, metadata, and outlet options.
 - `routeChrome` - declarative route chrome options, a resolver, or `false`.
 - `diagnostics` - public app diagnostics options, or `false`.
 
@@ -114,6 +120,6 @@ For new public apps, prefer route metadata and native hrefs wherever possible. H
 
 - Hash mode starts and renders the initial route as before.
 - Link mode detects the current native-link route from the configured location.
-- Locale changes refresh app-owned shell and chrome text.
+- Locale changes refresh app-owned shell, outlet, and chrome text.
 - Navigation, breadcrumbs, search, and command palette share route metadata.
 - Diagnostics still include route, metadata, localization, manifest, and app-owned checks when configured.

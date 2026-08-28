@@ -99,9 +99,12 @@ Applications should keep one locale file near the app shell. The playground uses
 - create `createLocaleFormatter({ locale })` when app data needs localized formatting or sorting;
 - export a small `t(key, params?)` helper for application-owned strings;
 - use `createLocaleRefresh()` near the app shell when composed app copy should update without reload;
+- use `localeKeys` plus `createLocalizedAppRouteText()` when route labels, hints, descriptions, document titles, and search keywords belong in locale files;
 - pass the same controller to `AppShell`, `ThemeToggle`, `ToastViewport`, route navigation, command palette, dialogs, and other localized components.
 
 English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
+
+For route-owned application text, use `createLocalizedAppRouteText()` so navigation, search, breadcrumbs, metadata, and diagnostics can share the same localized route resolvers.
 
 For application-owned text created during composition, use `createLocaleRefresh()` near the app shell. It subscribes to the shared locale controller and lets the app refresh header text, route search, command palettes, breadcrumbs, metadata, and the current screen without a full page reload.
 
@@ -151,7 +154,10 @@ const localeRefresh = createLocaleRefresh({
             title: t("app.title"),
             skipLink: t("app.skipLink"),
             navigationLabel: t("app.navigationLabel"),
-            metadata: getAppMetadata()
+            metadata: getAppMetadata(),
+            outletOptions: {
+                label: t("app.contentLabel")
+            }
         });
         shell.setHeader(AppHeader());
         shell.setNavigation(AppNavigation());
@@ -167,7 +173,7 @@ const localeRefresh = createLocaleRefresh({
 
 Use this layer for app chrome and currently visible route content. It is intentionally small: no virtual DOM is required, and the app decides which regions need to be recreated.
 
-For public hash-routed SPAs, `createPublicHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes while keeping public diagnostics connected. For public native-link or MPA pages, `createPublicLinkRoutedApp()` can refresh app-owned chrome and route metadata without intercepting links. Use `createHashRoutedApp()` or `createLinkRoutedApp()` directly when an app does not need the public diagnostics recipe.
+For public hash-routed SPAs, `createPublicHashRoutedApp()` can own this wiring: pass `locale` and `renderChrome(...)`, and it will refresh chrome plus the current route on locale changes while keeping public diagnostics connected. The higher-level public app templates also re-read resolver-backed shell options, including outlet labels. For public native-link or MPA pages, `createPublicLinkRoutedApp()` can refresh app-owned chrome and route metadata without intercepting links. Use `createHashRoutedApp()` or `createLinkRoutedApp()` directly when an app does not need the public diagnostics recipe.
 
 ## Search And Filtering
 

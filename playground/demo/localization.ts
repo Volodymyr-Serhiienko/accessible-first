@@ -32,6 +32,7 @@ export type PlaygroundAppMessageKey =
     | "app.notifications.label"
     | "app.route.commandDescription"
     | "app.route.loaded"
+    | "app.route.outletLabel"
     | "app.route.searchDescription"
     | "app.search.label"
     | "app.search.notFoundText"
@@ -63,6 +64,7 @@ const enMessages = {
     "app.notifications.label": "Playground notifications",
     "app.route.commandDescription": "Open the {title} demo section.",
     "app.route.loaded": "{title} demo loaded.",
+    "app.route.outletLabel": "Playground demo content",
     "app.route.searchDescription": "Open the {title} section.",
     "app.search.label": "Search demo sections",
     "app.search.notFoundText": "No matching sections found.",
@@ -137,6 +139,7 @@ const ukMessages = {
     "app.notifications.label": "Сповіщення playground",
     "app.route.commandDescription": "Відкрити деморозділ {title}.",
     "app.route.loaded": "Деморозділ {title} завантажено.",
+    "app.route.outletLabel": "Вміст деморозділу playground",
     "app.route.searchDescription": "Відкрити розділ {title}.",
     "app.search.label": "Пошук деморозділів",
     "app.search.notFoundText": "Відповідних розділів не знайдено.",
@@ -211,6 +214,7 @@ const ruMessages = {
     "app.notifications.label": "Уведомления playground",
     "app.route.commandDescription": "Открыть демо-раздел {title}.",
     "app.route.loaded": "Демо-раздел {title} загружен.",
+    "app.route.outletLabel": "Содержимое демо-раздела playground",
     "app.route.searchDescription": "Открыть раздел {title}.",
     "app.search.label": "Поиск демо-разделов",
     "app.search.notFoundText": "Подходящие разделы не найдены.",

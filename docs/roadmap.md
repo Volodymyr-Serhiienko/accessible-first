@@ -36,7 +36,7 @@ These layers are strong enough to build on:
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
-- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
+- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, localized route text resolvers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
 
@@ -61,6 +61,7 @@ Current focus after the result/list foundation:
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
 - Start shaping the first app template from real playground wiring instead of adding unrelated components.
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
+- Use resolver-backed shell/outlet options and localized route text helpers for app-owned labels before starting the first reference app.
 
 ### Exit Criteria For This Phase
 

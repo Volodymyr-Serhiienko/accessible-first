@@ -74,7 +74,7 @@ export const appIdentity = createAppIdentity({
 - optional `createLocaleFormatter()`;
 - small `t(key, params?)` helper.
 
-`routes.ts` should define one route list. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, and diagnostics.
+`routes.ts` should define one route list. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, and diagnostics. Localized apps can add `localeKeys` to routes and use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
 
 ## Runtime Entry
 
