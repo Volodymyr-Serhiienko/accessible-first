@@ -1,6 +1,6 @@
 import {
     type AppShellCompositionContent,
-    type HashAppRouteChromeBaseOptions
+    type PublicHashAppTemplateRouteChromeBaseOptions
 } from "./af";
 import { getPlaygroundHeaderOptions } from "./header";
 import {
@@ -13,10 +13,7 @@ import {
     getPlaygroundRouteTitle,
     playgroundRouteText
 } from "./routeText";
-import {
-    playgroundRoutes,
-    type PlaygroundRoute
-} from "./routes";
+import { type PlaygroundRoute } from "./routes";
 
 export interface PlaygroundRouteChromeOptions {
     afterOutlet?: AppShellCompositionContent | null;
@@ -24,9 +21,8 @@ export interface PlaygroundRouteChromeOptions {
 
 export function getPlaygroundRouteChromeOptions(
     options: PlaygroundRouteChromeOptions = {}
-): HashAppRouteChromeBaseOptions<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey> {
+): PublicHashAppTemplateRouteChromeBaseOptions<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey> {
     return {
-        routes: playgroundRoutes,
         header: getPlaygroundHeaderOptions("28rem"),
         navigation: {
             id: "playground-navigation",

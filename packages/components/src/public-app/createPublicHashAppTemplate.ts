@@ -2,8 +2,7 @@ import type { LocaleCode } from "../localization";
 import {
     createHashAppRouteChromeRenderer,
     type HashAppRouteChromeBaseOptions,
-    type HashAppRouteChromeCreateHandler,
-    type HashAppRouteChromeOptionsResolver
+    type HashAppRouteChromeCreateHandler
 } from "../route-chrome";
 import type {
     HashRoutedAppChromeRenderer,
@@ -15,12 +14,16 @@ import {
     type PublicHashRoutedApp,
     type PublicHashRoutedAppDiagnosticsOptions,
     type PublicHashRoutedAppOptions,
-    type PublicHashRoutedAppRoute
+    type PublicHashRoutedAppRoute,
+    type PublicHashRoutedAppRouteMetadataOptions
 } from "./createPublicHashRoutedApp";
 import {
     getPublicAppTemplateDiagnosticsOptions,
+    getPublicAppTemplateRouteMetadata,
     getPublicAppTemplateShellOptions,
     resolvePublicAppTemplateRouteChromeOptions,
+    type PublicAppTemplateRouteChromeBaseOptions as SharedPublicAppTemplateRouteChromeBaseOptions,
+    type PublicAppTemplateRouteText as SharedPublicAppTemplateRouteText,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
     type PublicAppTemplateShellOptions as SharedPublicAppTemplateShellOptions,
     type PublicAppTemplateValue as SharedPublicAppTemplateValue
@@ -42,6 +45,33 @@ export type PublicHashAppTemplateMetadata = SharedPublicAppTemplateMetadata;
 export interface PublicHashAppTemplateShellOptions extends SharedPublicAppTemplateShellOptions {}
 
 /**
+ * Localized route text bundle accepted by createPublicHashAppTemplate().
+ */
+export type PublicHashAppTemplateRouteText<
+    TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute
+> = SharedPublicAppTemplateRouteText<TRoute>;
+
+/**
+ * RouteChrome options accepted by createPublicHashAppTemplate() before routes are injected.
+ */
+export type PublicHashAppTemplateRouteChromeBaseOptions<
+    TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = string
+> = SharedPublicAppTemplateRouteChromeBaseOptions<TRoute, HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>>;
+
+/**
+ * Lazy RouteChrome options resolver accepted by createPublicHashAppTemplate().
+ */
+export type PublicHashAppTemplateRouteChromeOptionsResolver<
+    TRoute extends PublicHashRoutedAppRoute = PublicHashRoutedAppRoute,
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = string
+> = (
+    context: HashRoutedAppContext<TRoute>
+) => PublicHashAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>;
+
+/**
  * RouteChrome options accepted by createPublicHashAppTemplate().
  */
 export type PublicHashAppTemplateRouteChromeOptions<
@@ -49,8 +79,8 @@ export type PublicHashAppTemplateRouteChromeOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = string
 > =
-    | HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>
-    | HashAppRouteChromeOptionsResolver<TRoute, TLocale, TKey>;
+    | PublicHashAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>
+    | PublicHashAppTemplateRouteChromeOptionsResolver<TRoute, TLocale, TKey>;
 
 /**
  * Options for createPublicHashAppTemplate(), the first high-level public SPA template.
@@ -62,6 +92,8 @@ export interface PublicHashAppTemplateOptions<
 > extends Omit<PublicHashRoutedAppOptions<TRoute, TLocale, TKey>, "shell" | "renderChrome"> {
     /** AppShell settings with template defaults and locale-refresh support. */
     shell?: PublicHashAppTemplateShellOptions;
+    /** Localized route text defaults for route metadata and SPA route-loaded announcements. */
+    routeText?: PublicHashAppTemplateRouteText<TRoute> | false;
     /** Declarative RouteChrome options, or false to omit managed route chrome. */
     routeChrome?: PublicHashAppTemplateRouteChromeOptions<TRoute, TLocale, TKey> | false;
     /** Optional hook called after the template creates RouteChrome. */
@@ -80,6 +112,34 @@ const defaultStartOptions: HashRouterNavigateOptions = {
     scroll: false,
     focusTarget: null
 };
+
+function getTemplateRouteMetadata<
+    TRoute extends PublicHashRoutedAppRoute,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>
+): PublicHashRoutedAppRouteMetadataOptions<TRoute> | undefined {
+    return getPublicAppTemplateRouteMetadata(options.routeMetadata, options.routeText);
+}
+
+function getTemplateRouterOptions<
+    TRoute extends PublicHashRoutedAppRoute,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>
+): PublicHashRoutedAppOptions<TRoute, TLocale, TKey>["router"] | undefined {
+    const routerOptions = options.router;
+    const routeText = options.routeText;
+
+    if (!routeText || routerOptions?.getAnnouncement !== undefined) return routerOptions;
+
+    return {
+        ...(routerOptions ?? {}),
+        getAnnouncement: routeText.getLoadedAnnouncement
+    };
+}
 
 function createTemplateRouteChromeRenderer<
     TRoute extends PublicHashRoutedAppRoute,
@@ -120,6 +180,9 @@ export function createPublicHashAppTemplate<
         diagnostics: _diagnostics,
         onRouteChromeCreate: _onRouteChromeCreate,
         routeChrome: _routeChrome,
+        routeMetadata: _routeMetadata,
+        routeText: _routeText,
+        router: _router,
         shell: _shell,
         startOptions,
         ...publicAppOptions
@@ -128,12 +191,22 @@ export function createPublicHashAppTemplate<
         ...publicAppOptions,
         shell: getPublicAppTemplateShellOptions(options)
     };
+    const routeMetadata = getTemplateRouteMetadata(options);
+    const router = getTemplateRouterOptions(options);
     const diagnostics = getPublicAppTemplateDiagnosticsOptions<
         TLocale,
         TKey,
         PublicHashRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute>
     >(options);
     const renderChrome = createTemplateRouteChromeRenderer(options);
+
+    if (routeMetadata !== undefined) {
+        appOptions.routeMetadata = routeMetadata;
+    }
+
+    if (router !== undefined) {
+        appOptions.router = router;
+    }
 
     if (diagnostics !== undefined) {
         appOptions.diagnostics = diagnostics;

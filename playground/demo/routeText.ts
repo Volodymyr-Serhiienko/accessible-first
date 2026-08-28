@@ -54,6 +54,5 @@ export function getPlaygroundRouteTitle(route: PlaygroundRoute): string {
  * Identity-aware route metadata and diagnostics options for the playground app template.
  */
 export const playgroundRouteOptions: AppIdentityRouteDiagnosticsOptions<PlaygroundRoute> = {
-    baseUrl: new URL(".", window.location.href),
-    ...playgroundRouteText.routeOptions
+    baseUrl: new URL(".", window.location.href)
 };

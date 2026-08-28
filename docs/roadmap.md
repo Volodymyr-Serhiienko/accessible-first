@@ -62,15 +62,15 @@ Current focus after the result/list foundation:
 - Keep shaping the first app starter from real playground wiring instead of adding unrelated components.
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 - Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
-- Use localized route `routeOptions` as the default bridge between route metadata and diagnostics, and `getLoadedAnnouncement` for SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
-- Keep public hash/link templates sharing one internal shell-refresh and diagnostics-defaults path, so SPA and MPA starters do not drift apart.
+- Use `routeText` as the default bridge between route metadata, diagnostics, and SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
+- Keep public hash/link templates sharing one internal shell-refresh, diagnostics-defaults, and routeChrome route-list injection path, so SPA and MPA starters do not drift apart.
 
 ### Exit Criteria For This Phase
 
 Before starting the first real application, we should have:
 
-- one clear public SPA template, backed by `PublicHashAppTemplate`, `PublicHashRoutedApp`, and the lower-level `HashRoutedApp`;
-- one clear public MPA/native-link template, backed by `PublicLinkAppTemplate`, `PublicLinkRoutedApp`, and the lower-level `LinkRoutedApp`;
+- one clear public SPA template, backed by `PublicHashAppTemplate`, `PublicHashRoutedApp`, and the lower-level `HashRoutedApp`, with route lists declared once at the template boundary;
+- one clear public MPA/native-link template, backed by `PublicLinkAppTemplate`, `PublicLinkRoutedApp`, and the lower-level `LinkRoutedApp`, with the same route-list injection pattern;
 - app-owned identity and route metadata feeding navigation, search, breadcrumbs, document metadata, WebPage JSON-LD, web app manifests, command palette, RouteChrome, public routed app recipes, locale refresh, and diagnostics;
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;

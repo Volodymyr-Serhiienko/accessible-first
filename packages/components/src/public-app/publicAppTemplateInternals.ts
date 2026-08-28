@@ -1,5 +1,9 @@
 import type { PublicAppDiagnosticsLocaleResolver } from "../app-diagnostics";
 import type {
+    AppRouteDescriptor,
+    LocalizedAppRouteText
+} from "../app-routes";
+import type {
     AppShellOptions,
     AppShellOutletOptions,
     AppShellUpdateOptions
@@ -10,6 +14,13 @@ import type {
     LocaleController,
     LocaleTextProvider
 } from "../localization";
+
+/**
+ * Localized route text bundle accepted by public app templates.
+ */
+export type PublicAppTemplateRouteText<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = Pick<LocalizedAppRouteText<TRoute>, "routeOptions" | "getLoadedAnnouncement">;
 
 /**
  * Static value or zero-argument resolver accepted by public app templates.
@@ -25,6 +36,17 @@ export type PublicAppTemplateContextValue<TValue, TContext> = TValue | ((context
  * Initial metadata accepted by public app template shell options.
  */
 export type PublicAppTemplateMetadata = DocumentMetadataOptions | false;
+
+/**
+ * Route chrome options accepted by public app templates before the template injects its route list.
+ */
+export type PublicAppTemplateRouteChromeBaseOptions<
+    TRoute,
+    TOptions extends { routes: readonly TRoute[] }
+> = Omit<TOptions, "routes"> & {
+    /** Optional route override. Omit it to use the public app template route list. */
+    routes?: readonly TRoute[];
+};
 
 /**
  * Common shell options accepted by public app templates.
@@ -136,15 +158,21 @@ function getPublicAppTemplateShellLocale(
  * Resolves declarative route chrome options and merges resolver-backed shell refresh updates.
  */
 export function resolvePublicAppTemplateRouteChromeOptions<
-    TOptions extends { shell?: AppShellUpdateOptions },
+    TRoute,
+    TOptions extends { routes: readonly TRoute[]; shell?: AppShellUpdateOptions },
     TContext
 >(
-    routeChrome: PublicAppTemplateContextValue<TOptions, TContext>,
+    routeChrome: PublicAppTemplateContextValue<PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions>, TContext>,
     context: TContext,
-    templateOptions: PublicAppTemplateBaseOptions
+    templateOptions: PublicAppTemplateBaseOptions & { routes: readonly TRoute[] }
 ): TOptions {
+    const routeChromeOptions = resolvePublicAppTemplateContextValue(routeChrome, context);
+
     return withPublicAppTemplateShellUpdate(
-        resolvePublicAppTemplateContextValue(routeChrome, context),
+        {
+            ...routeChromeOptions,
+            routes: routeChromeOptions.routes ?? templateOptions.routes
+        } as TOptions,
         getPublicAppTemplateShellUpdateOptions(templateOptions)
     );
 }
@@ -169,6 +197,25 @@ export function withPublicAppTemplateShellUpdate<
             ...(routeChromeOptions.shell ?? {})
         }
     } as TOptions;
+}
+
+/**
+ * Merges localized route text defaults into app-owned route metadata options.
+ */
+export function getPublicAppTemplateRouteMetadata<
+    TRoute extends AppRouteDescriptor,
+    TRouteMetadata extends object
+>(
+    routeMetadata: TRouteMetadata | false | undefined,
+    routeText: PublicAppTemplateRouteText<TRoute> | false | undefined
+): TRouteMetadata | false | undefined {
+    if (!routeText) return routeMetadata;
+    if (routeMetadata === false) return false;
+
+    return {
+        ...routeText.routeOptions,
+        ...(routeMetadata ?? {})
+    } as TRouteMetadata;
 }
 
 /**

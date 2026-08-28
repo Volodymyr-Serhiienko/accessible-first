@@ -16,7 +16,10 @@ export type {
     PublicHashAppTemplate,
     PublicHashAppTemplateMetadata,
     PublicHashAppTemplateOptions,
+    PublicHashAppTemplateRouteChromeBaseOptions,
     PublicHashAppTemplateRouteChromeOptions,
+    PublicHashAppTemplateRouteChromeOptionsResolver,
+    PublicHashAppTemplateRouteText,
     PublicHashAppTemplateShellOptions,
     PublicHashAppTemplateValue
 } from "./createPublicHashAppTemplate";
@@ -32,7 +35,10 @@ export type {
     PublicLinkAppTemplate,
     PublicLinkAppTemplateMetadata,
     PublicLinkAppTemplateOptions,
+    PublicLinkAppTemplateRouteChromeBaseOptions,
     PublicLinkAppTemplateRouteChromeOptions,
+    PublicLinkAppTemplateRouteChromeOptionsResolver,
+    PublicLinkAppTemplateRouteText,
     PublicLinkAppTemplateShellOptions,
     PublicLinkAppTemplateValue
 } from "./createPublicLinkAppTemplate";

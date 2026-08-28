@@ -87,7 +87,7 @@ import { createApp } from "./app/app";
 createApp();
 ```
 
-The app factory should use `createPublicAppTemplate()`:
+The app factory should use `createPublicAppTemplate()` and declare the route list once:
 
 ```ts
 export function createApp() {
@@ -97,6 +97,7 @@ export function createApp() {
         locale,
         identity: appIdentity,
         routeMetadata,
+        routeText,
         shell: getShellOptions(),
         routeChrome: getRouteChromeOptions,
         diagnostics: getDiagnosticsOptions()
@@ -104,7 +105,7 @@ export function createApp() {
 }
 ```
 
-Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation.
+Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation. Public app templates pass the declared route list into route chrome automatically and can consume `routeText` for metadata and route announcements; lower-level `createRouteChrome()` and manual renderers still accept explicit `routes`.
 
 ## Shell And Chrome
 

@@ -33,10 +33,8 @@ export function createPlaygroundApp(): PlaygroundApp {
         locale: playgroundLocale,
         identity: playgroundAppIdentity,
         routeMetadata: playgroundRouteOptions,
+        routeText: playgroundRouteText,
         shell: getPlaygroundShellOptions(),
-        router: {
-            getAnnouncement: playgroundRouteText.getLoadedAnnouncement
-        },
         routeChrome: () => getPlaygroundRouteChromeOptions({
             afterOutlet: notifications
         }),
