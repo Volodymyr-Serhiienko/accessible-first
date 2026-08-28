@@ -11,7 +11,6 @@ import {
 } from "./localization";
 import {
     getPlaygroundRouteTitle,
-    playgroundBreadcrumbItemsOptions,
     playgroundRouteText
 } from "./routeText";
 import {
@@ -47,7 +46,7 @@ export function getPlaygroundRouteChromeOptions(
                 label: t("app.breadcrumbs.rootLabel"),
                 href: "#markup"
             },
-            breadcrumbItemsOptions: playgroundBreadcrumbItemsOptions
+            breadcrumbItemsOptions: playgroundRouteText.breadcrumbItemsOptions
         },
         search: {
             className: "playground-search",

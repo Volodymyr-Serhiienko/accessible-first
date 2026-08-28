@@ -141,7 +141,7 @@ const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
 });
 ```
 
-The returned helper exposes resolvers and ready-to-pass options:
+The returned helper exposes resolvers and ready-to-pass options. These options can be used directly by route-aware components and by RouteChrome, including breadcrumbs that add a synthetic root route:
 
 ```ts
 RouteResponsiveNavigation({

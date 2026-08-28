@@ -158,6 +158,7 @@ None of these helpers create route data, screen content, app copy, metadata stra
 - `navigation` - options passed to `RouteResponsiveNavigation`, or `false` to disable navigation.
 - `breadcrumbs` - options passed to `RouteBreadcrumbs`, or `false` to disable breadcrumbs.
 - `breadcrumbs.root` - optional synthetic root route prepended to breadcrumb trails. Routes without `parentId` become children of this root unless `trailOptions.getParentId` returns another value.
+- `breadcrumbs.breadcrumbItemsOptions` - breadcrumb item resolvers for app routes. When `breadcrumbs.root` adds a synthetic route, RouteChrome keeps app-route resolvers for real routes and falls back to the root route text automatically.
 - `breadcrumbs.routes` - optional breadcrumb-only route list when breadcrumbs need a custom hierarchy.
 - `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search.
 - `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
@@ -256,5 +257,6 @@ When using app route chrome helpers, the generated `AppHeader` keeps one control
 - Search and commands remain usable with keyboard and screen reader navigation.
 - Header controls move into HeaderTools overflow when they do not fit.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
+- Localized route text can be passed directly to navigation, search, commands, and breadcrumbs, including breadcrumbs with a synthetic root route.
 - HashRoutedApp and LinkRoutedApp renderers can be expressed declaratively without repeating current-route wiring.
 - Optional navigation return links move focus back to the visible route navigation target without app-owned navigation references.

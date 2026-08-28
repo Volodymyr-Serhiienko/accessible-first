@@ -1,8 +1,6 @@
 import {
     createLocalizedAppRouteText,
     type AppIdentityRouteDiagnosticsOptions,
-    type AppRouteBreadcrumbItemsOptions,
-    type AppRouteDescriptor,
     type LocalizedAppRouteText
 } from "./af";
 import { playgroundAppIdentity } from "./appIdentity";
@@ -12,10 +10,7 @@ import {
     type PlaygroundMessageKey,
     type PlaygroundRouteMessageKey
 } from "./localization";
-import {
-    getPlaygroundRouteById,
-    type PlaygroundRoute
-} from "./routes";
+import { type PlaygroundRoute } from "./routes";
 
 function getPlaygroundRouteTitleKey(route: PlaygroundRoute): PlaygroundRouteMessageKey {
     return `routes.${route.id}.title`;
@@ -46,17 +41,6 @@ export const playgroundRouteText: LocalizedAppRouteText<PlaygroundRoute> = creat
         };
     }
 });
-
-/**
- * Breadcrumb label resolver widened for the synthetic playground root route.
- */
-export const playgroundBreadcrumbItemsOptions: AppRouteBreadcrumbItemsOptions<AppRouteDescriptor> = {
-    getLabel(route) {
-        const playgroundRoute = getPlaygroundRouteById(route.id);
-
-        return playgroundRoute ? playgroundRouteText.getLabel(playgroundRoute) : route.label ?? route.title;
-    }
-};
 
 /**
  * Returns the active-locale title for a playground route.

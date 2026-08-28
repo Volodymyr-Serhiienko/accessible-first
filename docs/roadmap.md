@@ -59,7 +59,7 @@ Current focus after the result/list foundation:
 - Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
-- Start shaping the first app template from real playground wiring instead of adding unrelated components.
+- Keep shaping the first app starter from real playground wiring instead of adding unrelated components.
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 - Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
 
@@ -82,9 +82,9 @@ Goal: use Accessible First to build real application screens, then promote repea
 Planned sequence, ordered toward the first usable generated app:
 
 1. Use `createPublicAppTemplate()` as the single teachable public-app entry, while keeping hash and link templates as explicit lower-level recipes.
-2. Keep [Application Blueprint](./app-blueprint.md) as the current contract for first-app structure: identity, routes, locale file, metadata, manifest, diagnostics, header tools, route chrome, layout, and focus routes.
+2. Keep [Application Blueprint](./app-blueprint.md) as the architecture contract and [Application Starter](./app-starter.md) as the practical first-app recipe: identity, routes, route registry, localized route text, locale file, metadata, manifest, diagnostics, header tools, route chrome, layout, and focus routes.
 3. Remove duplicated app-shell glue from the playground only when the blueprint abstraction is cleaner than the current code.
-4. Add a lightweight application scaffold/generator once the blueprint API is stable enough to create a starter site without manual wiring.
+4. Add a lightweight application scaffold/generator once the starter recipe is stable enough to create a site without manual wiring.
 5. Treat the stable scaffold as the handoff point for the legacy language-learning app code: after this point, the old app can be reviewed and migrated instead of guessed from memory.
 6. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
 7. Start the first reference application: an accessible foreign-language learning app, migrated from the legacy project into the new Accessible First app structure.

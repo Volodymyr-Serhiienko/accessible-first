@@ -1,5 +1,8 @@
 import {
+    getAppRouteById,
+    getAppRouteHref,
     getAppRouteParentId,
+    type AppRouteBreadcrumbItemsOptions,
     type AppRouteDescriptor,
     type AppRouteParentIdResolver,
     type AppRouteTrailOptions
@@ -61,7 +64,10 @@ export type RouteChromeBreadcrumbsRoot = AppRouteDescriptor | null;
  */
 export interface RouteChromeBreadcrumbsOptions<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
-> extends Omit<RouteBreadcrumbsOptions<AppRouteDescriptor>, "routes" | "current" | "trailOptions"> {
+> extends Omit<
+        RouteBreadcrumbsOptions<AppRouteDescriptor>,
+        "routes" | "current" | "trailOptions" | "breadcrumbItemsOptions"
+    > {
     /** Optional route list used only for breadcrumbs, useful for adding synthetic routes. */
     routes?: readonly AppRouteDescriptor[];
     /** Current route override for breadcrumbs. Defaults to the route chrome current route. */
@@ -70,6 +76,8 @@ export interface RouteChromeBreadcrumbsOptions<
     root?: RouteChromeBreadcrumbsRoot;
     /** Breadcrumb trail options. root augments getParentId unless the resolver returns a value. */
     trailOptions?: AppRouteTrailOptions<AppRouteDescriptor>;
+    /** Breadcrumb item resolvers for app routes. Synthetic root routes fall back to their own text. */
+    breadcrumbItemsOptions?: AppRouteBreadcrumbItemsOptions<TRoute>;
 }
 
 /**
@@ -193,6 +201,68 @@ function getBreadcrumbTrailOptions<TRoute extends AppRouteDescriptor>(
     return nextOptions;
 }
 
+function getRouteFromBreadcrumbRoute<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    route: AppRouteDescriptor
+): TRoute | null {
+    return getAppRouteById(routes, route.id);
+}
+
+function getTypedBreadcrumbTrail<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    trail: readonly AppRouteDescriptor[]
+): TRoute[] {
+    return trail
+        .map((route) => getRouteFromBreadcrumbRoute(routes, route))
+        .filter((route): route is TRoute => route !== null);
+}
+
+function createRouteChromeBreadcrumbItemsOptions<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: AppRouteBreadcrumbItemsOptions<TRoute> | undefined
+): AppRouteBreadcrumbItemsOptions<AppRouteDescriptor> | undefined {
+    if (!options) return undefined;
+
+    const nextOptions: AppRouteBreadcrumbItemsOptions<AppRouteDescriptor> = {};
+
+    if (options.linkCurrent !== undefined) nextOptions.linkCurrent = options.linkCurrent;
+
+    if (options.getLabel) {
+        nextOptions.getLabel = (route) => {
+            const appRoute = getRouteFromBreadcrumbRoute(routes, route);
+
+            return appRoute ? options.getLabel?.(appRoute) ?? appRoute.title : route.label ?? route.title;
+        };
+    }
+
+    if (options.getHref) {
+        nextOptions.getHref = (route) => {
+            const appRoute = getRouteFromBreadcrumbRoute(routes, route);
+
+            return appRoute ? options.getHref?.(appRoute) ?? null : getAppRouteHref(route);
+        };
+    }
+
+    if (options.getCurrent) {
+        nextOptions.getCurrent = (route, index, trail) => {
+            const appRoute = getRouteFromBreadcrumbRoute(routes, route);
+
+            if (!appRoute) return undefined;
+
+            const typedTrail = getTypedBreadcrumbTrail(routes, trail);
+            const typedIndex = typedTrail.findIndex((trailRoute) => trailRoute.id === appRoute.id);
+
+            return options.getCurrent?.(
+                appRoute,
+                typedIndex >= 0 ? typedIndex : index,
+                typedTrail
+            );
+        };
+    }
+
+    return nextOptions;
+}
+
 /**
  * Creates the common route-aware chrome controls used by routed app recipes.
  */
@@ -229,6 +299,7 @@ export function createRouteChrome<
             current: _current,
             root: _root,
             trailOptions: _trailOptions,
+            breadcrumbItemsOptions,
             ...breadcrumbOptions
         } = options.breadcrumbs ?? {};
         const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
@@ -237,8 +308,15 @@ export function createRouteChrome<
             current: getBreadcrumbCurrent(current, options.breadcrumbs)
         };
         const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
+        const routeBreadcrumbItemsOptions = createRouteChromeBreadcrumbItemsOptions(
+            routes,
+            breadcrumbItemsOptions
+        );
 
         if (trailOptions !== undefined) routeBreadcrumbsOptions.trailOptions = trailOptions;
+        if (routeBreadcrumbItemsOptions !== undefined) {
+            routeBreadcrumbsOptions.breadcrumbItemsOptions = routeBreadcrumbItemsOptions;
+        }
 
         breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>(routeBreadcrumbsOptions);
 
