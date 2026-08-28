@@ -125,7 +125,7 @@ Use resolvers for localized shell text so the template can refresh them when the
 
 ## When To Use Lower Layers
 
-Use `PublicHashAppTemplate` for normal public SPAs.
+Use `PublicAppTemplate` for the standard one-entry public app API. Use `PublicHashAppTemplate` when the code or docs should be explicitly SPA-only.
 
 Use `PublicHashRoutedApp` when the app needs to assemble `renderChrome` manually but still wants public diagnostics and startup scroll reset.
 

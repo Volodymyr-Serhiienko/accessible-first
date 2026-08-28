@@ -126,7 +126,7 @@ Use resolvers for localized shell text so the template can refresh them when the
 
 ## When To Use Lower Layers
 
-Use `PublicLinkAppTemplate` for normal public native-link or MPA pages.
+Use `PublicAppTemplate` for the standard one-entry public app API. Use `PublicLinkAppTemplate` when the code or docs should be explicitly native-link or MPA-only.
 
 Use `PublicLinkRoutedApp` when the page needs to assemble `renderChrome` manually but still wants public diagnostics and route metadata defaults.
 

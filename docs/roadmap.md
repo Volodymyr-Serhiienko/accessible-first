@@ -32,8 +32,8 @@ These layers are strong enough to build on:
 - Behavior modules: roving focus, live regions, disclosure, dialog, tabs, listbox, typeahead, selection, menu, popover positioning, dismissable layer, overlay stack, form-field semantics, validation announcements.
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
-- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, SettingsGroup, Table, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
+- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, Pagination, ResultSummary, SettingsGroup, Table, Screen, ListDetail.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
 - Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -42,7 +42,7 @@ These layers are strong enough to build on:
 
 Goal: make the framework ready for the first real application without carrying avoidable architectural debt.
 
-Current focus:
+Current focus after the result/list foundation:
 
 1. Keep documentation aligned with the architecture.
 2. Finish localization as a cross-cutting foundation, not a per-component patch.
@@ -53,11 +53,13 @@ Current focus:
 ### Now
 
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
-- Harden `PublicHashAppTemplate` and `PublicLinkAppTemplate` as the first reusable public app templates: SPA route rendering for hash routes, and native-link/MPA chrome plus identity-driven route metadata synchronization for normal links.
+- Treat `ResultSummary` as the small bridge between SearchBox, Pagination, lists, and future DataTable work: static by default, optionally live for dynamic filtering.
+- Keep `createPublicAppTemplate()` as the standard public-app entry point, with `PublicHashAppTemplate` and `PublicLinkAppTemplate` remaining available for explicit mode-specific docs and custom code.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
+- Start shaping the first app template from real playground wiring instead of adding unrelated components.
 
 ### Exit Criteria For This Phase
 
@@ -75,25 +77,18 @@ Before starting the first real application, we should have:
 
 Goal: use Accessible First to build real application screens, then promote repeated patterns back into the framework.
 
-Planned sequence:
+Planned sequence, ordered toward the first usable generated app:
 
-1. Harden app templates around `PublicHashAppTemplate`, `PublicLinkAppTemplate`, `AppShell`, `PageOutlet`, `PageLayout`, `RouteChrome`, route metadata, metadata helpers, diagnostics, locale, and theme.
-2. Add header/navigation variants only after the template needs them:
-   - top navigation;
-   - sidebar navigation;
-   - mobile navigation;
-   - expanded sticky/reveal shell behavior and header overflow patterns;
-   - action overflow when header actions do not fit.
-3. Build the first reference application: an accessible foreign-language learning app.
-4. Use that application to validate real workflows:
-   - lesson list and lesson detail;
-   - vocabulary list/detail;
-   - practice screen;
-   - settings screen;
-   - progress feedback;
-   - form validation and user preferences;
-   - desktop keyboard and mobile screen reader routes.
-5. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
+1. Use `createPublicAppTemplate()` as the single teachable public-app entry, while keeping hash and link templates as explicit lower-level recipes.
+2. Keep [Application Blueprint](./app-blueprint.md) as the current contract for first-app structure: identity, routes, locale file, metadata, manifest, diagnostics, header tools, route chrome, layout, and focus routes.
+3. Remove duplicated app-shell glue from the playground only when the blueprint abstraction is cleaner than the current code.
+4. Add a lightweight application scaffold/generator once the blueprint API is stable enough to create a starter site without manual wiring.
+5. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
+6. Start the first reference application: an accessible foreign-language learning app.
+7. Validate real workflows in that application: lesson list/detail, vocabulary list/detail, practice screen, settings screen, progress feedback, form validation, user preferences, desktop keyboard routes, and mobile screen reader routes.
+8. Add header/navigation variants only when the first app or generated site needs them: top navigation, sidebar navigation, mobile navigation, sticky/fixed/reveal chrome, and action overflow.
+9. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
+10. Keep component expansion tied to the reference app, not to a theoretical catalog.
 
 ## Component Expansion Queue
 
@@ -102,7 +97,6 @@ Do not create every possible component immediately. Build components when they u
 High-priority candidates:
 
 - DataTable extensions on top of native Table for sorting, selection, pagination, and responsive card alternatives.
-- Pagination and result summary helpers.
 - Drawer / SidePanel / Sheet for non-modal and modal side content, especially mobile layouts.
 - Toolbar improvements and command/action grouping.
 - Stepper / Wizard for guided multi-step workflows.

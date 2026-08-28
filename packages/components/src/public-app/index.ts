@@ -1,9 +1,17 @@
+export { createPublicAppTemplate } from "./createPublicAppTemplate";
 export { createPublicHashAppTemplate } from "./createPublicHashAppTemplate";
 export { createPublicHashRoutedApp } from "./createPublicHashRoutedApp";
 export { createPublicLinkAppTemplate } from "./createPublicLinkAppTemplate";
 export { createPublicLinkRoutedApp } from "./createPublicLinkRoutedApp";
 export { createPublicRoutedAppDiagnostics } from "./createPublicRoutedAppDiagnostics";
 
+export type {
+    PublicAppTemplate,
+    PublicAppTemplateMode,
+    PublicAppTemplateOptions,
+    PublicHashModeAppTemplateOptions,
+    PublicLinkModeAppTemplateOptions
+} from "./createPublicAppTemplate";
 export type {
     PublicHashAppTemplate,
     PublicHashAppTemplateMetadata,

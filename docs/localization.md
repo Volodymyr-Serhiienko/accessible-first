@@ -25,7 +25,7 @@ Framework service text belongs in the Accessible First message registry. Example
 - toast region, close, dismiss, and fallback notification labels;
 - command palette title, description, search label, placeholder, and empty result text;
 - route command prefixes such as `Open`;
-- generic list/detail, breadcrumbs, page navigation, overflow scroller, responsive navigation, header tools, theme toggle, icon-button, and text-field fallback labels.
+- generic list/detail, breadcrumbs, page navigation, pagination, result summaries, overflow scroller, responsive navigation, header tools, theme toggle, icon-button, and text-field fallback labels.
 
 Application copy stays explicit in application code or in the application's own locale files. Examples include product names, route labels, screen titles, lesson text, form labels, button text, validation copy chosen by the app, marketing text, and demo content.
 
@@ -232,7 +232,9 @@ The first migration covers these framework-owned fallbacks:
 - `LocaleRefresh`: app-owned refresh callbacks for composed shell and route text.
 - `ListDetail`: list/detail region labels.
 - `OverflowScroller`: previous/next control labels.
+- `Pagination`: navigation label, previous/next labels, page labels, current-page label, and ellipsis label.
 - `Page`: skip-link text and default navigation label.
+- `ResultSummary`: empty, total-only, filtered, and range fallback text.
 - `ResponsiveNavigation`: mobile trigger text and internal overflow scroller labels.
 - `RouteCommandPalette`: route command prefix.
 - `TextField`: strict email-pattern fallback validation text.

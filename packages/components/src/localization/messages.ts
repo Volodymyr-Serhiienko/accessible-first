@@ -24,6 +24,18 @@ export type AccessibleFirstMessageKey =
     | "listDetail.listLabel"
     | "overflowScroller.nextLabel"
     | "overflowScroller.previousLabel"
+    | "pagination.currentPage"
+    | "pagination.ellipsis"
+    | "pagination.label"
+    | "pagination.next"
+    | "pagination.page"
+    | "pagination.previous"
+    | "resultSummary.empty"
+    | "resultSummary.filtered"
+    | "resultSummary.one"
+    | "resultSummary.range"
+    | "resultSummary.rangeUnknownTotal"
+    | "resultSummary.total"
     | "page.navigationLabel"
     | "page.skipLinkText"
     | "responsiveNavigation.close"
@@ -66,6 +78,18 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "listDetail.listLabel": "Items",
     "overflowScroller.nextLabel": "Scroll right",
     "overflowScroller.previousLabel": "Scroll left",
+    "pagination.currentPage": "Page {page}, current page",
+    "pagination.ellipsis": "More pages",
+    "pagination.label": "Pagination",
+    "pagination.next": "Next page",
+    "pagination.page": "Page {page}",
+    "pagination.previous": "Previous page",
+    "resultSummary.empty": "No results.",
+    "resultSummary.filtered": "{count} of {total} results shown.",
+    "resultSummary.one": "1 result.",
+    "resultSummary.range": "Showing {start}-{end} of {total} results.",
+    "resultSummary.rangeUnknownTotal": "Showing {start}-{end} results.",
+    "resultSummary.total": "{total} results.",
     "page.navigationLabel": "Primary",
     "page.skipLinkText": "Skip to content",
     "responsiveNavigation.close": "Close menu",

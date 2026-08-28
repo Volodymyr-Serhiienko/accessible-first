@@ -13,7 +13,7 @@ Accessible First is not only a component library. It is growing into a small dev
 - composition components that create and enhance DOM;
 - semantic page-building primitives;
 - page diagnostics and playground validation;
-- future application patterns for real web apps.
+- public app templates and an application blueprint for real web apps.
 
 ## Principles
 
@@ -29,4 +29,4 @@ Accessible First is not only a component library. It is growing into a small dev
 
 Early stage research and development.
 
-The behavior foundation is mostly complete. The project is now focused on accessible components, semantic composition, playground validation, and the first page-building patterns.
+The behavior foundation and component baseline are now broad enough to support app-level work. The project is focused on public app templates, diagnostics, localization, playground validation, and the first reference application path.

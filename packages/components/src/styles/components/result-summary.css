@@ -1,0 +1,31 @@
+[data-af-composition="result-summary"] {
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    color: var(--af-color-fg);
+    font: inherit;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+[data-af-result-summary-content] {
+    min-inline-size: 0;
+}
+
+[data-af-composition="result-summary"][data-af-variant="muted"] {
+    color: var(--af-color-muted);
+}
+
+[data-af-composition="result-summary"][data-af-variant="strong"] {
+    font-weight: 650;
+}
+
+[data-af-composition="result-summary"][hidden] {
+    display: none !important;
+}
+
+@media (max-width: 36rem) {
+    [data-af-composition="result-summary"] {
+        font-size: 0.9375rem;
+    }
+}

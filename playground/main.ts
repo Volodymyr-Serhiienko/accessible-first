@@ -1,5 +1,5 @@
 import {
-    createPublicHashAppTemplate,
+    createPublicAppTemplate,
     type PublicHashAppTemplate
 } from "./demo/af";
 import { FooterDemo } from "./demo/footer";
@@ -24,7 +24,7 @@ import "../packages/components/src/styles/index.css";
 
 let app!: PublicHashAppTemplate<PlaygroundRoute>;
 
-app = createPublicHashAppTemplate<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
+app = createPublicAppTemplate<PlaygroundRoute, PlaygroundLocale, PlaygroundMessageKey>({
     routes: playgroundRoutes,
     mount: "#app",
     locale: playgroundLocale,

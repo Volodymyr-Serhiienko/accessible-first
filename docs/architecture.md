@@ -131,6 +131,7 @@ Keyboard shortcuts are useful accelerators for desktop applications, but visible
 - Application shell: [components/app-shell.md](./components/app-shell.md)
 - App route helpers: [components/app-routes.md](./components/app-routes.md)
 - Component reference: [components/README.md](./components/README.md)
+- Application blueprint: [app-blueprint.md](./app-blueprint.md)
 - Development plan: [roadmap.md](./roadmap.md)
 
 ## Development Workflow
