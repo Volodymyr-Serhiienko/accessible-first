@@ -104,7 +104,7 @@ Applications should keep one locale file near the app shell. The playground uses
 
 English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
 
-For route-owned application text, use `createLocalizedAppRouteText()` so navigation, search, breadcrumbs, announcements, metadata, and diagnostics can share the same localized route resolvers. Larger apps can keep this wiring in a small app-owned `routeText.ts` file beside `routes.ts`. Pass `routeText.routeOptions` to public route metadata and diagnostics defaults when the same localized title and description policy should power both layers.
+For route-owned application text, use `createLocalizedAppRouteText()` so navigation, search, breadcrumbs, announcements, metadata, and diagnostics can share the same localized route resolvers. Larger apps can keep this wiring in a small app-owned `routeText.ts` file beside `routes.ts`. Pass `routeText.routeOptions` to public route metadata and diagnostics defaults when the same localized title and description policy should power both layers. Pass `routeLoadedAnnouncementKey` when route-change announcements should use one localized app-owned phrase such as `{title} loaded`.
 
 For application-owned text created during composition, use `createLocaleRefresh()` near the app shell. It subscribes to the shared locale controller and lets the app refresh header text, route search, command palettes, breadcrumbs, metadata, and the current screen without a full page reload.
 

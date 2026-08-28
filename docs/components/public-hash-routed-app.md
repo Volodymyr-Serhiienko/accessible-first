@@ -7,11 +7,14 @@ Use it when a hash-routed app has public-app requirements but needs to assemble 
 ## Quick Start
 
 ```ts
+const routeText = createLocalizedAppRouteText({
+    locale,
+    routeLoadedAnnouncementKey: "app.route.loaded"
+});
+
 const routeMetadata = {
     baseUrl: new URL(".", window.location.href),
-    getDescription(route) {
-        return t(`route.${route.id}.description`);
-    }
+    ...routeText.routeOptions
 };
 
 const app = createPublicHashRoutedApp({
@@ -31,9 +34,7 @@ const app = createPublicHashRoutedApp({
         }
     },
     router: {
-        getAnnouncement(route) {
-            return t("app.routeLoaded", { title: route.title });
-        }
+        getAnnouncement: routeText.getLoadedAnnouncement
     },
     renderChrome: createHashAppRouteChromeRenderer({
         options() {

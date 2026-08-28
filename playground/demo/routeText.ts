@@ -24,6 +24,7 @@ export const playgroundRouteText: LocalizedAppRouteText<PlaygroundRoute> = creat
     PlaygroundMessageKey
 >({
     locale: playgroundLocale,
+    routeLoadedAnnouncementKey: "app.route.loaded",
     getKeys(route) {
         const titleKey = getPlaygroundRouteTitleKey(route);
 

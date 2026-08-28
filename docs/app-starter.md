@@ -100,6 +100,7 @@ export type AppMessageKey =
     | "app.brand.name"
     | "app.brand.tagline"
     | "app.navigation.skipLink"
+    | "app.route.loaded"
     | "routes.home.title"
     | "routes.home.description"
     | "routes.settings.title"
@@ -112,6 +113,7 @@ const messages = {
         "app.brand.name": "Language Lab",
         "app.brand.tagline": "Practice words, lessons, and progress accessibly.",
         "app.navigation.skipLink": "Skip to navigation",
+        "app.route.loaded": "{title} loaded.",
         "routes.home.title": "Home",
         "routes.home.description": "Start lessons, practice sessions, and progress review.",
         "routes.settings.title": "Settings",
@@ -200,7 +202,8 @@ import { locale, type AppMessageKey } from "./localization";
 import type { AppRoute } from "./routes";
 
 export const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
-    locale
+    locale,
+    routeLoadedAnnouncementKey: "app.route.loaded"
 });
 
 export const routeMetadata: AppIdentityRouteDiagnosticsOptions<AppRoute> = {
@@ -246,7 +249,7 @@ Use resolver functions for locale-dependent shell text. Public app templates re-
 
 ```ts
 import { type HashAppRouteChromeBaseOptions } from "@accessible-first/components";
-import { locale, t, type AppLocale, type AppMessageKey } from "./localization";
+import { locale, type AppLocale, type AppMessageKey } from "./localization";
 import { routeText } from "./routeText";
 import { routes, type AppRoute } from "./routes";
 import { appIdentity } from "./identity";
@@ -314,7 +317,7 @@ Diagnostics should be part of the starter, not an afterthought. They keep route,
 ```ts
 import { createPublicAppTemplate } from "@accessible-first/components";
 import { appIdentity } from "./identity";
-import { locale, t, type AppLocale, type AppMessageKey } from "./localization";
+import { locale, type AppLocale, type AppMessageKey } from "./localization";
 import { getRouteChromeOptions } from "./routeChrome";
 import { routeMetadata, routeText } from "./routeText";
 import { routes, type AppRoute } from "./routes";
@@ -330,9 +333,7 @@ export function createApp() {
         routeMetadata,
         shell: getShellOptions(),
         router: {
-            getAnnouncement(route) {
-                return `${routeText.getTitle(route)} loaded.`;
-            }
+            getAnnouncement: routeText.getLoadedAnnouncement
         },
         routeChrome: getRouteChromeOptions,
         diagnostics: getDiagnosticsOptions()

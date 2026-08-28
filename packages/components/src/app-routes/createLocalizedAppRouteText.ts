@@ -55,6 +55,13 @@ export type AppRouteLocaleTextParamsResolver<
 > = (route: TRoute) => LocaleMessageParams | null | undefined;
 
 /**
+ * Resolves the spoken announcement used after a route has rendered.
+ */
+export type AppRouteLoadedAnnouncementResolver<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = (route: TRoute, previousRoute?: TRoute | null) => string | false;
+
+/**
  * Options for createLocalizedAppRouteText().
  */
 export interface LocalizedAppRouteTextOptions<
@@ -67,6 +74,8 @@ export interface LocalizedAppRouteTextOptions<
     getKeys?: AppRouteLocaleTextKeysResolver<TRoute, TKey>;
     /** Optional params merged with default route params for every localized message. */
     getParams?: AppRouteLocaleTextParamsResolver<TRoute>;
+    /** Global app-owned message key for route-loaded announcements. Falls back to the localized title. */
+    routeLoadedAnnouncementKey?: TKey | null;
 }
 
 /**
@@ -100,6 +109,8 @@ export interface LocalizedAppRouteText<
     getDocumentTitle(route: TRoute): string | null;
     /** Returns localized route keywords for search and command palettes. */
     getKeywords(route: TRoute): string[];
+    /** Returns the spoken route-loaded announcement, or false when explicitly disabled. */
+    getLoadedAnnouncement: AppRouteLoadedAnnouncementResolver<TRoute>;
     /** Navigation item resolvers using localized route text. */
     readonly navigationItemsOptions: AppRouteNavigationItemsOptions<TRoute>;
     /** Search item resolvers using localized route text. */
@@ -263,6 +274,21 @@ export function createLocalizedAppRouteText<
         ]);
     }
 
+    function getLoadedAnnouncement(route: TRoute): string | false {
+        const key = options.routeLoadedAnnouncementKey;
+
+        if (key === null) return false;
+
+        const title = getTitle(route);
+        const params = {
+            ...resolveRouteParams(route, options),
+            label: getLabel(route),
+            title
+        };
+
+        return resolveLocalizedText(options.locale, key, title, params) ?? title;
+    }
+
     return {
         getTitle,
         getLabel,
@@ -270,6 +296,7 @@ export function createLocalizedAppRouteText<
         getHint,
         getDocumentTitle,
         getKeywords,
+        getLoadedAnnouncement,
         navigationItemsOptions: {
             getLabel,
             getHint

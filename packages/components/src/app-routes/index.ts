@@ -70,6 +70,7 @@ export type {
     AppRouteRegistryRouteInput
 } from "./createAppRouteRegistry";
 export type {
+    AppRouteLoadedAnnouncementResolver,
     AppRouteLocaleTextKeys,
     AppRouteLocaleTextKeysResolver,
     AppRouteLocaleTextParamsResolver,

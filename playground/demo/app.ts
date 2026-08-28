@@ -6,14 +6,13 @@ import { playgroundAppIdentity } from "./appIdentity";
 import { getPlaygroundDiagnosticsOptions } from "./diagnostics";
 import {
     playgroundLocale,
-    t,
     type PlaygroundLocale,
     type PlaygroundMessageKey
 } from "./localization";
 import { getPlaygroundRouteChromeOptions } from "./routeChrome";
 import {
-    getPlaygroundRouteTitle,
-    playgroundRouteOptions
+    playgroundRouteOptions,
+    playgroundRouteText
 } from "./routeText";
 import {
     playgroundRoutes,
@@ -36,11 +35,7 @@ export function createPlaygroundApp(): PlaygroundApp {
         routeMetadata: playgroundRouteOptions,
         shell: getPlaygroundShellOptions(),
         router: {
-            getAnnouncement(route) {
-                return t("app.route.loaded", {
-                    title: getPlaygroundRouteTitle(route)
-                });
-            }
+            getAnnouncement: playgroundRouteText.getLoadedAnnouncement
         },
         routeChrome: () => getPlaygroundRouteChromeOptions({
             afterOutlet: notifications
