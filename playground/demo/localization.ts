@@ -1,6 +1,5 @@
 import {
-    accessibleFirstEnglishMessages,
-    createLocaleController,
+    createAppLocalization,
     type AccessibleFirstMessageKey,
     type LocaleController,
     type LocaleMessageParams,
@@ -359,21 +358,19 @@ export const playgroundMessages = {
     ru: ruMessages
 } satisfies LocaleMessagesByLocale<PlaygroundMessageKey>;
 
-export const playgroundRequiredMessageKeys = Array.from(new Set([
-    ...Object.keys(accessibleFirstEnglishMessages),
-    ...Object.keys(enMessages)
-])) as PlaygroundMessageKey[];
-
-export const playgroundLocale: PlaygroundLocaleController = createLocaleController<
-    PlaygroundLocale,
-    PlaygroundMessageKey
->({
+export const playgroundLocalization = createAppLocalization<PlaygroundLocale, PlaygroundMessageKey>({
     supportedLocales: playgroundSupportedLocales,
     fallbackLocale: "en",
     storageKey: "af.playground.locale",
     messages: playgroundMessages
 });
 
+export const playgroundLocale: PlaygroundLocaleController = playgroundLocalization.locale;
+
+export const playgroundFormat = playgroundLocalization.format;
+
+export const playgroundRequiredMessageKeys = playgroundLocalization.requiredMessageKeys;
+
 export function t(key: PlaygroundMessageKey, params?: LocaleMessageParams): string {
-    return playgroundLocale.t(key, params);
+    return playgroundLocalization.t(key, params);
 }

@@ -36,7 +36,7 @@ These layers are strong enough to build on:
 - App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, AppRouteRegistry, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
-- Localization baseline: LocaleController, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, locale-aware search helpers, localized route text resolvers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
+- Localization baseline: LocaleController, createAppLocalization starter bundle, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, required message-key helper, locale-aware search helpers, localized route text resolvers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
 
 ## Active Phase: App Foundation Stabilization
 
@@ -128,8 +128,8 @@ Already started. Continue to keep all framework-owned user-facing service text b
 
 Need next:
 
-- harden the app-owned translation file template against the first real app;
-- keep `inspectLocaleController()` in app diagnostics for required framework and app-owned message keys;
+- keep the `createAppLocalization()` starter bundle hardened against the first real app;
+- keep `createRequiredLocaleMessageKeys()` plus `inspectLocaleController()` in app diagnostics for required framework and app-owned message keys;
 - refine `LocaleRefresh` into higher-level app templates only after real repeated patterns appear;
 - richer pluralization strategy on top of `Intl.PluralRules` categories;
 - locale-aware indexed/server-backed search patterns beyond lightweight in-memory filtering;

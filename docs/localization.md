@@ -88,6 +88,22 @@ const locale = createLocaleController<"en" | "uk" | "ru", AppMessageKey>({
 });
 ```
 
+For application starters, use `createAppLocalization()` when you want the common bundle in one place:
+
+```ts
+const appLocalization = createAppLocalization<"en" | "uk" | "ru", AppMessageKey>({
+    supportedLocales: ["en", "uk", "ru"],
+    fallbackLocale: "en",
+    storageKey: "my-app.locale",
+    messages
+});
+
+export const locale = appLocalization.locale;
+export const format = appLocalization.format;
+export const requiredMessageKeys = appLocalization.requiredMessageKeys;
+export const t = appLocalization.t;
+```
+
 ## Application Template
 
 Applications should keep one locale file near the app shell. The playground uses `playground/demo/localization.ts` as the reference template:
@@ -95,9 +111,8 @@ Applications should keep one locale file near the app shell. The playground uses
 - define the supported locale tuple;
 - define an app-specific message-key union;
 - combine it with `AccessibleFirstMessageKey`;
-- create one shared `createLocaleController()` instance;
-- create `createLocaleFormatter({ locale })` when app data needs localized formatting or sorting;
-- export a small `t(key, params?)` helper for application-owned strings;
+- create one shared `createAppLocalization()` result for `locale`, `format`, `requiredMessageKeys`, and `t()`;
+- use lower-level `createLocaleController()`, `createLocaleFormatter()`, or `createRequiredLocaleMessageKeys()` directly only when the app needs custom wiring;
 - use `createLocaleRefresh()` near the app shell when composed app copy should update without reload;
 - use `localeKeys` plus `createLocalizedAppRouteText()` when route labels, hints, descriptions, document titles, and search keywords belong in locale files;
 - pass the same controller to `AppShell`, `ThemeToggle`, `ToastViewport`, route navigation, command palette, dialogs, and other localized components.
@@ -191,11 +206,16 @@ const results = filterLocaleSearchItems(lessons, query, {
 
 ## Diagnostics
 
-Use `inspectLocaleController()` when an application has a known set of required service and app-owned messages:
+Use `appLocalization.requiredMessageKeys` in starter apps, or `createRequiredLocaleMessageKeys()` when the app wires localization manually:
 
 ```ts
+const requiredMessages = createRequiredLocaleMessageKeys<AppMessageKey>(
+    accessibleFirstEnglishMessages,
+    messages.en
+);
+
 const localeReport = inspectLocaleController(locale, {
-    requiredMessages: appRequiredMessageKeys
+    requiredMessages
 });
 ```
 

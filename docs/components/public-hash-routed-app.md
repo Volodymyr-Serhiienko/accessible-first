@@ -64,7 +64,7 @@ const app = createPublicHashRoutedApp({
         },
         locale,
         localeOptions: {
-            requiredMessages: appRequiredMessageKeys
+            requiredMessages: requiredMessageKeys
         },
         logOnRouteChange: true
     },

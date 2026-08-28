@@ -1,10 +1,12 @@
 export {
     createLocaleController,
+    createRequiredLocaleMessageKeys,
     getLocaleText,
     getLocaleDirection,
     getSystemLocaleCandidates,
     resolveSupportedLocale
 } from "./createLocaleController";
+export { createAppLocalization } from "./createAppLocalization";
 export { createLocaleRefresh } from "./createLocaleRefresh";
 export { createLocaleFormatter } from "./createLocaleFormatter";
 export {
@@ -17,6 +19,13 @@ export {
     inspectLocaleMessages,
     logLocaleDiagnostics
 } from "./inspectLocaleMessages";
+
+export type {
+    AppLocalization,
+    AppLocalizationFormatterOptions,
+    AppLocalizationMessageKey,
+    AppLocalizationOptions
+} from "./createAppLocalization";
 
 export type {
     LocaleSearchFilterOptions,
@@ -76,6 +85,7 @@ export type {
     LocaleMessages,
     LocaleMessagesByLocale,
     LocaleNavigatorSource,
+    LocaleRequiredMessagesSource,
     LocaleSetOptions,
     LocaleTextProvider
 } from "./createLocaleController";

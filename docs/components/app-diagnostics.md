@@ -23,7 +23,7 @@ const diagnostics = createPublicAppDiagnosticsRunner({
     },
     locale,
     localeOptions: {
-        requiredMessages: appRequiredMessageKeys
+        requiredMessages: requiredMessageKeys
     }
 });
 

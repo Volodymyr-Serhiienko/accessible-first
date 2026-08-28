@@ -63,7 +63,7 @@ const app = createPublicLinkRoutedApp({
         },
         locale,
         localeOptions: {
-            requiredMessages: appRequiredMessageKeys
+            requiredMessages: requiredMessageKeys
         },
         logOnCreate: true
     }

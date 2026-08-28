@@ -36,6 +36,15 @@ export type LocaleMessages<TKey extends string = string> = Partial<Record<TKey, 
 export type LocaleMessagesByLocale<TKey extends string = string> = Record<string, LocaleMessages<TKey>>;
 
 /**
+ * Message-key source accepted by createRequiredLocaleMessageKeys().
+ */
+export type LocaleRequiredMessagesSource<TKey extends string = string> =
+    | LocaleMessages<TKey>
+    | readonly TKey[]
+    | null
+    | undefined;
+
+/**
  * Minimal localized text provider accepted by Accessible First components.
  */
 export interface LocaleTextProvider<TKey extends string = AccessibleFirstMessageKey> {
@@ -53,6 +62,34 @@ export function getLocaleText<TKey extends string>(
     params?: LocaleMessageParams
 ): string {
     return locale?.t(key, params) ?? fallback;
+}
+
+function isLocaleMessageKeyArray<TKey extends string>(
+    source: LocaleRequiredMessagesSource<TKey>
+): source is readonly TKey[] {
+    return Array.isArray(source);
+}
+
+/**
+ * Creates a stable, de-duplicated required-message list for localization diagnostics.
+ */
+export function createRequiredLocaleMessageKeys<TKey extends string = string>(
+    ...sources: Array<LocaleRequiredMessagesSource<TKey>>
+): TKey[] {
+    const keys = new Set<TKey>();
+
+    sources.forEach((source) => {
+        if (!source) return;
+
+        if (isLocaleMessageKeyArray(source)) {
+            source.forEach((key) => keys.add(key));
+            return;
+        }
+
+        (Object.keys(source) as TKey[]).forEach((key) => keys.add(key));
+    });
+
+    return [...keys];
 }
 
 /**

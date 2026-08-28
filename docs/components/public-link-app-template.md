@@ -67,7 +67,7 @@ const app = createPublicLinkAppTemplate({
     }),
     diagnostics: {
         localeOptions: {
-            requiredMessages: appRequiredMessageKeys
+            requiredMessages: requiredMessageKeys
         },
         logOnCreate: true,
         logOnRefresh: true

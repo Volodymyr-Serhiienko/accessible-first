@@ -84,10 +84,9 @@ Identity should be stable and app-owned. Use it for header brand defaults, docum
 
 ```ts
 import {
-    accessibleFirstEnglishMessages,
-    createLocaleController,
+    createAppLocalization,
     type AccessibleFirstMessageKey,
-    type LocaleController,
+    type LocaleMessageParams,
     type LocaleMessagesByLocale
 } from "@accessible-first/components";
 
@@ -106,8 +105,6 @@ export type AppMessageKey =
     | "routes.settings.title"
     | "routes.settings.description";
 
-export type AppLocaleController = LocaleController<AppLocale, AppMessageKey>;
-
 const messages = {
     en: {
         "app.brand.name": "Language Lab",
@@ -121,24 +118,25 @@ const messages = {
     }
 } satisfies LocaleMessagesByLocale<AppMessageKey>;
 
-export const locale: AppLocaleController = createLocaleController<AppLocale, AppMessageKey>({
+export const appLocalization = createAppLocalization<AppLocale, AppMessageKey>({
     supportedLocales,
     fallbackLocale: "en",
     storageKey: "language-lab.locale",
     messages
 });
 
-export const requiredMessageKeys = Array.from(new Set([
-    ...Object.keys(accessibleFirstEnglishMessages),
-    ...Object.keys(messages.en)
-])) as AppMessageKey[];
+export const locale = appLocalization.locale;
 
-export function t(key: AppMessageKey): string {
-    return locale.t(key);
+export const format = appLocalization.format;
+
+export const requiredMessageKeys = appLocalization.requiredMessageKeys;
+
+export function t(key: AppMessageKey, params?: LocaleMessageParams): string {
+    return appLocalization.t(key, params);
 }
 ```
 
-The first version can use simple string messages. Add formatters, plural rules, or app data translations only when a screen needs them.
+The first version can use simple string messages. `format` is available immediately for dates, numbers, lists, sorting, and plural categories when a screen needs localized data formatting.
 
 ## Step 4: Define Routes And Registry
 

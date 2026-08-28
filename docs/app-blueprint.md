@@ -71,9 +71,8 @@ export const appIdentity = createAppIdentity({
 - supported locale tuple;
 - app message-key union combined with `AccessibleFirstMessageKey`;
 - locale messages for framework service text and app copy;
-- one shared `createLocaleController()`;
-- optional `createLocaleFormatter()`;
-- small `t(key, params?)` helper.
+- one shared `createAppLocalization()` result;
+- exported `locale`, `format`, `requiredMessageKeys`, and `t(key, params?)`.
 
 `routes.ts` should define one route list and, for routed apps, one `createAppRouteRegistry()` result. The same route descriptors should feed navigation, breadcrumbs, search, command palette, document metadata, sitemap, safe route lookup, and diagnostics. Localized apps can add `localeKeys` to routes or keep the pure route list in `routes.ts` and put localized route resolvers in `routeText.ts`. Use `createLocalizedAppRouteText()` so route copy is translated once and reused everywhere. Shell text and outlet labels should use resolver functions when they depend on the active locale.
 
