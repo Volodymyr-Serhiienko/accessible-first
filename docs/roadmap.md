@@ -61,7 +61,7 @@ Current focus after the result/list foundation:
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
 - Start shaping the first app template from real playground wiring instead of adding unrelated components.
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
-- Use resolver-backed shell/outlet options and localized route text helpers for app-owned labels before starting the first reference app.
+- Keep resolver-backed shell/outlet options and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
 
 ### Exit Criteria For This Phase
 

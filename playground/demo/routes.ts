@@ -1,9 +1,4 @@
-import {
-    createAppRouteNavigationItems,
-    type AppIdentityRouteDiagnosticsOptions,
-    type ComposedNode
-} from "./af";
-import { playgroundAppIdentity } from "./appIdentity";
+import { type ComposedNode } from "./af";
 import {
     AccordionDemo,
     ActionsBarDemo,
@@ -111,8 +106,6 @@ export const playgroundRoutes: PlaygroundRoute[] = [
 
 export const initialPlaygroundRoute = markupRoute;
 
-export const playgroundNavigationItems = createAppRouteNavigationItems(playgroundRoutes);
-
 function normalizeRouteId(value: string): string {
     return value.replace(/^#/, "").trim();
 }
@@ -128,13 +121,3 @@ export function getPlaygroundRouteById(id: string | null | undefined): Playgroun
 export function getPlaygroundRouteByHash(hash = window.location.hash): PlaygroundRoute {
     return getPlaygroundRouteById(hash) ?? initialPlaygroundRoute;
 }
-
-export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
-    return route.description
-        ?? `${route.title} demo in the ${playgroundAppIdentity.name}.`;
-}
-
-export const playgroundRouteOptions: AppIdentityRouteDiagnosticsOptions<PlaygroundRoute> = {
-    baseUrl: new URL(".", window.location.href),
-    getDescription: getPlaygroundRouteDescription
-};

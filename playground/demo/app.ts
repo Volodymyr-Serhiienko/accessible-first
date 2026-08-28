@@ -12,7 +12,10 @@ import {
 } from "./localization";
 import { getPlaygroundRouteChromeOptions } from "./routeChrome";
 import {
-    playgroundRouteOptions,
+    getPlaygroundRouteTitle,
+    playgroundRouteOptions
+} from "./routeText";
+import {
     playgroundRoutes,
     type PlaygroundRoute
 } from "./routes";
@@ -35,7 +38,7 @@ export function createPlaygroundApp(): PlaygroundApp {
         router: {
             getAnnouncement(route) {
                 return t("app.route.loaded", {
-                    title: route.title
+                    title: getPlaygroundRouteTitle(route)
                 });
             }
         },

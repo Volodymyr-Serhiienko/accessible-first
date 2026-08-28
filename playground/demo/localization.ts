@@ -31,6 +31,7 @@ export type PlaygroundAppMessageKey =
     | "app.navigation.trigger"
     | "app.notifications.label"
     | "app.route.commandDescription"
+    | "app.route.description"
     | "app.route.loaded"
     | "app.route.outletLabel"
     | "app.route.searchDescription"
@@ -38,14 +39,140 @@ export type PlaygroundAppMessageKey =
     | "app.search.notFoundText"
     | "app.search.placeholder";
 
+export type PlaygroundRouteMessageKey = `routes.${string}.title`;
+
 export type PlaygroundMessageKey =
     | AccessibleFirstMessageKey
-    | PlaygroundAppMessageKey;
+    | PlaygroundAppMessageKey
+    | PlaygroundRouteMessageKey;
 
 export type PlaygroundLocaleController =
     LocaleController<PlaygroundLocale, PlaygroundMessageKey>;
 
+const enRouteMessages = {
+    "routes.markup.title": "Markup",
+    "routes.layout.title": "Layout",
+    "routes.buttons.title": "Buttons",
+    "routes.links.title": "Links",
+    "routes.icon-buttons.title": "Icon buttons",
+    "routes.badge.title": "Badge",
+    "routes.progress.title": "Progress",
+    "routes.pagination.title": "Pagination",
+    "routes.result-summary.title": "ResultSummary",
+    "routes.description-list.title": "DescriptionList",
+    "routes.table.title": "Table",
+    "routes.empty-state.title": "EmptyState",
+    "routes.info-card.title": "InfoCard",
+    "routes.actions-bar.title": "ActionsBar",
+    "routes.tooltip.title": "Tooltip",
+    "routes.disclosure.title": "Disclosure",
+    "routes.accordion.title": "Accordion",
+    "routes.popover.title": "Popover",
+    "routes.dialog.title": "Dialog",
+    "routes.alert-dialog.title": "Alert dialog",
+    "routes.toast.title": "Toast",
+    "routes.checkbox.title": "Checkbox",
+    "routes.radio-group.title": "RadioGroup",
+    "routes.switch.title": "Switch",
+    "routes.text-field.title": "TextField",
+    "routes.field-group.title": "FieldGroup",
+    "routes.form-section.title": "FormSection",
+    "routes.form.title": "Form",
+    "routes.breadcrumbs.title": "Breadcrumbs",
+    "routes.tabs.title": "Tabs",
+    "routes.listbox.title": "Listbox",
+    "routes.select.title": "Select",
+    "routes.combobox.title": "Combobox",
+    "routes.menu.title": "Menu",
+    "routes.settings-group.title": "SettingsGroup",
+    "routes.screen.title": "Screen",
+    "routes.list-detail.title": "ListDetail",
+    "routes.checks.title": "Manual checks"
+} satisfies LocaleMessages<PlaygroundRouteMessageKey>;
+
+const ukRouteMessages = {
+    "routes.markup.title": "Розмітка",
+    "routes.layout.title": "Макет",
+    "routes.buttons.title": "Кнопки",
+    "routes.links.title": "Посилання",
+    "routes.icon-buttons.title": "Кнопки з іконками",
+    "routes.badge.title": "Позначка",
+    "routes.progress.title": "Прогрес",
+    "routes.pagination.title": "Пагінація",
+    "routes.result-summary.title": "Підсумок результатів",
+    "routes.description-list.title": "Список описів",
+    "routes.table.title": "Таблиця",
+    "routes.empty-state.title": "Порожній стан",
+    "routes.info-card.title": "Інформаційна картка",
+    "routes.actions-bar.title": "Панель дій",
+    "routes.tooltip.title": "Підказка",
+    "routes.disclosure.title": "Розкривний блок",
+    "routes.accordion.title": "Акордеон",
+    "routes.popover.title": "Спливна панель",
+    "routes.dialog.title": "Діалог",
+    "routes.alert-dialog.title": "Важливий діалог",
+    "routes.toast.title": "Сповіщення",
+    "routes.checkbox.title": "Прапорець",
+    "routes.radio-group.title": "Група перемикачів",
+    "routes.switch.title": "Перемикач",
+    "routes.text-field.title": "Текстове поле",
+    "routes.field-group.title": "Група полів",
+    "routes.form-section.title": "Секція форми",
+    "routes.form.title": "Форма",
+    "routes.breadcrumbs.title": "Навігаційний ланцюжок",
+    "routes.tabs.title": "Вкладки",
+    "routes.listbox.title": "Список вибору",
+    "routes.select.title": "Вибір",
+    "routes.combobox.title": "Комбінований список",
+    "routes.menu.title": "Меню",
+    "routes.settings-group.title": "Група налаштувань",
+    "routes.screen.title": "Екран",
+    "routes.list-detail.title": "Список і деталі",
+    "routes.checks.title": "Ручні перевірки"
+} satisfies LocaleMessages<PlaygroundRouteMessageKey>;
+
+const ruRouteMessages = {
+    "routes.markup.title": "Разметка",
+    "routes.layout.title": "Макет",
+    "routes.buttons.title": "Кнопки",
+    "routes.links.title": "Ссылки",
+    "routes.icon-buttons.title": "Кнопки с иконками",
+    "routes.badge.title": "Метка",
+    "routes.progress.title": "Прогресс",
+    "routes.pagination.title": "Пагинация",
+    "routes.result-summary.title": "Сводка результатов",
+    "routes.description-list.title": "Список описаний",
+    "routes.table.title": "Таблица",
+    "routes.empty-state.title": "Пустое состояние",
+    "routes.info-card.title": "Информационная карточка",
+    "routes.actions-bar.title": "Панель действий",
+    "routes.tooltip.title": "Подсказка",
+    "routes.disclosure.title": "Раскрываемый блок",
+    "routes.accordion.title": "Аккордеон",
+    "routes.popover.title": "Всплывающая панель",
+    "routes.dialog.title": "Диалог",
+    "routes.alert-dialog.title": "Важный диалог",
+    "routes.toast.title": "Уведомления",
+    "routes.checkbox.title": "Флажок",
+    "routes.radio-group.title": "Группа переключателей",
+    "routes.switch.title": "Переключатель",
+    "routes.text-field.title": "Текстовое поле",
+    "routes.field-group.title": "Группа полей",
+    "routes.form-section.title": "Секция формы",
+    "routes.form.title": "Форма",
+    "routes.breadcrumbs.title": "Навигационная цепочка",
+    "routes.tabs.title": "Вкладки",
+    "routes.listbox.title": "Список выбора",
+    "routes.select.title": "Выбор",
+    "routes.combobox.title": "Комбинированный список",
+    "routes.menu.title": "Меню",
+    "routes.settings-group.title": "Группа настроек",
+    "routes.screen.title": "Экран",
+    "routes.list-detail.title": "Список и детали",
+    "routes.checks.title": "Ручные проверки"
+} satisfies LocaleMessages<PlaygroundRouteMessageKey>;
 const enMessages = {
+    ...enRouteMessages,
     "app.brand.homeLabel": "Accessible First Playground home",
     "app.brand.name": playgroundAppIdentity.name,
     "app.brand.tagline": "WCAG-first components and page composition",
@@ -63,6 +190,7 @@ const enMessages = {
     "app.navigation.trigger": "Sections",
     "app.notifications.label": "Playground notifications",
     "app.route.commandDescription": "Open the {title} demo section.",
+    "app.route.description": "{title} demo in the {appName}.",
     "app.route.loaded": "{title} demo loaded.",
     "app.route.outletLabel": "Playground demo content",
     "app.route.searchDescription": "Open the {title} section.",
@@ -72,6 +200,7 @@ const enMessages = {
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ukMessages = {
+    ...ukRouteMessages,
     "alertDialog.cancelText": "Скасувати",
     "alertDialog.confirmText": "Підтвердити",
     "breadcrumbs.label": "Навігаційний ланцюжок",
@@ -138,6 +267,7 @@ const ukMessages = {
     "app.navigation.trigger": "Розділи",
     "app.notifications.label": "Сповіщення playground",
     "app.route.commandDescription": "Відкрити деморозділ {title}.",
+    "app.route.description": "Деморозділ {title} у {appName}.",
     "app.route.loaded": "Деморозділ {title} завантажено.",
     "app.route.outletLabel": "Вміст деморозділу playground",
     "app.route.searchDescription": "Відкрити розділ {title}.",
@@ -147,6 +277,7 @@ const ukMessages = {
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ruMessages = {
+    ...ruRouteMessages,
     "alertDialog.cancelText": "Отмена",
     "alertDialog.confirmText": "Подтвердить",
     "breadcrumbs.label": "Навигационная цепочка",
@@ -213,6 +344,7 @@ const ruMessages = {
     "app.navigation.trigger": "Разделы",
     "app.notifications.label": "Уведомления playground",
     "app.route.commandDescription": "Открыть демо-раздел {title}.",
+    "app.route.description": "Демо-раздел {title} в {appName}.",
     "app.route.loaded": "Демо-раздел {title} загружен.",
     "app.route.outletLabel": "Содержимое демо-раздела playground",
     "app.route.searchDescription": "Открыть раздел {title}.",

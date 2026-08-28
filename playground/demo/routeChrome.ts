@@ -10,6 +10,11 @@ import {
     type PlaygroundMessageKey
 } from "./localization";
 import {
+    getPlaygroundRouteTitle,
+    playgroundBreadcrumbItemsOptions,
+    playgroundRouteText
+} from "./routeText";
+import {
     playgroundRoutes,
     type PlaygroundRoute
 } from "./routes";
@@ -30,7 +35,8 @@ export function getPlaygroundRouteChromeOptions(
             trigger: t("app.navigation.trigger"),
             triggerIconPosition: "start",
             variant: "pills",
-            locale: playgroundLocale
+            locale: playgroundLocale,
+            navigationItemsOptions: playgroundRouteText.navigationItemsOptions
         },
         breadcrumbs: {
             className: "playground-breadcrumbs",
@@ -40,7 +46,8 @@ export function getPlaygroundRouteChromeOptions(
                 title: t("app.breadcrumbs.rootLabel"),
                 label: t("app.breadcrumbs.rootLabel"),
                 href: "#markup"
-            }
+            },
+            breadcrumbItemsOptions: playgroundBreadcrumbItemsOptions
         },
         search: {
             className: "playground-search",
@@ -56,13 +63,18 @@ export function getPlaygroundRouteChromeOptions(
             width: "14rem",
             searchLocale: playgroundLocale,
             searchItemsOptions: {
+                ...playgroundRouteText.searchItemsOptions,
                 getDescription(route) {
                     return t("app.route.searchDescription", {
-                        title: route.title
+                        title: getPlaygroundRouteTitle(route)
                     });
                 },
-                getKeywords() {
-                    return ["component", "demo"];
+                getKeywords(route) {
+                    return [
+                        ...playgroundRouteText.getKeywords(route),
+                        "component",
+                        "demo"
+                    ];
                 }
             }
         },
@@ -82,13 +94,21 @@ export function getPlaygroundRouteChromeOptions(
                 searchLocale: playgroundLocale
             },
             searchItemsOptions: {
+                ...playgroundRouteText.searchItemsOptions,
                 getDescription(route) {
                     return t("app.route.commandDescription", {
-                        title: route.title
+                        title: getPlaygroundRouteTitle(route)
                     });
                 },
                 getKeywords(route) {
-                    return ["open", "go", "section", "demo", route.id, route.title, route.label];
+                    return [
+                        ...playgroundRouteText.getKeywords(route),
+                        "open",
+                        "go",
+                        "section",
+                        "demo",
+                        route.id
+                    ];
                 }
             }
         },
