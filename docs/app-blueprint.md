@@ -26,6 +26,7 @@ A first app can use this structure:
 src/
   main.ts
   app/
+    app.ts
     identity.ts
     localization.ts
     metadata.ts
@@ -42,7 +43,7 @@ src/
   styles.css
 ```
 
-For a small app, `shell.ts`, `routeChrome.ts`, and `diagnostics.ts` can remain in `main.ts`. Split them only when the file stops being easy to scan.
+`main.ts` should stay deliberately small: import global styles, call the app factory, and avoid owning route, shell, metadata, or diagnostics wiring. For a small app, `shell.ts`, `routeChrome.ts`, and `diagnostics.ts` can remain in `app.ts`. Split them only when the app factory stops being easy to scan.
 
 ## App-Owned Declarations
 
@@ -77,19 +78,30 @@ export const appIdentity = createAppIdentity({
 
 ## Runtime Entry
 
-The standard entry point should use `createPublicAppTemplate()`:
+The runtime entry should keep `main.ts` thin:
 
 ```ts
-const app = createPublicAppTemplate({
-    routes,
-    mount: "#app",
-    locale,
-    identity: appIdentity,
-    routeMetadata,
-    shell: getShellOptions(),
-    routeChrome: getRouteChromeOptions,
-    diagnostics: getDiagnosticsOptions()
-});
+import "./styles.css";
+import { createApp } from "./app/app";
+
+createApp();
+```
+
+The app factory should use `createPublicAppTemplate()`:
+
+```ts
+export function createApp() {
+    return createPublicAppTemplate({
+        routes,
+        mount: "#app",
+        locale,
+        identity: appIdentity,
+        routeMetadata,
+        shell: getShellOptions(),
+        routeChrome: getRouteChromeOptions,
+        diagnostics: getDiagnosticsOptions()
+    });
+}
 ```
 
 Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation.
@@ -153,6 +165,8 @@ The first reference application will be an accessible foreign-language learning 
 
 The app should stay small enough to reason about, but real enough to expose framework gaps.
 
+The legacy version of the language-learning app should be brought in after the app template and starter scaffold are stable. That keeps migration grounded in real product behavior while avoiding early rewrites around an unfinished app shape.
+
 ## Promotion Rule
 
 Do not move code from an application into the framework just because it exists once.
@@ -174,7 +188,7 @@ A future starter generator should create the blueprint structure with sensible d
 - `identity.ts` from app name, description, colors, and icons;
 - `localization.ts` with framework service keys and app keys;
 - `routes.ts` with starter route metadata;
-- `main.ts` using `createPublicAppTemplate()`;
+- thin `main.ts` plus `app.ts` using `createPublicAppTemplate()`;
 - starter screens using `Screen` and semantic composition;
 - manifest, metadata, diagnostics, and public-page helpers wired by default.
 

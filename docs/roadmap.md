@@ -60,6 +60,7 @@ Current focus after the result/list foundation:
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
 - Start shaping the first app template from real playground wiring instead of adding unrelated components.
+- Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 
 ### Exit Criteria For This Phase
 
@@ -83,12 +84,13 @@ Planned sequence, ordered toward the first usable generated app:
 2. Keep [Application Blueprint](./app-blueprint.md) as the current contract for first-app structure: identity, routes, locale file, metadata, manifest, diagnostics, header tools, route chrome, layout, and focus routes.
 3. Remove duplicated app-shell glue from the playground only when the blueprint abstraction is cleaner than the current code.
 4. Add a lightweight application scaffold/generator once the blueprint API is stable enough to create a starter site without manual wiring.
-5. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
-6. Start the first reference application: an accessible foreign-language learning app.
-7. Validate real workflows in that application: lesson list/detail, vocabulary list/detail, practice screen, settings screen, progress feedback, form validation, user preferences, desktop keyboard routes, and mobile screen reader routes.
-8. Add header/navigation variants only when the first app or generated site needs them: top navigation, sidebar navigation, mobile navigation, sticky/fixed/reveal chrome, and action overflow.
-9. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
-10. Keep component expansion tied to the reference app, not to a theoretical catalog.
+5. Treat the stable scaffold as the handoff point for the legacy language-learning app code: after this point, the old app can be reviewed and migrated instead of guessed from memory.
+6. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
+7. Start the first reference application: an accessible foreign-language learning app, migrated from the legacy project into the new Accessible First app structure.
+8. Validate real workflows in that application: lesson list/detail, vocabulary list/detail, practice screen, settings screen, progress feedback, form validation, user preferences, desktop keyboard routes, and mobile screen reader routes.
+9. Add header/navigation variants only when the first app or generated site needs them: top navigation, sidebar navigation, mobile navigation, sticky/fixed/reveal chrome, and action overflow.
+10. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
+11. Keep component expansion tied to the reference app, not to a theoretical catalog.
 
 ## Component Expansion Queue
 
