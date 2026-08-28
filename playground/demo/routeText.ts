@@ -50,22 +50,9 @@ export function getPlaygroundRouteTitle(route: PlaygroundRoute): string {
 }
 
 /**
- * Returns the active-locale route description used by metadata and diagnostics.
- */
-export function getPlaygroundRouteDescription(route: PlaygroundRoute): string {
-    return playgroundRouteText.getDescription(route)
-        ?? t("app.route.description", {
-            appName: playgroundAppIdentity.name,
-            title: getPlaygroundRouteTitle(route)
-        });
-}
-
-/**
  * Identity-aware route metadata and diagnostics options for the playground app template.
  */
 export const playgroundRouteOptions: AppIdentityRouteDiagnosticsOptions<PlaygroundRoute> = {
     baseUrl: new URL(".", window.location.href),
-    getTitle: playgroundRouteText.getDocumentTitle,
-    getDocumentTitle: playgroundRouteText.getDocumentTitle,
-    getDescription: getPlaygroundRouteDescription
+    ...playgroundRouteText.routeOptions
 };

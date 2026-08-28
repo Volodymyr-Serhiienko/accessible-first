@@ -70,6 +70,19 @@ export interface LocalizedAppRouteTextOptions<
 }
 
 /**
+ * Combined route metadata and diagnostics resolvers generated from localized route text.
+ */
+export type LocalizedAppRouteTextRouteOptions<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = Pick<
+    AppRouteDocumentMetadataOptions<TRoute>,
+    "getTitle" | "getDescription"
+> & Pick<
+    AppRouteDiagnosticsOptions<TRoute>,
+    "getDocumentTitle"
+>;
+
+/**
  * Localized route text resolvers and ready-to-pass route helper options.
  */
 export interface LocalizedAppRouteText<
@@ -93,6 +106,8 @@ export interface LocalizedAppRouteText<
     readonly searchItemsOptions: AppRouteSearchItemsOptions<TRoute>;
     /** Breadcrumb item resolvers using localized route text. */
     readonly breadcrumbItemsOptions: AppRouteBreadcrumbItemsOptions<TRoute>;
+    /** Combined metadata and diagnostics resolvers using localized route text. */
+    readonly routeOptions: LocalizedAppRouteTextRouteOptions<TRoute>;
     /** Document metadata resolvers using localized route text. */
     readonly documentMetadataOptions: Pick<
         AppRouteDocumentMetadataOptions<TRoute>,
@@ -266,6 +281,11 @@ export function createLocalizedAppRouteText<
         },
         breadcrumbItemsOptions: {
             getLabel
+        },
+        routeOptions: {
+            getTitle: getDocumentTitle,
+            getDocumentTitle,
+            getDescription
         },
         documentMetadataOptions: {
             getTitle: getDocumentTitle,

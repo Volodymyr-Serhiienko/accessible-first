@@ -101,7 +101,9 @@ export type AppMessageKey =
     | "app.brand.tagline"
     | "app.navigation.skipLink"
     | "routes.home.title"
-    | "routes.settings.title";
+    | "routes.home.description"
+    | "routes.settings.title"
+    | "routes.settings.description";
 
 export type AppLocaleController = LocaleController<AppLocale, AppMessageKey>;
 
@@ -111,7 +113,9 @@ const messages = {
         "app.brand.tagline": "Practice words, lessons, and progress accessibly.",
         "app.navigation.skipLink": "Skip to navigation",
         "routes.home.title": "Home",
-        "routes.settings.title": "Settings"
+        "routes.home.description": "Start lessons, practice sessions, and progress review.",
+        "routes.settings.title": "Settings",
+        "routes.settings.description": "Adjust language, accessibility, and practice preferences."
     }
 } satisfies LocaleMessagesByLocale<AppMessageKey>;
 
@@ -158,6 +162,7 @@ export const routes: AppRoute[] = [
         localeKeys: {
             title: "routes.home.title",
             label: "routes.home.title",
+            description: "routes.home.description",
             documentTitle: "routes.home.title"
         },
         render: HomeScreen
@@ -169,6 +174,7 @@ export const routes: AppRoute[] = [
         localeKeys: {
             title: "routes.settings.title",
             label: "routes.settings.title",
+            description: "routes.settings.description",
             documentTitle: "routes.settings.title"
         },
         render: SettingsScreen
@@ -190,7 +196,6 @@ import {
     createLocalizedAppRouteText,
     type AppIdentityRouteDiagnosticsOptions
 } from "@accessible-first/components";
-import { appIdentity } from "./identity";
 import { locale, type AppMessageKey } from "./localization";
 import type { AppRoute } from "./routes";
 
@@ -200,12 +205,7 @@ export const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
 
 export const routeMetadata: AppIdentityRouteDiagnosticsOptions<AppRoute> = {
     baseUrl: new URL(".", window.location.href),
-    getTitle: routeText.getDocumentTitle,
-    getDocumentTitle: routeText.getDocumentTitle,
-    getDescription(route) {
-        return routeText.getDescription(route)
-            ?? `${routeText.getTitle(route)} screen in ${appIdentity.name}.`;
-    }
+    ...routeText.routeOptions
 };
 ```
 

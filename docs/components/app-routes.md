@@ -165,11 +165,15 @@ createAppRouteDocumentMetadata(currentRoute, {
     appTitle: t("app.title")
 });
 
-inspectPublicAppRoutes(routes, {
-    ...routeText.diagnosticsOptions,
-    baseUrl: "https://example.com/app/"
-});
+const routeOptions = {
+    baseUrl: "https://example.com/app/",
+    ...routeText.routeOptions
+};
+
+inspectPublicAppRoutes(routes, routeOptions);
 ```
+
+`routeText.routeOptions` combines the document-title, route-title, and description resolvers for app metadata and route diagnostics. Use the narrower `documentMetadataOptions` or `diagnosticsOptions` only when a lower-level helper needs one side of that pair.
 
 `localeKeys` is intentionally optional. Missing keys fall back to route fields, so routes stay useful for diagnostics, development, and unsupported locales. Use `getKeys` when an application stores translation keys in a different shape, and `getParams` when route messages need extra interpolation data.
 
@@ -413,7 +417,7 @@ This keeps the same route metadata useful for hash-routed apps, static pages, se
 - `getAppRouteDocumentDescription(route)` - returns the description intended for document metadata.
 - `getAppRouteDocumentTitle(route, options)` - returns the document title for a route.
 - `createAppRouteDocumentMetadata(route, options)` - creates document metadata update options from route metadata.
-- `createLocalizedAppRouteText(options)` - creates localized route text resolvers and ready-to-pass navigation, search, breadcrumbs, metadata, and diagnostics options.
+- `createLocalizedAppRouteText(options)` - creates localized route text resolvers and ready-to-pass navigation, search, breadcrumbs, combined route metadata/diagnostics, metadata-only, and diagnostics-only options.
 - `createPublicAppRouteDiagnosticsOptions(options)` - merges route diagnostics options with public-app metadata requirements.
 - `inspectAppRoutes(routes, options)` - checks route ids, hrefs, parent hierarchy, and optional metadata requirements.
 - `inspectPublicAppRoutes(routes, options)` - checks routes with public-app metadata requirements enabled.

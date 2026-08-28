@@ -75,7 +75,8 @@ export type {
     AppRouteLocaleTextParamsResolver,
     AppRouteLocaleTextRoute,
     LocalizedAppRouteText,
-    LocalizedAppRouteTextOptions
+    LocalizedAppRouteTextOptions,
+    LocalizedAppRouteTextRouteOptions
 } from "./createLocalizedAppRouteText";
 export type {
     AppRouteSitemapChangeFrequency,
