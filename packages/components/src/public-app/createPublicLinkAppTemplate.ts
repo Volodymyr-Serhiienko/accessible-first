@@ -1,4 +1,3 @@
-import type { AppShellUpdateOptions } from "../app-shell";
 import type { LocaleCode } from "../localization";
 import {
     createLinkAppRouteChromeRenderer,
@@ -13,14 +12,16 @@ import type {
 import {
     createPublicLinkRoutedApp,
     type PublicLinkRoutedApp,
+    type PublicLinkRoutedAppDiagnosticsOptions,
     type PublicLinkRoutedAppOptions,
     type PublicLinkRoutedAppRoute
 } from "./createPublicLinkRoutedApp";
 import {
+    getPublicAppTemplateDiagnosticsOptions,
     getPublicAppTemplateShellOptions,
     getPublicAppTemplateShellUpdateOptions,
-    hasPublicAppTemplateShellUpdateOptions,
-    isPublicAppTemplateLocaleController,
+    resolvePublicAppTemplateContextValue,
+    withPublicAppTemplateShellUpdate,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
     type PublicAppTemplateShellOptions as SharedPublicAppTemplateShellOptions,
     type PublicAppTemplateValue as SharedPublicAppTemplateValue
@@ -75,40 +76,6 @@ export type PublicLinkAppTemplate<
     TRoute extends PublicLinkRoutedAppRoute = PublicLinkRoutedAppRoute
 > = PublicLinkRoutedApp<TRoute>;
 
-function resolveRouteChromeOptions<
-    TRoute extends PublicLinkRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    routeChrome: PublicLinkAppTemplateRouteChromeOptions<TRoute, TLocale, TKey>,
-    context: LinkRoutedAppContext<TRoute>
-): LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-    return typeof routeChrome === "function"
-        ? routeChrome(context)
-        : routeChrome;
-}
-
-function withTemplateShellUpdate<
-    TRoute extends PublicLinkRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    routeChromeOptions: LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey>,
-    shellUpdateOptions: AppShellUpdateOptions
-): LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-    if (!hasPublicAppTemplateShellUpdateOptions(shellUpdateOptions) && routeChromeOptions.shell === undefined) {
-        return routeChromeOptions;
-    }
-
-    return {
-        ...routeChromeOptions,
-        shell: {
-            ...shellUpdateOptions,
-            ...(routeChromeOptions.shell ?? {})
-        }
-    };
-}
-
 function createTemplateRouteChromeRenderer<
     TRoute extends PublicLinkRoutedAppRoute,
     TLocale extends LocaleCode,
@@ -116,12 +83,14 @@ function createTemplateRouteChromeRenderer<
 >(
     options: PublicLinkAppTemplateOptions<TRoute, TLocale, TKey>
 ): LinkRoutedAppChromeRenderer<TRoute> | undefined {
-    if (options.routeChrome === undefined || options.routeChrome === false) return undefined;
+    const routeChrome = options.routeChrome;
+
+    if (routeChrome === undefined || routeChrome === false) return undefined;
 
     const rendererOptions = {
         options(context: LinkRoutedAppContext<TRoute>): LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-            return withTemplateShellUpdate(
-                resolveRouteChromeOptions(options.routeChrome as PublicLinkAppTemplateRouteChromeOptions<TRoute, TLocale, TKey>, context),
+            return withPublicAppTemplateShellUpdate(
+                resolvePublicAppTemplateContextValue(routeChrome, context),
                 getPublicAppTemplateShellUpdateOptions(options)
             );
         }
@@ -135,27 +104,6 @@ function createTemplateRouteChromeRenderer<
     }
 
     return createLinkAppRouteChromeRenderer<TRoute, TLocale, TKey>(rendererOptions);
-}
-
-function getTemplateDiagnosticsOptions<
-    TRoute extends PublicLinkRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    options: PublicLinkAppTemplateOptions<TRoute, TLocale, TKey>
-): PublicLinkRoutedAppOptions<TRoute, TLocale, TKey>["diagnostics"] {
-    if (options.diagnostics === false) return false;
-
-    const diagnosticsOptions = options.diagnostics ?? {};
-
-    if (diagnosticsOptions.locale !== undefined || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
-        return diagnosticsOptions;
-    }
-
-    return {
-        ...diagnosticsOptions,
-        locale: options.locale
-    };
 }
 
 /**
@@ -177,7 +125,11 @@ export function createPublicLinkAppTemplate<
         ...publicAppOptions,
         shell: getPublicAppTemplateShellOptions(options)
     };
-    const diagnostics = getTemplateDiagnosticsOptions(options);
+    const diagnostics = getPublicAppTemplateDiagnosticsOptions<
+        TLocale,
+        TKey,
+        PublicLinkRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute>
+    >(options);
     const renderChrome = createTemplateRouteChromeRenderer(options);
 
     if (diagnostics !== undefined) {

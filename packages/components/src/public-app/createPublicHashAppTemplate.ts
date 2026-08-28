@@ -1,4 +1,3 @@
-import type { AppShellUpdateOptions } from "../app-shell";
 import type { LocaleCode } from "../localization";
 import {
     createHashAppRouteChromeRenderer,
@@ -14,14 +13,16 @@ import type { HashRouterNavigateOptions } from "../routing";
 import {
     createPublicHashRoutedApp,
     type PublicHashRoutedApp,
+    type PublicHashRoutedAppDiagnosticsOptions,
     type PublicHashRoutedAppOptions,
     type PublicHashRoutedAppRoute
 } from "./createPublicHashRoutedApp";
 import {
+    getPublicAppTemplateDiagnosticsOptions,
     getPublicAppTemplateShellOptions,
     getPublicAppTemplateShellUpdateOptions,
-    hasPublicAppTemplateShellUpdateOptions,
-    isPublicAppTemplateLocaleController,
+    resolvePublicAppTemplateContextValue,
+    withPublicAppTemplateShellUpdate,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
     type PublicAppTemplateShellOptions as SharedPublicAppTemplateShellOptions,
     type PublicAppTemplateValue as SharedPublicAppTemplateValue
@@ -82,40 +83,6 @@ const defaultStartOptions: HashRouterNavigateOptions = {
     focusTarget: null
 };
 
-function resolveRouteChromeOptions<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    routeChrome: PublicHashAppTemplateRouteChromeOptions<TRoute, TLocale, TKey>,
-    context: HashRoutedAppContext<TRoute>
-): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-    return typeof routeChrome === "function"
-        ? routeChrome(context)
-        : routeChrome;
-}
-
-function withTemplateShellUpdate<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    routeChromeOptions: HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>,
-    shellUpdateOptions: AppShellUpdateOptions
-): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-    if (!hasPublicAppTemplateShellUpdateOptions(shellUpdateOptions) && routeChromeOptions.shell === undefined) {
-        return routeChromeOptions;
-    }
-
-    return {
-        ...routeChromeOptions,
-        shell: {
-            ...shellUpdateOptions,
-            ...(routeChromeOptions.shell ?? {})
-        }
-    };
-}
-
 function createTemplateRouteChromeRenderer<
     TRoute extends PublicHashRoutedAppRoute,
     TLocale extends LocaleCode,
@@ -123,12 +90,14 @@ function createTemplateRouteChromeRenderer<
 >(
     options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>
 ): HashRoutedAppChromeRenderer<TRoute> | undefined {
-    if (options.routeChrome === undefined || options.routeChrome === false) return undefined;
+    const routeChrome = options.routeChrome;
+
+    if (routeChrome === undefined || routeChrome === false) return undefined;
 
     const rendererOptions = {
         options(context: HashRoutedAppContext<TRoute>): HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-            return withTemplateShellUpdate(
-                resolveRouteChromeOptions(options.routeChrome as PublicHashAppTemplateRouteChromeOptions<TRoute, TLocale, TKey>, context),
+            return withPublicAppTemplateShellUpdate(
+                resolvePublicAppTemplateContextValue(routeChrome, context),
                 getPublicAppTemplateShellUpdateOptions(options)
             );
         }
@@ -142,27 +111,6 @@ function createTemplateRouteChromeRenderer<
     }
 
     return createHashAppRouteChromeRenderer<TRoute, TLocale, TKey>(rendererOptions);
-}
-
-function getTemplateDiagnosticsOptions<
-    TRoute extends PublicHashRoutedAppRoute,
-    TLocale extends LocaleCode,
-    TKey extends string
->(
-    options: PublicHashAppTemplateOptions<TRoute, TLocale, TKey>
-): PublicHashRoutedAppOptions<TRoute, TLocale, TKey>["diagnostics"] {
-    if (options.diagnostics === false) return false;
-
-    const diagnosticsOptions = options.diagnostics ?? {};
-
-    if (diagnosticsOptions.locale !== undefined || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
-        return diagnosticsOptions;
-    }
-
-    return {
-        ...diagnosticsOptions,
-        locale: options.locale
-    };
 }
 
 /**
@@ -185,7 +133,11 @@ export function createPublicHashAppTemplate<
         ...publicAppOptions,
         shell: getPublicAppTemplateShellOptions(options)
     };
-    const diagnostics = getTemplateDiagnosticsOptions(options);
+    const diagnostics = getPublicAppTemplateDiagnosticsOptions<
+        TLocale,
+        TKey,
+        PublicHashRoutedAppDiagnosticsOptions<TLocale, TKey, TRoute>
+    >(options);
     const renderChrome = createTemplateRouteChromeRenderer(options);
 
     if (diagnostics !== undefined) {

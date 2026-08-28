@@ -1,3 +1,4 @@
+import type { PublicAppDiagnosticsLocaleResolver } from "../app-diagnostics";
 import type {
     AppShellOptions,
     AppShellOutletOptions,
@@ -14,6 +15,11 @@ import type {
  * Static value or zero-argument resolver accepted by public app templates.
  */
 export type PublicAppTemplateValue<TValue> = TValue | (() => TValue);
+
+/**
+ * Static value or context-aware resolver accepted by public app template internals.
+ */
+export type PublicAppTemplateContextValue<TValue, TContext> = TValue | ((context: TContext) => TValue);
 
 /**
  * Initial metadata accepted by public app template shell options.
@@ -52,6 +58,18 @@ export interface PublicAppTemplateBaseOptions {
 }
 
 /**
+ * Minimal template options needed to attach a locale controller to diagnostics defaults.
+ */
+export interface PublicAppTemplateDiagnosticsBaseOptions<
+    TLocale extends LocaleCode,
+    TKey extends string,
+    TDiagnosticsOptions extends { locale?: PublicAppDiagnosticsLocaleResolver<TLocale, TKey> }
+> extends PublicAppTemplateBaseOptions {
+    /** Diagnostics options accepted by the concrete public app template, or false to disable diagnostics. */
+    diagnostics?: TDiagnosticsOptions | false;
+}
+
+/**
  * Resolves a static template value or calls its zero-argument resolver.
  */
 export function resolvePublicAppTemplateValue<TValue>(
@@ -59,6 +77,18 @@ export function resolvePublicAppTemplateValue<TValue>(
 ): TValue | undefined {
     return typeof value === "function"
         ? (value as () => TValue)()
+        : value;
+}
+
+/**
+ * Resolves a static template value or calls its context-aware resolver.
+ */
+export function resolvePublicAppTemplateContextValue<TValue, TContext>(
+    value: PublicAppTemplateContextValue<TValue, TContext>,
+    context: TContext
+): TValue {
+    return typeof value === "function"
+        ? (value as (context: TContext) => TValue)(context)
         : value;
 }
 
@@ -100,6 +130,52 @@ function getPublicAppTemplateShellLocale(
     if (isPublicAppTemplateLocaleTextProvider(options.locale)) return options.locale;
 
     return undefined;
+}
+
+/**
+ * Adds resolver-backed shell updates to route chrome options when locale refresh needs them.
+ */
+export function withPublicAppTemplateShellUpdate<
+    TOptions extends { shell?: AppShellUpdateOptions }
+>(
+    routeChromeOptions: TOptions,
+    shellUpdateOptions: AppShellUpdateOptions
+): TOptions {
+    if (!hasPublicAppTemplateShellUpdateOptions(shellUpdateOptions) && routeChromeOptions.shell === undefined) {
+        return routeChromeOptions;
+    }
+
+    return {
+        ...routeChromeOptions,
+        shell: {
+            ...shellUpdateOptions,
+            ...(routeChromeOptions.shell ?? {})
+        }
+    } as TOptions;
+}
+
+/**
+ * Adds the app locale controller to diagnostics defaults when the concrete template can infer it safely.
+ */
+export function getPublicAppTemplateDiagnosticsOptions<
+    TLocale extends LocaleCode,
+    TKey extends string,
+    TDiagnosticsOptions extends { locale?: PublicAppDiagnosticsLocaleResolver<TLocale, TKey> }
+>(
+    options: PublicAppTemplateDiagnosticsBaseOptions<TLocale, TKey, TDiagnosticsOptions>
+): TDiagnosticsOptions | false | undefined {
+    if (options.diagnostics === false) return false;
+
+    const diagnosticsOptions = (options.diagnostics ?? {}) as TDiagnosticsOptions;
+
+    if (diagnosticsOptions.locale !== undefined || !isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
+        return diagnosticsOptions;
+    }
+
+    return {
+        ...diagnosticsOptions,
+        locale: options.locale
+    } as TDiagnosticsOptions;
 }
 
 /**
