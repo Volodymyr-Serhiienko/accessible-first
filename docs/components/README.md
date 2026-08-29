@@ -74,6 +74,7 @@ Each component document should contain:
 - [AppIdentity](./app-identity.md)
 - [AppShell](./app-shell.md)
 - [App Routes](./app-routes.md)
+- [AppScreenRoute](./app-screen-route.md)
 - [App Route Sitemap](./app-route-sitemap.md)
 - [DocumentMetadata](./document-metadata.md)
 - [FocusRoute](./focus-route.md)

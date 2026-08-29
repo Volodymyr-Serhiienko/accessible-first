@@ -325,8 +325,10 @@ export function inspectPage(
     const navs = root.querySelectorAll("nav");
     const footers = root.querySelectorAll("footer");
     const h1s = root.querySelectorAll("h1");
+    const landmarkOptions = options.landmarks ?? {};
+    const headingOptions = options.headings ?? {};
 
-    if (headers.length === 0) {
+    if ((landmarkOptions.requireHeader ?? true) && headers.length === 0) {
         issues.push(createIssue("warning", "landmark", "page.header.missing", "Page has no header landmark."));
     }
 
@@ -338,19 +340,19 @@ export function inspectPage(
         issues.push(createIssue("error", "landmark", "page.main.multiple", "Page has more than one main landmark."));
     }
 
-    if (navs.length === 0) {
+    if ((landmarkOptions.requireNavigation ?? true) && navs.length === 0) {
         issues.push(createIssue("warning", "landmark", "page.navigation.missing", "Page has no navigation landmark."));
     }
 
-    if (footers.length === 0) {
+    if ((landmarkOptions.requireFooter ?? true) && footers.length === 0) {
         issues.push(createIssue("info", "landmark", "page.footer.missing", "Page has no footer landmark."));
     }
 
-    if (h1s.length === 0) {
+    if ((headingOptions.requireH1 ?? true) && h1s.length === 0) {
         issues.push(createIssue("warning", "heading", "page.h1.missing", "Page has no h1."));
     }
 
-    if (h1s.length > 1) {
+    if (!(headingOptions.allowMultipleH1 ?? false) && h1s.length > 1) {
         issues.push(createIssue("warning", "heading", "page.h1.multiple", "Page has more than one h1."));
     }
 

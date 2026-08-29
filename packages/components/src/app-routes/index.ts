@@ -25,6 +25,10 @@ export {
     createAppRouteRegistry
 } from "./createAppRouteRegistry";
 export {
+    createAppScreenRoute,
+    createAppScreenRoutes
+} from "./createAppScreenRoute";
+export {
     createLocalizedAppRouteText
 } from "./createLocalizedAppRouteText";
 export {
@@ -69,6 +73,12 @@ export type {
     AppRouteRegistryOptions,
     AppRouteRegistryRouteInput
 } from "./createAppRouteRegistry";
+export type {
+    AppScreenRoute,
+    AppScreenRouteOptions,
+    AppScreenRouteScreenOptions,
+    AppScreenRouteSlot
+} from "./createAppScreenRoute";
 export type {
     AppRouteLoadedAnnouncementResolver,
     AppRouteLocaleTextKeys,

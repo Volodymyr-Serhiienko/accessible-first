@@ -3,7 +3,10 @@ import type {
     AppRouteDescriptor,
     LocalizedAppRouteText
 } from "../app-routes";
-import type { AppIdentity } from "../app-identity";
+import {
+    createAppIdentityDocumentMetadata,
+    type AppIdentity
+} from "../app-identity";
 import type { AppRouteChromeHeaderOptions } from "../route-chrome";
 import type {
     AppShellOptions,
@@ -184,6 +187,31 @@ function getPublicAppTemplateNavigationId(options: PublicAppTemplateBaseOptions)
     return options.shell?.skipLinkTargetId ?? "app-navigation";
 }
 
+function getPublicAppTemplateIdentityMetadata(
+    options: PublicAppTemplateBaseOptions
+): DocumentMetadataUpdateOptions | undefined {
+    return options.identity
+        ? createAppIdentityDocumentMetadata(options.identity)
+        : undefined;
+}
+
+function getPublicAppTemplateShellMetadata(
+    options: PublicAppTemplateBaseOptions
+): PublicAppTemplateMetadata | undefined {
+    const resolvedMetadata = resolvePublicAppTemplateValue(options.shell?.metadata);
+
+    if (resolvedMetadata === false) return false;
+
+    const identityMetadata = getPublicAppTemplateIdentityMetadata(options);
+
+    if (identityMetadata === undefined) return resolvedMetadata;
+
+    return {
+        ...identityMetadata,
+        ...(resolvedMetadata ?? {})
+    };
+}
+
 /**
  * Creates the standard route chrome options used by public app template shorthand.
  */
@@ -348,7 +376,7 @@ export function getPublicAppTemplateShellOptions(
     const resolvedTitle = resolvePublicAppTemplateValue(title);
     const resolvedSkipLink = resolvePublicAppTemplateValue(skipLink);
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(navigationLabel);
-    const resolvedMetadata = resolvePublicAppTemplateValue(metadata);
+    const resolvedMetadata = getPublicAppTemplateShellMetadata(options);
     const resolvedOutletOptions = resolvePublicAppTemplateValue(outletOptions);
 
     if (resolvedTitle !== undefined) shell.title = resolvedTitle;

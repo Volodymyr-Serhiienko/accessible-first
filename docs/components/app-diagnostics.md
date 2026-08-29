@@ -67,6 +67,7 @@ Defaults:
 
 - page document metadata requires description, canonical, robots, manifest, Open Graph, Twitter/X, and JSON-LD;
 - page diagnostics use `log: false` so the app report is not duplicated by a separate page report;
+- page landmark and heading requirements can be relaxed per app with `pageOptions.landmarks` and `pageOptions.headings` when an omission is intentional;
 - route lists use public route diagnostics defaults for descriptions, document titles, canonical URLs, and structured data; with `identity`, route options are expanded through `createAppIdentityRouteDiagnosticsOptions()`;
 - identity can generate the manifest diagnostics source when no explicit manifest is provided;
 - manifest diagnostics require short name, description, start URL, display mode, icons, maskable icon, theme color, and background color.
@@ -74,7 +75,7 @@ Defaults:
 Options:
 
 - `page` - optional `Page`, `AppShell`, page diagnostics report, or lazy resolver.
-- `pageOptions` - overrides merged on top of public page diagnostics defaults.
+- `pageOptions` - overrides merged on top of public page diagnostics defaults. Use `landmarks` and `headings` only for intentional shell shapes, such as `landmarks: { requireNavigation: false }` in a minimal one-screen app.
 - `identity` - optional `AppIdentity` used to derive manifest diagnostics when `manifest` is not provided.
 - `identityManifestOptions` - manifest overrides used when diagnostics generate a manifest from identity.
 - `routes` - optional route list, route diagnostics report, or resolver.

@@ -107,6 +107,28 @@ export interface PageDiagnosticsDocumentMetadataOptions {
 }
 
 /**
+ * Landmark requirements for page diagnostics.
+ */
+export interface PageDiagnosticsLandmarkOptions {
+    /** Requires a header landmark. Defaults to true. */
+    requireHeader?: boolean;
+    /** Requires a navigation landmark. Defaults to true. */
+    requireNavigation?: boolean;
+    /** Reports a missing footer landmark as info. Defaults to true. */
+    requireFooter?: boolean;
+}
+
+/**
+ * Heading requirements for page diagnostics.
+ */
+export interface PageDiagnosticsHeadingOptions {
+    /** Requires at least one h1. Defaults to true. */
+    requireH1?: boolean;
+    /** Allows more than one h1 without a warning. Defaults to false. */
+    allowMultipleH1?: boolean;
+}
+
+/**
  * Options for page diagnostics.
  */
 export interface PageDiagnosticsOptions {
@@ -114,6 +136,8 @@ export interface PageDiagnosticsOptions {
     document?: Document;
     categories?: PageDiagnosticsCategory[];
     documentMetadata?: PageDiagnosticsDocumentMetadataOptions;
+    landmarks?: PageDiagnosticsLandmarkOptions;
+    headings?: PageDiagnosticsHeadingOptions;
 }
 
 /**

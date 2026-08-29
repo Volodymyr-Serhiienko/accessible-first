@@ -59,7 +59,15 @@
 }
 
 [data-af-header-bar-actions] {
-    display: contents;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    flex: 0 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--af-header-bar-content-gap);
+    margin-inline-start: auto;
 }
 
 [data-af-header-bar-actions] > * {
@@ -100,6 +108,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--af-header-bar-gap);
+    margin-inline-start: 0;
 }
 
 @container (max-width: 22rem) {

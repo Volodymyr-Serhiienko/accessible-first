@@ -83,6 +83,24 @@ Supported fields:
 - `disabled` - disables generated navigation or search items.
 - `hint` - optional navigation hint.
 
+
+## Screen Routes
+
+Use `createAppScreenRoute()` or `createAppScreenRoutes()` when a route should be runnable immediately from declarative Screen slots:
+
+```ts
+const routes = createAppScreenRoutes([
+    {
+        id: "home",
+        title: "Home",
+        description: "Welcome to the app.",
+        children: [P("Replace this with real content.")]
+    }
+]);
+```
+
+The helper returns normal route descriptors with `render()`, so they work with `HashRouter`, `PublicHashAppTemplate`, and `createPublicAppTemplate()` in hash mode. Use manual `render()` functions once a screen needs state, data loading, or larger product logic. See [AppScreenRoute](./app-screen-route.md).
+
 ## Route Registry
 
 Use `createAppRouteRegistry()` when an app needs one small lookup object beside its route list:

@@ -120,7 +120,20 @@ App chrome should be responsive by default. Custom CSS is allowed, but repeated 
 
 ## Screens
 
-Each screen should be a small composition function:
+A minimal starter can declare simple screens directly in routes with `createAppScreenRoutes()`:
+
+```ts
+const routes = createAppScreenRoutes([
+    {
+        id: "home",
+        title: "Home",
+        description: "Welcome to the app.",
+        children: [P("Replace this starter content with real content.")]
+    }
+]);
+```
+
+When a screen grows beyond simple static composition, move it into a small composition function:
 
 ```ts
 export function HomeScreen(): ComposedNode {
@@ -182,6 +195,10 @@ Promote code when it is:
 
 This keeps Accessible First lightweight while still growing toward a practical app-building framework.
 
+
+## Current Smoke Example
+
+`examples/minimal-public-app` is the first code-level check for the blueprint. It is intentionally smaller than the full starter recipe: one route, identity-derived brand, public metadata, generated manifest data, default theme toggle, footer, layout, and diagnostics. Add localization, header tools, and route chrome features to this example in small controlled steps before promoting the shape into a generator.
 ## Future Generator Contract
 
 The first generator target is a minimal runnable app, not a full visual builder. It should create a small working page with placeholder brand, header text, footer text, one welcome screen, metadata reminders, route list, localization, diagnostics, and `routeChrome: true`.

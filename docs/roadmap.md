@@ -33,7 +33,7 @@ These layers are strong enough to build on:
 - Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
 - Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
 - Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, Pagination, ResultSummary, SettingsGroup, Table, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, AppRouteRegistry, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
+- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, AppRouteRegistry, AppScreenRoute, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
 - Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
 - Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
 - Localization baseline: LocaleController, createAppLocalization starter bundle, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, required message-key helper, locale-aware search helpers, localized route text resolvers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
@@ -59,12 +59,13 @@ Current focus after the result/list foundation:
 - Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
 - Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
-- Keep shaping the first app starter from real playground wiring instead of adding unrelated components.
+- Keep shaping the first app starter from real playground wiring instead of adding unrelated components. `AppScreenRoute` is the first minimal runnable route/screen declaration layer; use it for starter pages before introducing a file generator.
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 - Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
 - Use `routeText` as the default bridge between route metadata, diagnostics, and SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
 - Keep route search and command palette service text inherited from app locale defaults in app chrome, so starter apps can enable `routeChrome: true`, search, and commands without repeating label, placeholder, trigger, and empty-state copy.
 - Keep public hash/link templates sharing one internal shell-refresh, diagnostics-defaults, and routeChrome route-list injection path, so SPA and MPA starters do not drift apart.
+- Use `examples/minimal-public-app` as the first independent starter smoke target: verify the bare app first, then add localization, header tools, route navigation, search, and commands in separate checks.
 
 ### Exit Criteria For This Phase
 
@@ -76,7 +77,8 @@ Before starting the first real application, we should have:
 - theme and locale handled at the app shell level;
 - header/navigation responsive behavior documented;
 - diagnostics reporting useful page, route-list, metadata, localization, manifest, and app-owned health issues through a public app diagnostics recipe;
-- playground sections stable enough for desktop and mobile smoke checks.
+- playground sections stable enough for desktop and mobile smoke checks;
+- `examples/minimal-public-app` builds as a standalone app and proves the starter path outside the playground.
 
 ## Next Phase: Application Templates And First Reference App
 

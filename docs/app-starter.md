@@ -6,6 +6,31 @@ It is not a file generator yet. It is the smallest repeatable app shape we want 
 
 For the architectural contract behind this recipe, see [Application Blueprint](./app-blueprint.md).
 
+## Runnable Smoke Example
+
+The first independent starter check lives in `examples/minimal-public-app`.
+
+Run the production smoke build with:
+
+```bash
+npm run example:minimal:build
+```
+
+Run the standalone dev server for manual desktop and mobile checks with:
+
+```bash
+npm run example:minimal:dev
+```
+
+This example proves that the public app template can boot outside the playground with an identity-derived brand, logo, metadata, manifest, the default AppHeader theme toggle, a footer, one Screen-backed route, route metadata, diagnostics, and no app-owned CSS for standard page/footer spacing.
+
+Use this example for staged starter checks before adding a generator:
+
+1. Keep the initial app minimal: brand, theme toggle, footer, and content.
+2. Add localization and a language selector.
+3. Add route navigation, breadcrumbs, search, and commands only when the app shape needs them.
+4. Split the example into app files only after the single-file version becomes harder to scan.
+
 ## Goal
 
 A new app should begin with accessible app infrastructure already in place:
@@ -138,36 +163,41 @@ The first version can use simple string messages. `format` is available immediat
 
 ## Step 4: Define Routes And Registry
 
+For the smallest runnable app, start with Screen-backed routes. The route owns metadata, and `children` connects Accessible First components declaratively.
+
 ```ts
 import {
+    P,
     createAppRouteRegistry,
-    type AppRouteDescriptor,
+    createAppScreenRoutes,
     type AppRouteLocaleTextRoute,
-    type ComposedNode
+    type AppScreenRoute
 } from "@accessible-first/components";
-import { HomeScreen } from "../screens/home";
-import { SettingsScreen } from "../screens/settings";
 import type { AppMessageKey } from "./localization";
 
-export type AppRoute = AppRouteDescriptor & AppRouteLocaleTextRoute<AppMessageKey> & {
-    render(): ComposedNode;
-};
+export type AppRouteExtension = AppRouteLocaleTextRoute<AppMessageKey>;
 
-export const routes: AppRoute[] = [
+export type AppRoute = AppScreenRoute<AppRouteExtension>;
+
+export const routes = createAppScreenRoutes<AppRouteExtension>([
     {
         id: "home",
         title: "Home",
+        description: "Start lessons, practice sessions, and progress review.",
         localeKeys: {
             title: "routes.home.title",
             label: "routes.home.title",
             description: "routes.home.description",
             documentTitle: "routes.home.title"
         },
-        render: HomeScreen
+        children: [
+            P("Welcome. Replace this starter content with the first real screen.")
+        ]
     },
     {
         id: "settings",
         title: "Settings",
+        description: "Adjust language, accessibility, and practice preferences.",
         parentId: "home",
         localeKeys: {
             title: "routes.settings.title",
@@ -175,9 +205,11 @@ export const routes: AppRoute[] = [
             description: "routes.settings.description",
             documentTitle: "routes.settings.title"
         },
-        render: SettingsScreen
+        children: [
+            P("Add app settings here when the product needs them.")
+        ]
     }
-];
+]);
 
 export const routeRegistry = createAppRouteRegistry({
     routes,
@@ -185,7 +217,7 @@ export const routeRegistry = createAppRouteRegistry({
 });
 ```
 
-Keep fallback titles readable. They help diagnostics, unsupported locales, and development before all translations are written.
+Keep fallback titles and descriptions readable. They help diagnostics, unsupported locales, metadata, and development before all translations are written. When a screen grows beyond simple declarative content, move its body into a `screens/home.ts` function and keep the route metadata here.
 
 ## Step 5: Create Route Text
 
@@ -214,14 +246,15 @@ Route text should feed navigation, breadcrumbs, search, command palette, route a
 ```ts
 import { type PublicHashAppTemplateShellOptions } from "@accessible-first/components";
 import { t } from "./localization";
-import { getAppMetadata } from "./metadata";
 
 export function getShellOptions(): PublicHashAppTemplateShellOptions {
     return {
         title: () => t("app.brand.name"),
         skipLink: () => t("app.navigation.skipLink"),
         skipLinkTargetId: "app-navigation",
-        metadata: getAppMetadata,
+        metadata: () => ({
+            robots: "index,follow"
+        }),
         outletOptions: () => ({
             label: "Application content",
             announcement: false,
@@ -238,7 +271,7 @@ export function getShellOptions(): PublicHashAppTemplateShellOptions {
 }
 ```
 
-Use resolver functions for locale-dependent shell text. Public app templates re-read those values during locale refresh.
+Use resolver functions for locale-dependent shell text. Public app templates re-read those values during locale refresh. When `identity` is provided, the template applies identity-derived metadata during shell creation; use `shell.metadata` for app-specific overrides such as `robots`, or pass `metadata: false` only when the app owns document metadata manually.
 
 ## Step 7: Enable Route Chrome
 
@@ -279,7 +312,7 @@ export function getRouteChromeOptions(): PublicHashAppTemplateRouteChromeBaseOpt
 }
 ```
 
-Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette supplies localized trigger, title, search, and empty-state defaults. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
+Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette supplies localized trigger, title, search, and empty-state defaults. In an explicit route chrome object, navigation, breadcrumbs, search, and commands are opt-in: omit the pieces the app does not need instead of writing several `false` values. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
 
 ## Step 8: Create Diagnostics
 
@@ -295,7 +328,7 @@ export function getDiagnosticsOptions(): PublicHashRoutedAppDiagnosticsOptions<A
 }
 ```
 
-Diagnostics should be part of the starter, not an afterthought. When `locale` is the `createAppLocalization()` result, public app diagnostics read `requiredMessageKeys` automatically. They keep route, localization, metadata, manifest, and page structure problems visible during development.
+Diagnostics should be part of the starter, not an afterthought. When `locale` is the `createAppLocalization()` result, public app diagnostics read `requiredMessageKeys` automatically. They keep route, localization, metadata, manifest, and page structure problems visible during development. Minimal one-screen apps can relax intentional omissions with `pageOptions`, for example `landmarks: { requireNavigation: false }` when no navigation is rendered yet.
 
 ## Step 9: Create App Factory
 
@@ -351,7 +384,7 @@ Use the framework's semantic primitives first. Promote app helper code into the 
 - Keep metadata and diagnostics connected to the same route text resolvers.
 - Keep shell and route chrome options resolver-backed when they depend on locale.
 - Keep `main.ts` thin.
-- Keep custom CSS small; move repeated responsive shell behavior back into the framework.
+- Keep custom CSS small; move repeated body, footer, and responsive shell behavior back into the framework.
 - Keep important controls reachable without keyboard shortcuts.
 - Keep toast actions non-critical until the app provides a reliable focus route to them.
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+    <title id="title">Accessible First starter logo</title>
+    <desc id="desc">AF monogram inside a rounded square.</desc>
+    <rect x="48" y="48" width="416" height="416" rx="112" fill="#101820" />
+    <rect x="64" y="64" width="384" height="384" rx="96" fill="none" stroke="#4ed8f7" stroke-width="18" />
+    <path d="M124 368 226 144h56l102 224h-62l-18-44H202l-18 44h-60Zm99-94h60l-30-72-30 72Z" fill="#f6f8fb" />
+    <path d="M300 144h104l-24 52h-28v54h45l-24 52h-21v66h-52V144Z" fill="#4ed8f7" />
+</svg>

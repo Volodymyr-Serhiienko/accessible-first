@@ -136,7 +136,9 @@ export interface RouteChromeOptions<
     current?: TRoute | string | null;
     /** Shared route text defaults for navigation, breadcrumbs, search, and commands. */
     routeText?: RouteChromeRouteTextOptions<TRoute> | false;
+    /** Route navigation options. Omit to skip navigation in explicit RouteChrome objects. */
     navigation?: RouteChromeNavigationOptions<TRoute> | false;
+    /** Route breadcrumbs options. Omit to skip breadcrumbs in explicit RouteChrome objects. */
     breadcrumbs?: RouteChromeBreadcrumbsOptions<TRoute> | false;
     search?: RouteChromeSearchOptions<TRoute> | false;
     commands?: RouteChromeCommandPaletteOptions<TRoute> | false;
@@ -352,7 +354,7 @@ export function createRouteChrome<
     let search: ComposedRouteSearchBox<TRoute> | null = null;
     let commands: ComposedRouteCommandPalette<TRoute> | null = null;
 
-    if (options.navigation !== false) {
+    if (options.navigation !== undefined && options.navigation !== false) {
         const navigationOptions: RouteResponsiveNavigationOptions<TRoute> = {
             ...(options.navigation ?? {}),
             routes,
@@ -366,7 +368,7 @@ export function createRouteChrome<
         navigation = RouteResponsiveNavigation<TRoute>(navigationOptions);
     }
 
-    if (options.breadcrumbs !== false) {
+    if (options.breadcrumbs !== undefined && options.breadcrumbs !== false) {
         const {
             routes: _breadcrumbRoutes,
             current: _current,

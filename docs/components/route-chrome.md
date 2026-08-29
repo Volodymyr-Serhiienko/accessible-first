@@ -115,8 +115,8 @@ RouteChrome sits above individual route-aware controls and below full app templa
 
 `createRouteChrome` creates:
 
-- `RouteResponsiveNavigation` when `navigation` is not `false`;
-- `RouteBreadcrumbs` when `breadcrumbs` is not `false`;
+- `RouteResponsiveNavigation` when `navigation` options are provided;
+- `RouteBreadcrumbs` when `breadcrumbs` options are provided;
 - `RouteSearchBox` when `search` options are provided;
 - `RouteCommandPalette` when `commands` options are provided;
 - shared `headerControls` containing search and commands;
@@ -143,8 +143,8 @@ None of these helpers create route data, screen content, app copy, metadata stra
 - `routes` - required route descriptors used by route-aware controls.
 - `current` - current route object, route id, `null`, or `undefined`.
 - `routeText` - shared route text defaults for navigation labels, breadcrumbs, route search, and command palette route items. Control-specific options override these defaults. Use `false` to opt out when a lower layer should stay fully manual.
-- `navigation` - options passed to `RouteResponsiveNavigation`, or `false` to disable navigation.
-- `breadcrumbs` - options passed to `RouteBreadcrumbs`, or `false` to disable breadcrumbs.
+- `navigation` - options passed to `RouteResponsiveNavigation`. Omit it to skip navigation in an explicit RouteChrome object. Use `false` only to disable inherited/default navigation in a higher-level recipe.
+- `breadcrumbs` - options passed to `RouteBreadcrumbs`. Omit it to skip breadcrumbs in an explicit RouteChrome object. Use `false` only to disable inherited/default breadcrumbs in a higher-level recipe.
 - `breadcrumbs.root` - optional synthetic root route prepended to breadcrumb trails. Routes without `parentId` become children of this root unless `trailOptions.getParentId` returns another value.
 - `breadcrumbs.breadcrumbItemsOptions` - breadcrumb item resolvers for app routes. When `breadcrumbs.root` adds a synthetic route, RouteChrome keeps app-route resolvers for real routes and falls back to the root route text automatically.
 - `breadcrumbs.routes` - optional breadcrumb-only route list when breadcrumbs need a custom hierarchy.
@@ -194,7 +194,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 
 ## createAppRouteChrome Options
 
-Public app templates can use `routeChrome: true` when the app wants the standard AppHeader, route navigation, breadcrumbs, route search, and route command palette from `identity`, `locale`, `routes`, and `routeText`. Switch to explicit RouteChrome options only when the app needs overrides.
+Public app templates can use `routeChrome: true` when the app wants the standard AppHeader, route navigation, breadcrumbs, route search, and route command palette from `identity`, `locale`, `routes`, and `routeText`. Switch to explicit RouteChrome options when the app needs a smaller or customized chrome shape; in that mode, write only the controls the app needs.
 
 `createAppRouteChrome` accepts all `createRouteChrome` options plus:
 
