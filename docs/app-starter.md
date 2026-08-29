@@ -265,19 +265,13 @@ export function getRouteChromeOptions(): PublicHashAppTemplateRouteChromeBaseOpt
         breadcrumbs: {
             label: "Current location"
         },
-        search: {
-            label: "Search screens"
-        },
-        commands: {
-            trigger: "Commands",
-            title: "Commands",
-            searchLabel: "Search commands"
-        }
+        search: {},
+        commands: {}
     };
 }
 ```
 
-Start with the default chrome. Public app templates inject the app route list and shared `routeText` defaults into route chrome automatically, and `header.locale` becomes the default locale for route chrome controls. `routeChrome.ts` only needs route-specific options when it wants an override. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
+Start with the default chrome. Public app templates inject the app route list and shared `routeText` defaults into route chrome automatically, and `header.locale` becomes the default locale for route chrome controls. Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette now supplies localized trigger, title, search, and empty-state defaults. `routeChrome.ts` only needs route-specific options when it wants an override. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
 
 ## Step 8: Create Diagnostics
 

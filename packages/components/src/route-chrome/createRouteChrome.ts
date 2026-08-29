@@ -321,6 +321,18 @@ function getRouteChromeBreadcrumbItemsOptions<TRoute extends AppRouteDescriptor>
     return mergeRouteChromeItemOptions(routeText?.breadcrumbItemsOptions, options?.breadcrumbItemsOptions);
 }
 
+function getRouteChromeSearchLabelOptions<TRoute extends AppRouteDescriptor>(
+    options: RouteChromeSearchOptions<TRoute> | undefined
+): RouteChromeSearchOptions<TRoute>["labelOptions"] | undefined {
+    if (options?.labelOptions !== undefined) return options.labelOptions;
+
+    return {
+        attributes: {
+            "data-af-composition": "visually-hidden"
+        }
+    };
+}
+
 /**
  * Creates the common route-aware chrome controls used by routed app recipes.
  */
@@ -397,6 +409,10 @@ export function createRouteChrome<
         const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.search);
 
         if (searchItemsOptions !== undefined) searchOptions.searchItemsOptions = searchItemsOptions;
+
+        const labelOptions = getRouteChromeSearchLabelOptions(options.search);
+
+        if (labelOptions !== undefined) searchOptions.labelOptions = labelOptions;
         if (onRouteActivate) searchOptions.onRouteSelect = onRouteActivate;
 
         search = RouteSearchBox<TRoute>(searchOptions);

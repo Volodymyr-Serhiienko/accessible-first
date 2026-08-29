@@ -46,15 +46,8 @@ const app = createLinkRoutedApp({
                 breadcrumbs: {
                     label: t("app.breadcrumbsLabel")
                 },
-                search: {
-                    label: t("app.searchLabel"),
-                    placeholder: t("app.searchPlaceholder")
-                },
-                commands: {
-                    trigger: t("app.commandsTrigger"),
-                    title: t("app.commandsTitle"),
-                    searchLabel: t("app.commandsSearchLabel")
-                }
+                search: {},
+                commands: {}
             };
         }
     })
@@ -109,8 +102,8 @@ renderChrome: createLinkAppRouteChromeRenderer({
             },
             navigation: { id: "app-navigation", locale },
             breadcrumbs: { label: t("app.breadcrumbsLabel") },
-            search: { label: t("app.searchLabel") },
-            commands: { trigger: t("app.commandsTrigger") }
+            search: {},
+            commands: {}
         };
     }
 })

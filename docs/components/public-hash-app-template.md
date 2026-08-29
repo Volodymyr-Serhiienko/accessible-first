@@ -52,15 +52,8 @@ const app = createPublicHashAppTemplate({
         breadcrumbs: {
             label: t("app.breadcrumbsLabel")
         },
-        search: {
-            label: t("app.searchLabel"),
-            placeholder: t("app.searchPlaceholder")
-        },
-        commands: {
-            trigger: t("app.commandsTrigger"),
-            title: t("app.commandsTitle"),
-            searchLabel: t("app.commandsSearchLabel")
-        },
+        search: {},
+        commands: {},
         navigationReturnLink: {
             text: t("app.backToNavigation"),
             href: "#app-navigation"

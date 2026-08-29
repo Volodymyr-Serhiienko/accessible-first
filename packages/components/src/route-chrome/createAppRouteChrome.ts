@@ -159,14 +159,14 @@ function getSearchOptions<
     options: RouteChromeSearchOptions<TRoute> | false | undefined,
     locale: AppHeaderLocale<TLocale, TKey> | null
 ): RouteChromeSearchOptions<TRoute> | false | undefined {
-    if (options === false || options === undefined || locale === null || options.searchLocale !== undefined) {
-        return options;
-    }
+    if (options === false || options === undefined || locale === null) return options;
 
-    return {
-        ...options,
-        searchLocale: locale
-    };
+    const searchOptions: RouteChromeSearchOptions<TRoute> = { ...options };
+
+    if (searchOptions.locale === undefined) searchOptions.locale = locale;
+    if (searchOptions.searchLocale === undefined) searchOptions.searchLocale = locale;
+
+    return searchOptions;
 }
 
 function getCommandOptions<

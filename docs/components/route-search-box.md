@@ -8,11 +8,9 @@ Use it when a route list already describes screen ids, titles, labels, descripti
 
 ```ts
 const search = RouteSearchBox({
-    label: "Search screens",
-    placeholder: "Search",
-    width: "14rem",
     routes,
-    notFoundText: "No matching screens found.",
+    locale,
+    width: "14rem",
     onRouteSelect(detail) {
         router.navigate(detail.route);
     }
@@ -37,11 +35,16 @@ Use `RouteSearchBox` when search results should be derived from route metadata. 
 - Calls `onRouteSelect` with the selected route.
 - Supports custom route label, description, keyword, and disabled resolvers through `searchItemsOptions`.
 - Keeps the underlying input, popup, keyboard behavior, filtering, not-found state, and mobile keyboard dismissal from `SearchBox`.
+- Uses localized fallback text for its label, placeholder, and not-found message when explicit text is omitted.
 - Inherits `SearchBox` sizing options such as `width`, `minWidth`, and `maxWidth`, so route search can be tuned directly when composing a header.
 
 ## Options
 
 - `routes` - Required route metadata list.
+- `locale` - Optional locale provider for framework-owned service text. When it supports subscriptions, the visible/search service text updates after locale changes.
+- `label` - Accessible input label. Defaults to localized `routeSearchBox.label`. Use `null` only when another label is already supplied semantically.
+- `placeholder` - Input placeholder. Defaults to localized `routeSearchBox.placeholder`.
+- `notFoundText` - Empty result text. Defaults to localized `routeSearchBox.notFoundText`.
 - `searchItemsOptions` - Options passed to `createAppRouteSearchItems()`. Use `getDescription` for localized result descriptions when route metadata does not carry them directly.
 - `onRouteSelect` - Called with the selected route when a result is selected.
 - `onSelect` - Optional lower-level `SearchBox` selection callback.
@@ -71,13 +74,21 @@ Useful hooks include `[data-af-route-search-box]`, `[data-af-search-box]`, `[dat
 RouteSearchBox({
     className: "app-search",
     routes,
-    label: "Search app screens"
+    locale,
+    label: "Search app screens",
+    labelOptions: {
+        attributes: {
+            "data-af-composition": "visually-hidden"
+        }
+    }
 });
 ```
 
 ## Manual Checks
 
-- Input label is announced.
+- Input label is announced, even when the label is visually hidden by `labelOptions`.
+- Omitting `label`, `placeholder`, or `notFoundText` uses localized framework fallbacks.
+- Changing the shared locale updates service text when `locale` supports subscriptions.
 - Typing filters route labels, descriptions, and keywords with the inherited SearchBox locale-aware matching rules.
 - Search result descriptions explain what opens when descriptions are provided by route metadata or `searchItemsOptions.getDescription`.
 - Disabled routes are not selectable.

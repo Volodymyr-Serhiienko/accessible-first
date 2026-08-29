@@ -51,8 +51,8 @@ const app = createPublicHashRoutedApp({
                     locale
                 },
                 breadcrumbs: { label: t("app.breadcrumbsLabel") },
-                search: { label: t("app.searchLabel") },
-                commands: { trigger: t("app.commandsTrigger") }
+                search: {},
+                commands: {}
             };
         }
     }),

@@ -8,7 +8,6 @@ Use it when routes should be available both through visible navigation and a com
 
 ```ts
 const palette = RouteCommandPalette({
-    trigger: "Commands",
     routes,
     shortcut: [
         { key: "k", code: "KeyK", ctrlKey: true, allowInEditable: true },
@@ -58,9 +57,10 @@ Keep direct navigation available. On mobile screen readers, route search can be 
 ## Options
 
 - `routes` - route metadata list.
-- `trigger` - content for the trigger button.
+- `trigger` - content for the trigger button. Defaults to localized `commandPalette.trigger`.
 - `searchItemsOptions` - resolvers for generated labels, descriptions, keywords, and disabled state.
 - `commandLabelPrefix` - prefix for generated command labels. Defaults to the localized route-command prefix. Use `null` for no prefix.
+- `locale` - optional locale provider for command-palette service text and the route-command prefix.
 - `onRouteSelect` - called when a route command is selected.
 - `onSelect` - lower-level CommandPalette selection callback.
 
@@ -70,7 +70,6 @@ All other non-owned options pass through to CommandPalette, including `title`, `
 
 ```ts
 RouteCommandPalette({
-    trigger: "Commands",
     routes,
     commandLabelPrefix: null
 });
@@ -82,7 +81,6 @@ Use the default localized prefix when search results should read as actions. Use
 
 ```ts
 RouteCommandPalette({
-    trigger: "Commands",
     routes,
     searchItemsOptions: {
         getDescription(route) {

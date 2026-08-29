@@ -63,6 +63,7 @@ Current focus after the result/list foundation:
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 - Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
 - Use `routeText` as the default bridge between route metadata, diagnostics, and SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
+- Keep route search and command palette service text inherited from app locale defaults in app chrome, so starter apps can enable search and commands without repeating label, placeholder, trigger, and empty-state copy.
 - Keep public hash/link templates sharing one internal shell-refresh, diagnostics-defaults, and routeChrome route-list injection path, so SPA and MPA starters do not drift apart.
 
 ### Exit Criteria For This Phase

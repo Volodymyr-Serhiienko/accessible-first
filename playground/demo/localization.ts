@@ -18,11 +18,6 @@ export type PlaygroundAppMessageKey =
     | "app.brand.name"
     | "app.brand.tagline"
     | "app.commands.description"
-    | "app.commands.notFoundText"
-    | "app.commands.placeholder"
-    | "app.commands.searchLabel"
-    | "app.commands.title"
-    | "app.commands.trigger"
     | "app.navigation.label"
     | "app.navigation.returnHint"
     | "app.navigation.returnLink"
@@ -33,10 +28,7 @@ export type PlaygroundAppMessageKey =
     | "app.route.description"
     | "app.route.loaded"
     | "app.route.outletLabel"
-    | "app.route.searchDescription"
-    | "app.search.label"
-    | "app.search.notFoundText"
-    | "app.search.placeholder";
+    | "app.route.searchDescription";
 
 export type PlaygroundRouteMessageKey = `routes.${string}.title`;
 
@@ -178,11 +170,6 @@ const enMessages = {
     "app.brand.tagline": "WCAG-first components and page composition",
     "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Search demo sections and press Enter to open the selected section.",
-    "app.commands.notFoundText": "No commands found.",
-    "app.commands.placeholder": "Search commands",
-    "app.commands.searchLabel": "Search playground commands",
-    "app.commands.title": "Playground commands",
-    "app.commands.trigger": "Commands",
     "app.navigation.label": "Playground sections",
     "app.navigation.returnHint": "Moves focus back to the current section navigation item.",
     "app.navigation.returnLink": "Back to section navigation",
@@ -194,9 +181,9 @@ const enMessages = {
     "app.route.loaded": "{title} demo loaded.",
     "app.route.outletLabel": "Playground demo content",
     "app.route.searchDescription": "Open the {title} section.",
-    "app.search.label": "Search demo sections",
-    "app.search.notFoundText": "No matching sections found.",
-    "app.search.placeholder": "Search sections"
+    "routeSearchBox.label": "Search demo sections",
+    "routeSearchBox.notFoundText": "No matching sections found.",
+    "routeSearchBox.placeholder": "Search sections"
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ukMessages = {
@@ -209,6 +196,7 @@ const ukMessages = {
     "commandPalette.placeholder": "Пошук команд",
     "commandPalette.searchLabel": "Пошук команд",
     "commandPalette.title": "Палітра команд",
+    "commandPalette.trigger": "Команди",
     "dialog.alertFallbackLabel": "Важливий діалог",
     "dialog.closeText": "Закрити",
     "dialog.fallbackLabel": "Діалог",
@@ -240,6 +228,9 @@ const ukMessages = {
     "responsiveNavigation.close": "Закрити меню",
     "responsiveNavigation.trigger": "Меню",
     "routeCommandPalette.commandLabelPrefix": "Відкрити ",
+    "routeSearchBox.label": "Пошук деморозділів",
+    "routeSearchBox.notFoundText": "Відповідних розділів не знайдено.",
+    "routeSearchBox.placeholder": "Пошук розділів",
     "textField.emailPatternMismatchMessage": "Введіть адресу електронної пошти з доменом, наприклад name@example.com.",
     "themeToggle.darkAnnouncement": "Темну тему ввімкнено.",
     "themeToggle.lightAnnouncement": "Світлу тему ввімкнено.",
@@ -255,11 +246,6 @@ const ukMessages = {
     "app.brand.tagline": "WCAG-first компоненти та семантична композиція сторінок",
     "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Знайдіть деморозділ і натисніть Enter, щоб відкрити його.",
-    "app.commands.notFoundText": "Команди не знайдено.",
-    "app.commands.placeholder": "Пошук команд",
-    "app.commands.searchLabel": "Пошук команд playground",
-    "app.commands.title": "Команди playground",
-    "app.commands.trigger": "Команди",
     "app.navigation.label": "Розділи playground",
     "app.navigation.returnHint": "Переміщує фокус назад на поточний пункт навігації розділів.",
     "app.navigation.returnLink": "Повернутися до навігації розділів",
@@ -270,10 +256,7 @@ const ukMessages = {
     "app.route.description": "Деморозділ {title} у {appName}.",
     "app.route.loaded": "Деморозділ {title} завантажено.",
     "app.route.outletLabel": "Вміст деморозділу playground",
-    "app.route.searchDescription": "Відкрити розділ {title}.",
-    "app.search.label": "Пошук деморозділів",
-    "app.search.notFoundText": "Відповідних розділів не знайдено.",
-    "app.search.placeholder": "Пошук розділів"
+    "app.route.searchDescription": "Відкрити розділ {title}."
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ruMessages = {
@@ -286,6 +269,7 @@ const ruMessages = {
     "commandPalette.placeholder": "Поиск команд",
     "commandPalette.searchLabel": "Поиск команд",
     "commandPalette.title": "Палитра команд",
+    "commandPalette.trigger": "Команды",
     "dialog.alertFallbackLabel": "Важный диалог",
     "dialog.closeText": "Закрыть",
     "dialog.fallbackLabel": "Диалог",
@@ -317,6 +301,9 @@ const ruMessages = {
     "responsiveNavigation.close": "Закрыть меню",
     "responsiveNavigation.trigger": "Меню",
     "routeCommandPalette.commandLabelPrefix": "Открыть ",
+    "routeSearchBox.label": "Поиск демо-разделов",
+    "routeSearchBox.notFoundText": "Подходящие разделы не найдены.",
+    "routeSearchBox.placeholder": "Поиск разделов",
     "textField.emailPatternMismatchMessage": "Введите адрес электронной почты с доменом, например name@example.com.",
     "themeToggle.darkAnnouncement": "Темная тема включена.",
     "themeToggle.lightAnnouncement": "Светлая тема включена.",
@@ -332,11 +319,6 @@ const ruMessages = {
     "app.brand.tagline": "WCAG-first компоненты и семантическая композиция страниц",
     "app.breadcrumbs.rootLabel": "Playground",
     "app.commands.description": "Найдите демо-раздел и нажмите Enter, чтобы открыть его.",
-    "app.commands.notFoundText": "Команды не найдены.",
-    "app.commands.placeholder": "Поиск команд",
-    "app.commands.searchLabel": "Поиск команд playground",
-    "app.commands.title": "Команды playground",
-    "app.commands.trigger": "Команды",
     "app.navigation.label": "Разделы playground",
     "app.navigation.returnHint": "Перемещает фокус обратно на текущий пункт навигации разделов.",
     "app.navigation.returnLink": "Вернуться к навигации разделов",
@@ -347,10 +329,7 @@ const ruMessages = {
     "app.route.description": "Демо-раздел {title} в {appName}.",
     "app.route.loaded": "Демо-раздел {title} загружен.",
     "app.route.outletLabel": "Содержимое демо-раздела playground",
-    "app.route.searchDescription": "Открыть раздел {title}.",
-    "app.search.label": "Поиск демо-разделов",
-    "app.search.notFoundText": "Подходящие разделы не найдены.",
-    "app.search.placeholder": "Поиск разделов"
+    "app.route.searchDescription": "Открыть раздел {title}."
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 export const playgroundMessages = {

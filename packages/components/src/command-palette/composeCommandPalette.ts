@@ -31,6 +31,7 @@ export type CommandPaletteMessageKey =
     | "commandPalette.searchLabel"
     | "commandPalette.placeholder"
     | "commandPalette.notFoundText"
+    | "commandPalette.trigger"
     | "dialog.closeText";
 
 /**
@@ -182,7 +183,7 @@ export type CommandPaletteDialogOptions = Omit<
 export interface CommandPaletteOptions<
     TItem extends CommandPaletteItem = CommandPaletteItem
 > extends BaseCompositionOptions {
-    trigger: DialogCompositionContent;
+    trigger?: DialogCompositionContent;
     items: TItem[];
     title?: string;
     description?: string | null;
@@ -298,6 +299,7 @@ export function CommandPalette<
     let onSelect = initialOnSelect ?? null;
     let onOpenChange = initialOnOpenChange ?? null;
     let shortcuts = normalizeShortcuts(shortcut);
+    let paletteTrigger = trigger;
     let paletteTitle = title;
     let paletteDescription = description;
     let paletteSearchLabel = searchLabel;
@@ -343,6 +345,14 @@ export function CommandPalette<
         );
     }
 
+    function getTriggerContent(): DialogCompositionContent {
+        return paletteTrigger ?? getLocalizedText(
+            undefined,
+            locale,
+            "commandPalette.trigger"
+        );
+    }
+
     const handleSelect = (
         detail: SearchBoxSelectDetail<TItem>
     ): void => {
@@ -378,7 +388,7 @@ export function CommandPalette<
     const initialDialogOptions: DialogCompositionOptions = {
         ...compositionOptions,
         ...(dialogOptions ?? {}),
-        trigger,
+        trigger: getTriggerContent(),
         title: getLocalizedText(paletteTitle, locale, "commandPalette.title"),
         description: getLocalizedDescription(paletteDescription, locale),
         children: [searchBox.element],
@@ -429,6 +439,7 @@ export function CommandPalette<
             description: getLocalizedDescription(paletteDescription, locale)
         };
 
+        if (paletteTrigger == null) dialogUpdate.trigger = getTriggerContent();
         dialogUpdate.locale = locale;
 
         updateDialog(dialogUpdate);
@@ -492,6 +503,7 @@ export function CommandPalette<
                 setupShortcut();
             }
 
+            if ("trigger" in nextOptions) paletteTrigger = nextOptions.trigger;
             if ("title" in nextOptions) paletteTitle = nextOptions.title;
             if ("description" in nextOptions) paletteDescription = nextOptions.description;
             if ("searchLabel" in nextOptions) paletteSearchLabel = nextOptions.searchLabel;
@@ -518,7 +530,9 @@ export function CommandPalette<
                 onOpenChange: handleOpenChange
             };
 
-            if (nextOptions.trigger !== undefined) dialogUpdate.trigger = nextOptions.trigger;
+            if ("trigger" in nextOptions || ("locale" in nextOptions && paletteTrigger == null)) {
+                dialogUpdate.trigger = getTriggerContent();
+            }
             dialogUpdate.title = getLocalizedText(paletteTitle, locale, "commandPalette.title");
             dialogUpdate.description = getLocalizedDescription(paletteDescription, locale);
             dialogUpdate.locale = locale;

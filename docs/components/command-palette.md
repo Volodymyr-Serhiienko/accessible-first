@@ -30,6 +30,8 @@ const palette = CommandPalette({
 });
 ```
 
+Omit `trigger` when the normal localized `Commands` button is enough.
+
 ## When To Use
 
 Use CommandPalette when an application has several actions or destinations that benefit from fast search:
@@ -62,13 +64,14 @@ Do not use it for critical confirmations. Use [Dialog](./dialog.md) or [AlertDia
 
 ## Options
 
-- `trigger` - content for the trigger button.
+- `trigger` - content for the trigger button. Defaults to localized `commandPalette.trigger`.
 - `items` - command list.
-- `title` - dialog title. Defaults to `Command palette`.
+- `title` - dialog title. Defaults to localized `Command palette`.
 - `description` - dialog description. Defaults to a short usage hint. Use `null` to omit it.
-- `searchLabel` - accessible label for the search input.
-- `placeholder` - search input placeholder.
-- `notFoundText` - visible and announced empty-results message.
+- `searchLabel` - accessible label for the search input. Defaults to localized `Search commands`.
+- `placeholder` - search input placeholder. Defaults to localized `Search commands`.
+- `notFoundText` - visible and announced empty-results message. Defaults to localized `No commands found`.
+- `locale` - optional locale provider for framework-owned service text. When it supports subscriptions, fallback trigger, title, description, search label, placeholder, and empty result text update after locale changes.
 - `closeOnSelect` - whether commands close the palette by default.
 - `shortcut` - optional keyboard shortcut or shortcut list for opening the palette.
 - `searchBoxOptions` - SearchBox options not owned by CommandPalette.

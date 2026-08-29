@@ -40,15 +40,8 @@ renderChrome: createHashAppRouteChromeRenderer({
                     href: "#home"
                 }
             },
-            search: {
-                label: t("app.search.label"),
-                placeholder: t("app.search.placeholder")
-            },
-            commands: {
-                trigger: t("app.commands.trigger"),
-                title: t("app.commands.title"),
-                searchLabel: t("app.commands.searchLabel")
-            },
+            search: {},
+            commands: {},
             navigationReturnLink: {
                 text: t("app.navigation.returnLink"),
                 href: "#app-navigation"
@@ -86,15 +79,8 @@ renderChrome: createLinkAppRouteChromeRenderer({
                     href: "#home"
                 }
             },
-            search: {
-                label: t("app.search.label"),
-                placeholder: t("app.search.placeholder")
-            },
-            commands: {
-                trigger: t("app.commands.trigger"),
-                title: t("app.commands.title"),
-                searchLabel: t("app.commands.searchLabel")
-            },
+            search: {},
+            commands: {},
             navigationReturnLink: {
                 text: t("app.navigation.returnLink"),
                 href: "#app-navigation"
@@ -114,8 +100,8 @@ const routeChrome = createRouteChrome({
     onRouteActivate: activateRoute,
     navigation: { variant: "pills" },
     breadcrumbs: { label: "Current location" },
-    search: { label: "Search sections" },
-    commands: { trigger: "Commands", title: "Commands" }
+    search: {},
+    commands: {}
 });
 
 shell.setHeader(AppHeader({ controls: routeChrome.headerControls }));
@@ -162,8 +148,8 @@ None of these helpers create route data, screen content, app copy, metadata stra
 - `breadcrumbs.root` - optional synthetic root route prepended to breadcrumb trails. Routes without `parentId` become children of this root unless `trailOptions.getParentId` returns another value.
 - `breadcrumbs.breadcrumbItemsOptions` - breadcrumb item resolvers for app routes. When `breadcrumbs.root` adds a synthetic route, RouteChrome keeps app-route resolvers for real routes and falls back to the root route text automatically.
 - `breadcrumbs.routes` - optional breadcrumb-only route list when breadcrumbs need a custom hierarchy.
-- `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search.
-- `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands.
+- `search` - options passed to `RouteSearchBox`, or `false`/omitted to disable route search. In RouteChrome, search labels are visually hidden by default because route search is normally placed in a compact header control area; pass `labelOptions` to customize that behavior.
+- `commands` - options passed to `RouteCommandPalette`, or `false`/omitted to disable route commands. `commands: {}` uses localized command-palette fallback text for the trigger, title, search label, placeholder, and empty state.
 - `onRouteActivate` - shared activation callback used by navigation, search, and commands.
 
 ## createHashAppRouteChromeRenderer Options
@@ -210,7 +196,7 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 
 `createAppRouteChrome` accepts all `createRouteChrome` options plus:
 
-- `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself. When `header.locale` is provided, navigation, breadcrumbs, route search, and route commands use it by default unless the control overrides its own locale/search locale.
+- `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself. When `header.locale` is provided, navigation, breadcrumbs, route search, and route commands use it by default unless the control overrides its own locale/search locale. For route search this includes both service text and locale-aware matching.
 - `header.controls` - extra app controls placed beside route search and commands.
 - `header.routeControlsPlacement` - `"start"` or `"end"`. Defaults to `"start"`, so route search and commands appear before custom controls.
 - `shell` - optional `AppShell.update(...)` options returned with the chrome slots.
@@ -246,7 +232,7 @@ For native-link and MPA pages built with `LinkRoutedApp`, prefer `createLinkAppR
 
 RouteChrome does not change the accessibility behavior of the underlying controls. Navigation remains real links, breadcrumbs remain a navigation landmark, search remains a combobox-based search control, and commands remain a dialog-based command palette.
 
-Use application-owned text for labels, placeholders, and empty states. Pass the shared locale provider to the underlying controls when their service text should update with the application locale. When route labels, descriptions, and keywords come from one localized `routeText` bundle, pass it once through `routeText` and override only the controls that need custom wording.
+Use application-owned text for product copy. Framework-owned service text, such as the route search label, placeholder, and empty result text, can come from the shared locale provider. When route labels, descriptions, and keywords come from one localized `routeText` bundle, pass it once through `routeText` and override only the controls that need custom wording.
 
 When using app route chrome helpers, the generated `AppHeader` keeps one control set and lets `HeaderTools` move those controls between inline and overflow placement. This avoids duplicate mobile/desktop controls and keeps screen-reader order predictable.
 
@@ -257,7 +243,7 @@ When using app route chrome helpers, the generated `AppHeader` keeps one control
 - Native-link route search and command palette selections navigate to route hrefs.
 - Navigation and breadcrumbs update current state after route changes.
 - Search and commands remain usable with keyboard and screen reader navigation.
-- Header locale defaults flow into navigation, breadcrumbs, route search, and route commands unless a control opts out or overrides its own locale.
+- Header locale defaults flow into navigation, breadcrumbs, route search service text, route search matching, and route commands unless a control opts out or overrides its own locale.
 - Header controls move into HeaderTools overflow when they do not fit.
 - Locale refresh recreates route chrome without duplicating route activation handlers.
 - Localized route text can be passed once through `routeText` and inherited by navigation, search, commands, and breadcrumbs, including breadcrumbs with a synthetic root route.

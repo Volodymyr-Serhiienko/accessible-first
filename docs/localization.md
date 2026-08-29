@@ -23,8 +23,9 @@ Framework service text belongs in the Accessible First message registry. Example
 - dialog close labels and dialog fallback accessible names;
 - alert-dialog cancel and confirm labels;
 - toast region, close, dismiss, and fallback notification labels;
-- command palette title, description, search label, placeholder, and empty result text;
+- command palette trigger, title, description, search label, placeholder, and empty result text;
 - route command prefixes such as `Open`;
+- route search label, placeholder, and empty result text;
 - generic list/detail, breadcrumbs, page navigation, pagination, result summaries, overflow scroller, responsive navigation, header tools, theme toggle, icon-button, and text-field fallback labels.
 
 Application copy stays explicit in application code or in the application's own locale files. Examples include product names, route labels, screen titles, lesson text, form labels, button text, validation copy chosen by the app, marketing text, and demo content.
@@ -250,7 +251,7 @@ The first migration covers these framework-owned fallbacks:
 
 - `AlertDialog`: cancel and confirm labels.
 - `Breadcrumbs`: default navigation label.
-- `CommandPalette`: title, description, search label, placeholder, empty result text, and internal dialog close fallback.
+- `CommandPalette`: trigger, title, description, search label, placeholder, empty result text, and internal dialog close fallback.
 - `Dialog`: close button text in composition and behavior fallback accessible names.
 - `IconButton`: missing accessible-name fallback.
 - `LanguageSelect`: default language picker label.
@@ -262,6 +263,7 @@ The first migration covers these framework-owned fallbacks:
 - `ResultSummary`: empty, total-only, filtered, and range fallback text.
 - `ResponsiveNavigation`: mobile trigger text and internal overflow scroller labels.
 - `RouteCommandPalette`: route command prefix.
+- `RouteSearchBox`: route search label, placeholder, and not-found text.
 - `TextField`: strict email-pattern fallback validation text.
 - `ThemeToggle`: toggle labels and default change announcements.
 - `ToastViewport`: region label, close/dismiss labels, and fallback notification text.

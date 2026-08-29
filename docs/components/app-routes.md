@@ -168,8 +168,8 @@ createRouteChrome({
     routeText,
     navigation: {},
     breadcrumbs: {},
-    search: { label: t("app.search.label") },
-    commands: { trigger: t("app.commands.trigger") }
+    search: {},
+    commands: {}
 });
 
 createAppRouteDocumentMetadata(currentRoute, {

@@ -10,6 +10,7 @@ export type AccessibleFirstMessageKey =
     | "commandPalette.placeholder"
     | "commandPalette.searchLabel"
     | "commandPalette.title"
+    | "commandPalette.trigger"
     | "dialog.alertFallbackLabel"
     | "dialog.closeText"
     | "dialog.fallbackLabel"
@@ -41,6 +42,9 @@ export type AccessibleFirstMessageKey =
     | "responsiveNavigation.close"
     | "responsiveNavigation.trigger"
     | "routeCommandPalette.commandLabelPrefix"
+    | "routeSearchBox.label"
+    | "routeSearchBox.notFoundText"
+    | "routeSearchBox.placeholder"
     | "textField.emailPatternMismatchMessage"
     | "themeToggle.darkAnnouncement"
     | "themeToggle.lightAnnouncement"
@@ -64,6 +68,7 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "commandPalette.placeholder": "Search commands",
     "commandPalette.searchLabel": "Search commands",
     "commandPalette.title": "Command palette",
+    "commandPalette.trigger": "Commands",
     "dialog.alertFallbackLabel": "Alert dialog",
     "dialog.closeText": "Close",
     "dialog.fallbackLabel": "Dialog",
@@ -95,6 +100,9 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "responsiveNavigation.close": "Close menu",
     "responsiveNavigation.trigger": "Menu",
     "routeCommandPalette.commandLabelPrefix": "Open ",
+    "routeSearchBox.label": "Search pages",
+    "routeSearchBox.notFoundText": "No matching pages found.",
+    "routeSearchBox.placeholder": "Search pages",
     "textField.emailPatternMismatchMessage": "Enter an email address with a domain, such as name@example.com.",
     "themeToggle.darkAnnouncement": "Dark theme enabled.",
     "themeToggle.lightAnnouncement": "Light theme enabled.",
