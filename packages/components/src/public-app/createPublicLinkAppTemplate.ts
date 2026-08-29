@@ -21,6 +21,7 @@ import {
     getPublicAppTemplateRouteMetadata,
     getPublicAppTemplateShellOptions,
     resolvePublicAppTemplateRouteChromeOptions,
+    type PublicAppTemplateDefaultRouteChrome as SharedPublicAppTemplateDefaultRouteChrome,
     type PublicAppTemplateRouteChromeBaseOptions as SharedPublicAppTemplateRouteChromeBaseOptions,
     type PublicAppTemplateRouteText as SharedPublicAppTemplateRouteText,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
@@ -60,6 +61,11 @@ export type PublicLinkAppTemplateRouteChromeBaseOptions<
 > = SharedPublicAppTemplateRouteChromeBaseOptions<TRoute, LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey>>;
 
 /**
+ * Shorthand that enables standard public native-link app route chrome defaults.
+ */
+export type PublicLinkAppTemplateDefaultRouteChrome = SharedPublicAppTemplateDefaultRouteChrome;
+
+/**
  * Lazy RouteChrome options resolver accepted by createPublicLinkAppTemplate().
  */
 export type PublicLinkAppTemplateRouteChromeOptionsResolver<
@@ -68,7 +74,7 @@ export type PublicLinkAppTemplateRouteChromeOptionsResolver<
     TKey extends string = string
 > = (
     context: LinkRoutedAppContext<TRoute>
-) => PublicLinkAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>;
+) => PublicLinkAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey> | PublicLinkAppTemplateDefaultRouteChrome;
 
 /**
  * RouteChrome options accepted by createPublicLinkAppTemplate().
@@ -78,6 +84,7 @@ export type PublicLinkAppTemplateRouteChromeOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = string
 > =
+    | PublicLinkAppTemplateDefaultRouteChrome
     | PublicLinkAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>
     | PublicLinkAppTemplateRouteChromeOptionsResolver<TRoute, TLocale, TKey>;
 

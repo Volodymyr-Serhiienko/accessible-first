@@ -32,7 +32,7 @@ src/
     metadata.ts
     routes.ts
     routeText.ts
-    routeChrome.ts
+    routeChrome.ts        # optional when default route chrome needs overrides
     shell.ts
     diagnostics.ts
   screens/
@@ -44,7 +44,7 @@ src/
   styles.css
 ```
 
-`main.ts` should stay deliberately small: import global styles, call the app factory, and avoid owning route, shell, metadata, or diagnostics wiring. For a small app, `shell.ts`, `routeChrome.ts`, and `diagnostics.ts` can remain in `app.ts`. Split them only when the app factory stops being easy to scan.
+`main.ts` should stay deliberately small: import global styles, call the app factory, and avoid owning route, shell, metadata, or diagnostics wiring. For a small app, `shell.ts` and `diagnostics.ts` can remain in `app.ts`; `routeChrome.ts` is only needed after `routeChrome: true` needs custom overrides. Split files when the app factory stops being easy to scan.
 
 ## App-Owned Declarations
 
@@ -99,13 +99,13 @@ export function createApp() {
         routeMetadata,
         routeText,
         shell: getShellOptions(),
-        routeChrome: getRouteChromeOptions,
+        routeChrome: true,
         diagnostics: getDiagnosticsOptions()
     });
 }
 ```
 
-Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation. Public app templates pass the declared route list and `routeText` defaults into route chrome automatically and can consume `routeText` for metadata and route announcements; lower-level `createRouteChrome()` and manual renderers still accept explicit `routes` and `routeText`.
+Use the default hash mode for a client-rendered SPA. Use `mode: "link"` when a static, server-rendered, or multi-page app should keep normal browser navigation. Public app templates pass the declared route list and `routeText` defaults into route chrome automatically. Use `routeChrome: true` for the standard header, navigation, breadcrumbs, route search, and command palette; switch to a route chrome options object or resolver only when the app needs overrides. Lower-level `createRouteChrome()` and manual renderers still accept explicit `routes` and `routeText`.
 
 ## Shell And Chrome
 
@@ -184,6 +184,8 @@ This keeps Accessible First lightweight while still growing toward a practical a
 
 ## Future Generator Contract
 
+The first generator target is a minimal runnable app, not a full visual builder. It should create a small working page with placeholder brand, header text, footer text, one welcome screen, metadata reminders, route list, localization, diagnostics, and `routeChrome: true`.
+
 A future starter generator should create the blueprint structure with sensible defaults:
 
 - `identity.ts` from app name, description, colors, and icons;
@@ -191,6 +193,7 @@ A future starter generator should create the blueprint structure with sensible d
 - `routes.ts` with starter route metadata;
 - thin `main.ts` plus `app.ts` using `createPublicAppTemplate()`;
 - starter screens using `Screen` and semantic composition;
-- manifest, metadata, diagnostics, and public-page helpers wired by default.
+- manifest, metadata, diagnostics, and public-page helpers wired by default;
+- optional route chrome, header tools, navigation variants, layout slots, and starter components selected by configuration.
 
-Generation should come after the blueprint proves itself in the playground and the first reference app.
+Generation should come after the blueprint proves itself in the playground and the first reference app. A visual app-constructor interface belongs later, after the code-first starter and real app migration show which options are stable enough to expose visually.

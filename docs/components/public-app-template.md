@@ -27,16 +27,7 @@ const app = createPublicAppTemplate({
             label: t("app.contentLabel")
         })
     },
-    routeChrome: () => ({
-        header: {
-            locale,
-            identity
-        },
-        navigation: {
-            id: "app-navigation",
-            locale
-        }
-    })
+    routeChrome: true
 });
 ```
 
@@ -65,16 +56,7 @@ const app = createPublicAppTemplate({
         matchMode: "pathname",
         baseUrl: window.location.origin
     },
-    routeChrome: () => ({
-        header: {
-            locale,
-            identity
-        },
-        navigation: {
-            id: "app-navigation",
-            locale
-        }
-    })
+    routeChrome: true
 });
 ```
 
@@ -85,7 +67,7 @@ const app = createPublicAppTemplate({
 - `mode` omitted or `"hash"` calls `createPublicHashAppTemplate()`.
 - `mode: "link"` calls `createPublicLinkAppTemplate()`.
 
-The wrapper exists so app starters, examples, and future generators can teach one primary API while still keeping the lower-level recipes available.
+The wrapper exists so app starters, examples, and future generators can teach one primary API while still keeping the lower-level recipes available. Use `routeChrome: true` for the minimal generated app shape, then switch to route chrome options only when the app needs custom chrome.
 
 ## Options
 
@@ -98,7 +80,7 @@ Shared options depend on the selected mode, but the intended application model i
 - `routeMetadata` - identity-aware route metadata defaults, or `false`; when `routeText` is provided, these values override merged route-text metadata defaults.
 - `routeText` - optional localized route text bundle used for route metadata, route chrome item text, and, in hash mode, route-loaded announcements.
 - `shell` - app shell configuration with template-friendly resolver support for title, skip link, navigation label, metadata, and outlet options.
-- `routeChrome` - declarative route chrome options, a resolver, or `false`. Omit `routeChrome.routes` to use the template route list.
+- `routeChrome` - `true` for standard route chrome defaults, declarative route chrome options, a resolver, or `false`. Omit `routeChrome.routes` to use the template route list.
 - `diagnostics` - public app diagnostics options, or `false`.
 
 Hash mode also accepts hash-router options such as `router`, `startOptions`, and `initialScrollReset`.

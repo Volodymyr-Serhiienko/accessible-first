@@ -40,26 +40,7 @@ const app = createPublicLinkAppTemplate({
         matchMode: "pathname",
         baseUrl: window.location.origin
     },
-    routeChrome: () => ({
-        header: {
-            locale,
-            identity: appIdentity,
-            brand: {
-                href: "/",
-                name: t("app.title")
-            }
-        },
-        navigation: {
-            id: "app-navigation",
-            trigger: t("app.navigationTrigger"),
-            locale
-        },
-        breadcrumbs: {
-            label: t("app.breadcrumbsLabel")
-        },
-        search: {},
-        commands: {}
-    }),
+    routeChrome: true,
     diagnostics: {
         logOnCreate: true,
         logOnRefresh: true
@@ -78,7 +59,7 @@ The template owns:
 - passing a compatible app locale into `AppShell` fallback text;
 - refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
-- creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
+- creating standard route chrome when `routeChrome: true` is used, or creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
 The application still owns:
@@ -103,7 +84,7 @@ The application still owns:
 - `routeMetadata` - identity-aware route metadata defaults, or `false`. When `routeText` is provided, these options override merged route-text metadata defaults.
 - `shell` - `PublicLinkAppTemplateShellOptions`.
 - `routeText` - optional localized route text bundle. Defaults route metadata text and route chrome item text unless explicitly overridden.
-- `routeChrome` - static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list.
+- `routeChrome` - `true` for standard route chrome defaults, static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list. With `true`, the template creates header, navigation, breadcrumbs, route search, and route commands from `identity`, `locale`, `routes`, and `routeText`; navigation id follows `shell.skipLinkTargetId` or `"app-navigation"`.
 - `onRouteChromeCreate` - optional hook called after route chrome is created.
 - `current`, `location`, `matchLocation` - native-link route matching options passed through to `LinkRoutedApp`.
 - `diagnostics` - public diagnostics options, or `false`.

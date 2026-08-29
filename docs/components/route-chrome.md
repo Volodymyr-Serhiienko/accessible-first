@@ -194,6 +194,8 @@ Use a resolver when labels, metadata, or shell copy should reflect the current l
 
 ## createAppRouteChrome Options
 
+Public app templates can use `routeChrome: true` when the app wants the standard AppHeader, route navigation, breadcrumbs, route search, and route command palette from `identity`, `locale`, `routes`, and `routeText`. Switch to explicit RouteChrome options only when the app needs overrides.
+
 `createAppRouteChrome` accepts all `createRouteChrome` options plus:
 
 - `header` - `AppHeader` options. Omit it to create a minimal header only when route search/commands exist. Use `false` to explicitly clear/omit the header slot; when doing that, also disable `search`/`commands` or place `routeChrome.headerControls` yourself. When `header.locale` is provided, navigation, breadcrumbs, route search, and route commands use it by default unless the control overrides its own locale/search locale. For route search this includes both service text and locale-aware matching.

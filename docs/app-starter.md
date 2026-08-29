@@ -33,7 +33,7 @@ src/
     metadata.ts
     routes.ts
     routeText.ts
-    routeChrome.ts
+    routeChrome.ts        # optional once default routeChrome needs overrides
     shell.ts
     diagnostics.ts
   screens/
@@ -44,7 +44,7 @@ src/
   styles.css
 ```
 
-Small apps can merge some `app/` files at first, but the starter shape is useful once routes, localization, metadata, and chrome begin to grow.
+Small apps can merge some `app/` files at first. `routeChrome.ts` is optional: start with `routeChrome: true`, then split a route chrome options file only when the app needs custom header controls, navigation behavior, breadcrumbs, search, commands, or return links.
 
 ## Step 1: Keep main.ts Thin
 
@@ -240,7 +240,15 @@ export function getShellOptions(): PublicHashAppTemplateShellOptions {
 
 Use resolver functions for locale-dependent shell text. Public app templates re-read those values during locale refresh.
 
-## Step 7: Create Route Chrome
+## Step 7: Enable Route Chrome
+
+```ts
+routeChrome: true
+```
+
+Start with the shorthand. Public app templates create the standard app chrome from `identity`, `locale`, `routes`, and `routeText`: header brand defaults, route navigation, breadcrumbs, route search, and command palette. The generated navigation id follows `shell.skipLinkTargetId`; if that is omitted, it defaults to `"app-navigation"`.
+
+Create `routeChrome.ts` only when the app needs route-specific overrides:
 
 ```ts
 import { type PublicHashAppTemplateRouteChromeBaseOptions } from "@accessible-first/components";
@@ -271,7 +279,7 @@ export function getRouteChromeOptions(): PublicHashAppTemplateRouteChromeBaseOpt
 }
 ```
 
-Start with the default chrome. Public app templates inject the app route list and shared `routeText` defaults into route chrome automatically, and `header.locale` becomes the default locale for route chrome controls. Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette now supplies localized trigger, title, search, and empty-state defaults. `routeChrome.ts` only needs route-specific options when it wants an override. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
+Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette supplies localized trigger, title, search, and empty-state defaults. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
 
 ## Step 8: Create Diagnostics
 
@@ -295,7 +303,6 @@ Diagnostics should be part of the starter, not an afterthought. When `locale` is
 import { createPublicAppTemplate } from "@accessible-first/components";
 import { appIdentity } from "./identity";
 import { locale, type AppLocale, type AppMessageKey } from "./localization";
-import { getRouteChromeOptions } from "./routeChrome";
 import { routeMetadata, routeText } from "./routeText";
 import { routes, type AppRoute } from "./routes";
 import { getShellOptions } from "./shell";
@@ -310,7 +317,7 @@ export function createApp() {
         routeMetadata,
         routeText,
         shell: getShellOptions(),
-        routeChrome: getRouteChromeOptions,
+        routeChrome: true,
         diagnostics: getDiagnosticsOptions()
     });
 }

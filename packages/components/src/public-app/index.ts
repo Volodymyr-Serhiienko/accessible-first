@@ -14,6 +14,7 @@ export type {
 } from "./createPublicAppTemplate";
 export type {
     PublicHashAppTemplate,
+    PublicHashAppTemplateDefaultRouteChrome,
     PublicHashAppTemplateMetadata,
     PublicHashAppTemplateOptions,
     PublicHashAppTemplateRouteChromeBaseOptions,
@@ -33,6 +34,7 @@ export type {
 } from "./createPublicHashRoutedApp";
 export type {
     PublicLinkAppTemplate,
+    PublicLinkAppTemplateDefaultRouteChrome,
     PublicLinkAppTemplateMetadata,
     PublicLinkAppTemplateOptions,
     PublicLinkAppTemplateRouteChromeBaseOptions,

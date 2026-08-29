@@ -36,29 +36,7 @@ const app = createPublicHashAppTemplate({
             }
         }
     },
-    routeChrome: () => ({
-        header: {
-            locale,
-            identity: appIdentity,
-            brand: {
-                name: t("app.title")
-            }
-        },
-        navigation: {
-            id: "app-navigation",
-            trigger: t("app.navigationTrigger"),
-            locale
-        },
-        breadcrumbs: {
-            label: t("app.breadcrumbsLabel")
-        },
-        search: {},
-        commands: {},
-        navigationReturnLink: {
-            text: t("app.backToNavigation"),
-            href: "#app-navigation"
-        }
-    }),
+    routeChrome: true,
     diagnostics: {
         logOnRouteChange: true
     }
@@ -78,7 +56,7 @@ The template owns:
 - refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
 - using `routeText.getLoadedAnnouncement` for SPA route announcements when the router does not override `getAnnouncement`;
-- creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
+- creating standard route chrome when `routeChrome: true` is used, or creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.
 
 The application still owns:
@@ -102,7 +80,7 @@ The application still owns:
 - `routeMetadata` - identity-aware route metadata defaults, or `false`. When `routeText` is provided, these options override merged route-text metadata defaults.
 - `shell` - `PublicHashAppTemplateShellOptions`.
 - `routeText` - optional localized route text bundle. Defaults route metadata text, route chrome item text, and SPA route-loaded announcements unless explicitly overridden.
-- `routeChrome` - static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list.
+- `routeChrome` - `true` for standard route chrome defaults, static route chrome options, a route chrome resolver, or `false` to omit managed route chrome. Omit `routeChrome.routes` to use the template route list. With `true`, the template creates header, navigation, breadcrumbs, route search, and route commands from `identity`, `locale`, `routes`, and `routeText`; navigation id follows `shell.skipLinkTargetId` or `"app-navigation"`.
 - `onRouteChromeCreate` - optional hook called after route chrome is created.
 - `router` - low-level hash router options that still belong to the app, such as `getAnnouncement`.
 - `diagnostics` - public diagnostics options, or `false`.

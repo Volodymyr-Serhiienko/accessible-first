@@ -3,6 +3,8 @@ import type {
     AppRouteDescriptor,
     LocalizedAppRouteText
 } from "../app-routes";
+import type { AppIdentity } from "../app-identity";
+import type { AppRouteChromeHeaderOptions } from "../route-chrome";
 import type {
     AppShellOptions,
     AppShellOutletOptions,
@@ -66,6 +68,11 @@ export type PublicAppTemplateRouteChromeBaseOptions<
 };
 
 /**
+ * Enables the standard public app route chrome recipe with framework defaults.
+ */
+export type PublicAppTemplateDefaultRouteChrome = true;
+
+/**
  * Common shell options accepted by public app templates.
  */
 export interface PublicAppTemplateShellOptions extends Omit<
@@ -92,6 +99,8 @@ export interface PublicAppTemplateShellOptions extends Omit<
 export interface PublicAppTemplateBaseOptions {
     /** Optional app shell configuration. */
     shell?: PublicAppTemplateShellOptions;
+    /** Stable public app identity used by template-owned route chrome defaults. */
+    identity?: AppIdentity | null;
     /** Optional app locale controller or text provider. */
     locale?: unknown | null;
 }
@@ -171,6 +180,40 @@ function getPublicAppTemplateShellLocale(
     return undefined;
 }
 
+function getPublicAppTemplateNavigationId(options: PublicAppTemplateBaseOptions): string {
+    return options.shell?.skipLinkTargetId ?? "app-navigation";
+}
+
+/**
+ * Creates the standard route chrome options used by public app template shorthand.
+ */
+export function createPublicAppTemplateDefaultRouteChromeOptions<
+    TRoute extends AppRouteDescriptor,
+    TOptions extends { routes: readonly TRoute[] },
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = string
+>(
+    options: PublicAppTemplateBaseOptions
+): PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions> {
+    const header: AppRouteChromeHeaderOptions<TLocale, TKey> = {};
+
+    if ("identity" in options) header.identity = options.identity ?? null;
+
+    if (isPublicAppTemplateLocaleController<TLocale, TKey>(options.locale)) {
+        header.locale = options.locale as NonNullable<AppRouteChromeHeaderOptions<TLocale, TKey>["locale"]>;
+    }
+
+    return {
+        header,
+        navigation: {
+            id: getPublicAppTemplateNavigationId(options)
+        },
+        breadcrumbs: {},
+        search: {},
+        commands: {}
+    } as unknown as PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions>;
+}
+
 /**
  * Resolves declarative route chrome options and merges resolver-backed shell refresh updates.
  */
@@ -183,14 +226,20 @@ export function resolvePublicAppTemplateRouteChromeOptions<
     },
     TContext
 >(
-    routeChrome: PublicAppTemplateContextValue<PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions>, TContext>,
+    routeChrome: PublicAppTemplateContextValue<
+        PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions> | PublicAppTemplateDefaultRouteChrome,
+        TContext
+    >,
     context: TContext,
     templateOptions: PublicAppTemplateBaseOptions & {
         routes: readonly TRoute[];
         routeText?: PublicAppTemplateRouteText<TRoute> | false;
     }
 ): TOptions {
-    const routeChromeOptions = resolvePublicAppTemplateContextValue(routeChrome, context);
+    const resolvedRouteChromeOptions = resolvePublicAppTemplateContextValue(routeChrome, context);
+    const routeChromeOptions = resolvedRouteChromeOptions === true
+        ? createPublicAppTemplateDefaultRouteChromeOptions<TRoute, TOptions>(templateOptions)
+        : resolvedRouteChromeOptions;
     const nextOptions = {
         ...routeChromeOptions,
         routes: routeChromeOptions.routes ?? templateOptions.routes

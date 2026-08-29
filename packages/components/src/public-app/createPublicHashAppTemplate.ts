@@ -22,6 +22,7 @@ import {
     getPublicAppTemplateRouteMetadata,
     getPublicAppTemplateShellOptions,
     resolvePublicAppTemplateRouteChromeOptions,
+    type PublicAppTemplateDefaultRouteChrome as SharedPublicAppTemplateDefaultRouteChrome,
     type PublicAppTemplateRouteChromeBaseOptions as SharedPublicAppTemplateRouteChromeBaseOptions,
     type PublicAppTemplateRouteText as SharedPublicAppTemplateRouteText,
     type PublicAppTemplateMetadata as SharedPublicAppTemplateMetadata,
@@ -62,6 +63,11 @@ export type PublicHashAppTemplateRouteChromeBaseOptions<
 > = SharedPublicAppTemplateRouteChromeBaseOptions<TRoute, HashAppRouteChromeBaseOptions<TRoute, TLocale, TKey>>;
 
 /**
+ * Shorthand that enables standard public hash app route chrome defaults.
+ */
+export type PublicHashAppTemplateDefaultRouteChrome = SharedPublicAppTemplateDefaultRouteChrome;
+
+/**
  * Lazy RouteChrome options resolver accepted by createPublicHashAppTemplate().
  */
 export type PublicHashAppTemplateRouteChromeOptionsResolver<
@@ -70,7 +76,7 @@ export type PublicHashAppTemplateRouteChromeOptionsResolver<
     TKey extends string = string
 > = (
     context: HashRoutedAppContext<TRoute>
-) => PublicHashAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>;
+) => PublicHashAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey> | PublicHashAppTemplateDefaultRouteChrome;
 
 /**
  * RouteChrome options accepted by createPublicHashAppTemplate().
@@ -80,6 +86,7 @@ export type PublicHashAppTemplateRouteChromeOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = string
 > =
+    | PublicHashAppTemplateDefaultRouteChrome
     | PublicHashAppTemplateRouteChromeBaseOptions<TRoute, TLocale, TKey>
     | PublicHashAppTemplateRouteChromeOptionsResolver<TRoute, TLocale, TKey>;
 

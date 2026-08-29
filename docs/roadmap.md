@@ -54,7 +54,7 @@ Current focus after the result/list foundation:
 
 - Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
 - Treat `ResultSummary` as the small bridge between SearchBox, Pagination, lists, and future DataTable work: static by default, optionally live for dynamic filtering.
-- Keep `createPublicAppTemplate()` as the standard public-app entry point, with `PublicHashAppTemplate` and `PublicLinkAppTemplate` remaining available for explicit mode-specific docs and custom code.
+- Keep `createPublicAppTemplate()` as the standard public-app entry point. `routeChrome: true` is the default starter path; `PublicHashAppTemplate` and `PublicLinkAppTemplate` remain available for explicit mode-specific docs and custom code.
 - Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
 - Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
 - Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
@@ -63,7 +63,7 @@ Current focus after the result/list foundation:
 - Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
 - Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
 - Use `routeText` as the default bridge between route metadata, diagnostics, and SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
-- Keep route search and command palette service text inherited from app locale defaults in app chrome, so starter apps can enable search and commands without repeating label, placeholder, trigger, and empty-state copy.
+- Keep route search and command palette service text inherited from app locale defaults in app chrome, so starter apps can enable `routeChrome: true`, search, and commands without repeating label, placeholder, trigger, and empty-state copy.
 - Keep public hash/link templates sharing one internal shell-refresh, diagnostics-defaults, and routeChrome route-list injection path, so SPA and MPA starters do not drift apart.
 
 ### Exit Criteria For This Phase
@@ -85,16 +85,17 @@ Goal: use Accessible First to build real application screens, then promote repea
 Planned sequence, ordered toward the first usable generated app:
 
 1. Use `createPublicAppTemplate()` as the single teachable public-app entry, while keeping hash and link templates as explicit lower-level recipes.
-2. Keep [Application Blueprint](./app-blueprint.md) as the architecture contract and [Application Starter](./app-starter.md) as the practical first-app recipe: identity, routes, route registry, localized route text, locale file, metadata, manifest, diagnostics, header tools, route chrome, layout, and focus routes.
+2. Keep [Application Blueprint](./app-blueprint.md) as the architecture contract and [Application Starter](./app-starter.md) as the practical first-app recipe: identity, routes, route registry, localized route text, locale file, metadata, manifest, diagnostics, `routeChrome: true`, layout, and focus routes.
 3. Remove duplicated app-shell glue from the playground only when the blueprint abstraction is cleaner than the current code.
-4. Add a lightweight application scaffold/generator once the starter recipe is stable enough to create a site without manual wiring.
+4. Add a lightweight application scaffold/generator once the starter recipe is stable enough to create a minimal runnable site without manual wiring: brand placeholder, starter metadata reminders, first screen, footer, route list, localization, diagnostics, and optional chrome/components selected by configuration.
 5. Treat the stable scaffold as the handoff point for the legacy language-learning app code: after this point, the old app can be reviewed and migrated instead of guessed from memory.
 6. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
 7. Start the first reference application: an accessible foreign-language learning app, migrated from the legacy project into the new Accessible First app structure.
 8. Validate real workflows in that application: lesson list/detail, vocabulary list/detail, practice screen, settings screen, progress feedback, form validation, user preferences, desktop keyboard routes, and mobile screen reader routes.
 9. Add header/navigation variants only when the first app or generated site needs them: top navigation, sidebar navigation, mobile navigation, sticky/fixed/reveal chrome, and action overflow.
-10. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
-11. Keep component expansion tied to the reference app, not to a theoretical catalog.
+10. Defer the visual site-constructor idea until the code-first starter, generated minimal app, and first reference app make the stable option set obvious.
+11. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
+12. Keep component expansion tied to the reference app, not to a theoretical catalog.
 
 ## Component Expansion Queue
 
