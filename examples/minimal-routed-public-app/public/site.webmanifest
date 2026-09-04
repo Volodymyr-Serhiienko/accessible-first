@@ -1,7 +1,7 @@
 {
   "name": "Accessible First App",
   "short_name": "AF App",
-  "description": "A minimal Accessible First application template with semantic structure, metadata, theme, footer, and content.",
+  "description": "A minimal Accessible First routed application template with semantic structure, metadata, navigation, breadcrumbs, theme, footer, and content.",
   "lang": "en",
   "start_url": ".",
   "scope": ".",

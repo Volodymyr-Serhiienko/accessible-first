@@ -57,7 +57,7 @@ The template owns:
 - creating `PublicLinkRoutedApp`;
 - default `mainId: "main"` and `theme: "system"`;
 - passing a compatible app locale into `AppShell` fallback text;
-- refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
+- refreshing shell title, skip-link text, navigation label, outlet options, slot content, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
 - creating standard route chrome when `routeChrome: true` is used, or creating a `createLinkAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;
 - passing a full `LocaleController` to diagnostics when available and not already supplied.

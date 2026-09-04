@@ -84,14 +84,28 @@
 }
 
 [data-af-composition="section"] {
+    box-sizing: border-box;
+    min-inline-size: 0;
     display: grid;
-    gap: var(--af-space-3);
+    gap: var(--af-section-gap, var(--af-space-2));
 }
 
 [data-af-composition="section"] > :is(h2, h3, h4, h5, h6) {
     margin: 0;
     font-size: 1.125rem;
     line-height: 1.25;
+}
+
+[data-af-composition="section"] > :where(p, ul, ol) {
+    margin-block: 0;
+}
+
+[data-af-composition="section"] > :where(p) {
+    line-height: 1.6;
+}
+
+[data-af-composition="section"] > :where(ul, ol) {
+    padding-inline-start: 1.25rem;
 }
 
 [data-af-layout="row"] {
@@ -102,8 +116,18 @@
 }
 
 [data-af-layout="stack"] {
+    box-sizing: border-box;
+    min-inline-size: 0;
     display: grid;
-    gap: var(--af-space-3);
+    gap: var(--af-stack-gap, var(--af-space-4));
+}
+
+[data-af-layout="stack"] > :where(p, ul, ol) {
+    margin-block: 0;
+}
+
+[data-af-layout="stack"] > :where(ul, ol) {
+    padding-inline-start: 1.25rem;
 }
 
 [data-af-layout="group"] {
@@ -121,10 +145,20 @@
 }
 
 [data-af-composition="panel"] {
+    box-sizing: border-box;
+    min-inline-size: 0;
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
     padding: var(--af-space-4);
     background: var(--af-color-bg);
+}
+
+[data-af-composition="panel"] > :where(p, ul, ol) {
+    margin-block: 0;
+}
+
+[data-af-composition="panel"] > :where(ul, ol) {
+    padding-inline-start: 1.25rem;
 }
 
 [data-af-layout="grid"] {

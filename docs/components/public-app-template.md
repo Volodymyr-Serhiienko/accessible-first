@@ -79,7 +79,7 @@ Shared options depend on the selected mode, but the intended application model i
 - `identity` - stable app identity for metadata, manifest, and diagnostics.
 - `routeMetadata` - identity-aware route metadata defaults, or `false`; when `routeText` is provided, these values override merged route-text metadata defaults.
 - `routeText` - optional localized route text bundle used for route metadata, route chrome item text, and, in hash mode, route-loaded announcements.
-- `shell` - app shell configuration with template-friendly resolver support for title, skip link, navigation label, metadata, and outlet options. When `identity` is provided, shell creation starts with identity-derived public metadata; `shell.metadata` extends or overrides it, and `metadata: false` opts out for fully manual metadata ownership.
+- `shell` - app shell configuration with template-friendly resolver support for title, skip link, navigation label, metadata, outlet options, and shell slot content such as footer content. When `identity` is provided, shell creation starts with identity-derived public metadata; `shell.metadata` extends or overrides it, and `metadata: false` opts out for fully manual metadata ownership.
 - `routeChrome` - `true` for standard route chrome defaults, declarative route chrome options, a resolver, or `false`. Omit `routeChrome.routes` to use the template route list. With an explicit object, navigation, breadcrumbs, search, and commands are opt-in, so omit unused controls instead of writing `false` for each one.
 - `diagnostics` - public app diagnostics options, or `false`.
 

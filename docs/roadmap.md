@@ -1,254 +1,146 @@
 # Roadmap
 
-Accessible First is moving from a component library into a small framework for building accessible web applications. The roadmap is intentionally organized as a working plan, not as a complete history log.
+Accessible First is moving from a component library into a lightweight, framework-independent foundation for building accessible SPA, MPA, and static public web applications.
 
-## Current Direction
+This roadmap is a working plan, not a history log. Finished details belong in component docs, starter docs, or examples.
 
-The project goal is a lightweight, framework-independent foundation for building accessible SPA and MPA web applications.
+## Current Goal
 
-Accessible First should provide:
+Prepare the framework for the first real application: an accessible foreign-language learning app.
 
-- low-level accessibility behavior modules;
-- enhancement APIs for existing HTML;
-- composition APIs for creating interfaces directly;
-- semantic page and app shell primitives;
-- accessible UI components with practical defaults;
-- localization, theme, metadata, diagnostics, and responsive layout foundations;
-- a playground that acts as living documentation and real-device testing surface;
-- reusable application patterns proven by real applications.
+Before that migration starts, the framework should have two small runnable starters:
 
-## Status Legend
+1. a routed public app template for SPA-like applications;
+2. a static public site template for simple pages and small sites.
 
-- **Stable foundation** - usable and documented, with only normal refinements expected.
-- **Active** - current work area.
-- **Next** - planned soon, before major new product/application work.
-- **Later** - important, but should wait until real examples justify the final API shape.
+Those starters should prove the app shell, localization, metadata, diagnostics, theme, navigation, and content structure outside the playground.
 
 ## Stable Foundation
 
-These layers are strong enough to build on:
+These layers are ready to build on, with normal refinements expected:
 
-- Platform utilities: DOM, events, IDs, keyboard helpers, focus helpers, ARIA helpers, scroll utilities including startup scroll reset, collection helpers.
-- Behavior modules: roving focus, live regions, disclosure, dialog, tabs, listbox, typeahead, selection, menu, popover positioning, dismissable layer, overlay stack, form-field semantics, validation announcements.
-- Core composition: createElement, mount, Page object, semantic primitives, tag helpers, trusted HTML, Icon, Image, VisuallyHidden.
-- Theme baseline: system/light/dark page theme, ThemeToggle, component tokens, accessible focus and contrast defaults.
-- Component baseline: Button, IconButton, Link, Disclosure, Accordion, Dialog, AlertDialog, Tabs, Listbox, Menu, Select, Combobox, Popover, Tooltip, Toast, Checkbox, RadioGroup, Switch, TextField, FieldGroup, FormSection, Form, DescriptionList, Breadcrumbs, ActionsBar, Navigation, ResponsiveNavigation, OverflowScroller, Brand, HeaderBar, AppHeader, EmptyState, InfoCard, Badge, Progress, Pagination, ResultSummary, SettingsGroup, Table, Screen, ListDetail.
-- App foundation: AppShell, PageLayout, PageOutlet, HashRouter, HashRoutedApp, PublicHashRoutedApp, PublicHashAppTemplate, PublicAppTemplate, LinkRoutedApp, PublicLinkRoutedApp, PublicLinkAppTemplate, App route helpers, AppRouteRegistry, AppScreenRoute, route-derived Navigation/Search/Breadcrumbs/CommandPalette, RouteChrome with breadcrumb root and navigation return-link support, AppRouteChrome, HashAppRouteChrome, HashAppRouteChromeRenderer, LinkAppRouteChrome, LinkAppRouteChromeRenderer, AppHeader with identity-derived brand defaults, FocusRoute.
-- Metadata and public-web helpers: AppIdentity, DocumentMetadata, AppDocumentMetadata recipe, WebAppManifest and AppWebAppManifest recipe, sitemap helper, robots.txt helper, identity-derived route metadata and diagnostics helpers.
-- Diagnostics baseline: page diagnostics, app diagnostics aggregation/runner, public app diagnostics recipe, public route diagnostics defaults, route-list inspection in the public runner, identity-derived manifest checks, metadata, localization, and manifest checks.
-- Localization baseline: LocaleController, createAppLocalization starter bundle, document lang/dir synchronization, framework service-text registry, application locale template, LocaleFormatter, required message-key helper, locale-aware search helpers, localized route text resolvers, LanguageSelect, LocaleRefresh for app-owned chrome/screen updates without page reload.
+- platform utilities for DOM, events, IDs, focus, keyboard, ARIA, scroll, collection, and startup behavior;
+- behavior modules for disclosure, dialog, tabs, listbox, menu, popover, overlay, typeahead, selection, live regions, and validation announcements;
+- composition primitives, semantic markup helpers, Page, AppShell, PageLayout, PageOutlet, Screen, sections, layout blocks, Icon, Image, and VisuallyHidden;
+- accessible component baseline: buttons, links, icons, images, disclosures, dialogs, alerts, tabs, listboxes, menus, selects, comboboxes, popovers, tooltips, toasts, form fields, navigation, breadcrumbs, responsive navigation, header, screen, list/detail, tables, pagination, progress, result summaries, and status/empty/info patterns;
+- app foundation: hash routing, native-link routing, public routed apps, public app templates, route chrome, route text, route registry, app identity, metadata, manifest, sitemap, robots, diagnostics, and locale refresh;
+- localization foundation: framework service-text registry, app localization helper, locale formatter, required-key diagnostics, route text resolvers, document `lang` / `dir` sync, LanguageSelect, and reactive app refresh.
 
-## Active Phase: App Foundation Stabilization
+## Active Phase
 
-Goal: make the framework ready for the first real application without carrying avoidable architectural debt.
+### 1. Stabilize The Routed Template
 
-Current focus after the result/list foundation:
+Status: almost done.
 
-1. Keep documentation aligned with the architecture.
-2. Finish localization as a cross-cutting foundation, not a per-component patch.
-3. Refine header, navigation, and app shell layout so real apps need minimal custom CSS.
-4. Confirm SPA and MPA patterns share the same route metadata and native-link foundation.
-5. Keep the playground useful as a living demo while extracting only repeated app patterns into the library.
+`examples/minimal-routed-public-app` should remain the canonical first runnable app starter. It includes brand, header tools, theme, localization, two routes, route navigation, breadcrumbs, footer, metadata, manifest assets, diagnostics, and page content files.
 
-### Now
+Current finish work:
 
-- Keep header/navigation/mobile shell behavior stable after the HeaderTools and LocaleRefresh work.
-- Treat `ResultSummary` as the small bridge between SearchBox, Pagination, lists, and future DataTable work: static by default, optionally live for dynamic filtering.
-- Keep `createPublicAppTemplate()` as the standard public-app entry point. `routeChrome: true` is the default starter path; `PublicHashAppTemplate` and `PublicLinkAppTemplate` remain available for explicit mode-specific docs and custom code.
-- Keep `HeaderBar` as the low-level header layout. Higher-level app templates should own sticky/reveal chrome decisions and decide when to use `HeaderTools`.
-- Keep playground code focused on demo copy and examples, with app-owned identity shared by metadata, manifest, routes, localization, and diagnostics through top-level public app recipe options. Move reusable startup lifecycle, app header, route chrome, diagnostics, and workflow focus wiring into framework helpers; keep after-outlet navigation return routes declarative through route chrome options.
-- Keep both routed app recipes small, documented, and ready to feed future app templates before starting the first reference application. Hash SPAs should use `createHashAppRouteChromeRenderer` inside `HashRoutedApp`, or `createHashAppRouteChrome` when custom render code already has the router/current route. Native-link and MPA pages should use `createLinkAppRouteChromeRenderer` inside `LinkRoutedApp`.
-- Keep localization diagnostics wired into app health reports through `createAppDiagnosticsRunner()` so missing service/app text is visible before release.
-- Keep shaping the first app starter from real playground wiring instead of adding unrelated components. `AppScreenRoute` is the first minimal runnable route/screen declaration layer; use it for starter pages before introducing a file generator.
-- Keep `playground/main.ts` thin and move app-owned wiring into a single playground app factory so the future starter and first reference app can follow the same entry shape.
-- Keep route registry, resolver-backed shell/outlet options, and localized route text helpers as the playground template pattern, so app-owned navigation, search, breadcrumbs, announcements, metadata, and diagnostics refresh from one locale source before starting the first reference app.
-- Use `routeText` as the default bridge between route metadata, diagnostics, and SPA route-change speech, so starter apps do not repeat title/description/announcement resolver glue.
-- Keep route search and command palette service text inherited from app locale defaults in app chrome, so starter apps can enable `routeChrome: true`, search, and commands without repeating label, placeholder, trigger, and empty-state copy.
-- Keep public hash/link templates sharing one internal shell-refresh, diagnostics-defaults, and routeChrome route-list injection path, so SPA and MPA starters do not drift apart.
-- Use `examples/minimal-public-app` as the first independent starter smoke target: verify the bare app first, then add localization, header tools, route navigation, search, and commands in separate checks.
+- keep its README accurate;
+- keep `docs/app-starter.md`, `docs/app-blueprint.md`, and `docs/templates.md` aligned;
+- avoid adding extra demo components to this template unless they prove starter wiring.
 
-### Exit Criteria For This Phase
+### 2. Create The Static Public Site Template
 
-Before starting the first real application, we should have:
+Status: next.
 
-- one clear public SPA template, backed by `PublicHashAppTemplate`, `PublicHashRoutedApp`, and the lower-level `HashRoutedApp`, with route lists declared once at the template boundary;
-- one clear public MPA/native-link template, backed by `PublicLinkAppTemplate`, `PublicLinkRoutedApp`, and the lower-level `LinkRoutedApp`, with the same route-list injection pattern;
-- app-owned identity and route metadata feeding navigation, search, breadcrumbs, document metadata, WebPage JSON-LD, web app manifests, command palette, RouteChrome, public routed app recipes, locale refresh, and diagnostics;
-- theme and locale handled at the app shell level;
-- header/navigation responsive behavior documented;
-- diagnostics reporting useful page, route-list, metadata, localization, manifest, and app-owned health issues through a public app diagnostics recipe;
-- playground sections stable enough for desktop and mobile smoke checks;
-- `examples/minimal-public-app` builds as a standalone app and proves the starter path outside the playground.
+Create `examples/minimal-static-public-site` as a simpler starter for pages and small sites that do not need SPA route changes. It should prove identity, metadata, theme, localization shape, semantic content, footer, diagnostics, and local style overrides with less routing machinery.
 
-## Next Phase: Application Templates And First Reference App
+### 3. Make The Repository AI-Friendly
 
-Goal: use Accessible First to build real application screens, then promote repeated patterns back into the framework.
+Status: next after the two templates.
 
-Planned sequence, ordered toward the first usable generated app:
+Add concise machine-readable and agent-readable guidance so AI coding agents can understand how to use the framework without scraping the whole repo.
 
-1. Use `createPublicAppTemplate()` as the single teachable public-app entry, while keeping hash and link templates as explicit lower-level recipes.
-2. Keep [Application Blueprint](./app-blueprint.md) as the architecture contract and [Application Starter](./app-starter.md) as the practical first-app recipe: identity, routes, route registry, localized route text, locale file, metadata, manifest, diagnostics, `routeChrome: true`, layout, and focus routes.
-3. Remove duplicated app-shell glue from the playground only when the blueprint abstraction is cleaner than the current code.
-4. Add a lightweight application scaffold/generator once the starter recipe is stable enough to create a minimal runnable site without manual wiring: brand placeholder, starter metadata reminders, first screen, footer, route list, localization, diagnostics, and optional chrome/components selected by configuration.
-5. Treat the stable scaffold as the handoff point for the legacy language-learning app code: after this point, the old app can be reviewed and migrated instead of guessed from memory.
-6. Generate a small first-site prototype from that scaffold: home screen, navigation, metadata, manifest, locale file, diagnostics, and one or two content screens.
-7. Start the first reference application: an accessible foreign-language learning app, migrated from the legacy project into the new Accessible First app structure.
-8. Validate real workflows in that application: lesson list/detail, vocabulary list/detail, practice screen, settings screen, progress feedback, form validation, user preferences, desktop keyboard routes, and mobile screen reader routes.
-9. Add header/navigation variants only when the first app or generated site needs them: top navigation, sidebar navigation, mobile navigation, sticky/fixed/reveal chrome, and action overflow.
-10. Defer the visual site-constructor idea until the code-first starter, generated minimal app, and first reference app make the stable option set obvious.
-11. Promote repeated application code into reusable screen or shell patterns only when the repetition is proven.
-12. Keep component expansion tied to the reference app, not to a theoretical catalog.
+Likely artifacts:
+
+- a short framework overview;
+- template selection guidance;
+- component usage rules;
+- accessibility and localization rules;
+- common commands;
+- examples map;
+- contribution and extension notes.
+
+### 4. Prepare The First Reference App
+
+Status: after starters and AI-friendly docs.
+
+Bring in the legacy foreign-language learning app only after the starter shape is stable enough to guide the migration. Then migrate screen by screen and promote only repeated, product-independent patterns back into the framework.
+
+## Near-Term Sequence
+
+1. Finish documentation cleanup for the routed template.
+2. Create `minimal-static-public-site`.
+3. Review local playground CSS for styles that should now live in the library, but only in focused passes.
+4. Add AI-friendly repository guidance.
+5. Ask for the legacy language-learning app code.
+6. Build the first reference app using the starter shape.
+7. Promote proven application patterns into the framework.
+
+## What Not To Do Yet
+
+- Do not build a full generator before the two starter examples are stable.
+- Do not add every possible UI component before the first reference app shows the need.
+- Do not move one-off application copy or domain behavior into the framework.
+- Do not turn the minimal routed template into a second playground.
+- Do not design the future visual site builder before the code-first workflow is proven.
 
 ## Component Expansion Queue
 
-Do not create every possible component immediately. Build components when they unlock real app work or repeated playground patterns.
+Build new components when they unlock real app work or repeated patterns.
 
-High-priority candidates:
+High priority:
 
-- DataTable extensions on top of native Table for sorting, selection, pagination, and responsive card alternatives.
-- Drawer / SidePanel / Sheet for non-modal and modal side content, especially mobile layouts.
-- Toolbar improvements and command/action grouping.
-- Stepper / Wizard for guided multi-step workflows.
-- FileUpload built on native input with accessible validation and progress.
-- Slider / Range using native input first.
-- Avatar / UserMenu / ProfileAction for app headers.
-- Loading, Skeleton, ErrorState, and retry patterns for async screens.
-- Modal and non-modal application panels based on Dialog, Popover, and DismissableLayer.
+- DataTable behavior on top of native Table: sorting, selection, pagination, responsive alternatives;
+- Drawer / SidePanel / Sheet for application panels and mobile layouts;
+- Toolbar and grouped action improvements;
+- Stepper / Wizard for guided workflows;
+- FileUpload with accessible validation and progress;
+- Avatar / UserMenu / ProfileAction for app headers;
+- Loading, Skeleton, ErrorState, retry, and async screen patterns.
 
-Lower-priority or research-heavy candidates:
+Research or later:
 
-- Calendar / DatePicker, only with a native-first fallback and careful mobile testing.
-- Virtualized large lists, only when performance needs are proven.
-- Rich text editor patterns, only after core app patterns are stable.
-- Advanced charts, only with accessible data summaries and keyboard-independent alternatives.
+- Calendar / DatePicker with native-first fallback;
+- virtualized large lists only after performance need is proven;
+- rich text editing only after core app patterns are stable;
+- charts only with accessible data summaries and non-visual alternatives.
 
-## Cross-Cutting Decisions To Settle Early
+## Cross-Cutting Gates
 
-These topics can cause expensive refactors if postponed too long.
+These areas must stay coherent as the framework grows:
 
-### Localization And Internationalization
+- localization and pluralization;
+- theme tokens, density, typography, and contrast;
+- responsive shell, header, navigation, and header tools;
+- SPA, MPA, and static-site routing/metadata alignment;
+- form validation, validation summaries, and quiet screen reader feedback;
+- hint, description, tooltip, toast, and announcement rules;
+- diagnostics and public-page health reports;
+- assets, icons, images, manifests, and SEO metadata;
+- desktop keyboard routes and mobile screen reader routes.
 
-Already started. Continue to keep all framework-owned user-facing service text behind `LocaleController`.
+## Playground Role
 
-Need next:
+The playground is living documentation and real-device validation. It should keep demo content, manual testing surfaces, and examples of component options.
 
-- keep the `createAppLocalization()` starter bundle hardened against the first real app;
-- keep `createRequiredLocaleMessageKeys()` plus `inspectLocaleController()` in app diagnostics for required framework and app-owned message keys;
-- refine `LocaleRefresh` into higher-level app templates only after real repeated patterns appear;
-- richer pluralization strategy on top of `Intl.PluralRules` categories;
-- locale-aware indexed/server-backed search patterns beyond lightweight in-memory filtering;
-- RTL layout smoke tests and diagnostics beyond document direction synchronization.
+Promote code from the playground into the library only when it is repeated, product-independent, accessibility-related, or clearly part of the reusable app shell/template foundation.
 
-### Theme, Tokens, And Density
+## First Reference App
 
-Default styles should remain accessible and lightweight.
+The first reference app will be an accessible foreign-language learning application. It should validate the framework against real workflows:
 
-Need next:
+- lesson list and lesson detail;
+- vocabulary list/detail;
+- practice flow;
+- settings and preferences;
+- progress and result summaries;
+- form validation;
+- localized UI and formatted data;
+- desktop keyboard use;
+- mobile screen reader use.
 
-- clearer token documentation;
-- density presets for comfortable/compact UI;
-- typography scale and readable line lengths;
-- component size consistency;
-- dark-theme glare checks for primary surfaces, tooltips, and selected states.
+## Long-Term Direction
 
-### Responsive Shell, Header, And Navigation
-
-Header, navigation, search, language, theme, command palette, and future profile controls must compose well across desktop, tablet, and mobile.
-
-Need next:
-
-- app-level shell modes: normal, sticky/fixed, reveal-on-scroll;
-- header action wrapping and overflow strategy built on `HeaderTools`, with later shell templates deciding when to use normal, sticky, fixed, or reveal app chrome;
-- compact search behavior;
-- desktop overflow navigation without clipped focus;
-- mobile navigation that remains visually clear and screen-reader understandable.
-
-### Routing, SPA, And MPA
-
-Navigation should start from real links so MPA, static pages, server-rendered pages, and SPA shells can share the same route metadata.
-
-Need next:
-
-- MPA current-route detection and native-link route chrome examples built on `PublicLinkAppTemplate` and `LinkRoutedApp`;
-- `HashRoutedApp` and `LinkRoutedApp` examples side by side;
-- canonical URL and sitemap guidance for hash routes;
-- route diagnostics for missing titles, descriptions, hrefs, parents, and metadata.
-
-### Forms And Validation
-
-Validation should be field-first, form-aware, and quiet enough for screen readers.
-
-Need next:
-
-- form-level validation summary pattern;
-- async validation hooks;
-- field success/error visual indicators;
-- rules for when live-region validation is useful and when focus should own the message.
-
-### Hints, Descriptions, Announcements, And Toasts
-
-The current model is good. Keep enforcing it.
-
-Need next:
-
-- avoid duplicated speech when focus already reads the target;
-- keep important information visible for touch and non-screen-reader users;
-- keep toast actions non-critical until a reliable focus route exists.
-
-### Diagnostics And Health Reports
-
-Diagnostics should become one of the framework's strongest differentiators.
-
-Need next:
-
-- localization diagnostics;
-- responsive/mobile risk diagnostics where detectable;
-- duplicate or missing route metadata diagnostics;
-- SEO/public-page readiness diagnostics;
-- optional visual diagnostics overlay later.
-
-### Assets, Icons, And Images
-
-The icon and image model should stay flexible before many components depend on it.
-
-Need next:
-
-- document icon source choices;
-- keep IconButton flexible for paths, SVG strings, image files, and composed icon nodes;
-- image presets for content images, logos, avatars, thumbnails, and cards.
-
-## Playground Direction
-
-The playground should be living documentation, not a second framework.
-
-Keep in playground:
-
-- demo-only strings and examples;
-- simple local helpers that do not repeat across real apps;
-- manual testing sections;
-- real-device layout checks.
-
-Promote into the library:
-
-- repeated accessibility behavior;
-- repeated route/app shell wiring;
-- repeated focus routes;
-- repeated responsive shell/header/navigation patterns;
-- repeated diagnostics checks.
-
-## Validation Direction
-
-Manual validation stays important because screen reader and mobile behavior cannot be fully trusted to unit tests.
-
-Use this flow:
-
-1. Add or update the component/pattern.
-2. Document expected behavior.
-3. Add or update playground demo when useful.
-4. Smoke test desktop keyboard and screen reader behavior.
-5. Smoke test mobile touch and screen reader behavior when the pattern affects mobile UX.
-6. Add automated tests after the public API stabilizes enough to avoid churn.
-
-## Long-Term Goal
-
-Accessible First should become a small but serious web application framework: easier than large UI frameworks for accessible apps, lighter than full virtual-DOM stacks, and more opinionated about WCAG-friendly defaults, semantics, diagnostics, and real user workflows.
+Accessible First should become a small but serious web application framework: lighter than full virtual-DOM stacks, easier to start than large UI frameworks, and more opinionated about accessibility, localization, semantics, diagnostics, public metadata, and real user workflows.

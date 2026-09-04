@@ -46,7 +46,7 @@ export type ResponsiveNavigationTriggerContent = CompositionContent;
 export type ResponsiveNavigationCloseButtonContent = CompositionContent;
 
 /**
- * Side where the mobile trigger menu icon is shown.
+ * Side where the mobile trigger menu icon is shown. Defaults to "start".
  */
 export type ResponsiveNavigationTriggerIconPosition = "start" | "end";
 
@@ -250,7 +250,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     let mobileVariant: NavigationVariant = options.mobileVariant ?? "pills";
     let trigger = options.trigger;
     let closeButton = options.closeButton;
-    let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "end";
+    let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "start";
     let locale: ResponsiveNavigationLocalization | null = options.locale ?? null;
     let unsubscribeLocale: (() => void) | null = null;
     let size: NavigationSize = options.size ?? "md";

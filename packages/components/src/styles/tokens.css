@@ -7,9 +7,12 @@
     --af-radius-sm: 4px;
     --af-radius-md: 6px;
 
+    --af-space-1: 0.25rem;
     --af-space-2: 0.5rem;
     --af-space-3: 0.75rem;
     --af-space-4: 1rem;
+    --af-space-5: 1.5rem;
+    --af-space-6: 2rem;
 
     --af-color-bg: #ffffff;
     --af-color-fg: #111827;

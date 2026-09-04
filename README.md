@@ -30,3 +30,16 @@ Accessible First is not only a component library. It is growing into a small dev
 Early stage research and development.
 
 The behavior foundation and component baseline are now broad enough to support app-level work. The project is focused on public app templates, diagnostics, localization, playground validation, and the first reference application path.
+
+## Examples
+
+- `examples/minimal-routed-public-app` - the current routed public app starter. Run it with `npm run example:routed:dev` or build it with `npm run example:routed:build`.
+
+## Documentation
+
+- [Architecture](./docs/architecture.md)
+- [Application Blueprint](./docs/app-blueprint.md)
+- [Application Starter](./docs/app-starter.md)
+- [Application Templates](./docs/templates.md)
+- [Roadmap](./docs/roadmap.md)
+- [Component Reference](./docs/components/README.md)

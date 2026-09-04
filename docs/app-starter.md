@@ -1,400 +1,243 @@
 # Application Starter
 
-Application Starter is the practical recipe for creating the first real Accessible First apps.
+Application Starter is the practical recipe for creating real Accessible First apps.
 
-It is not a file generator yet. It is the smallest repeatable app shape we want every starter, playground, and reference application to follow until real use proves a better abstraction.
+It is not a file generator yet. It describes the smallest repeatable app shape we are proving with runnable examples.
 
-For the architectural contract behind this recipe, see [Application Blueprint](./app-blueprint.md).
+For the architecture contract, see [Application Blueprint](./app-blueprint.md). For the starter list, see [Application Templates](./templates.md).
 
-## Runnable Smoke Example
+## Runnable Routed Example
 
-The first independent starter check lives in `examples/minimal-public-app`.
+The current routed starter lives in `examples/minimal-routed-public-app`.
 
-Run the production smoke build with:
-
-```bash
-npm run example:minimal:build
-```
-
-Run the standalone dev server for manual desktop and mobile checks with:
+Run it with:
 
 ```bash
-npm run example:minimal:dev
+npm run example:routed:dev
 ```
 
-This example proves that the public app template can boot outside the playground with an identity-derived brand, logo, metadata, manifest, the default AppHeader theme toggle, a footer, one Screen-backed route, route metadata, diagnostics, and no app-owned CSS for standard page/footer spacing.
+Build it with:
 
-Use this example for staged starter checks before adding a generator:
+```bash
+npm run example:routed:build
+```
 
-1. Keep the initial app minimal: brand, theme toggle, footer, and content.
-2. Add localization and a language selector.
-3. Add route navigation, breadcrumbs, search, and commands only when the app shape needs them.
-4. Split the example into app files only after the single-file version becomes harder to scan.
+This example proves a public hash-routed app with brand, header tools, theme, localization, two pages, route navigation, breadcrumbs, footer, metadata, manifest assets, diagnostics, and page content files.
 
-## Goal
+## Starter Goals
 
-A new app should begin with accessible app infrastructure already in place:
+A starter should give the developer:
 
-- one app identity for brand, metadata, manifest, and diagnostics;
-- one locale controller for framework service text and app text;
-- one route list and route registry;
-- one localized route text layer;
-- one public app template entry point;
-- one app shell with header, navigation, route outlet, optional feedback, and footer;
-- route-aware navigation, breadcrumbs, search, command palette, metadata, and diagnostics;
-- predictable focus movement for keyboard and mobile screen reader users.
+- one clear app factory;
+- one app identity;
+- one localization controller;
+- one shell and chrome setup;
+- one route/page declaration model when routing is needed;
+- document metadata and public-page defaults;
+- diagnostics from the beginning;
+- a local stylesheet for app-specific overrides.
 
-The app should own product text, screens, data, and domain behavior. The framework should own repeated wiring, accessibility defaults, metadata plumbing, diagnostics, and responsive shell behavior.
+The starter should not include every component. It should stay small enough to understand quickly.
 
-## Recommended File Shape
+## Recommended Routed File Shape
 
 ```text
 src/
-  main.ts
   app/
     app.ts
+    chrome.ts
+    diagnostics.ts
+    footer.ts
+    header.ts
     identity.ts
-    localization.ts
-    metadata.ts
     routes.ts
     routeText.ts
-    routeChrome.ts        # optional once default routeChrome needs overrides
     shell.ts
-    diagnostics.ts
-  screens/
+  localization/
+    index.ts
+    types.ts
+    locales/
+      en.ts
+      uk.ts
+  pages/
     home.ts
-    settings.ts
-  features/
-    ...domain modules...
-  styles.css
+    about.ts
+main.ts
+styles.css
 ```
 
-Small apps can merge some `app/` files at first. `routeChrome.ts` is optional: start with `routeChrome: true`, then split a route chrome options file only when the app needs custom header controls, navigation behavior, breadcrumbs, search, commands, or return links.
+## Startup
 
-## Step 1: Keep main.ts Thin
+`main.ts` should only import styles and start the app:
 
 ```ts
+import "../../packages/components/src/styles/index.css";
 import "./styles.css";
-import { createApp } from "./app/app";
+import { createMinimalRoutedPublicApp } from "./src/app/app";
 
-createApp();
+createMinimalRoutedPublicApp();
 ```
 
-`main.ts` should not own route lists, screen rendering, metadata, locale messages, or app chrome. That keeps app startup easy to scan and easy to generate later.
-
-## Step 2: Define Identity
+The app factory owns framework wiring:
 
 ```ts
-import { createAppIdentity } from "@accessible-first/components";
-
-export const appIdentity = createAppIdentity({
-    name: "Language Lab",
-    shortName: "Language Lab",
-    description: "Accessible language learning for everyday practice.",
-    lang: "en",
-    themeColor: "#111827",
-    manifestHref: "site.webmanifest",
-    icons: {
-        svg: "assets/logo.svg",
-        png192: "assets/logo-192.png",
-        png512: "assets/logo-512.png",
-        maskablePng512: "assets/logo-maskable-512.png"
-    }
+createPublicAppTemplate({
+    mode: "hash",
+    routes,
+    mount: "#app",
+    locale,
+    identity,
+    routeText,
+    routeMetadata,
+    shell: getShellOptions(),
+    routeChrome: getChromeOptions,
+    diagnostics: getDiagnosticsOptions()
 });
 ```
 
-Identity should be stable and app-owned. Use it for header brand defaults, document metadata, manifest generation, diagnostics, and future public-page helpers.
+## Identity
 
-## Step 3: Create Localization
+Keep brand, public metadata, manifest data, icons, colors, and diagnostics identity in `identity.ts`.
+
+Use a resolver when identity depends on locale:
 
 ```ts
-import {
-    createAppLocalization,
-    type AccessibleFirstMessageKey,
-    type LocaleMessageParams,
-    type LocaleMessagesByLocale
-} from "@accessible-first/components";
-
-export const supportedLocales = ["en", "uk", "ru"] as const;
-
-export type AppLocale = typeof supportedLocales[number];
-
-export type AppMessageKey =
-    | AccessibleFirstMessageKey
-    | "app.brand.name"
-    | "app.brand.tagline"
-    | "app.navigation.skipLink"
-    | "app.route.loaded"
-    | "routes.home.title"
-    | "routes.home.description"
-    | "routes.settings.title"
-    | "routes.settings.description";
-
-const messages = {
-    en: {
-        "app.brand.name": "Language Lab",
-        "app.brand.tagline": "Practice words, lessons, and progress accessibly.",
-        "app.navigation.skipLink": "Skip to navigation",
-        "app.route.loaded": "{title} loaded.",
-        "routes.home.title": "Home",
-        "routes.home.description": "Start lessons, practice sessions, and progress review.",
-        "routes.settings.title": "Settings",
-        "routes.settings.description": "Adjust language, accessibility, and practice preferences."
-    }
-} satisfies LocaleMessagesByLocale<AppMessageKey>;
-
-export const appLocalization = createAppLocalization<AppLocale, AppMessageKey>({
-    supportedLocales,
-    fallbackLocale: "en",
-    storageKey: "language-lab.locale",
-    messages
-});
-
-export const locale = appLocalization;
-
-export const format = appLocalization.format;
-
-export function t(key: AppMessageKey, params?: LocaleMessageParams): string {
-    return appLocalization.t(key, params);
+export function getAppIdentity(): AppIdentity {
+    return createAppIdentity({
+        name: t("app.name"),
+        description: t("app.description"),
+        lang: locale.getLocale(),
+        manifestHref: "site.webmanifest",
+        icons: {
+            svg: "assets/logo.svg",
+            png192: "assets/logo-192.png",
+            png512: "assets/logo-512.png"
+        }
+    });
 }
 ```
 
-The first version can use simple string messages. `format` is available immediately for dates, numbers, lists, sorting, and plural categories when a screen needs localized data formatting.
+## Localization
 
-## Step 4: Define Routes And Registry
+Use `src/localization/` for app text and framework service text.
 
-For the smallest runnable app, start with Screen-backed routes. The route owns metadata, and `children` connects Accessible First components declaratively.
+Recommended shape:
+
+- `types.ts` defines supported locales and app message keys;
+- `locales/en.ts` contains app English copy;
+- non-English locale files contain translated framework service keys plus app copy;
+- `index.ts` creates and exports the shared `createAppLocalization()` controller, language items, `t()`, and types.
+
+Browser/system language, saved preference, and explicit app settings should choose the locale. Do not use geographic location as the default language signal.
+
+## Routes
+
+Routes should keep readable fallback text and point to localized keys:
 
 ```ts
-import {
-    P,
-    createAppRouteRegistry,
-    createAppScreenRoutes,
-    type AppRouteLocaleTextRoute,
-    type AppScreenRoute
-} from "@accessible-first/components";
-import type { AppMessageKey } from "./localization";
-
-export type AppRouteExtension = AppRouteLocaleTextRoute<AppMessageKey>;
-
-export type AppRoute = AppScreenRoute<AppRouteExtension>;
-
-export const routes = createAppScreenRoutes<AppRouteExtension>([
-    {
-        id: "home",
-        title: "Home",
-        description: "Start lessons, practice sessions, and progress review.",
-        localeKeys: {
-            title: "routes.home.title",
-            label: "routes.home.title",
-            description: "routes.home.description",
-            documentTitle: "routes.home.title"
-        },
-        children: [
-            P("Welcome. Replace this starter content with the first real screen.")
-        ]
+{
+    id: "home",
+    title: "Welcome",
+    label: "Home",
+    description: "A small runnable app shell.",
+    localeKeys: {
+        title: "routes.home.title",
+        label: "routes.home.label",
+        description: "routes.home.description",
+        keywords: ["routes.home.keywords"]
     },
-    {
-        id: "settings",
-        title: "Settings",
-        description: "Adjust language, accessibility, and practice preferences.",
-        parentId: "home",
-        localeKeys: {
-            title: "routes.settings.title",
-            label: "routes.settings.title",
-            description: "routes.settings.description",
-            documentTitle: "routes.settings.title"
-        },
-        children: [
-            P("Add app settings here when the product needs them.")
-        ]
-    }
-]);
-
-export const routeRegistry = createAppRouteRegistry({
-    routes,
-    defaultRoute: "home"
-});
+    screen: {
+        title: () => t("routes.home.title"),
+        description: () => t("routes.home.description")
+    },
+    children: HomePage
+}
 ```
 
-Keep fallback titles and descriptions readable. They help diagnostics, unsupported locales, metadata, and development before all translations are written. When a screen grows beyond simple declarative content, move its body into a `screens/home.ts` function and keep the route metadata here.
+Fallback text helps diagnostics, unsupported locales, metadata, and development before translations are complete. Localized route text feeds navigation, breadcrumbs, route search, command palette, route announcements, metadata, and diagnostics.
 
-## Step 5: Create Route Text
+## Shell
 
-```ts
-import {
-    createLocalizedAppRouteText,
-    type AppIdentityRouteDiagnosticsOptions
-} from "@accessible-first/components";
-import { locale, type AppMessageKey } from "./localization";
-import type { AppRoute } from "./routes";
-
-export const routeText = createLocalizedAppRouteText<AppRoute, AppMessageKey>({
-    locale,
-    routeLoadedAnnouncementKey: "app.route.loaded"
-});
-
-export const routeMetadata: AppIdentityRouteDiagnosticsOptions<AppRoute> = {
-    baseUrl: new URL(".", window.location.href)
-};
-```
-
-Route text should feed navigation, breadcrumbs, search, command palette, route announcements, metadata, sitemap, and diagnostics from one place. Public app templates can merge `routeText.routeOptions` into `routeMetadata`, inject route chrome item defaults, and use `routeText.getLoadedAnnouncement` for SPA route speech, so the app only adds deployment-specific metadata such as `baseUrl`. Use the shared `routeLoadedAnnouncementKey` first; add per-route `localeKeys.loadedAnnouncement` only when a screen needs a custom spoken phrase.
-
-## Step 6: Create Shell
+The shell owns page structure and stable regions:
 
 ```ts
-import { type PublicHashAppTemplateShellOptions } from "@accessible-first/components";
-import { t } from "./localization";
-
 export function getShellOptions(): PublicHashAppTemplateShellOptions {
     return {
-        title: () => t("app.brand.name"),
-        skipLink: () => t("app.navigation.skipLink"),
-        skipLinkTargetId: "app-navigation",
-        metadata: () => ({
-            robots: "index,follow"
-        }),
+        title: () => t("app.name"),
+        skipLink: () => t("shell.skipLink"),
+        navigationLabel: () => t("shell.navigationLabel"),
+        metadata: getAppMetadata,
         outletOptions: () => ({
-            label: "Application content",
+            label: t("shell.contentLabel"),
             announcement: false,
             scrollOnRender: true
         }),
+        footer: () => Footer(),
         layout: {
-            chrome: {
-                header: "normal",
-                navigation: "reveal",
-                beforeOutlet: "sticky"
-            }
+            chrome: "normal",
+            maxWidth: "64rem",
+            gutter: "clamp(1rem, 5vw, 2rem)",
+            mainGap: "1rem"
         }
     };
 }
 ```
 
-Use resolver functions for locale-dependent shell text. Public app templates re-read those values during locale refresh. When `identity` is provided, the template applies identity-derived metadata during shell creation; use `shell.metadata` for app-specific overrides such as `robots`, or pass `metadata: false` only when the app owns document metadata manually.
+Use resolver functions for localized shell text and slot content so locale changes refresh without a full page reload.
 
-## Step 7: Enable Route Chrome
+## Chrome
 
-```ts
-routeChrome: true
-```
+Route chrome owns header, route navigation, breadcrumbs, route search, command palette, and return-to-navigation links.
 
-Start with the shorthand. Public app templates create the standard app chrome from `identity`, `locale`, `routes`, and `routeText`: header brand defaults, route navigation, breadcrumbs, route search, and command palette. The generated navigation id follows `shell.skipLinkTargetId`; if that is omitted, it defaults to `"app-navigation"`.
-
-Create `routeChrome.ts` only when the app needs route-specific overrides:
+Use explicit options when the app needs to show which header tools are enabled:
 
 ```ts
-import { type PublicHashAppTemplateRouteChromeBaseOptions } from "@accessible-first/components";
-import { locale, t, type AppLocale, type AppMessageKey } from "./localization";
-import { type AppRoute } from "./routes";
-import { appIdentity } from "./identity";
-
-export function getRouteChromeOptions(): PublicHashAppTemplateRouteChromeBaseOptions<AppRoute, AppLocale, AppMessageKey> {
+export function getChromeOptions() {
     return {
-        header: {
-            identity: appIdentity,
-            locale,
-            brand: {
-                href: "#main",
-                name: t("app.brand.name"),
-                tagline: t("app.brand.tagline")
-            }
-        },
+        header: getHeaderOptions(),
         navigation: {
             id: "app-navigation"
         },
-        breadcrumbs: {
-            label: "Current location"
-        },
-        search: {},
-        commands: {}
+        breadcrumbs: {},
+        navigationReturnLink: {
+            href: "#app-navigation",
+            text: t("navigation.returnLink"),
+            variant: "standalone",
+            scroll: true
+        }
     };
 }
 ```
 
-Route search can use `search: {}` because RouteChrome supplies localized service-text defaults and keeps the label visually hidden in compact header layouts. Route commands can use `commands: {}` because CommandPalette supplies localized trigger, title, search, and empty-state defaults. In an explicit route chrome object, navigation, breadcrumbs, search, and commands are opt-in: omit the pieces the app does not need instead of writing several `false` values. Add custom search descriptions, command labels, header controls, or navigation return links only when the app needs them.
+Use `routeChrome: true` only when defaults are enough and the app does not need explicit header/chrome settings.
 
-## Step 8: Create Diagnostics
+## Pages
+
+Keep page files focused on content:
 
 ```ts
-import { type PublicHashRoutedAppDiagnosticsOptions } from "@accessible-first/components";
-import type { AppLocale, AppMessageKey } from "./localization";
-import type { AppRoute } from "./routes";
-
-export function getDiagnosticsOptions(): PublicHashRoutedAppDiagnosticsOptions<AppLocale, AppMessageKey, AppRoute> {
-    return {
-        logOnRouteChange: true
-    };
+export function HomePage(): CompositionContent {
+    return Stack(
+        Section({
+            title: t("home.start.title"),
+            children: [P(t("home.start.p1"))]
+        })
+    );
 }
 ```
 
-Diagnostics should be part of the starter, not an afterthought. When `locale` is the `createAppLocalization()` result, public app diagnostics read `requiredMessageKeys` automatically. They keep route, localization, metadata, manifest, and page structure problems visible during development. Minimal one-screen apps can relax intentional omissions with `pageOptions`, for example `landmarks: { requireNavigation: false }` when no navigation is rendered yet.
+When content becomes dynamic, keep repeated behavior in framework helpers and product behavior in app feature modules.
 
-## Step 9: Create App Factory
+## Diagnostics
 
-```ts
-import { createPublicAppTemplate } from "@accessible-first/components";
-import { appIdentity } from "./identity";
-import { locale, type AppLocale, type AppMessageKey } from "./localization";
-import { routeMetadata, routeText } from "./routeText";
-import { routes, type AppRoute } from "./routes";
-import { getShellOptions } from "./shell";
-import { getDiagnosticsOptions } from "./diagnostics";
+Diagnostics should be enabled from the start. Public app templates can infer localization diagnostics when the shared app localization controller is passed as `locale`.
 
-export function createApp() {
-    return createPublicAppTemplate<AppRoute, AppLocale, AppMessageKey>({
-        routes,
-        mount: "#app",
-        locale,
-        identity: appIdentity,
-        routeMetadata,
-        routeText,
-        shell: getShellOptions(),
-        routeChrome: true,
-        diagnostics: getDiagnosticsOptions()
-    });
-}
-```
+Keep diagnostics strict for templates so missing metadata, manifest, route, localization, and page structure problems are visible early.
 
-This is the starter's main integration point. It should stay small enough that a developer can understand the app lifecycle in one glance.
+## Local CSS
 
-## Step 10: Write Screens
+Template `styles.css` is intentionally kept even when it starts empty. Standard body, footer, shell, component, focus, theme, and responsive defaults should live in the library. App CSS should be used for product-specific branding, spacing adjustments, and custom screen design.
 
-```ts
-import { Screen, p } from "@accessible-first/components";
+## Next Starter
 
-export function HomeScreen() {
-    return Screen({
-        title: "Home",
-        description: "Start practicing.",
-        children: [
-            p("Choose a lesson or continue your latest practice session.")
-        ]
-    });
-}
-```
-
-Use the framework's semantic primitives first. Promote app helper code into the framework only after it repeats across real screens and stays independent of product copy.
-
-## Starter Rules
-
-- Keep app copy in localization files or route text files.
-- Keep route descriptors readable without translations.
-- Keep route lookup in `createAppRouteRegistry()` instead of local hash parsing.
-- Keep metadata and diagnostics connected to the same route text resolvers.
-- Keep shell and route chrome options resolver-backed when they depend on locale.
-- Keep `main.ts` thin.
-- Keep custom CSS small; move repeated body, footer, and responsive shell behavior back into the framework.
-- Keep important controls reachable without keyboard shortcuts.
-- Keep toast actions non-critical until the app provides a reliable focus route to them.
-
-## First Reference App Readiness
-
-Before migrating the legacy language-learning app, the framework should have:
-
-- the starter recipe proven in the playground;
-- stable app identity, route registry, localized route text, public app template, shell, route chrome, metadata, diagnostics, and locale refresh;
-- enough layout primitives and screen patterns for lesson lists, vocabulary details, practice flows, settings, progress, and forms;
-- a small list of framework gaps found by reading the legacy app, not guessed in advance.
-
-After that, the old app can be brought in and migrated screen by screen.
+After the routed app starter, create `examples/minimal-static-public-site` for simple public pages that need Accessible First structure, metadata, localization, theme, footer, diagnostics, and semantic content without SPA route machinery.

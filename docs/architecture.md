@@ -133,6 +133,7 @@ Keyboard shortcuts are useful accelerators for desktop applications, but visible
 - Component reference: [components/README.md](./components/README.md)
 - Application blueprint: [app-blueprint.md](./app-blueprint.md)
 - Application starter: [app-starter.md](./app-starter.md)
+- Application templates: [templates.md](./templates.md)
 - Development plan: [roadmap.md](./roadmap.md)
 
 ## Development Workflow

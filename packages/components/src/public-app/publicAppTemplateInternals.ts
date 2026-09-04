@@ -75,12 +75,24 @@ export type PublicAppTemplateRouteChromeBaseOptions<
  */
 export type PublicAppTemplateDefaultRouteChrome = true;
 
+type PublicAppTemplateShellSlot = AppShellOptions["header"];
+
 /**
  * Common shell options accepted by public app templates.
  */
 export interface PublicAppTemplateShellOptions extends Omit<
     AppShellOptions,
-    "title" | "skipLink" | "navigationLabel" | "locale" | "metadata" | "outletOptions"
+    | "title"
+    | "skipLink"
+    | "navigationLabel"
+    | "locale"
+    | "metadata"
+    | "outletOptions"
+    | "header"
+    | "navigation"
+    | "beforeOutlet"
+    | "afterOutlet"
+    | "footer"
 > {
     /** Document/app title, or a resolver re-read during locale refresh. */
     title?: PublicAppTemplateValue<AppShellOptions["title"]>;
@@ -94,6 +106,16 @@ export interface PublicAppTemplateShellOptions extends Omit<
     metadata?: PublicAppTemplateValue<PublicAppTemplateMetadata>;
     /** PageOutlet options, or a resolver re-read during locale refresh. */
     outletOptions?: PublicAppTemplateValue<AppShellOutletOptions>;
+    /** Header slot content, or a resolver re-read during locale refresh. */
+    header?: PublicAppTemplateValue<PublicAppTemplateShellSlot>;
+    /** Navigation slot content, or a resolver re-read during locale refresh. */
+    navigation?: PublicAppTemplateValue<PublicAppTemplateShellSlot>;
+    /** Before-outlet slot content, or a resolver re-read during locale refresh. */
+    beforeOutlet?: PublicAppTemplateValue<PublicAppTemplateShellSlot>;
+    /** After-outlet slot content, or a resolver re-read during locale refresh. */
+    afterOutlet?: PublicAppTemplateValue<PublicAppTemplateShellSlot>;
+    /** Footer slot content, or a resolver re-read during locale refresh. */
+    footer?: PublicAppTemplateValue<PublicAppTemplateShellSlot>;
 }
 
 /**
@@ -365,6 +387,11 @@ export function getPublicAppTemplateShellOptions(
         metadata,
         outletOptions,
         theme,
+        header,
+        navigation,
+        beforeOutlet,
+        afterOutlet,
+        footer,
         ...baseShellOptions
     } = shellOptions;
     const shell: AppShellOptions = {
@@ -378,6 +405,11 @@ export function getPublicAppTemplateShellOptions(
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(navigationLabel);
     const resolvedMetadata = getPublicAppTemplateShellMetadata(options);
     const resolvedOutletOptions = resolvePublicAppTemplateValue(outletOptions);
+    const resolvedHeader = resolvePublicAppTemplateValue(header);
+    const resolvedNavigation = resolvePublicAppTemplateValue(navigation);
+    const resolvedBeforeOutlet = resolvePublicAppTemplateValue(beforeOutlet);
+    const resolvedAfterOutlet = resolvePublicAppTemplateValue(afterOutlet);
+    const resolvedFooter = resolvePublicAppTemplateValue(footer);
 
     if (resolvedTitle !== undefined) shell.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) shell.skipLink = resolvedSkipLink;
@@ -385,6 +417,11 @@ export function getPublicAppTemplateShellOptions(
     if (shellLocale !== undefined) shell.locale = shellLocale;
     if (resolvedMetadata !== undefined) shell.metadata = resolvedMetadata;
     if (resolvedOutletOptions !== undefined) shell.outletOptions = resolvedOutletOptions;
+    if (resolvedHeader !== undefined) shell.header = resolvedHeader;
+    if (resolvedNavigation !== undefined) shell.navigation = resolvedNavigation;
+    if (resolvedBeforeOutlet !== undefined) shell.beforeOutlet = resolvedBeforeOutlet;
+    if (resolvedAfterOutlet !== undefined) shell.afterOutlet = resolvedAfterOutlet;
+    if (resolvedFooter !== undefined) shell.footer = resolvedFooter;
 
     return shell;
 }
@@ -403,6 +440,11 @@ export function getPublicAppTemplateShellUpdateOptions(
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(shellOptions.navigationLabel);
     const resolvedMetadata = resolvePublicAppTemplateValue(shellOptions.metadata);
     const resolvedOutletOptions = resolvePublicAppTemplateValue(shellOptions.outletOptions);
+    const resolvedHeader = resolvePublicAppTemplateValue(shellOptions.header);
+    const resolvedNavigation = resolvePublicAppTemplateValue(shellOptions.navigation);
+    const resolvedBeforeOutlet = resolvePublicAppTemplateValue(shellOptions.beforeOutlet);
+    const resolvedAfterOutlet = resolvePublicAppTemplateValue(shellOptions.afterOutlet);
+    const resolvedFooter = resolvePublicAppTemplateValue(shellOptions.footer);
 
     if (resolvedTitle !== undefined) updateOptions.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) updateOptions.skipLink = resolvedSkipLink;
@@ -413,6 +455,11 @@ export function getPublicAppTemplateShellUpdateOptions(
         updateOptions.metadata = resolvedMetadata as DocumentMetadataUpdateOptions;
     }
     if (resolvedOutletOptions !== undefined) updateOptions.outletOptions = resolvedOutletOptions;
+    if ("header" in shellOptions && resolvedHeader !== undefined) updateOptions.header = resolvedHeader;
+    if ("navigation" in shellOptions && resolvedNavigation !== undefined) updateOptions.navigation = resolvedNavigation;
+    if ("beforeOutlet" in shellOptions && resolvedBeforeOutlet !== undefined) updateOptions.beforeOutlet = resolvedBeforeOutlet;
+    if ("afterOutlet" in shellOptions && resolvedAfterOutlet !== undefined) updateOptions.afterOutlet = resolvedAfterOutlet;
+    if ("footer" in shellOptions && resolvedFooter !== undefined) updateOptions.footer = resolvedFooter;
 
     return updateOptions;
 }

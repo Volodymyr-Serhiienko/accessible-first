@@ -11,8 +11,8 @@
     "dev": "vite",
     "playground:dev": "vite --host 0.0.0.0",
     "playground:build": "vite build",
-    "example:minimal:dev": "vite examples/minimal-public-app --host 0.0.0.0",
-    "example:minimal:build": "vite build examples/minimal-public-app --base ./ --outDir dist",
+    "example:routed:dev": "vite examples/minimal-routed-public-app --host 0.0.0.0",
+    "example:routed:build": "vite build examples/minimal-routed-public-app --base ./ --outDir dist",
     "build": "tsc"
   },
   "keywords": [],

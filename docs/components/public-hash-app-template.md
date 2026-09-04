@@ -22,7 +22,7 @@ const app = createPublicHashAppTemplate({
         skipLinkTargetId: "app-navigation",
         navigationLabel: () => t("app.navigationLabel"),
         metadata: getAppMetadata,
-        footer: Footer(),
+        footer: () => Footer(),
         outletOptions: () => ({
             label: t("app.contentLabel")
         }),
@@ -53,7 +53,7 @@ The template owns:
 - default quiet startup options: no first-load announcement, no forced initial scroll, no first-load focus jump;
 - default `mainId: "main"` and `theme: "system"`;
 - passing a compatible app locale into `AppShell` fallback text;
-- refreshing shell title, skip-link text, navigation label, outlet options, and metadata during locale refresh;
+- refreshing shell title, skip-link text, navigation label, outlet options, slot content, and metadata during locale refresh;
 - merging `routeText.routeOptions` into route metadata when `routeText` is provided;
 - using `routeText.getLoadedAnnouncement` for SPA route announcements when the router does not override `getAnnouncement`;
 - creating standard route chrome when `routeChrome: true` is used, or creating a `createHashAppRouteChromeRenderer(...)` callback from declarative route chrome options and injecting the app route list and route text defaults when route chrome omits them;

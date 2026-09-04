@@ -6,6 +6,10 @@
     inline-size: 100%;
 }
 
+[data-af-responsive-navigation-desktop] > [data-af-composition="overflow-scroller"] {
+    inline-size: 100%;
+}
+
 [data-af-responsive-navigation-desktop-list] {
     flex-wrap: nowrap;
 }
@@ -48,9 +52,19 @@
     background: transparent;
 }
 
+[data-af-responsive-navigation-trigger] {
+    justify-content: flex-start;
+    gap: var(--af-space-3);
+    border: 0;
+    border-radius: var(--af-radius-md);
+    background: transparent;
+    font-weight: 700;
+}
+
 [data-af-responsive-navigation-trigger]::after {
     inline-size: 1.25rem;
     block-size: 0.875rem;
+    flex: 0 0 auto;
     border: 0;
     background:
         linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
