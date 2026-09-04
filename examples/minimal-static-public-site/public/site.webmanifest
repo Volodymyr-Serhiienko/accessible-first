@@ -1,0 +1,32 @@
+{
+  "name": "Accessible First Static Site",
+  "short_name": "AF Site",
+  "description": "A minimal Accessible First static public site template with semantic structure, metadata, localization, theme, footer, and diagnostics.",
+  "lang": "en",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "theme_color": "#101820",
+  "background_color": "#101820",
+  "categories": ["education", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

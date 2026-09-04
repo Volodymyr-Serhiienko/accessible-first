@@ -1,12 +1,19 @@
 {
-  "name": "core",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "@accessible-first/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-independent DOM, focus, keyboard, ARIA, live-region, overlay, and behavior utilities for Accessible First.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Volodymyr-Serhiienko/accessible-first.git",
+    "directory": "packages/core"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "homepage": "https://github.com/Volodymyr-Serhiienko/accessible-first#readme",
+  "bugs": {
+    "url": "https://github.com/Volodymyr-Serhiienko/accessible-first/issues"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }

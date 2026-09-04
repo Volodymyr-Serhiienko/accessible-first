@@ -88,6 +88,7 @@ Each component document should contain:
 - [PublicHashRoutedApp](./public-hash-routed-app.md)
 - [PublicLinkAppTemplate](./public-link-app-template.md)
 - [PublicLinkRoutedApp](./public-link-routed-app.md)
+- [PublicStaticAppTemplate](./public-static-app-template.md)
 - [RobotsTxt](./robots-txt.md)
 - [RouteBreadcrumbs](./route-breadcrumbs.md)
 - [RouteChrome](./route-chrome.md)

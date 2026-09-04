@@ -8,12 +8,12 @@ This roadmap is a working plan, not a history log. Finished details belong in co
 
 Prepare the framework for the first real application: an accessible foreign-language learning app.
 
-Before that migration starts, the framework should have two small runnable starters:
+The immediate foundation is now two runnable starters:
 
-1. a routed public app template for SPA-like applications;
-2. a static public site template for simple pages and small sites.
+1. `examples/minimal-routed-public-app` for SPA-like public applications;
+2. `examples/minimal-static-public-site` for public pages and simple static sites.
 
-Those starters should prove the app shell, localization, metadata, diagnostics, theme, navigation, and content structure outside the playground.
+These starters prove the app shell, localization, metadata, diagnostics, theme, navigation, and content structure outside the playground.
 
 ## Stable Foundation
 
@@ -23,67 +23,59 @@ These layers are ready to build on, with normal refinements expected:
 - behavior modules for disclosure, dialog, tabs, listbox, menu, popover, overlay, typeahead, selection, live regions, and validation announcements;
 - composition primitives, semantic markup helpers, Page, AppShell, PageLayout, PageOutlet, Screen, sections, layout blocks, Icon, Image, and VisuallyHidden;
 - accessible component baseline: buttons, links, icons, images, disclosures, dialogs, alerts, tabs, listboxes, menus, selects, comboboxes, popovers, tooltips, toasts, form fields, navigation, breadcrumbs, responsive navigation, header, screen, list/detail, tables, pagination, progress, result summaries, and status/empty/info patterns;
-- app foundation: hash routing, native-link routing, public routed apps, public app templates, route chrome, route text, route registry, app identity, metadata, manifest, sitemap, robots, diagnostics, and locale refresh;
+- app foundation: hash routing, native-link routing, route-free public static templates, public routed apps, public app templates, route chrome, route text, route registry, app identity, metadata, manifest, sitemap, robots, diagnostics, and locale refresh;
 - localization foundation: framework service-text registry, app localization helper, locale formatter, required-key diagnostics, route text resolvers, document `lang` / `dir` sync, LanguageSelect, and reactive app refresh.
 
 ## Active Phase
 
-### 1. Stabilize The Routed Template
+### 1. Stabilize Starter Examples
 
-Status: almost done.
+Status: active cleanup.
 
-`examples/minimal-routed-public-app` should remain the canonical first runnable app starter. It includes brand, header tools, theme, localization, two routes, route navigation, breadcrumbs, footer, metadata, manifest assets, diagnostics, and page content files.
+The routed and static starters should stay small, readable, and runnable. They should prove real app wiring without becoming a second playground.
 
 Current finish work:
 
-- keep its README accurate;
+- keep each starter README accurate;
 - keep `docs/app-starter.md`, `docs/app-blueprint.md`, and `docs/templates.md` aligned;
-- avoid adding extra demo components to this template unless they prove starter wiring.
+- review local starter/playground CSS only when a repeated style clearly belongs in the library;
+- avoid adding extra demo components unless they prove starter wiring.
 
-### 2. Create The Static Public Site Template
+### 2. Make The Repository AI-Friendly
 
-Status: next.
+Status: complete for the current source-first stage.
 
-Create `examples/minimal-static-public-site` as a simpler starter for pages and small sites that do not need SPA route changes. It should prove identity, metadata, theme, localization shape, semantic content, footer, diagnostics, and local style overrides with less routing machinery.
+Current artifacts:
 
-### 3. Make The Repository AI-Friendly
+- `llms.txt` for compact model-facing repository discovery;
+- `AGENTS.md` for coding-agent rules inside the repository;
+- `docs/ai-usage.md` for template selection, source imports, component map, accessibility, localization, diagnostics, and command guidance;
+- package metadata aligned with source-first status, repository URLs, MIT license, and searchable keywords.
 
-Status: next after the two templates.
+Maintenance:
 
-Add concise machine-readable and agent-readable guidance so AI coding agents can understand how to use the framework without scraping the whole repo.
+- keep AI guidance aligned as templates and public APIs change;
+- revisit npm package publication metadata when the framework is ready to publish.
 
-Likely artifacts:
+### 3. Prepare The First Reference App
 
-- a short framework overview;
-- template selection guidance;
-- component usage rules;
-- accessibility and localization rules;
-- common commands;
-- examples map;
-- contribution and extension notes.
+Status: after one focused starter-factory review.
 
-### 4. Prepare The First Reference App
-
-Status: after starters and AI-friendly docs.
-
-Bring in the legacy foreign-language learning app only after the starter shape is stable enough to guide the migration. Then migrate screen by screen and promote only repeated, product-independent patterns back into the framework.
+Bring in the legacy foreign-language learning app after the starter shape is stable enough to guide the migration. Then migrate screen by screen and promote only repeated, product-independent patterns back into the framework.
 
 ## Near-Term Sequence
 
-1. Finish documentation cleanup for the routed template.
-2. Create `minimal-static-public-site`.
-3. Review local playground CSS for styles that should now live in the library, but only in focused passes.
-4. Add AI-friendly repository guidance.
-5. Ask for the legacy language-learning app code.
-6. Build the first reference app using the starter shape.
-7. Promote proven application patterns into the framework.
+1. Do one focused review of the starter app factories for repeated code that still belongs in the library.
+2. Ask for the legacy language-learning app code.
+3. Build the first reference app using the starter shape.
+4. Promote proven application patterns into the framework.
 
 ## What Not To Do Yet
 
-- Do not build a full generator before the two starter examples are stable.
+- Do not build a full generator before the starter examples are stable.
 - Do not add every possible UI component before the first reference app shows the need.
 - Do not move one-off application copy or domain behavior into the framework.
-- Do not turn the minimal routed template into a second playground.
+- Do not turn either minimal template into a second playground.
 - Do not design the future visual site builder before the code-first workflow is proven.
 
 ## Component Expansion Queue

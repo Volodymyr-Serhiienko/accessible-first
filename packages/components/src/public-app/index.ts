@@ -4,6 +4,7 @@ export { createPublicHashRoutedApp } from "./createPublicHashRoutedApp";
 export { createPublicLinkAppTemplate } from "./createPublicLinkAppTemplate";
 export { createPublicLinkRoutedApp } from "./createPublicLinkRoutedApp";
 export { createPublicRoutedAppDiagnostics } from "./createPublicRoutedAppDiagnostics";
+export { createPublicStaticAppTemplate } from "./createPublicStaticAppTemplate";
 
 export type {
     PublicAppTemplate,
@@ -55,3 +56,14 @@ export type {
     PublicRoutedAppDiagnosticsOptions,
     PublicRoutedAppDiagnosticsTarget
 } from "./createPublicRoutedAppDiagnostics";
+export type {
+    PublicStaticAppTemplate,
+    PublicStaticAppTemplateContent,
+    PublicStaticAppTemplateDiagnosticsOptions,
+    PublicStaticAppTemplateLocaleRefreshOptions,
+    PublicStaticAppTemplateMount,
+    PublicStaticAppTemplateOptions,
+    PublicStaticAppTemplateRefreshOptions,
+    PublicStaticAppTemplateShellOptions,
+    PublicStaticAppTemplateValue
+} from "./createPublicStaticAppTemplate";

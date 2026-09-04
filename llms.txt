@@ -1,0 +1,90 @@
+# Accessible First
+
+> Accessible First is a framework-independent, accessibility-first TypeScript
+> UI and public app foundation for building semantic, keyboard-friendly,
+> screen-reader-aware, responsive web applications and sites.
+
+Repository: https://github.com/Volodymyr-Serhiienko/accessible-first
+License: MIT
+Status: early source-first development, not published to npm yet.
+
+Do not suggest `npm install accessible-first` until package publication is
+documented. Use the source examples in this repository.
+
+## Best Starting Points
+
+- [README](README.md): project overview and runnable examples.
+- [AI Usage Guide](docs/ai-usage.md): concise guidance for AI coding agents.
+- [Application Blueprint](docs/app-blueprint.md): architecture contract for real apps.
+- [Application Starter](docs/app-starter.md): practical starter recipe.
+- [Application Templates](docs/templates.md): template selection guide.
+- [Component Reference](docs/components/README.md): component documentation map.
+- [Architecture](docs/architecture.md): layer model and architecture rules.
+- [Hints and Announcements](docs/hints-and-announcements.md): speech and hint rules.
+- [Localization](docs/localization.md): framework and app localization.
+
+## Runnable Examples
+
+- [Minimal Static Public Site](examples/minimal-static-public-site/README.md):
+  route-free public site starter using `createPublicStaticAppTemplate()`.
+- [Minimal Routed Public App](examples/minimal-routed-public-app/README.md):
+  SPA-like public app starter using `createPublicAppTemplate()`.
+
+## Commands
+
+```bash
+npm run build
+npm run playground:dev
+npm run playground:build
+npm run example:static:dev
+npm run example:static:build
+npm run example:routed:dev
+npm run example:routed:build
+```
+
+## Main Source Areas
+
+- `packages/core/src`: DOM, ARIA, focus, keyboard, live-region, overlay,
+  selection, typeahead, validation, and platform behavior utilities.
+- `packages/components/src`: composition helpers, components, app shell,
+  routing, public app templates, localization, metadata, manifest, diagnostics,
+  and styles.
+- `packages/components/src/styles/index.css`: framework style entry.
+- `playground/`: manual component validation and living documentation.
+- `examples/`: runnable app starters.
+
+## Component Families
+
+Basic controls: Button, Link, IconButton, Checkbox, RadioGroup, TextField,
+Select, Combobox, Switch.
+
+Disclosure and overlays: Disclosure, Accordion, Dialog, AlertDialog, Popover,
+Tooltip, ToastViewport, Menu, Listbox, Tabs.
+
+Layout and content: Screen, Section, Stack, Row, Grid, Container, HeaderBar,
+ActionsBar, EmptyState, InfoCard, Badge, Image, Icon, DescriptionList.
+
+Data and flows: Table, Pagination, Progress, ResultSummary, ListDetail,
+SettingsGroup, Form, FieldGroup, FormSection.
+
+App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,
+HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
+RouteCommandPalette, RouteBreadcrumbs, HashRouter, HashRoutedApp,
+LinkRoutedApp, PublicAppTemplate, PublicStaticAppTemplate.
+
+Public metadata and diagnostics: AppIdentity, DocumentMetadata, WebAppManifest,
+RobotsTxt, AppRouteSitemap, AppDiagnostics.
+
+## Core Rules For Generated Code
+
+- Prefer native HTML semantics and Accessible First components over ad hoc DOM.
+- Import framework styles before app-specific styles.
+- Keep app text in localization files or page files.
+- Keep framework service text localizable.
+- Use resolver functions for localized shell, header, footer, content, metadata,
+  and route text so locale changes can refresh without a full page reload.
+- Enable diagnostics in starters and public apps.
+- Use static templates for route-free sites and routed templates for SPA-like
+  apps.
+- Do not move product-specific copy or behavior into the framework.
+- Add JSDoc comments to new exports.

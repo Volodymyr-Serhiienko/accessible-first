@@ -2,13 +2,15 @@
 
 Application Starter is the practical recipe for creating real Accessible First apps.
 
-It is not a file generator yet. It describes the smallest repeatable app shape we are proving with runnable examples.
+It is not a file generator yet. It describes the smallest repeatable app shapes we are proving with runnable examples.
 
 For the architecture contract, see [Application Blueprint](./app-blueprint.md). For the starter list, see [Application Templates](./templates.md).
 
-## Runnable Routed Example
+## Runnable Examples
 
-The current routed starter lives in `examples/minimal-routed-public-app`.
+### Routed Public App
+
+The routed starter lives in `examples/minimal-routed-public-app`.
 
 Run it with:
 
@@ -23,6 +25,24 @@ npm run example:routed:build
 ```
 
 This example proves a public hash-routed app with brand, header tools, theme, localization, two pages, route navigation, breadcrumbs, footer, metadata, manifest assets, diagnostics, and page content files.
+
+### Static Public Site
+
+The static starter lives in `examples/minimal-static-public-site`.
+
+Run it with:
+
+```bash
+npm run example:static:dev
+```
+
+Build it with:
+
+```bash
+npm run example:static:build
+```
+
+This example proves a route-free public site with brand, header tools, theme, localization, one semantic page, footer, metadata, manifest assets, diagnostics, and a small app factory powered by `createPublicStaticAppTemplate()`.
 
 ## Starter Goals
 
@@ -66,6 +86,28 @@ main.ts
 styles.css
 ```
 
+## Recommended Static File Shape
+
+```text
+src/
+  app/
+    app.ts
+    footer.ts
+    header.ts
+    identity.ts
+    shell.ts
+  localization/
+    index.ts
+    types.ts
+    locales/
+      en.ts
+      uk.ts
+  pages/
+    home.ts
+main.ts
+styles.css
+```
+
 ## Startup
 
 `main.ts` should only import styles and start the app:
@@ -73,12 +115,12 @@ styles.css
 ```ts
 import "../../packages/components/src/styles/index.css";
 import "./styles.css";
-import { createMinimalRoutedPublicApp } from "./src/app/app";
+import { createApp } from "./src/app/app";
 
-createMinimalRoutedPublicApp();
+createApp();
 ```
 
-The app factory owns framework wiring:
+A routed app factory owns route wiring:
 
 ```ts
 createPublicAppTemplate({
@@ -89,9 +131,29 @@ createPublicAppTemplate({
     identity,
     routeText,
     routeMetadata,
-    shell: getShellOptions(),
+    shell: getShellOptions,
     routeChrome: getChromeOptions,
     diagnostics: getDiagnosticsOptions()
+});
+```
+
+A static app factory owns route-free shell wiring:
+
+```ts
+createPublicStaticAppTemplate({
+    mount: "#app",
+    locale,
+    identity,
+    shell: getShellOptions,
+    content: HomePage,
+    diagnostics: {
+        pageOptions: {
+            landmarks: {
+                requireNavigation: false
+            }
+        },
+        log: true
+    }
 });
 ```
 
@@ -161,18 +223,18 @@ Fallback text helps diagnostics, unsupported locales, metadata, and development 
 The shell owns page structure and stable regions:
 
 ```ts
-export function getShellOptions(): PublicHashAppTemplateShellOptions {
+export function getShellOptions(): PublicStaticAppTemplateShellOptions {
     return {
         title: () => t("app.name"),
         skipLink: () => t("shell.skipLink"),
-        navigationLabel: () => t("shell.navigationLabel"),
         metadata: getAppMetadata,
+        header: Header,
+        footer: Footer,
         outletOptions: () => ({
             label: t("shell.contentLabel"),
             announcement: false,
-            scrollOnRender: true
+            scrollOnRender: false
         }),
-        footer: () => Footer(),
         layout: {
             chrome: "normal",
             maxWidth: "64rem",
@@ -217,12 +279,18 @@ Keep page files focused on content:
 
 ```ts
 export function HomePage(): CompositionContent {
-    return Stack(
-        Section({
-            title: t("home.start.title"),
-            children: [P(t("home.start.p1"))]
-        })
-    );
+    return Screen({
+        title: t("home.title"),
+        description: t("home.description"),
+        descriptionMode: "content",
+        headingLevel: 1,
+        children: [
+            Section({
+                title: t("home.start.title"),
+                children: [P(t("home.start.p1"))]
+            })
+        ]
+    });
 }
 ```
 
@@ -232,12 +300,12 @@ When content becomes dynamic, keep repeated behavior in framework helpers and pr
 
 Diagnostics should be enabled from the start. Public app templates can infer localization diagnostics when the shared app localization controller is passed as `locale`.
 
-Keep diagnostics strict for templates so missing metadata, manifest, route, localization, and page structure problems are visible early.
+Keep diagnostics strict for templates so missing metadata, manifest, route, localization, and page structure problems are visible early. Configure intentional omissions explicitly, such as `requireNavigation: false` for a route-free static site.
 
 ## Local CSS
 
 Template `styles.css` is intentionally kept even when it starts empty. Standard body, footer, shell, component, focus, theme, and responsive defaults should live in the library. App CSS should be used for product-specific branding, spacing adjustments, and custom screen design.
 
-## Next Starter
+## Next Step
 
-After the routed app starter, create `examples/minimal-static-public-site` for simple public pages that need Accessible First structure, metadata, localization, theme, footer, diagnostics, and semantic content without SPA route machinery.
+After the routed and static starters are stable, add concise AI-friendly repository guidance and then bring in the first reference app.

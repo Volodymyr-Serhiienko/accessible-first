@@ -10,8 +10,8 @@ A new Accessible First application should start with reliable foundations:
 
 - one app identity shared by brand, metadata, manifest, diagnostics, and public-page helpers;
 - one locale controller for framework service text and application copy;
-- one route/page declaration model used by navigation, breadcrumbs, search, commands, metadata, diagnostics, and safe lookup;
-- one public app template selected as hash SPA or native-link/static/MPA;
+- one route/page declaration model when routing is needed;
+- one public app template selected as static, hash SPA, native-link, or MPA;
 - one shell with header, navigation, main content, optional before/after outlet content, and footer;
 - predictable focus movement for desktop keyboard and mobile screen reader users;
 - diagnostics that report page, route, metadata, localization, manifest, and app-owned health issues.
@@ -21,8 +21,8 @@ The app owns product text, product data, and product behavior. The framework own
 ## Recommended Files
 
 ```text
+main.ts
 src/
-  main.ts
   app/
     app.ts
     identity.ts
@@ -31,7 +31,7 @@ src/
     shell.ts
     routes.ts          # routed apps
     routeText.ts       # localized route text for routed apps
-    diagnostics.ts
+    diagnostics.ts     # optional when diagnostics are not handled by the template helper
     footer.ts
   localization/
     index.ts
@@ -41,7 +41,7 @@ src/
       uk.ts
   pages/
     home.ts
-    about.ts
+    about.ts           # routed apps, or static sites with multiple content files
   styles.css
 ```
 
@@ -58,7 +58,20 @@ import { createApp } from "./src/app/app";
 createApp();
 ```
 
-The app factory should use `createPublicAppTemplate()` for teachable public app starts:
+A route-free app should use `createPublicStaticAppTemplate()`:
+
+```ts
+createPublicStaticAppTemplate({
+    mount: "#app",
+    locale,
+    identity,
+    shell: getShellOptions,
+    content: HomePage,
+    diagnostics: getDiagnosticsOptions()
+});
+```
+
+A routed app should use `createPublicAppTemplate()`:
 
 ```ts
 createPublicAppTemplate({
@@ -69,13 +82,13 @@ createPublicAppTemplate({
     identity,
     routeText,
     routeMetadata,
-    shell: getShellOptions(),
+    shell: getShellOptions,
     routeChrome: getChromeOptions,
     diagnostics: getDiagnosticsOptions()
 });
 ```
 
-Use hash mode for client-rendered SPA behavior. Use link mode or a static page starter when normal browser navigation or static pages are a better fit.
+Use static mode for pages without client route changes. Use hash mode for client-rendered SPA behavior. Use link mode or MPA patterns when separate documents, server rendering, or normal browser navigation are the right product shape.
 
 ## Declarations
 
@@ -91,7 +104,7 @@ Shell and chrome options should use resolver functions for locale-dependent valu
 
 Use framework primitives before custom wrappers:
 
-- `Screen` for route-level content;
+- `Screen` for page-level or route-level content;
 - `Section`, `Panel`, `Stack`, `Row`, `Grid`, and `Container` for layout;
 - `ResultSummary`, `Pagination`, `Table`, `ListDetail`, and form components for data workflows;
 - `ToastViewport`, `Dialog`, and `AlertDialog` for feedback and decisions.
@@ -100,9 +113,10 @@ Move route body content into `src/pages/` when inline route declarations become 
 
 ## Templates
 
-The current routed starter is `examples/minimal-routed-public-app`. It proves the blueprint outside the playground.
+The current starters are:
 
-The next starter should be `examples/minimal-static-public-site`, a smaller static/public-site shape without SPA route machinery.
+- `examples/minimal-static-public-site` for route-free public pages and simple sites;
+- `examples/minimal-routed-public-app` for SPA-like public applications.
 
 See [templates.md](./templates.md) and [app-starter.md](./app-starter.md) for practical starter guidance.
 
@@ -111,7 +125,7 @@ See [templates.md](./templates.md) and [app-starter.md](./app-starter.md) for pr
 Every public app should run diagnostics during development and before deployment:
 
 - page landmarks and content structure;
-- route labels, hrefs, descriptions, titles, parents, and metadata;
+- route labels, hrefs, descriptions, titles, parents, and metadata when routes exist;
 - localization dictionaries and required keys;
 - identity, manifest, icons, metadata, sitemap, and robots readiness;
 - app-owned health checks when a feature has required data or configuration.

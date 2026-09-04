@@ -1,8 +1,37 @@
 {
   "name": "accessible-first",
-  "version": "1.0.0",
-  "description": "An accessibility-first UI ecosystem for building modern web applications.",
-  "main": "index.js",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A framework-independent, accessibility-first TypeScript UI and public app foundation.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Volodymyr-Serhiienko/accessible-first.git"
+  },
+  "homepage": "https://github.com/Volodymyr-Serhiienko/accessible-first#readme",
+  "bugs": {
+    "url": "https://github.com/Volodymyr-Serhiienko/accessible-first/issues"
+  },
+  "keywords": [
+    "accessibility",
+    "a11y",
+    "typescript",
+    "ui",
+    "components",
+    "framework-independent",
+    "semantic-html",
+    "keyboard-navigation",
+    "screen-reader",
+    "localization",
+    "i18n",
+    "routing",
+    "spa",
+    "mpa",
+    "pwa",
+    "metadata",
+    "diagnostics"
+  ],
   "directories": {
     "doc": "docs",
     "example": "examples"
@@ -13,11 +42,10 @@
     "playground:build": "vite build",
     "example:routed:dev": "vite examples/minimal-routed-public-app --host 0.0.0.0",
     "example:routed:build": "vite build examples/minimal-routed-public-app --base ./ --outDir dist",
+    "example:static:dev": "vite examples/minimal-static-public-site --host 0.0.0.0",
+    "example:static:build": "vite build examples/minimal-static-public-site --base ./ --outDir dist",
     "build": "tsc"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "typescript": "^6.0.3",
     "vite": "^8.0.16"

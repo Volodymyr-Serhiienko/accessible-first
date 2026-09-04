@@ -1,8 +1,20 @@
 {
   "name": "@accessible-first/components",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "description": "Accessible First composition components, app shell, routing, localization, metadata, diagnostics, templates, and styles.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Volodymyr-Serhiienko/accessible-first.git",
+    "directory": "packages/components"
+  },
+  "homepage": "https://github.com/Volodymyr-Serhiienko/accessible-first#readme",
+  "bugs": {
+    "url": "https://github.com/Volodymyr-Serhiienko/accessible-first/issues"
+  },
   "main": "dist/index.js",
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "style": "src/styles/index.css"
 }
