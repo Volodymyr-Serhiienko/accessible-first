@@ -28,9 +28,22 @@ These layers are ready to build on, with normal refinements expected:
 
 ## Active Phase
 
-### 1. Stabilize Starter Examples
+### 1. First Reference App Discovery
 
-Status: active cleanup.
+Status: active.
+
+The legacy Study Languages application is now available and has been inspected as a product prototype. The rewrite should use the Accessible First starter shape, but it should not mechanically migrate the old static DOM/global-state structure.
+
+Current focus:
+
+- preserve useful product scenarios from the old app: language pair setup, learning, repetition, grammar reading, speech rate, mixed-language speech, progress, admin editing, import/export;
+- design the new app as a clean Accessible First application with a learner UI, an admin UI, and replaceable data providers;
+- keep the first version frontend-first with seed data where possible, so backend hosting does not block product work;
+- promote only proven, product-independent patterns back into the framework.
+
+### 2. Stabilize Starter Examples
+
+Status: maintenance cleanup.
 
 The routed and static starters should stay small, readable, and runnable. They should prove real app wiring without becoming a second playground.
 
@@ -41,7 +54,7 @@ Current finish work:
 - review local starter/playground CSS only when a repeated style clearly belongs in the library;
 - avoid adding extra demo components unless they prove starter wiring.
 
-### 2. Make The Repository AI-Friendly
+### 3. Make The Repository AI-Friendly
 
 Status: complete for the current source-first stage.
 
@@ -57,25 +70,33 @@ Maintenance:
 - keep AI guidance aligned as templates and public APIs change;
 - revisit npm package publication metadata when the framework is ready to publish.
 
-### 3. Prepare The First Reference App
+### 4. Prepare Framework Patterns From Real App Work
 
-Status: after one focused starter-factory review.
+Status: active through the Study Languages rewrite.
 
-Bring in the legacy foreign-language learning app after the starter shape is stable enough to guide the migration. Then migrate screen by screen and promote only repeated, product-independent patterns back into the framework.
+Likely reusable patterns to validate in the app before moving into Accessible First:
+
+- speech controller for Web Speech API queues, mixed-language reading, spelling, pause/resume/stop, voice warmup, and speech-rate preferences;
+- versioned preference/progress storage;
+- async resource loading with accessible loading, empty, retry, and error states;
+- data-provider contracts that can swap static seed data, local storage, HTTP APIs, and hosted databases;
+- import/export and validation surfaces;
+- admin data-management patterns with real keyboard and screen-reader ergonomics.
 
 ## Near-Term Sequence
 
-1. Do one focused review of the starter app factories for repeated code that still belongs in the library.
-2. Ask for the legacy language-learning app code.
-3. Build the first reference app using the starter shape.
-4. Promote proven application patterns into the framework.
+1. Export the old Study Languages SQLite content into readable seed files.
+2. Draft the Study Languages domain model and data-provider interfaces.
+3. Build the first frontend-first Study Languages shell with Accessible First.
+4. Rebuild the first learner screens before admin editing.
+5. Promote proven application patterns into the framework only after real use.
 
 ## What Not To Do Yet
 
 - Do not build a full generator before the starter examples are stable.
 - Do not add every possible UI component before the first reference app shows the need.
 - Do not move one-off application copy or domain behavior into the framework.
-- Do not turn either minimal template into a second playground.
+- Do not turn either minimal template or the first reference app into a second playground.
 - Do not design the future visual site builder before the code-first workflow is proven.
 
 ## Component Expansion Queue
@@ -121,13 +142,16 @@ Promote code from the playground into the library only when it is repeated, prod
 
 ## First Reference App
 
-The first reference app will be an accessible foreign-language learning application. It should validate the framework against real workflows:
+The first reference app is the Study Languages rewrite. It should validate the framework against real workflows:
 
 - lesson list and lesson detail;
 - vocabulary list/detail;
 - practice flow;
 - settings and preferences;
 - progress and result summaries;
+- speech synthesis and mixed-language reading;
+- import/export and content administration;
+- replaceable data providers and future backend/auth boundaries;
 - form validation;
 - localized UI and formatted data;
 - desktop keyboard use;
@@ -136,3 +160,5 @@ The first reference app will be an accessible foreign-language learning applicat
 ## Long-Term Direction
 
 Accessible First should become a small but serious web application framework: lighter than full virtual-DOM stacks, easier to start than large UI frameworks, and more opinionated about accessibility, localization, semantics, diagnostics, public metadata, and real user workflows.
+
+
