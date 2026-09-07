@@ -69,7 +69,6 @@ Brand({
 ## Layers
 
 - Composition API: `Image(options)`
-- Alias: `Img(options)`
 - Reuses: native image semantics, composition options, and shared image styling hooks
 
 ## Behavior

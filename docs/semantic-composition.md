@@ -194,7 +194,7 @@ Navigation({
 Keep ordinary site navigation as real links. `IconLabel` is visual composition, not an ARIA `Menu` widget.
 ## Images
 
-`Image()` creates an accessible native image helper. `Img()` remains available as a short alias:
+`Image()` creates an accessible native image helper:
 
 ```ts
 Image({

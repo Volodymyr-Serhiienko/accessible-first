@@ -68,7 +68,7 @@ export interface DecorativeImageOptions extends BaseImageOptions {
 }
 
 /**
- * Options for Image() and the Img() alias.
+ * Options for Image().
  */
 export type ImageOptions = InformativeImageOptions | DecorativeImageOptions;
 
@@ -99,7 +99,9 @@ function getImageAttributes(options: ImageOptions): ElementAttributes {
     if (options.fetchPriority !== undefined) attributes.fetchpriority = options.fetchPriority;
     if (options.fit !== undefined) attributes["data-af-image-fit"] = options.fit;
     if (options.radius !== undefined) attributes["data-af-image-radius"] = options.radius;
-    if (options.aspectRatio !== undefined && options.aspectRatio !== null) attributes["data-af-image-aspect-ratio"] = "";
+    if (options.aspectRatio !== undefined && options.aspectRatio !== null) {
+        attributes["data-af-image-aspect-ratio"] = "";
+    }
 
     return attributes;
 }
@@ -141,11 +143,4 @@ export function Image(options: ImageOptions): ComposedImage {
     applyImagePresentation(element, options);
 
     return { element };
-}
-
-/**
- * Short alias for Image(). Kept for compact composition code and backwards compatibility.
- */
-export function Img(options: ImageOptions): ComposedImage {
-    return Image(options);
 }
