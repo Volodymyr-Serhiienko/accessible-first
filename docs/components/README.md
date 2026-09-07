@@ -40,6 +40,7 @@ Each component document should contain:
 - [HeaderTools](./header-tools.md)
 - [Icon](./icon.md)
 - [IconButton](./icon-button.md)
+- [IconLabel](./icon-label.md)
 - [Image](./image.md)
 - [InfoCard](./info-card.md)
 - [LanguageSelect](./language-select.md)

@@ -62,7 +62,7 @@ Disclosure and overlays: Disclosure, Accordion, Dialog, AlertDialog, Popover,
 Tooltip, ToastViewport, Menu, Listbox, Tabs.
 
 Layout and content: Screen, Section, Stack, Row, Grid, Container, HeaderBar,
-ActionsBar, EmptyState, InfoCard, Badge, Image, Icon, DescriptionList.
+ActionsBar, EmptyState, InfoCard, Badge, Image, Icon, IconLabel, DescriptionList.
 
 Data and flows: Table, Pagination, Progress, ResultSummary, ListDetail,
 SettingsGroup, Form, FieldGroup, FormSection.

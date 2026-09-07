@@ -194,3 +194,35 @@
         --af-container-gutter: var(--af-space-3);
     }
 }
+
+[data-af-composition="icon-label"] {
+    display: inline-flex;
+    min-inline-size: 0;
+    align-items: center;
+    gap: var(--af-icon-label-gap, var(--af-space-2));
+}
+
+[data-af-composition="icon-label"][data-af-icon-label-position="end"] {
+    flex-direction: row-reverse;
+}
+
+[data-af-composition="icon-label"][data-af-icon-label-position="top"],
+[data-af-composition="icon-label"][data-af-icon-label-position="bottom"] {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+[data-af-composition="icon-label"][data-af-icon-label-position="bottom"] {
+    flex-direction: column-reverse;
+}
+
+[data-af-icon-label-icon] {
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+}
+
+[data-af-icon-label-text] {
+    min-inline-size: 0;
+}

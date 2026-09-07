@@ -89,7 +89,7 @@ are the better product shape.
 
 Start from the component reference at `docs/components/README.md`.
 
-Common composition components include `Button`, `Link`, `IconButton`, `Image`,
+Common composition components include `Button`, `Link`, `IconButton`, `IconLabel`, `Image`,
 `TextField`, `Checkbox`, `RadioGroup`, `Select`, `Combobox`, `Switch`,
 `Disclosure`, `Accordion`, `Dialog`, `AlertDialog`, `Popover`, `Tooltip`,
 `ToastViewport`, `Navigation`, `ResponsiveNavigation`, `RouteChrome`,

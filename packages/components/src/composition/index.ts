@@ -4,6 +4,7 @@ export { getElementText, hasCompositionContent, hasVisibleContent } from "./cont
 export { createContentSlot } from "./contentSlot";
 export { createElement } from "./createElement";
 export { Icon } from "./icon";
+export { IconLabel } from "./iconLabel";
 export { mount, resolveMountTarget } from "./mount";
 export {
     applyCompositionElementOptions,
@@ -27,6 +28,7 @@ export type {
     IconPathOptions,
     IconVariant
 } from "./icon";
+export type { IconLabelIconPosition, IconLabelOptions } from "./iconLabel";
 export type {
     ContainerAlign,
     ContainerOptions,

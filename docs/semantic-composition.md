@@ -172,6 +172,26 @@ Section({
 
 Use native helpers such as `P`, `H1`, `H2`, `H3`, `Ul`, and `Li` when they make the page easier to read.
 
+## Icon Labels
+
+`IconLabel()` composes an icon and a visible label without creating a control of its own. Use it inside `Button`, `Link`, or a `Navigation` item when an icon and caption should stay together:
+
+```ts
+Navigation({
+    items: [
+        {
+            href: "#library",
+            label: IconLabel({
+                icon: Icon({ path: libraryIconPath, decorative: true }),
+                label: "Library",
+                iconPosition: "top"
+            })
+        }
+    ]
+});
+```
+
+Keep ordinary site navigation as real links. `IconLabel` is visual composition, not an ARIA `Menu` widget.
 ## Images
 
 `Image()` creates an accessible native image helper. `Img()` remains available as a short alias:
