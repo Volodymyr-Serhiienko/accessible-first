@@ -110,6 +110,7 @@ High priority:
 - DataTable behavior on top of native Table: sorting, selection, pagination, responsive alternatives;
 - Drawer / SidePanel / Sheet for application panels and mobile layouts;
 - Toolbar and grouped action improvements;
+- IconLabel composition primitive for consistent icon-and-caption navigation or actions, after validating the existing Button, Link, and Navigation composition contract;
 - Stepper / Wizard for guided workflows;
 - FileUpload with accessible validation and progress;
 - Avatar / UserMenu / ProfileAction for app headers;
@@ -139,6 +140,8 @@ These areas must stay coherent as the framework grows:
 ## Playground Role
 
 The playground is living documentation and real-device validation. It should keep demo content, manual testing surfaces, and examples of component options.
+
+Each audit pass must also review the relevant demo sections: recommended defaults, advanced supported options, keyboard and screen-reader behavior, mobile constraints, and localized service text should be demonstrable without turning the playground into a duplicate application.
 
 Promote code from the playground into the library only when it is repeated, product-independent, accessibility-related, or clearly part of the reusable app shell/template foundation.
 

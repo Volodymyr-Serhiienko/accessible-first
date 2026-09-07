@@ -41,8 +41,6 @@ export interface IconButtonCompositionOptions
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
-    tooltip?: string | null;
-    announceOnHover?: boolean;
     selected?: boolean;
     onPress?: IconButtonCompositionOnPress | null;
 }
@@ -61,7 +59,6 @@ export interface ComposedIconButton extends Omit<IconButtonInstance, "element" |
     readonly element: HTMLButtonElement;
     setTitle(title: string | null): void;
     setHint(hint: string | null): void;
-    setTooltip(tooltip: string | null): void;
     setSelected(selected: boolean): void;
     isSelected(): boolean;
     toggleSelected(force?: boolean): boolean;
@@ -88,8 +85,6 @@ function getInitialControlHintOptions(
 
     if ("hint" in options) {
         hintOptions.hint = options.hint ?? null;
-    } else if ("tooltip" in options) {
-        hintOptions.hint = options.tooltip ?? null;
     } else {
         hintOptions.hint = options.label ?? null;
     }
@@ -102,14 +97,11 @@ function getInitialControlHintOptions(
         hintOptions.hintDisplay = options.hintDisplay;
     } else if ("hint" in options) {
         hintOptions.hintDisplay = "description";
-    } else if ("tooltip" in options) {
-        hintOptions.hintDisplay = options.tooltip === null ? "none" : "tooltip";
     } else {
         hintOptions.hintDisplay = "tooltip";
     }
 
-    hintOptions.hintAnnounceOnHover =
-        options.hintAnnounceOnHover ?? options.announceOnHover ?? true;
+    hintOptions.hintAnnounceOnHover = options.hintAnnounceOnHover ?? true;
 
     return hintOptions;
 }
@@ -191,7 +183,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         getIconButtonOptions(options, handlePress)
     );
 
-    let hintFollowsLabel = options.hint === undefined && options.tooltip === undefined;
+    let hintFollowsLabel = options.hint === undefined;
 
     const controlHint = createControlHint(element, getInitialControlHintOptions(options));
 
@@ -220,15 +212,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         controlHint.refresh();
     }
 
-    function setTooltip(nextTooltip: string | null): void {
-        hintFollowsLabel = false;
-        controlHint.update({
-            hint: nextTooltip,
-            hintDisplay: nextTooltip === null ? "none" : "tooltip"
-        });
-        controlHint.refresh();
-    }
-
     function setLabel(label: string | null): void {
         iconButton.setLabel(label);
 
@@ -244,13 +227,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         if ("hint" in nextOptions) {
             hintFollowsLabel = false;
             hintOptions.hint = nextOptions.hint ?? null;
-        } else if ("tooltip" in nextOptions) {
-            hintFollowsLabel = false;
-            hintOptions.hint = nextOptions.tooltip ?? null;
-
-            if (nextOptions.hintDisplay === undefined) {
-                hintOptions.hintDisplay = nextOptions.tooltip === null ? "none" : "tooltip";
-            }
         } else if ("label" in nextOptions && hintFollowsLabel) {
             hintOptions.hint = nextOptions.label ?? null;
         }
@@ -265,8 +241,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
 
         if (nextOptions.hintAnnounceOnHover !== undefined) {
             hintOptions.hintAnnounceOnHover = nextOptions.hintAnnounceOnHover;
-        } else if (nextOptions.announceOnHover !== undefined) {
-            hintOptions.hintAnnounceOnHover = nextOptions.announceOnHover;
         }
 
         controlHint.update(hintOptions);
@@ -278,7 +252,6 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         element,
         setTitle,
         setHint,
-        setTooltip,
         setLabel,
         setSelected: selectedState.setSelected,
         isSelected: selectedState.isSelected,

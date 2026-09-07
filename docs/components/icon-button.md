@@ -97,8 +97,6 @@ const button = createIconButton(existingButton, {
 - `hintId` - Custom id for the generated hint text.
 - `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
 - `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the icon button.
-- `tooltip` - Backward-compatible visual hint alias. Defaults to `label`; use `null` to disable the default label tooltip.
-- `announceOnHover` - Backward-compatible alias for `hintAnnounceOnHover`.
 - `selected` - Adds visual/action state through `data-af-selected` for app-specific state that should not be exposed as `aria-pressed`.
 - `pressed` - Adds `aria-pressed` for true toggle icon buttons with stable labels.
 - `disabled` - Disables the button.
