@@ -16,7 +16,8 @@ Use Accessible First when the task needs:
 - responsive public app templates;
 - localization from the beginning;
 - document metadata, manifest, route metadata, sitemap, robots, and diagnostics;
-- reusable app foundations for SPA, MPA, and static public sites.
+- reusable app foundations for SPA, MPA, and static public sites;
+- versioned client-side storage for preferences, progress, and small non-sensitive state.
 
 ## First Choice: Template
 
@@ -112,6 +113,7 @@ Start from [Component Reference](./components/README.md). Important families:
   HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
   RouteCommandPalette, RouteBreadcrumbs, HashRouter, HashRoutedApp,
   LinkRoutedApp, PublicAppTemplate, PublicStaticAppTemplate.
+- Core helpers: Storage, live regions, focus, keyboard, ARIA, events, scroll, and validation announcements.
 - Public metadata and diagnostics: AppIdentity, DocumentMetadata,
   WebAppManifest, RobotsTxt, AppRouteSitemap, AppDiagnostics.
 

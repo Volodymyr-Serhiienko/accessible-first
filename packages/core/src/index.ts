@@ -18,6 +18,7 @@ export * from "./popover-position";
 export * from "./roving-focus";
 export * from "./scroll";
 export * from "./selection";
+export * from "./storage";
 export * from "./tabs";
 export * from "./typeahead";
 export * from "./validation-announcements";

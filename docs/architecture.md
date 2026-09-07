@@ -40,6 +40,7 @@ Some framework decisions affect almost every component and should be treated as 
 - SPA and MPA route metadata;
 - document metadata, SEO, PWA, and public-page artifacts;
 - diagnostics and health reporting;
+- preference/progress storage and migrations;
 - hints, descriptions, announcements, and validation speech;
 - mobile touch and mobile screen reader interaction routes.
 
@@ -127,6 +128,7 @@ Keyboard shortcuts are useful accelerators for desktop applications, but visible
 - Project vision: [vision.md](./vision.md)
 - Design principles: [principles.md](./principles.md)
 - Hints and announcements: [hints-and-announcements.md](./hints-and-announcements.md)
+- Core storage: [core/storage.md](./core/storage.md)
 - Page-building API: [semantic-composition.md](./semantic-composition.md)
 - Application shell: [components/app-shell.md](./components/app-shell.md)
 - App route helpers: [components/app-routes.md](./components/app-routes.md)
