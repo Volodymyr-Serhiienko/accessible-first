@@ -1,6 +1,10 @@
 import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically, getFocusableElements } from "../../../core/src/focus";
-import { createAnnouncer, type Announcer, type LiveRegionPoliteness } from "../../../core/src/live-region";
+import {
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel,
+    type LiveRegionPoliteness
+} from "../../../core/src/live-region";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -137,9 +141,9 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
     let label = options.label ?? null;
     let focusTarget: PageOutletFocusTarget = options.focusTarget ?? "first-heading";
     let scrollOnRender = options.scrollOnRender ?? true;
-    let announcement: PageOutletAnnouncement = options.announcement ?? true;
+    let announcement = options.announcement;
     let announcementPoliteness: LiveRegionPoliteness = options.announcementPoliteness ?? "polite";
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
     let destroyed = false;
 
     function syncAttributes(): void {
@@ -162,7 +166,7 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         documentTitle = nextDocumentTitle;
 
         if (documentTitle !== null) {
-            document.title = documentTitle;
+            element.ownerDocument.title = documentTitle;
         }
     }
 
@@ -194,7 +198,9 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
     }
 
     function scheduleScrollToStart(): void {
-        const ownerWindow = element.ownerDocument.defaultView ?? window;
+        const ownerWindow = element.ownerDocument.defaultView;
+
+        if (!ownerWindow) return;
 
         ownerWindow.requestAnimationFrame(() => {
             if (destroyed) return;
@@ -224,7 +230,10 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
 
         if (!message) return;
 
-        announcer ??= createAnnouncer();
+        announcer ??= createDocumentAnnouncementChannel({
+            document: element.ownerDocument
+        });
+
         announcer.announce(message, {
             politeness: announcementPoliteness
         });
@@ -237,28 +246,38 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         const shouldScroll = options.scroll ?? scrollOnRender;
         const nextFocusTarget = "focusTarget" in options ? options.focusTarget ?? null : focusTarget;
         const nextAnnouncement = "announcement" in options
-            ? options.announcement ?? false
+            ? options.announcement
             : announcement;
 
         if (shouldScroll) {
             scrollToStart();
         }
 
-        focus(nextFocusTarget);
-        announceRender(nextAnnouncement);
+        const focusMoved = focus(nextFocusTarget);
+
+        if (nextAnnouncement === undefined) {
+            if (!focusMoved) {
+                announceRender(true);
+            }
+        } else {
+            announceRender(nextAnnouncement);
+        }
 
         if (shouldScroll) {
             scheduleScrollToStart();
         }
     }
 
-    function setContent(children: CompositionChild[], renderOptions: PageOutletRenderOptions = {}): void {
+    function setContent(
+        children: CompositionChild[],
+        renderOptions: PageOutletRenderOptions = {}
+    ): void {
         contentSlot.set(children);
         runRenderEffects(renderOptions);
     }
 
     if (documentTitle !== null) {
-        document.title = documentTitle;
+        element.ownerDocument.title = documentTitle;
     }
 
     syncAttributes();
@@ -290,7 +309,7 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
             if ("documentTitle" in nextOptions) syncDocumentTitle(nextOptions.documentTitle ?? null);
             if ("focusTarget" in nextOptions) focusTarget = nextOptions.focusTarget ?? null;
             if (nextOptions.scrollOnRender !== undefined) scrollOnRender = nextOptions.scrollOnRender;
-            if ("announcement" in nextOptions) announcement = nextOptions.announcement ?? true;
+            if ("announcement" in nextOptions) announcement = nextOptions.announcement;
             if (nextOptions.announcementPoliteness !== undefined) {
                 announcementPoliteness = nextOptions.announcementPoliteness;
             }

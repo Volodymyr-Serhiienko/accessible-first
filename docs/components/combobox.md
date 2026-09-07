@@ -61,7 +61,7 @@ Combobox({
 - Opens on input by default.
 - Closes on blur and outside pointer interaction.
 - Supports disabled options.
-- Can show and announce `notFoundText` when no options match the current input.
+- Can show and announce `notFoundText` through the document-coordinated channel when no options match the current input.
 - Announces option labels on mouse hover by default for screen reader setups that do not reliably announce custom popup options on pointer hover.
 - Positions the popup with the shared popover-position module.
 
@@ -93,7 +93,7 @@ Root options:
 - `defaultInputValue` - Initial input text. Creation-time option.
 - `notFoundText` - Optional text shown and announced when no options match the typed input.
 - `notFoundOptions` - Common DOM options for the not-found message element.
-- `announceNotFound` - Announces `notFoundText` through a polite live region. Defaults to `true`.
+- `announceNotFound` - Announces `notFoundText` through the document-coordinated polite live region. Defaults to `true`.
 - `announceOnHover` - Announces option labels on mouse hover. Defaults to `true`.
 - `autocomplete` - `"list"` or `"none"`.
 - `disabled` - Disables the input and closes the popup.
@@ -137,7 +137,7 @@ Combobox({
 
 When `notFoundText` is provided and `closeOnEmpty` is not set, the popup stays open for empty result sets so the message can be shown.
 
-Set `announceNotFound: false` when the message should be visible only.
+Set `announceNotFound: false` when the message should be visible only. The default announcement shares the document channel with other framework feedback, so it does not create a competing live region. Do not additionally send a toast or status message for the same empty-result transition unless it communicates different information.
 
 ## Speech And Hover Announcements
 

@@ -3,7 +3,10 @@ import { getOwnerWindow, restoreAttribute } from "../../../core/src/dom";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
 import { isEscapeKey } from "../../../core/src/keyboard";
-import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
+import {
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel
+} from "../../../core/src/live-region";
 
 /**
  * Options for createTooltip(), the enhancement API for short helper text.
@@ -52,7 +55,7 @@ export function createTooltip(
     let tooltipId = options.id ?? "";
     let descriptionContent: HTMLElement | null = null;
     let visualContent: HTMLElement | null = null;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
     let cleanups: Cleanup[] = [];
     let destroyed = false;
     let dismissed = false;
@@ -181,12 +184,10 @@ export function createTooltip(
         );
     }
 
-    function getAnnouncer(): Announcer {
-        if (!announcer) {
-            announcer = createAnnouncer({
-                container: getContainer()
-            });
-        }
+    function getAnnouncer(): DocumentAnnouncementChannel {
+        announcer ??= createDocumentAnnouncementChannel({
+            document: ownerDocument
+        });
 
         return announcer;
     }

@@ -103,6 +103,8 @@ const disclosure = createDisclosure(root, {
 
 Use `announcement` for explicit event wording such as "Details opened." Prefer a short string for large panels. Use `announcement: true` only when reading the full panel text is desirable. Use `announcement: false` when the visible description should stay visual-only.
 
+Open announcements use the document-coordinated channel. They do not create a competing live region and cannot erase newer feedback emitted by another framework component.
+
 ```ts
 Disclosure({
     trigger: "Payment details",

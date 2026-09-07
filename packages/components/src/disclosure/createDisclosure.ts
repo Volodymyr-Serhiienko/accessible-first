@@ -4,12 +4,12 @@ import {
     type DisclosureOptions as CoreDisclosureOptions
 } from "../../../core/src/disclosure";
 import {
-    createAnnouncer,
-    type Announcer,
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel,
     type LiveRegionPoliteness
 } from "../../../core/src/live-region";
-import { createComponentLifecycle } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
+import { createComponentLifecycle } from "../foundation";
 
 import type {
     Disclosure,
@@ -26,7 +26,10 @@ function normalizeAnnouncementText(value: string): string {
 
 function isAnnouncementOptions(
     value: DisclosureAnnouncement
-): value is Exclude<DisclosureAnnouncement, boolean | string | DisclosureAnnouncementMessage> {
+): value is Exclude<
+    DisclosureAnnouncement,
+    boolean | string | DisclosureAnnouncementMessage
+> {
     return Boolean(value && typeof value === "object");
 }
 
@@ -118,7 +121,7 @@ export function createDisclosure(
     let onOpenChange = options.onOpenChange ?? null;
 
     let announcement = options.announcement;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
 
     function syncOpenAttributes(): void {
         const open = behavior.isOpen() ? "true" : "false";
@@ -151,7 +154,10 @@ export function createDisclosure(
             return;
         }
 
-        announcer ??= createAnnouncer();
+        announcer ??= createDocumentAnnouncementChannel({
+            document: element.ownerDocument
+        });
+
         announcer.announce(message, {
             politeness: getAnnouncementPoliteness(announcement)
         });

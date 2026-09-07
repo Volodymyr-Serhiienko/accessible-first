@@ -138,6 +138,8 @@ Use `descriptionMode: "aria"` only when the popover container itself should be d
 
 Use `announcement` when something should be read through a live region on open without moving focus into the popover, especially when the spoken message should be different from the visible description.
 
+Open announcements use the document-coordinated channel. They do not create a competing live region and cannot erase newer feedback emitted by another framework component.
+
 `createPopover` does not invent announcement text by itself. Use `announcement` when enhancing existing HTML and the open event should be spoken.
 
 When a composed description exists and no explicit `announcement` is provided, the description is announced when the popover opens. Set `announcement: false` to keep the description visible and semantic without an open live-region message.

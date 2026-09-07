@@ -2,7 +2,7 @@ import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
 import { createComponentLifecycle } from "../foundation";
-import { createAnnouncer } from "../../../core/src/live-region";
+import { createDocumentAnnouncementChannel } from "../../../core/src/live-region";
 import {
     accessibleFirstEnglishMessages,
     getLocaleText
@@ -42,6 +42,7 @@ function normalizeText(value: string | undefined): string {
 
 function normalizeLimit(value: number | null | undefined): number | null {
     if (value === null || value === undefined) return null;
+
     return Math.max(0, Math.floor(value));
 }
 
@@ -112,7 +113,9 @@ export function createToastViewport(
     let newestOnTop = options.newestOnTop ?? true;
     let toasts: Toast[] = [];
 
-    const announcer = createAnnouncer({ container: element });
+    const announcer = createDocumentAnnouncementChannel({
+        document: ownerDocument
+    });
 
     function getViewportLabel(): string {
         return normalizeText(label) || getLocaleText(

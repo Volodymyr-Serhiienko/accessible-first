@@ -84,6 +84,10 @@ RobotsTxt, AppRouteSitemap, AppDiagnostics.
 - Use `shouldAnnounceValidationFeedback()` for new validation workflows that
   may also move focus, so live-region errors do not duplicate focused field
   speech.
+- For normal event feedback, prefer component defaults, `StatusMessage`,
+  `ToastViewport`, or `createActionAnnouncer()`. Reserve document announcement
+  channels for reusable framework behavior; do not create isolated announcers
+  in ordinary application code.
 - Use resolver functions for localized shell, header, footer, content, metadata,
   and route text so locale changes can refresh without a full page reload.
 - Enable diagnostics in starters and public apps.

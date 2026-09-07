@@ -47,7 +47,8 @@ outlet.render([
 - Can update `document.title` for route-like changes.
 - Scrolls the outlet into view by default after rendering new content.
 - Moves focus after rendering by default, preferring the first heading and falling back to the outlet itself.
-- Announces rendered screen changes by default when a route title or document title is available.
+- Uses the focused heading as the normal screen-change announcement.
+- Announces rendered screen changes automatically only when focus cannot move; an explicit `announcement` still always uses the document-coordinated channel.
 - Can render quietly when a change should not be announced.
 
 ## Options
@@ -58,7 +59,7 @@ outlet.render([
 - `documentTitle` - Optional initial document title.
 - `focusTarget` - `"first-heading"`, `"first-focusable"`, `"outlet"`, an element, a function returning an element, or `null`. Defaults to `"first-heading"`.
 - `scrollOnRender` - Scrolls the outlet into view when rendering new content. Defaults to `true`.
-- `announcement` - `true`, `false`, fixed text, or a function. Defaults to `true`; `true` announces the route title or document title when available and stays quiet when both are empty.
+- `announcement` - `true`, `false`, fixed text, or a function. When omitted, PageOutlet relies on the moved focus and announces a title only if focus cannot move. `true` explicitly announces the route or document title when available; use it only when that additional speech is needed.
 - `announcementPoliteness` - `"polite"` or `"assertive"`. Defaults to `"polite"`.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 

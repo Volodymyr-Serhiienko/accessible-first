@@ -74,7 +74,7 @@ Row(
 - Initial text or switch state matches the already applied theme.
 - Initial selected state matches the already applied theme in button display.
 - Button and switch displays toggle between light and dark themes.
-- Screen reader users hear the changed theme.
+- Screen reader users hear the changed theme through the document-coordinated announcement channel.
 - Switch display exposes `role="switch"` and `aria-checked`.
 - Switch display shows a tooltip on pointer hover and announces that hint when hover announcements are enabled.
 - The control updates if the page theme changes externally.

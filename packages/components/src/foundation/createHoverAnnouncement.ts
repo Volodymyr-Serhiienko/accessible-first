@@ -1,6 +1,9 @@
 import { getAriaReferencedText } from "../../../core/src/aria";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
-import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
+import {
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel
+} from "../../../core/src/live-region";
 
 /**
  * Message source used by createHoverAnnouncement().
@@ -65,13 +68,13 @@ export function createHoverAnnouncement(
 ): HoverAnnouncement {
     let message = options.message;
     let enabled = options.enabled ?? true;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
     let cleanups: Cleanup[] = [];
     let destroyed = false;
 
-    function getAnnouncer(): Announcer {
-        announcer ??= createAnnouncer({
-            container: element.ownerDocument.body ?? element.ownerDocument.documentElement
+    function getAnnouncer(): DocumentAnnouncementChannel {
+        announcer ??= createDocumentAnnouncementChannel({
+            document: element.ownerDocument
         });
 
         return announcer;

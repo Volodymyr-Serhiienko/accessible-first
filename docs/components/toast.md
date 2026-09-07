@@ -51,13 +51,13 @@ const notifications = createToastViewport(element, {
 
 - Enhancement API: `createToastViewport(element, options)`
 - Composition API: `ToastViewport(options)`
-- Reuses: component lifecycle, native buttons, hidden live-region announcements, and theme tokens
+- Reuses: component lifecycle, native buttons, document-coordinated live announcements, and theme tokens
 
 ## Behavior
 
 - Adds visible notifications to a fixed viewport.
 - Does not move focus when a toast appears.
-- Announces messages through hidden live regions while keeping the visible toast card non-modal.
+- Announces messages through the document-coordinated live region while keeping the visible toast card non-modal.
 - Re-announces repeated messages, so pressing the same control more than once can still produce audible feedback.
 - Defaults to persistent messages. Set `duration` when auto-dismiss is appropriate.
 - Provides a close button by default, but do not rely on that close button as the only accessible way to clear important UI.

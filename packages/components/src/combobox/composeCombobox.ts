@@ -1,5 +1,8 @@
 import { createId } from "../../../core/src/id";
-import { createAnnouncer, type Announcer } from "../../../core/src/live-region";
+import {
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel
+} from "../../../core/src/live-region";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -506,7 +509,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     let onActiveOptionChange = options.onActiveOptionChange ?? null;
 
     let announceNotFound = options.announceNotFound ?? true;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
     let notFoundAnnounced = false;
 
     function createComposedItem(node: ComboboxItemNode): ComposedComboboxItem {
@@ -627,7 +630,9 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
         combobox.updatePosition();
 
         if (options.announce && announceNotFound && !notFoundAnnounced) {
-            announcer ??= createAnnouncer();
+            announcer ??= createDocumentAnnouncementChannel({
+                document: element.ownerDocument
+            });
             announcer.announce(getOptionalText(notFound.textContent));
             notFoundAnnounced = true;
         }

@@ -134,6 +134,12 @@ Keep these concepts separate:
 
 Avoid noisy duplicate speech. A section description should be announced when
 the section itself receives focus, not every time a child field receives focus.
+
+For normal event feedback, use component defaults, `StatusMessage`,
+`ToastViewport`, or `createActionAnnouncer()`. Treat
+`createDocumentAnnouncementChannel()` as framework infrastructure for reusable
+behavior, and use isolated `createAnnouncer()` only at a deliberate low-level
+boundary.
 Form uses `announceValidation: "auto"` by default: when validation moves focus
 to the first invalid field, detailed live-region errors stay quiet unless the
 app provides a short `validationSummaryMessage`. New validating components

@@ -43,6 +43,7 @@ const tooltip = createTooltip(button, {
 - Supports `Escape` dismissal while the trigger remains hovered or focused, including mouse-hover use without first clicking the trigger.
 - Shifts horizontally inside the viewport and moves below the trigger when there is not enough space above it.
 - Can politely announce the text on mouse hover when needed.
+- Uses the document-coordinated announcement channel, so leaving the trigger cannot clear newer framework feedback.
 - Touch and mobile screen reader users should not depend on the visual hover layer.
 - Restores original attributes on `destroy()`.
 

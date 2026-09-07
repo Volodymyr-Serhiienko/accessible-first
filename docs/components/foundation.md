@@ -91,6 +91,8 @@ Shared helpers keep repeated accessibility behavior out of individual components
 
 Use it for controls that already have visible text but may not be announced reliably by some screen reader and pointer-hover combinations.
 
+Each helper uses a document-coordinated announcement channel by default. It shares document live regions with other framework feedback and only clears its own active message, so pointer leave does not erase a newer announcement from another component.
+
 ## Descriptions And Announcements
 
 Interactive components should keep visible explanation and live-region speech separate.

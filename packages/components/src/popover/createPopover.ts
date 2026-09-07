@@ -30,8 +30,8 @@ import {
 } from "../../../core/src/popover-position";
 import { createComponentLifecycle } from "../foundation";
 import {
-    createAnnouncer,
-    type Announcer,
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel,
     type LiveRegionPoliteness
 } from "../../../core/src/live-region";
 import type {
@@ -210,7 +210,7 @@ export function createPopover(
     let onFocusOutside = options.onFocusOutside ?? null;
     let onOpenChange = options.onOpenChange ?? null;
     let announcement = options.announcement;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
 
     let popover!: Popover;
 
@@ -349,8 +349,8 @@ export function createPopover(
 
         if (!message) return;
 
-        announcer ??= createAnnouncer({
-            container: content.ownerDocument.body ?? content.ownerDocument.documentElement
+        announcer ??= createDocumentAnnouncementChannel({
+            document: content.ownerDocument
         });
 
         announcer.announce(message, {

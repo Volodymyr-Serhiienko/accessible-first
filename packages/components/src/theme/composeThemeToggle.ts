@@ -1,4 +1,8 @@
-import { createAnnouncer, type Announcer, type LiveRegionPoliteness } from "../../../core/src/live-region";
+import {
+    createDocumentAnnouncementChannel,
+    type DocumentAnnouncementChannel,
+    type LiveRegionPoliteness
+} from "../../../core/src/live-region";
 import { Button, type ButtonCompositionOptions, type ComposedButton } from "../button";
 import {
     createElement,
@@ -286,7 +290,7 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
     let announcement: ThemeToggleAnnouncement = options.announcement ?? true;
     let announcementPoliteness: LiveRegionPoliteness = options.announcementPoliteness ?? "polite";
     let onThemeChange = options.onThemeChange ?? null;
-    let announcer: Announcer | null = null;
+    let announcer: DocumentAnnouncementChannel | null = null;
 
     function isSelected(theme: ResolvedTheme): boolean {
         return selectedTheme !== null && theme === selectedTheme;
@@ -326,7 +330,10 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
 
         if (!message) return;
 
-        announcer ??= createAnnouncer();
+        announcer ??= createDocumentAnnouncementChannel({
+            document: target.ownerDocument
+        });
+
         announcer.announce(message, {
             politeness: announcementPoliteness
         });
@@ -373,6 +380,11 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         });
     }
 
+    function resetAnnouncer(): void {
+        announcer?.destroy();
+        announcer = null;
+    }
+
     syncLocaleSubscription();
 
     const observer = new MutationObserver(syncButton);
@@ -397,6 +409,7 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
 
             if ("target" in nextOptions) {
                 target = nextOptions.target ?? document.documentElement;
+                resetAnnouncer();
                 observer.disconnect();
                 observer.observe(target, {
                     attributes: true,
@@ -425,7 +438,7 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         destroy(): void {
             observer.disconnect();
             unsubscribeLocale?.();
-            announcer?.destroy();
+            resetAnnouncer();
             button.destroy();
         }
     };
