@@ -134,6 +134,10 @@ Keep these concepts separate:
 
 Avoid noisy duplicate speech. A section description should be announced when
 the section itself receives focus, not every time a child field receives focus.
+Form uses `announceValidation: "auto"` by default: when validation moves focus
+to the first invalid field, detailed live-region errors stay quiet unless the
+app provides a short `validationSummaryMessage`. New validating components
+should reuse `shouldAnnounceValidationFeedback()` for the same policy.
 
 Test desktop keyboard routes and mobile screen reader routes separately. Mobile
 screen reader users may navigate by touch exploration and swipe order, not only

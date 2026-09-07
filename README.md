@@ -75,5 +75,8 @@ AI coding agents should start with [llms.txt](./llms.txt), [AGENTS.md](./AGENTS.
 - [Application Starter](./docs/app-starter.md)
 - [Application Templates](./docs/templates.md)
 - [AI Usage Guide](./docs/ai-usage.md)
+- [Hints And Announcements](./docs/hints-and-announcements.md)
+- [Localization](./docs/localization.md)
+- [Validation Announcements](./docs/core/validation-announcements.md)
 - [Roadmap](./docs/roadmap.md)
 - [Component Reference](./docs/components/README.md)

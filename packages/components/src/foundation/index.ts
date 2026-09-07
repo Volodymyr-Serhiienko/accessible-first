@@ -66,3 +66,13 @@ export {
     type VersionedStorageWriteResult,
     type VersionedStorageWriteStatus
 } from "../../../core/src/storage";
+export {
+    createValidationAnnouncer,
+    shouldAnnounceValidationFeedback,
+    type ValidationAnnouncement,
+    type ValidationAnnouncementDecisionOptions,
+    type ValidationAnnouncementStrategy,
+    type ValidationAnnouncer,
+    type ValidationAnnouncerOptions,
+    type ValidationAnnounceOptions
+} from "../../../core/src/validation-announcements";

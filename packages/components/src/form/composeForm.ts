@@ -3,7 +3,9 @@ import { focusElement } from "../../../core/src/focus";
 import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import {
     createValidationAnnouncer,
+    shouldAnnounceValidationFeedback,
     type ValidationAnnouncement,
+    type ValidationAnnouncementStrategy,
     type ValidationAnnouncer
 } from "../../../core/src/validation-announcements";
 import { ActionsBar, type ActionsBarOptions } from "../actions-bar";
@@ -38,6 +40,14 @@ export type FormSize = "md";
  * Current aggregate validation state for a composed form.
  */
 export type FormValidationState = "idle" | "valid" | "invalid";
+
+/**
+ * Live-region strategy for aggregate form validation feedback.
+ *
+ * "auto" avoids duplicate speech when the form moves focus to the first
+ * invalid field, unless a custom validation summary message is provided.
+ */
+export type FormCompositionValidationAnnouncement = ValidationAnnouncementStrategy;
 
 /**
  * Options passed from Form to a registered field validate() method.
@@ -170,7 +180,7 @@ export interface FormCompositionOptions extends BaseCompositionOptions {
     validateOnSubmit?: boolean;
     focusFirstInvalid?: boolean;
     scrollFirstInvalid?: boolean;
-    announceValidation?: boolean;
+    announceValidation?: FormCompositionValidationAnnouncement;
     announceSuccess?: boolean;
     successMessage?: string;
     validationSummaryMessage?: FormCompositionValidationSummaryMessage | null;
@@ -315,7 +325,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     let validateOnSubmit = options.validateOnSubmit ?? true;
     let focusFirstInvalid = options.focusFirstInvalid ?? true;
     let scrollFirstInvalid = options.scrollFirstInvalid ?? true;
-    let announceValidation = options.announceValidation ?? true;
+    let announceValidation: FormCompositionValidationAnnouncement = options.announceValidation ?? "auto";
     let announceSuccess = options.announceSuccess ?? false;
     let successMessage = options.successMessage;
     let validationSummaryMessage = options.validationSummaryMessage ?? null;
@@ -338,6 +348,66 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
             summaryMessage: (errors) => validationSummaryMessage?.(errors)
         });
         return validationAnnouncer;
+    }
+
+    function getValidationSummaryMessage(
+        errors: readonly ValidationAnnouncement[]
+    ): string | null {
+        const message = validationSummaryMessage?.(errors)?.trim() ?? "";
+        return message || null;
+    }
+
+    function isValidationAnnouncementDisabled(
+        validateOptions: FormCompositionValidateOptions
+    ): boolean {
+        return announceValidation === false || validateOptions.announce === false;
+    }
+
+    function announceInvalidValidation(
+        validateOptions: FormCompositionValidateOptions,
+        invalidResults: readonly FormCompositionFieldValidationDetail[]
+    ): void {
+        if (invalidResults.length === 0) {
+            return;
+        }
+
+        const errors = invalidResults.map(toValidationAnnouncement);
+        const willFocusInvalidField = validateOptions.focus ?? focusFirstInvalid;
+        const needsFocusedSummary = announceValidation === "auto" && willFocusInvalidField;
+        const focusedSummaryMessage = needsFocusedSummary
+            ? getValidationSummaryMessage(errors)
+            : null;
+
+        if (!shouldAnnounceValidationFeedback({
+            strategy: announceValidation,
+            announce: validateOptions.announce,
+            willMoveFocus: willFocusInvalidField,
+            hasSummary: focusedSummaryMessage !== null
+        })) {
+            validationAnnouncer?.clear();
+            return;
+        }
+
+        if (needsFocusedSummary) {
+            if (focusedSummaryMessage) {
+                getAnnouncer().announce(focusedSummaryMessage);
+            }
+
+            return;
+        }
+
+        getAnnouncer().announceErrors(errors);
+    }
+
+    function announceValidValidation(
+        validateOptions: FormCompositionValidateOptions
+    ): void {
+        if (!announceSuccess || isValidationAnnouncementDisabled(validateOptions)) {
+            validationAnnouncer?.clear();
+            return;
+        }
+
+        getAnnouncer().announceSuccess(successMessage);
     }
 
     function getFields(): FormValidatableField[] {
@@ -492,12 +562,10 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
 
         sync();
 
-        if (announceValidation && (validateOptions.announce ?? true)) {
-            if (invalidResults.length > 0) {
-                getAnnouncer().announceErrors(invalidResults.map(toValidationAnnouncement));
-            } else if (announceSuccess) {
-                getAnnouncer().announceSuccess(successMessage);
-            }
+        if (invalidResults.length > 0) {
+            announceInvalidValidation(validateOptions, invalidResults);
+        } else {
+            announceValidValidation(validateOptions);
         }
 
         if (

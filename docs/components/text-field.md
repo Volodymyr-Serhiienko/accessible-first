@@ -116,7 +116,7 @@ const field = createTextField(existingInput, {
 - `validateOnBlur` - Validates when focus leaves the control. Defaults to `true`.
 - `validateOnInput` - Validates while typing. Defaults to `false`.
 - `showValidState` - Shows visual valid state when the field is valid. Defaults to `true`.
-- `announceValidation` - Announces invalid field-level validation messages. Defaults to `true`; `Form` passes `announce: false` to registered fields during submit to avoid duplicate speech.
+- `announceValidation` - Announces invalid field-level validation messages. Defaults to `true`; `Form` passes `announce: false` to registered fields during submit so focus on the invalid field can carry the detailed speech instead.
 - `validationMessages` - Custom messages for native validation states.
 - `validator` - Optional custom validator returning an error message or `null`.
 - `onValidationChange` - Called when validation state changes.
@@ -136,7 +136,7 @@ const field = createTextField(existingInput, {
 
 Validation errors are visible and connected through the field error slot while the field is invalid. Field-level blur validation may announce the invalid message because focus is already on that field workflow.
 
-When `TextField` is registered with `Form`, the form calls field validation with `announce: false` during submit and owns the validation summary plus first-invalid focus. This avoids routing the same detailed error through both the field live region and the focused invalid field.
+When `TextField` is registered with `Form`, the form calls field validation with `announce: false` during submit. The error remains visible and connected to the control, and the focused invalid field provides the detailed speech. Form-level live-region speech is reserved for an explicit summary or workflows that do not move focus.
 
 Use `announceValidation: false` when an application owns all validation speech through a form, toast, inline status, or another workflow-level announcer.
 

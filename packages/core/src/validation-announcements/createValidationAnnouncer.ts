@@ -112,6 +112,13 @@ export function createValidationAnnouncer(
             .join(" ");
     }
 
+    function getSummaryMessage(
+        errors: readonly ValidationAnnouncement[]
+    ): string | null {
+        const message = options.summaryMessage?.(errors)?.trim() ?? "";
+        return message || null;
+    }
+
     function announce(
         message: string,
         announceOptions: ValidationAnnounceOptions = {}
@@ -142,6 +149,13 @@ export function createValidationAnnouncer(
                 return;
             }
 
+            const summaryMessage = getSummaryMessage(validErrors);
+
+            if (summaryMessage) {
+                announce(summaryMessage);
+                return;
+            }
+
             if (validErrors.length === 1) {
                 const firstError = validErrors[0];
 
@@ -152,11 +166,7 @@ export function createValidationAnnouncer(
                 return;
             }
 
-            const message =
-                options.summaryMessage?.(validErrors) ??
-                formatSummary(validErrors);
-
-            announce(message);
+            announce(formatSummary(validErrors));
         },
 
         announceSuccess(

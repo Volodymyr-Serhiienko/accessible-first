@@ -83,6 +83,17 @@ When focus moves into a component, the focused thing should decide what is spoke
 
 For validation, avoid detailed live-region errors when focus also moves to the first invalid field. In that case, the focused field provides the detailed error context. Use form-level announcements only for deliberate summaries or when focus is not moved.
 
+
+## Validation Feedback Rules
+
+Validation has two layers: persistent field semantics and event feedback.
+
+Field semantics are always preserved. A field error should be visible, connected to the control, and available when focus lands on that control. Required, invalid, description, and error state must remain part of the accessible field contract.
+
+Event feedback should be spoken once. When submit validation moves focus to the first invalid field, the default form strategy is `announceValidation: "auto"`: the form does not announce detailed errors, because the focused field will be read with its own error context. Add `validationSummaryMessage` for a short localized submit result, or set `announceValidation: true` only when aggregate speech is deliberately required.
+
+For blur validation, a field may announce its own invalid message because that event belongs to the field workflow. For success or failure after an action, prefer `StatusMessage` when the result should stay visible, or `createActionAnnouncer()` when it should only be spoken.
+
 ## Action Feedback Rules
 
 Use `createActionAnnouncer()` when a result should be spoken but does not need visible UI.

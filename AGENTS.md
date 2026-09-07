@@ -54,6 +54,9 @@ including `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
   selection, typeahead, and live regions.
 - Keep labels, descriptions, hints, tooltips, announcements, validation
   messages, and toasts conceptually separate.
+- Reuse `shouldAnnounceValidationFeedback()` when creating validating
+  components that may also move focus. Keep detailed field errors attached to
+  fields, and speak only one event-level validation result.
 - Keep framework service text localizable. Do not hard-code new user-facing
   English service text inside reusable components.
 - Put application copy in app locale files or page files, not in framework

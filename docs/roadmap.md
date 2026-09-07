@@ -20,7 +20,7 @@ These starters prove the app shell, localization, metadata, diagnostics, theme, 
 These layers are ready to build on, with normal refinements expected:
 
 - platform utilities for DOM, events, IDs, focus, keyboard, ARIA, scroll, collection, and startup behavior;
-- behavior modules for disclosure, dialog, tabs, listbox, menu, popover, overlay, typeahead, selection, live regions, and validation announcements;
+- behavior modules for disclosure, dialog, tabs, listbox, menu, popover, overlay, typeahead, selection, live regions, validation announcements, and validation announcement strategy;
 - composition primitives, semantic markup helpers, Page, AppShell, PageLayout, PageOutlet, Screen, sections, layout blocks, Icon, Image, and VisuallyHidden;
 - accessible component baseline: buttons, links, icons, images, disclosures, dialogs, alerts, tabs, listboxes, menus, selects, comboboxes, popovers, tooltips, toasts, form fields, navigation, breadcrumbs, responsive navigation, header, screen, list/detail, tables, pagination, progress, result summaries, and status/empty/info patterns;
 - app foundation: hash routing, native-link routing, route-free public static templates, public routed apps, public app templates, route chrome, route text, route registry, app identity, metadata, manifest, sitemap, robots, diagnostics, and locale refresh;
@@ -128,7 +128,7 @@ These areas must stay coherent as the framework grows:
 - theme tokens, density, typography, and contrast;
 - responsive shell, header, navigation, and header tools;
 - SPA, MPA, and static-site routing/metadata alignment;
-- form validation, validation summaries, and quiet screen reader feedback;
+- form validation, validation summaries, action announcements, and quiet screen reader feedback;
 - hint, description, tooltip, toast, and announcement rules;
 - diagnostics and public-page health reports;
 - assets, icons, images, manifests, and SEO metadata;

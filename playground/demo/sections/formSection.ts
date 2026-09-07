@@ -11,7 +11,7 @@ export function FormSectionDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Profile section in a form"),
-                        P("FormSection gives the area semantic structure, while Form collects validation, announces errors, and moves focus to the first invalid field."),
+                        P("FormSection gives the area semantic structure, while Form collects validation and moves focus to the first invalid field."),
                         Form({
                             announceValidation: false,
                             children: ({ field }) => FormSection({

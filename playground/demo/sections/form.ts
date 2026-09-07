@@ -30,7 +30,7 @@ export function FormDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Registered fields"),
-                        P("Form validates registered fields on submit, announces a summary, and moves focus to the first invalid field."),
+                        P("Form validates registered fields on submit and moves focus to the first invalid field without duplicating field speech."),
                         Form({
                             children: ({ field }) => [
                                 FormSection({

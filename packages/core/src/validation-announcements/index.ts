@@ -6,3 +6,4 @@ export type {
     ValidationAnnouncerOptions,
     ValidationAnnounceOptions
 } from "./types";
+export * from "./policy";

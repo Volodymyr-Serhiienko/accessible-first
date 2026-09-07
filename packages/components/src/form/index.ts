@@ -12,6 +12,7 @@ export type {
     FormCompositionOptions,
     FormCompositionSubmitDetail,
     FormCompositionUpdateOptions,
+    FormCompositionValidationAnnouncement,
     FormCompositionValidateOptions,
     FormCompositionValidationDetail,
     FormCompositionValidationSummaryMessage,

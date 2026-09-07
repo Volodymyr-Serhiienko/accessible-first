@@ -86,8 +86,9 @@ Form({
 - Uses `noValidate` by default to avoid inaccessible browser validation bubbles while keeping the native constraint validation API available.
 - Validates registered fields on submit by default.
 - Prevents default submit by default.
-- Announces a validation summary when fields are invalid.
 - Moves focus to the first invalid field by default.
+- Uses `announceValidation: "auto"` by default, so invalid submit does not duplicate the focused field speech.
+- Announces a custom validation summary when `validationSummaryMessage` is provided, or detailed validation feedback when focus is not moved.
 - Uses `ActionsBar` for form-level actions.
 - Does not own field layout; use `FormSection`, `FieldGroup`, and layout primitives inside it.
 
@@ -106,10 +107,10 @@ Form({
 - `validateOnSubmit` - Runs registered field validation on submit. Defaults to `true`.
 - `focusFirstInvalid` - Moves focus to the first invalid field. Defaults to `true`.
 - `scrollFirstInvalid` - Scrolls the first invalid field into view. Defaults to `true`.
-- `announceValidation` - Announces invalid validation summaries. Defaults to `true`.
+- `announceValidation` - Controls aggregate validation live-region feedback. Defaults to `"auto"`. Use `false` to keep the form silent, `true` to force aggregate announcements, or `"auto"` to avoid duplicate speech when focus moves to the first invalid field.
 - `announceSuccess` - Announces success after valid submit. Defaults to `false`. Provide `successMessage` when enabling this.
 - `successMessage` - Success announcement message. No framework-authored success text is announced when this is omitted.
-- `validationSummaryMessage` - Optional localized summary builder for invalid submit announcements. By default, the form announces the registered field messages without adding framework-authored prose.
+- `validationSummaryMessage` - Optional localized summary builder for invalid submit announcements. In `"auto"` mode this is the only form-level message announced when focus also moves to the first invalid field.
 - `clearValidationOnReset` - Clears validation state on native reset. Defaults to `true`.
 - `focusFirstOnReset` - Moves focus to the first registered field after reset. Defaults to `true`.
 - `variant` - `"default"` or `"plain"`.
@@ -123,9 +124,13 @@ Form({
 
 ## Speech And Validation
 
-`Form` owns aggregate validation announcements. Registered fields are validated with `announce: false`, so invalid submit does not produce both field-level live messages and a form summary.
+`Form` owns aggregate validation coordination, but it does not always speak.
 
-Use `validationSummaryMessage` when an application needs localized summary wording, a custom count, or a shorter message for long forms. Keep field error text visible and connected to the field itself.
+Registered fields are validated with `announce: false`, so invalid submit does not produce both field-level live messages and field focus speech. With the default `announceValidation: "auto"`, the form stays silent when it also moves focus to the first invalid field. The focused field then provides the detailed label, state, description, and error context.
+
+Use `validationSummaryMessage` when an application needs a short localized submit result such as "Check the highlighted fields." In `"auto"` mode that short summary may be announced before focus moves, while detailed errors still belong to the fields themselves.
+
+Use `announceValidation: true` only when the workflow deliberately needs aggregate speech even though focus may move. Use `announceValidation: false` when a page-level `StatusMessage`, toast, or custom announcer owns the submit result.
 
 ## Field Contract
 
@@ -163,7 +168,7 @@ Useful hooks include `[data-af-composition="form"]`, `[data-af-form-body]`, `[da
 ## Manual Checks
 
 - Submit button triggers validation.
-- Invalid submit announces a useful summary without duplicating each field live region.
+- Invalid submit does not duplicate field errors through both form and field live regions.
 - Focus moves to the first invalid field.
 - Field error messages remain visible and connected to controls.
 - Valid submit calls the valid callback.
