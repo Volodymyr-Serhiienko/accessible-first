@@ -105,7 +105,7 @@ Start from [Component Reference](./components/README.md). Important families:
 - Disclosure and overlays: Disclosure, Accordion, Dialog, AlertDialog, Popover,
   Tooltip, ToastViewport, Menu, Listbox, Tabs.
 - Layout and content: Screen, Section, Stack, Row, Grid, Container, HeaderBar,
-  ActionsBar, EmptyState, InfoCard, Badge, Image, Icon, DescriptionList.
+  ActionsBar, EmptyState, StatusMessage, InfoCard, Badge, Image, Icon, DescriptionList.
 - Data and flows: Table, Pagination, Progress, ResultSummary, ListDetail,
   SettingsGroup, Form, FieldGroup, FormSection.
 - App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,

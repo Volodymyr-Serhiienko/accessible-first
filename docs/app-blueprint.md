@@ -144,4 +144,3 @@ Promote code when it is repeated, accessibility-related, independent of product 
 The first reference application will be an accessible foreign-language learning app. It should validate lessons, vocabulary, practice, settings, progress, forms, localization, desktop keyboard routes, and mobile screen reader routes.
 
 Bring in the legacy app after the routed and static starters are stable enough to guide the migration.
-

@@ -149,4 +149,3 @@ Toast buttons are a limited convenience feature only. They must not be the only 
 Use `Dialog`, `AlertDialog`, inline page actions, or visible page content when the user must press a button.
 
 Use persistent toast carefully when dismissal depends on a close button. Use timed toast only when the message is short and non-critical.
-

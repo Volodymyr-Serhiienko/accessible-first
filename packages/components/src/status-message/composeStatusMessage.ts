@@ -161,9 +161,11 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
     element.append(icon, content);
 
     function getAnnouncer(): ActionAnnouncer {
+        if (providedAnnouncer) return providedAnnouncer;
+
         ownedAnnouncer ??= createActionAnnouncer();
 
-        return providedAnnouncer ?? ownedAnnouncer;
+        return ownedAnnouncer;
     }
 
     function getAnnouncementDetail(): StatusMessageAnnouncementDetail {

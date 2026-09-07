@@ -76,8 +76,8 @@ Status: active through the Study Languages rewrite.
 
 Likely reusable patterns to validate in the app before moving into Accessible First:
 
+- versioned preference/progress storage for locale, language pair, learner mode, speech settings, and later progress migrations;
 - speech controller for Web Speech API queues, mixed-language reading, spelling, pause/resume/stop, voice warmup, and speech-rate preferences;
-- versioned preference/progress storage;
 - async resource loading with accessible loading, empty, retry, and error states;
 - data-provider contracts that can swap static seed data, local storage, HTTP APIs, and hosted databases;
 - import/export and validation surfaces;
@@ -85,10 +85,10 @@ Likely reusable patterns to validate in the app before moving into Accessible Fi
 
 ## Near-Term Sequence
 
-1. Export the old Study Languages SQLite content into readable seed files.
-2. Draft the Study Languages domain model and data-provider interfaces.
-3. Build the first frontend-first Study Languages shell with Accessible First.
-4. Rebuild the first learner screens before admin editing.
+1. Keep the first Study Languages screen lean by using `StatusMessage`, `ActionsBar`, and existing layout primitives instead of local mini-components.
+2. Promote a small versioned storage helper into the framework before progress and preferences spread through the app.
+3. Draft the Study Languages domain model and data-provider interfaces around seed data first.
+4. Build the next learner-facing screen, then split the app wiring into identity, shell/header, routes, and diagnostics files when the second screen proves the shape.
 5. Promote proven application patterns into the framework only after real use.
 
 ## What Not To Do Yet
@@ -160,5 +160,3 @@ The first reference app is the Study Languages rewrite. It should validate the f
 ## Long-Term Direction
 
 Accessible First should become a small but serious web application framework: lighter than full virtual-DOM stacks, easier to start than large UI frameworks, and more opinionated about accessibility, localization, semantics, diagnostics, public metadata, and real user workflows.
-
-

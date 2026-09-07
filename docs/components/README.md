@@ -97,4 +97,3 @@ Each component document should contain:
 - [RouteResponsiveNavigation](./route-responsive-navigation.md)
 - [RouteSearchBox](./route-search-box.md)
 - [WebAppManifest](./web-app-manifest.md)
-
