@@ -29,6 +29,7 @@ export interface Tooltip {
 
 function normalizeText(text: string | null | undefined): string | null {
     const trimmed = text?.trim();
+
     return trimmed ? trimmed : null;
 }
 
@@ -56,6 +57,8 @@ export function createTooltip(
     let destroyed = false;
     let dismissed = false;
     let positionFrame = 0;
+    let pointerOver = false;
+    let focusWithin = false;
 
     function getTooltipId(): string {
         if (!tooltipId) {
@@ -79,10 +82,24 @@ export function createTooltip(
     function updateVisualPosition(): void {
         if (!visualContent || !text) return;
 
-        visualContent.style.setProperty("--af-tooltip-shift-x", "0px");
-
         const ownerWindow = getOwnerWindow(element);
         const viewportPadding = 8;
+        const triggerRect = element.getBoundingClientRect();
+
+        visualContent.style.setProperty("--af-tooltip-shift-x", "0px");
+        visualContent.setAttribute("data-af-tooltip-placement", "top");
+
+        const topRect = visualContent.getBoundingClientRect();
+        const spaceAbove = Math.max(0, triggerRect.top - viewportPadding);
+        const spaceBelow = Math.max(
+            0,
+            ownerWindow.innerHeight - triggerRect.bottom - viewportPadding
+        );
+
+        if (topRect.top < viewportPadding && spaceBelow > spaceAbove) {
+            visualContent.setAttribute("data-af-tooltip-placement", "bottom");
+        }
+
         const rect = visualContent.getBoundingClientRect();
         const minLeft = viewportPadding;
         const maxRight = ownerWindow.innerWidth - viewportPadding;
@@ -135,6 +152,7 @@ export function createTooltip(
         visualContent = ownerDocument.createElement("span");
         visualContent.setAttribute("aria-hidden", "true");
         visualContent.setAttribute("data-af-tooltip-visual", "");
+        visualContent.setAttribute("data-af-tooltip-placement", "top");
         visualContent.textContent = text ?? "";
 
         element.append(visualContent);
@@ -178,6 +196,14 @@ export function createTooltip(
 
         dismissed = false;
         element.removeAttribute("data-af-tooltip-dismissed");
+    }
+
+    function isActive(): boolean {
+        return pointerOver || focusWithin;
+    }
+
+    function resetDismissalWhenInactive(): void {
+        if (!isActive()) resetDismissal();
     }
 
     function dismiss(): void {
@@ -230,16 +256,20 @@ export function createTooltip(
     }
 
     function handlePointerEnter(event: PointerEvent): void {
-        resetDismissal();
+        const wasActive = isActive();
+
+        pointerOver = event.pointerType !== "touch";
+
+        if (!pointerOver) return;
+
+        if (!wasActive) {
+            resetDismissal();
+        }
+
         scheduleVisualPositionUpdate();
 
-        if (event.pointerType && event.pointerType !== "mouse") {
-            return;
-        }
-
-        if (!announceOnHover) {
-            return;
-        }
+        if (event.pointerType && event.pointerType !== "mouse") return;
+        if (!announceOnHover) return;
 
         const message = getAnnouncementText();
 
@@ -248,8 +278,45 @@ export function createTooltip(
         }
     }
 
-    function handleKeyDown(event: KeyboardEvent): void {
-        if (!isEscapeKey(event) || !text) return;
+    function handlePointerLeave(): void {
+        pointerOver = false;
+        announcer?.clear();
+        resetDismissalWhenInactive();
+    }
+
+    function handleFocusIn(): void {
+        const wasActive = isActive();
+
+        focusWithin = true;
+
+        if (!wasActive) {
+            resetDismissal();
+        }
+
+        scheduleVisualPositionUpdate();
+    }
+
+    function handleFocusOut(event: FocusEvent): void {
+        const nextTarget = event.relatedTarget;
+
+        if (nextTarget instanceof Node && element.contains(nextTarget)) {
+            return;
+        }
+
+        focusWithin = false;
+        announcer?.clear();
+        resetDismissalWhenInactive();
+    }
+
+    function handleDocumentKeyDown(event: KeyboardEvent): void {
+        if (
+            event.defaultPrevented
+            || !isEscapeKey(event)
+            || !text
+            || !isActive()
+        ) {
+            return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -258,19 +325,14 @@ export function createTooltip(
 
     cleanups = [
         addEventListener<PointerEvent>(element, "pointerenter", handlePointerEnter),
-        addEventListener<PointerEvent>(element, "pointerleave", () => {
-            announcer?.clear();
-            resetDismissal();
-        }),
-        addEventListener<FocusEvent>(element, "focusin", () => {
-            resetDismissal();
-            scheduleVisualPositionUpdate();
-        }),
-        addEventListener<FocusEvent>(element, "focusout", () => {
-            announcer?.clear();
-            resetDismissal();
-        }),
-        addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
+        addEventListener<PointerEvent>(element, "pointerleave", handlePointerLeave),
+        addEventListener<FocusEvent>(element, "focusin", handleFocusIn),
+        addEventListener<FocusEvent>(element, "focusout", handleFocusOut),
+        addEventListener<KeyboardEvent>(
+            ownerDocument,
+            "keydown",
+            handleDocumentKeyDown
+        )
     ];
 
     syncText();

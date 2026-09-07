@@ -23,7 +23,7 @@ export interface LiveRegion {
 }
 
 /**
- * Options for one announcement.
+ * Options for one announcement or clear operation.
  */
 export interface AnnounceOptions {
     politeness?: LiveRegionPoliteness;
@@ -42,6 +42,19 @@ export interface AnnouncerOptions {
  */
 export interface Announcer {
     announce(message: string, options?: AnnounceOptions): void;
-    clear(): void;
+    clear(options?: AnnounceOptions): void;
     destroy(): void;
 }
+
+/**
+ * Options for a channel coordinated within one browser document.
+ */
+export interface DocumentAnnouncementChannelOptions {
+    document?: Document;
+    atomic?: boolean;
+}
+
+/**
+ * A source-owned announcement channel that shares document-level live regions.
+ */
+export interface DocumentAnnouncementChannel extends Announcer {}

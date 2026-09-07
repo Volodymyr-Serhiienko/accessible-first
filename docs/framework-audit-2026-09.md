@@ -1,0 +1,350 @@
+# Accessible First Framework Audit - September 2026
+
+## Purpose And Scope
+
+This document records a source-level architectural audit of Accessible First.
+It covers the core and component packages, framework styles, playground,
+runnable starters, developer and AI documentation, deployment workflow, and
+the first integration experience in Study Languages.
+
+It is a planning document, not a WCAG conformance claim. Passing TypeScript,
+manual playground checks, diagnostics, or an automated accessibility scanner
+cannot on their own prove WCAG conformance. A formal claim requires a defined
+scope, representative user journeys, browser and assistive-technology testing,
+and recorded results. The recommended evaluation structure follows
+[WCAG-EM 2.0](https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/).
+
+## Evidence Collected
+
+- The full source type check passes with `tsc --noEmit`.
+- Local Markdown links within `docs/` resolve successfully.
+- The repository has no tracked unit, DOM, end-to-end, visual-regression, or
+  accessibility test files.
+- The only GitHub workflow builds and deploys the playground. It does not run
+  a separate type check, tests, accessibility checks, example builds, or
+  documentation validation.
+- The packages are intentionally source-first and private. Their manifest
+  entry points already describe future package output, but the root TypeScript
+  build emits to a different directory shape.
+- The current Study Languages integration successfully exercises app identity,
+  public app templates, localization, reactive refresh, route chrome,
+  diagnostics, action announcements, status messages, and versioned storage.
+
+## Audit Progress
+
+Completed in this audit pass:
+
+- Tooltip now meets the intended hover/focus interaction contract in the
+  implementation: the pointer can move into its visual content, `Escape` works
+  after hover without a click, and collision handling keeps the tooltip inside
+  the viewport and above later page content.
+- The incomplete `Toolbar` primitive was removed from the public API rather
+  than retaining `role="toolbar"` without the required widget keyboard model.
+
+The first announcement-ownership implementation is now in place: action and
+validation feedback use source-owned channels that share one polite/assertive
+live-region pair per document. The remaining component-specific emitters still
+need migration and manual compatibility checks. No test infrastructure has been
+added yet, so the completed behavior still needs the quality-gate coverage
+described below.
+
+## What Is Already Strong
+
+### Architecture And API Intent
+
+The repository has a meaningful layered model: browser utilities and behavior
+modules in `packages/core`, then composition and UI components, then app
+runtimes, public templates, examples, and product applications. Component
+source depends on core; core does not depend on components. This is a sound
+direction.
+
+The project has also made several unusually valuable decisions early:
+
+- native HTML is preferred before custom ARIA roles;
+- component lifecycle and `destroy()` are part of the public contract;
+- descriptions, hints, tooltips, live announcements, validation feedback, and
+  toasts are documented as different channels;
+- framework-owned service text is localizable;
+- route data can feed navigation, breadcrumbs, metadata, diagnostics, search,
+  and command-palette entries;
+- public identity, metadata, manifest, sitemap, robots, and diagnostics are
+  not postponed until the end of an application;
+- the app starters are runnable examples rather than aspirational snippets.
+
+The newly introduced validation-announcement policy is especially important.
+It gives forms a principled way to avoid speaking the same error through both a
+live region and a moved focus target. Study Languages confirmed the adjacent
+need for short, event-driven action announcements.
+
+### Styling And Responsive Baseline
+
+The default style layer has semantic tokens, logical CSS properties, 44px
+target-size defaults across common controls, focus styles, dark-theme tokens,
+and reduced-motion handling. The app shell uses dynamic viewport units with a
+fallback and has already been exercised on small screens. This is a good
+baseline for a DOM-first library.
+
+### Documentation
+
+The documentation is unusually broad for a source-first project. The main
+architecture, component reference, starter guides, AI guide, localization,
+announcements, templates, and roadmap are all present. `AGENTS.md` and
+`llms.txt` give both human and AI contributors a practical starting point.
+
+## Findings
+
+Priorities describe framework risk, not the importance of any individual
+feature.
+
+| Priority | Finding | Why it matters | Recommended direction |
+| --- | --- | --- | --- |
+| P0 | There is no automated test suite or quality gate. | Focus, keyboard, live-region, routing, lifecycle, locale-refresh, and responsive regressions can return silently. The deployment workflow currently proves only that Vite built the playground. | Establish a small but real test pyramid and make it mandatory in CI before expanding the public API. |
+| P0 before publishing | Package manifests are publication-shaped while the build is repository-shaped. `packages/*/package.json` points to `dist/index.*`, while the root compiler emits under root `dist/packages/*/src`. Packages are also coupled through relative `core/src` imports. | A future `npm publish` could ship broken entry points or the wrong source layout. | Keep source-first status explicit now. Design package-local builds, `exports`, style entry points, package dependencies, and release verification before any publication attempt. |
+| P1 | Tooltip content is not hoverable. The visual tooltip has `pointer-events: none`; when a pointer leaves the trigger, the tooltip cannot be hovered and may disappear before magnified users can read it. | Custom tooltip content triggered by hover is covered by WCAG 2.2 SC 1.4.13. It must be dismissible, hoverable, and persistent unless an exception applies. See [W3C guidance](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus). | Fix Tooltip before making an AA baseline claim. Add browser tests for focus, Escape, hover transition trigger-to-tooltip, viewport edges, zoom, and touch fallback. |
+| P1 | `Toolbar()` assigns `role="toolbar"` but does not provide the corresponding arrow-key focus model. | The ARIA role communicates an interaction pattern that the primitive does not implement. Native sequential Tab behavior is better than an incomplete toolbar pattern. | Either remove the role from the simple layout primitive or turn it into a real toolbar built on the existing roving-focus core module. Decide this before application toolbars proliferate. |
+| P1 | Accessibility is designed thoughtfully but not verified as a product-level contract. | WCAG compliance cannot be inferred from ARIA attributes, manual notes, or diagnostics alone. Speech output also differs between NVDA, JAWS, VoiceOver, and TalkBack. | Set WCAG 2.2 AA as the initial target. Maintain an explicit browser/AT matrix and test representative flows with real users where possible. Do not market unverified conformance. |
+| P1 | Live feedback has several independent emitters: action announcers, validation announcers, `StatusMessage`, toast, route announcements, and component-specific live regions. | The new policy reduces one class of duplicate speech, but applications can still create competing regions and messages. Study Languages already needs both an app announcer and an inline status message. | Design a document-scoped announcement coordinator after test coverage exists. It should make ownership, priority, deduplication, and cleanup explicit without making normal components depend on application copy. |
+| P2 | `packages/components` contains composition, UI controls, page layout, routing, public templates, localization, metadata, PWA, and diagnostics in one public package. | It is convenient during source-first development but makes package ownership, tree-shaking, release versioning, and stable APIs harder as the project grows. | Do not split immediately. First publish an internal dependency map and define stable public families: core, DOM composition/UI, app runtime, public recipes, and styles. Use that map to guide a later package split or subpath export design. |
+| P2 | The framework is renderer-independent in intent but browser-DOM-first in execution. Many composition paths eagerly require `document` or `window`; some others guard browser access. | The current wording can lead developers to expect server rendering or hydration support that does not yet exist. | State supported environments precisely: client-rendered browser DOM today. Treat SSR/hydration as a future architecture decision with a compatibility layer, not an implied feature. |
+| P2 | Public API growth is faster than contract verification. The central component barrel exposes many families and rich `update()` APIs, while lifecycle, update idempotency, and destroy restoration have no automated regression suite. | Small changes to a shared primitive can affect a large number of components. | Add contract tests for every component family: create, update, keyboard path, ARIA relation, destroy, remount, and localized update. |
+| P2 | The default styles need an explicit compatibility and token policy. | There is a solid light/dark baseline, but no documented forced-colors/high-contrast policy, typography/density contract, browser support matrix, or automated contrast/reflow verification. | Add semantic tokens for all status states, document global versus opt-in CSS, adopt a browser support policy, and test forced colors, 200/400% zoom, text spacing, reduced motion, and narrow viewports. |
+| P2 | `Html()` accepts raw HTML after a documentation-only trust warning. | It is intentionally an escape hatch, but an ordinary string type makes accidental unsanitized use easy in data-driven apps. | Rename or constrain the escape hatch to make trust explicit, document a sanitizer boundary, and test that normal composition APIs remain text-safe. |
+| P2 | Diagnostics are valuable developer feedback, not an accessibility or production-health proof. | They can inspect landmark, heading, metadata, localization, manifest, and route structure, but cannot determine focus behavior, color contrast, reading order, speech quality, network health, or security. | Keep diagnostics, clearly describe their scope, add machine-readable reporting, and let real apps register domain-specific reports. |
+| P2 | The MPA/native-link API has documentation but no runnable starter comparable to the hash-routed starter. | The roadmap promises SPA, MPA, and static support; only static and hash SPA are demonstrated end-to-end. | Add a deliberately tiny native-link fixture or integration test before presenting MPA support as equally proven. It does not need to become a third large starter. |
+| P3 | Documentation duplicates component lists and usage rules across README, AGENTS, llms, AI usage, roadmaps, and component pages. | This is currently helpful but will drift as APIs evolve. | Define one machine-readable public API/component manifest and generate or validate inventories and documentation links from it. Keep prose guides curated. |
+| P3 | The playground is a strong manual laboratory but its 39 demo sections are not a regression suite. | It can demonstrate a behavior without detecting a later failure. Past responsive header, focus-clipping, route-focus, and mobile-scroll issues show the value of repeatable checks. | Keep the playground for exploration and real-device checks; extract stable scenarios into automated component, visual, and browser tests. |
+
+## Accessibility Audit Strategy
+
+Accessible First should adopt WCAG 2.2 AA as its engineering baseline. That is
+a target, not a claim, until the framework and an application are evaluated.
+
+### Automated Checks
+
+Automated checks should cover repeatable structural failures:
+
+1. core utility unit tests: IDs, ARIA references, focus, keyboard, collection,
+   scroll, storage, locale matching, and announcement scheduling;
+2. DOM component tests: native semantics, ARIA relationships, events,
+   `update()`, `destroy()`, and remount behavior;
+3. browser tests: keyboard routes, focus restoration, overlays, scroll and
+   viewport positioning, route changes, locale refresh, and small-screen
+   reflow;
+4. accessibility scans in browser tests, with reviewed exceptions rather than
+   ignored output;
+5. visual regression checks for focus clipping, header/navigation breakpoints,
+   dialogs, popovers, tooltips, and form feedback;
+6. documentation/API checks: code snippets where practical, Markdown links,
+   package entry points, and example builds.
+
+### Manual Compatibility Matrix
+
+Keep a versioned matrix for at least these representative flows:
+
+- Windows + Chrome/Edge + NVDA;
+- macOS + Safari + VoiceOver;
+- Android + Chrome + TalkBack;
+- iOS + Safari + VoiceOver;
+- keyboard-only desktop at normal and 200% zoom;
+- touch, landscape, text enlargement, reduced motion, and forced-colors or
+  high-contrast modes where the platform provides them.
+
+Test by journey, not only by component: route change, form error, success
+feedback, disclosure/overlay, mobile navigation, settings changes, and a
+long-content page. Record known support limits instead of hiding them.
+
+## Architecture Direction
+
+The next architectural step should be clarification, not a large rewrite.
+
+```text
+core behavior
+  -> DOM composition and visual components
+    -> app runtime and routing
+      -> public templates/recipes
+        -> applications, examples, playground
+```
+
+For now these may remain in the current source tree. The important additions
+are explicit boundaries, contract tests, and package plans. A physical package
+split should happen only when the boundaries have been exercised by the
+reference app and the publishing strategy is ready.
+
+The following rules should guide future API decisions:
+
+- keep components DOM-first and renderer-independent, but do not promise SSR;
+- put product text, learning logic, speech rules, and data contracts in apps;
+- promote code to the library only after it repeats across real scenarios or
+  establishes a cross-cutting accessibility policy;
+- prefer small primitives plus app recipes over one universal configuration
+  object;
+- provide explicit ownership for document-level resources: live regions,
+  overlays, scroll locks, metadata, and page chrome;
+- make every public component testable without the playground;
+- preserve native escape hatches, but label security-sensitive escape hatches
+  unmistakably.
+
+## Lessons From Study Languages
+
+Study Languages has already produced useful evidence without justifying a rush
+of new generic components.
+
+Validated framework value:
+
+- a public app template starts a real application quickly;
+- localized framework text and app text can live together cleanly;
+- reactive locale refresh is practical but needs recursion/lifecycle tests;
+- `StatusMessage` plus an explicit action announcer can keep visible feedback
+  and spoken feedback separate;
+- versioned storage is a reusable core need;
+- responsive route chrome, header tools, focus restoration, and mobile
+  screen-reader flows deserve browser-level regression coverage.
+
+Not yet proven enough to enter the framework:
+
+- language-learning content models and lesson sequencing;
+- speech synthesis control and mixed-language reading;
+- data-provider contracts;
+- progress logic;
+- admin editing, import/export, authentication, and paid-feature policy.
+
+The application should next grow a read-only lesson flow using seed data. That
+will reveal whether async-state, data-provider, list/detail, speech, progress,
+or navigation patterns are truly generic. Library work should be promoted from
+that evidence rather than anticipated in advance.
+
+## Public API Review
+
+The public API should optimize for a small number of obvious starting points,
+not for exposing every internal assembly step from the root barrel. The review
+uses four questions for every export:
+
+1. Does it solve a distinct developer problem?
+2. Is there one clearly documented primary way to use it?
+3. Does its default preserve native semantics, localized service text, and
+   lifecycle cleanup?
+4. Is it a stable public contract, an advanced escape hatch, or internal
+   assembly code?
+
+### Current Decisions And Candidates
+
+| Family | Evidence | Direction |
+| --- | --- | --- |
+| Live feedback | `createLiveRegion()`, isolated `createAnnouncer()`, and document-coordinated delivery solve distinct levels of control. | Keep all three, but document `createActionAnnouncer()` as the normal application entry point and document-level channels as advanced infrastructure. |
+| IconButton hints | `hint` / `hintDisplay` / `hintAnnounceOnHover` already express the complete model. `tooltip`, `announceOnHover`, `setTooltip()`, and `title` duplicate or blur it. | Audit existing use, then remove redundant aliases during pre-1.0 cleanup. Native `title` remains available through common DOM attributes for callers that deliberately need it. |
+| Image | `Image()` is the documented, accessible composition API. `Img()` is only a compact alias and has no framework call sites. | Keep `Image()` as the sole documented API; remove the alias after a short compatibility review. |
+| App localization | `createAppLocalization()` already exposes the locale controller methods directly, while its `locale` property repeats the same controller. | Trace external use, then remove the duplicate alias if no integration needs identity access. Keep `format` and `requiredMessageKeys`. |
+| Public templates and route chrome | Hash, link, static, route chrome, and lower-level routing APIs are each useful at different levels, but the root barrel presents them with equal weight. | Do not remove working advanced APIs. Mark normal entry points, advanced recipes, and internal helpers in documentation now; design subpath exports before package publication. |
+| Raw HTML | `Html()` accepts raw markup through an ordinary string API. | Replace with an explicitly named trusted-HTML escape hatch before public package release; do not change normal text-safe composition APIs. |
+
+No API should be removed merely because it is low-level. Removal is appropriate
+when two public paths solve the same job, one has clearer semantics, and project
+usage confirms that the duplicate is not required. Each contraction needs a
+migration note while the framework remains pre-1.0.
+## Refactoring Plan
+
+### Work Package 0 - Audit Baseline
+
+Create a short support policy before altering implementations:
+
+- supported browser baseline;
+- WCAG 2.2 AA engineering target and non-claim wording;
+- manual assistive-technology matrix;
+- definition of source-first versus publishable package status;
+- ownership map for core, components, app runtime, templates, playground, and
+  examples.
+
+Done when the policy is documented and linked from the roadmap and AI guide.
+
+### Work Package 1 - Quality Gate
+
+Add the smallest durable test infrastructure and CI workflow:
+
+- `typecheck` separate from emission;
+- core and component DOM tests;
+- browser smoke tests for the playground and both starters;
+- accessibility scans and visual regression fixtures for high-risk controls;
+- build checks for playground and both starters;
+- Markdown/API/package validation.
+
+Start with high-risk primitives, not an attempt to test every option at once:
+focus, live regions, disclosure/dialog/popover/tooltip, form validation,
+responsive navigation, routing, localization refresh, and destroy behavior.
+
+Done when pull requests and Pages deployment cannot bypass the quality gate.
+
+### Work Package 2 - Close The Current Accessibility Gaps
+
+1. Correct Tooltip hover/focus behavior and add the SC 1.4.13 tests.
+2. Resolve the Toolbar role contract.
+3. Create a document-scoped announcement ownership design and test it against
+   validation, route, status, and toast scenarios.
+4. Add browser tests for focus not obscured by sticky chrome, mobile menu close
+   behavior, and focus restoration.
+
+Done when these flows are tested on the selected desktop and mobile matrix.
+
+### Work Package 3 - Stable Public Surface
+
+- catalogue all exports by layer and stability;
+- identify provisional APIs, especially rich recipe and `update()` APIs;
+- add contract tests before changing public behavior;
+- document the client-only runtime boundary;
+- decide whether `Toolbar` remains a layout primitive or becomes an interaction
+  component;
+- define a migration policy while the project remains pre-1.0.
+
+Done when a contributor can tell which API to use, which layer owns it, and how
+breaking change risk is managed.
+
+### Work Package 4 - Style System And Responsive Confidence
+
+- document the global CSS contract and override strategy;
+- complete semantic theme/status tokens;
+- verify dark mode, forced colors, contrast, zoom/reflow, text spacing, and
+  reduced motion;
+- convert known header/navigation/popover/focus cases into visual browser
+  fixtures;
+- establish responsive breakpoints from behavior rather than device names.
+
+Done when the styles are predictable inside a real application without local
+CSS workarounds for framework defaults.
+
+### Work Package 5 - Templates, Documentation, And Publication Readiness
+
+- keep the two starters minimal and test them as independent applications;
+- add a small native-link/MPA proof fixture;
+- add an API/component manifest to reduce duplicated inventories;
+- validate examples and key code snippets;
+- design package-local build output, `exports`, CSS distribution, and release
+  checks, but do not publish until they are tested.
+
+Done when a new app can choose a template confidently and a future package
+release has an explicit, tested path.
+
+### Work Package 6 - Resume Reference-App Discovery
+
+Continue Study Languages with seed-backed lesson list and lesson detail.
+Maintain an integration log: problem, app-local solution, candidate framework
+pattern, evidence from at least one more scenario, and promotion decision.
+
+Done when the learner flow has enough real complexity to validate the next
+framework additions without speculative component growth.
+
+## Recommended Order
+
+Do not begin a broad component expansion or a package split now. The smallest
+high-value sequence is:
+
+1. agree the support and WCAG target policy;
+2. establish the quality gate;
+3. fix and test Tooltip and Toolbar;
+4. define and test announcement ownership;
+5. turn known responsive chrome scenarios into browser fixtures;
+6. continue the Study Languages read-only learner flow;
+7. promote only patterns that survive the reference app;
+8. prepare package publication only after the tested public surface is stable.
+
+This sequence protects the existing investment, gives the framework an honest
+accessibility baseline, and still moves it steadily toward useful real
+applications.

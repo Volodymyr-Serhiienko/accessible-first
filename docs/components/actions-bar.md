@@ -2,7 +2,7 @@
 
 ActionsBar provides a consistent layout for related page, form, section, dialog, and card actions.
 
-It is a structure component, not a toolbar. Use `Toolbar` for dense tool controls with toolbar semantics. Use `ActionsBar` for command buttons such as save, cancel, reset, delete, continue, or review.
+It is a structure component, not an ARIA toolbar. Use `ActionsBar` for command buttons such as save, cancel, reset, delete, continue, or review. Use `Group` or `Row` for a simple visual grouping of controls; a future toolbar component will be introduced only when it implements the full keyboard interaction pattern.
 
 ## When To Use
 

@@ -2,7 +2,7 @@
 
 StatusMessage provides visible inline feedback for a completed action, validation result, loading result, or small workflow state.
 
-Use it when the user should see feedback in the current page or panel. It can also announce the same result through the shared action announcer when the feedback is caused by a user action.
+Use it when the user should see feedback in the current page or panel. It can also announce the same result through a coordinated action-announcement channel when the feedback is caused by a user action.
 
 ## When To Use
 
@@ -62,7 +62,7 @@ status.update({
 ## Layers
 
 - Composition API: `StatusMessage(options)`
-- Reuses: native visible content, managed composition slots, optional `createActionAnnouncer()`
+- Reuses: native visible content, managed composition slots, and optional `createActionAnnouncer()` delivery through the document-level coordinated channel
 - Does not use `role="status"` on the visible element by default; optional speech is sent through a hidden announcer so repeated identical messages can still be spoken
 
 ## Behavior
@@ -87,7 +87,7 @@ status.update({
 - `hidden` - Whether the message is hidden.
 - `announcement` - `true`, `false`, fixed text, or a function. `true` announces the visible text.
 - `announcementPoliteness` - `"polite"` or `"assertive"`. Defaults to `"polite"`.
-- `announcer` - Optional shared `ActionAnnouncer`. If omitted, the component creates one lazily.
+- `announcer` - Optional shared `ActionAnnouncer`. If omitted, the component creates one lazily; it still coordinates with other framework action and validation feedback in the same document.
 - `iconOptions` - Common DOM options for the icon slot.
 - `contentOptions` - Common DOM options for the content slot.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).

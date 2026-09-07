@@ -50,6 +50,7 @@ Use it for saved settings, invalid choices, retryable errors, or compact success
 - Action results should use `StatusMessage`, toast, or another visible status pattern, not tooltip.
 - Assertive announcements are reserved for urgent updates.
 - Repeated identical announcements must be supported by the live-region engine.
+- Framework action and validation feedback is coordinated at document scope by default. Use the low-level isolated `createAnnouncer()` only when independent delivery is deliberate.
 - Do not route the same wording through several channels at once. A field error should not be both fully announced by a form live region and then immediately repeated by focus on the invalid field.
 - Child controls own their own labels, descriptions, errors, and hints. Parent sections and panels should not make every child focus repeat the parent description.
 

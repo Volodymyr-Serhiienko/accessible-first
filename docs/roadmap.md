@@ -6,7 +6,9 @@ This roadmap is a working plan, not a history log. Finished details belong in co
 
 ## Current Goal
 
-Prepare the framework for the first real application: an accessible foreign-language learning app.
+Strengthen the framework's accessibility and public-runtime foundations while continuing toward the first real application: an accessible foreign-language learning app.
+
+The current cross-cutting audit and its prioritized work packages live in [Framework Audit - September 2026](./framework-audit-2026-09.md). It is the source of truth for stabilization work; this roadmap keeps only the active direction.
 
 The immediate foundation is now two runnable starters:
 

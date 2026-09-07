@@ -26,7 +26,10 @@ function getLiveRegionOptions(
 }
 
 /**
- * Creates an announcer with polite and assertive live regions.
+ * Creates an isolated announcer with polite and assertive live regions.
+ *
+ * Use createDocumentAnnouncementChannel() for ordinary app and component
+ * feedback that should coordinate with other Accessible First emitters.
  */
 export function createAnnouncer(
     options: AnnouncerOptions = {}
@@ -40,6 +43,22 @@ export function createAnnouncer(
     );
 
     let destroyed = false;
+
+    function clear(clearOptions: AnnounceOptions = {}): void {
+        if (destroyed) {
+            return;
+        }
+
+        const politeness = clearOptions.politeness;
+
+        if (politeness === undefined || politeness === "polite") {
+            politeRegion.clear();
+        }
+
+        if (politeness === undefined || politeness === "assertive") {
+            assertiveRegion.clear();
+        }
+    }
 
     return {
         announce(message: string, announceOptions: AnnounceOptions = {}): void {
@@ -55,16 +74,14 @@ export function createAnnouncer(
             region.announce(message);
         },
 
-        clear(): void {
-            politeRegion.clear();
-            assertiveRegion.clear();
-        },
+        clear,
 
         destroy(): void {
             if (destroyed) {
                 return;
             }
 
+            clear();
             destroyed = true;
             politeRegion.destroy();
             assertiveRegion.destroy();

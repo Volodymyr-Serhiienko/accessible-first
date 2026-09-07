@@ -1,7 +1,8 @@
 import { getOwnerDocument } from "../dom";
 import {
-    createAnnouncer,
-    type AnnouncerOptions,
+    createDocumentAnnouncementChannel,
+    type Announcer,
+    type DocumentAnnouncementChannelOptions,
     type LiveRegionPoliteness
 } from "../live-region";
 import type {
@@ -11,20 +12,20 @@ import type {
     ValidationAnnounceOptions
 } from "./types";
 
-function getAnnouncerOptions(
+function getChannelOptions(
     options: ValidationAnnouncerOptions
-): AnnouncerOptions {
-    const announcerOptions: AnnouncerOptions = {};
+): DocumentAnnouncementChannelOptions {
+    const channelOptions: DocumentAnnouncementChannelOptions = {};
 
-    if (options.container) {
-        announcerOptions.container = options.container;
+    if (options.container !== undefined) {
+        channelOptions.document = getOwnerDocument(options.container);
     }
 
     if (options.atomic !== undefined) {
-        announcerOptions.atomic = options.atomic;
+        channelOptions.atomic = options.atomic;
     }
 
-    return announcerOptions;
+    return channelOptions;
 }
 
 function getText(element: HTMLElement | null): string {
@@ -77,17 +78,20 @@ function getAnnouncementControl(
  * Creates a validation announcer for form feedback.
  *
  * It formats field errors, summaries, and success messages, then sends them
- * through a shared or internally created live-region announcer.
+ * through an explicit announcer or the document-level coordinated channel.
  */
 export function createValidationAnnouncer(
     options: ValidationAnnouncerOptions = {}
 ): ValidationAnnouncer {
     const defaultPoliteness: LiveRegionPoliteness =
         options.politeness ?? "assertive";
+
     const includeFieldLabel = options.includeFieldLabel ?? true;
     const ownsAnnouncer = !options.announcer;
-    const announcer =
-        options.announcer ?? createAnnouncer(getAnnouncerOptions(options));
+
+    const announcer: Announcer =
+        options.announcer ??
+        createDocumentAnnouncementChannel(getChannelOptions(options));
 
     let destroyed = false;
 
@@ -116,6 +120,7 @@ export function createValidationAnnouncer(
         errors: readonly ValidationAnnouncement[]
     ): string | null {
         const message = options.summaryMessage?.(errors)?.trim() ?? "";
+
         return message || null;
     }
 
@@ -174,6 +179,7 @@ export function createValidationAnnouncer(
             announceOptions: ValidationAnnounceOptions = {}
         ): void {
             const nextMessage = message ?? options.successMessage ?? "";
+
             announce(nextMessage, {
                 politeness: announceOptions.politeness ?? "polite"
             });

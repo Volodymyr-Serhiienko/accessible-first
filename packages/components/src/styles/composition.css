@@ -136,14 +136,6 @@
     gap: var(--af-space-3);
 }
 
-[data-af-layout="toolbar"] {
-    min-block-size: var(--af-target-size);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--af-space-2);
-}
-
 [data-af-composition="panel"] {
     box-sizing: border-box;
     min-inline-size: 0;

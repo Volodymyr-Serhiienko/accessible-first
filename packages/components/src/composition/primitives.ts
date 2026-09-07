@@ -47,13 +47,6 @@ export interface GroupOptions extends LayoutPrimitiveOptions {
 }
 
 /**
- * Options for Toolbar().
- */
-export interface ToolbarOptions extends LayoutPrimitiveOptions {
-    label: string;
-}
-
-/**
  * Options for Grid().
  */
 export interface GridOptions extends LayoutPrimitiveOptions {
@@ -298,20 +291,6 @@ export function Group(...args: Array<CompositionChild | GroupOptions>): Composed
     }
 
     return createComposedElement("div", options, attributes, children);
-}
-
-/**
- * Creates a labelled toolbar for related controls.
- */
-export function Toolbar(options: ToolbarOptions, ...children: CompositionChild[]): ComposedNode {
-    return createComposedElement("div", options, {
-        "data-af-layout": "toolbar",
-        role: "toolbar",
-        "aria-label": options.label
-    }, [
-        ...(options.children ?? []),
-        ...children
-    ]);
 }
 
 /**

@@ -39,7 +39,9 @@ const tooltip = createTooltip(button, {
 - Shows short visual text on mouse hover and keyboard focus.
 - Can connect the text to the trigger through `aria-describedby`.
 - Keeps tooltip content non-interactive.
-- Supports `Escape` dismissal while the trigger remains hovered or focused.
+- Keeps the visual tooltip open while the pointer moves from the trigger onto it.
+- Supports `Escape` dismissal while the trigger remains hovered or focused, including mouse-hover use without first clicking the trigger.
+- Shifts horizontally inside the viewport and moves below the trigger when there is not enough space above it.
 - Can politely announce the text on mouse hover when needed.
 - Touch and mobile screen reader users should not depend on the visual hover layer.
 - Restores original attributes on `destroy()`.
@@ -69,7 +71,7 @@ Popover is for richer floating content, including paragraphs, actions, or focusa
 
 ## Styling
 
-Useful hooks include `[data-af-composition="tooltip"]`, `[data-af-tooltip]`, `[data-af-tooltip-content]`, and `[data-af-tooltip-dismissed]`.
+Useful hooks include `[data-af-composition="tooltip"]`, `[data-af-tooltip]`, `[data-af-tooltip-visual]`, `[data-af-tooltip-content]`, `[data-af-tooltip-dismissed]`, and `[data-af-tooltip-placement]`.
 
 ```ts
 Tooltip({
@@ -83,7 +85,11 @@ Tooltip({
 
 - Tooltip appears on mouse hover.
 - Tooltip appears on keyboard focus.
-- `Escape` hides the tooltip without moving focus.
+- Pointer can move from the trigger onto the visible tooltip without closing it.
+- `Escape` hides the tooltip without moving focus, including after mouse hover without a click.
+- A tooltip near the top edge moves below its trigger.
+- A tooltip near either horizontal edge remains fully visible.
+- Tooltip remains above following page content when it opens below a trigger.
 - Trigger keeps its accessible name.
 - `aria-describedby` is added only when description is useful.
 - Text is readable in light and dark themes.

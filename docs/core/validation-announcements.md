@@ -52,7 +52,8 @@ Use this helper in components that validate and may also move focus. It keeps fu
 - Uses a custom `summaryMessage` before the built-in detailed fallback, including when there is only one error.
 - Announces success messages politely when a success message is provided.
 - Uses assertive announcements for errors by default.
-- Can use an existing announcer or create its own.
+- Can use an explicitly supplied announcer when a caller owns delivery.
+- Otherwise uses a source-owned channel coordinated with other framework action and validation feedback in the same document.
 - Does not own validation rules.
 - Keeps validation feedback centralized.
 - Allows localized summary and success messages.

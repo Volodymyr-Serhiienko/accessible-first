@@ -143,7 +143,7 @@ Current primitives are intentionally small:
 - `Stack` arranges children vertically.
 - `Grid` creates a responsive flow grid.
 - `Group` groups related content or controls.
-- `Toolbar` creates a labelled toolbar region.
+
 
 Container is useful for header, navigation, main, footer, and app screen interiors that should align to the same readable width.
 
