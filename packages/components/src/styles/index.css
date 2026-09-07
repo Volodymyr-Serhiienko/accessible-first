@@ -39,6 +39,7 @@
 @import "./components/search-box.css";
 @import "./components/select.css";
 @import "./components/settings-group.css";
+@import "./components/status-message.css";
 @import "./components/switch.css";
 @import "./components/table.css";
 @import "./components/tabs.css";

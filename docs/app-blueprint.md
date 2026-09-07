@@ -107,7 +107,8 @@ Use framework primitives before custom wrappers:
 - `Screen` for page-level or route-level content;
 - `Section`, `Panel`, `Stack`, `Row`, `Grid`, and `Container` for layout;
 - `ResultSummary`, `Pagination`, `Table`, `ListDetail`, and form components for data workflows;
-- `ToastViewport`, `Dialog`, and `AlertDialog` for feedback and decisions.
+- `StatusMessage` for inline action feedback;
+- `ToastViewport`, `Dialog`, and `AlertDialog` for global feedback and decisions.
 
 Move route body content into `src/pages/` when inline route declarations become hard to scan.
 
@@ -143,3 +144,4 @@ Promote code when it is repeated, accessibility-related, independent of product 
 The first reference application will be an accessible foreign-language learning app. It should validate lessons, vocabulary, practice, settings, progress, forms, localization, desktop keyboard routes, and mobile screen reader routes.
 
 Bring in the legacy app after the routed and static starters are stable enough to guide the migration.
+

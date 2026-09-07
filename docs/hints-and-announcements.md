@@ -34,6 +34,10 @@ Examples: "Draft saved.", "Dialog opened.", "No matching results.".
 
 Use it for application feedback that should remain available visually. Toast should not steal focus. If the user must act, use Dialog, AlertDialog, inline content, or another visible control in the current workflow instead of relying on a toast action.
 
+`status message` is visible inline feedback near the workflow that produced it.
+
+Use it for saved settings, invalid choices, retryable errors, or compact success/warning/info states that should remain in the page. `StatusMessage` can announce a user-action result through a hidden live region, but the visible element stays ordinary page content to avoid duplicate speech.
+
 ## Baseline Rules
 
 - Important information must not live only in a tooltip.
@@ -43,7 +47,7 @@ Use it for application feedback that should remain available visually. Toast sho
 - Opening components may use `description` for visible context and `announcement` for concise open feedback.
 - For non-modal expandable components, a short visible `description` may be announced on open when no explicit `announcement` is provided.
 - Prefer `announcement` for event wording such as "Panel opened"; keep `description` useful as visible text.
-- Action results should use toast or another visible status pattern, not tooltip.
+- Action results should use `StatusMessage`, toast, or another visible status pattern, not tooltip.
 - Assertive announcements are reserved for urgent updates.
 - Repeated identical announcements must be supported by the live-region engine.
 - Do not route the same wording through several channels at once. A field error should not be both fully announced by a form live region and then immediately repeated by focus on the invalid field.
@@ -78,6 +82,14 @@ When focus moves into a component, the focused thing should decide what is spoke
 - focusing a child control should not normally repeat the parent panel description.
 
 For validation, avoid detailed live-region errors when focus also moves to the first invalid field. In that case, the focused field provides the detailed error context. Use form-level announcements only for deliberate summaries or when focus is not moved.
+
+## Action Feedback Rules
+
+Use `createActionAnnouncer()` when a result should be spoken but does not need visible UI.
+
+Use `StatusMessage` when the result should remain visible near the workflow. Enable `announcement` only for the update caused by the user action, or call `announce()` explicitly. This keeps repeated actions audible without making static page text noisy.
+
+Use `Toast` when the result is global, temporary, and not tied to one visible area. Toast and `StatusMessage` should not announce the same wording for the same event.
 
 ## Component API Direction
 

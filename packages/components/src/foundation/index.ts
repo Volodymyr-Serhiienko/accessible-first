@@ -1,3 +1,10 @@
+export {
+    createActionAnnouncer,
+    type ActionAnnounceOptions,
+    type ActionAnnouncer,
+    type ActionAnnouncementPoliteness,
+    type ActionAnnouncerOptions
+} from "./createActionAnnouncer";
 export { createComponentLifecycle } from "./createComponentLifecycle";
 export {
     createHoverAnnouncement,

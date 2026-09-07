@@ -58,6 +58,7 @@ export * from "./screen";
 export * from "./search-box";
 export * from "./select";
 export * from "./settings-group";
+export * from "./status-message";
 export * from "./switch";
 export * from "./table";
 export * from "./tabs";

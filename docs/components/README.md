@@ -59,6 +59,7 @@ Each component document should contain:
 - [SearchBox](./search-box.md)
 - [Select](./select.md)
 - [SettingsGroup](./settings-group.md)
+- [StatusMessage](./status-message.md)
 - [Switch](./switch.md)
 - [Table](./table.md)
 - [Tabs](./tabs.md)
@@ -96,3 +97,4 @@ Each component document should contain:
 - [RouteResponsiveNavigation](./route-responsive-navigation.md)
 - [RouteSearchBox](./route-search-box.md)
 - [WebAppManifest](./web-app-manifest.md)
+
