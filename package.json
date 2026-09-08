@@ -32,6 +32,10 @@
     "metadata",
     "diagnostics"
   ],
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "npm": ">=10"
+  },
   "directories": {
     "doc": "docs",
     "example": "examples"
@@ -44,7 +48,11 @@
     "example:routed:build": "vite build examples/minimal-routed-public-app --base ./ --outDir dist",
     "example:static:dev": "vite examples/minimal-static-public-site --host 0.0.0.0",
     "example:static:build": "vite build examples/minimal-static-public-site --base ./ --outDir dist",
-    "build": "tsc"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run test && npm run playground:build && npm run example:routed:build && npm run example:static:build"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

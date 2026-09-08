@@ -260,7 +260,9 @@ Done when the policy is documented and linked from the roadmap and AI guide.
 
 ### Work Package 1 - Quality Gate
 
-Add the smallest durable test infrastructure and CI workflow:
+The local foundation is complete: `npm run typecheck`, an eighteen-test Vitest/jsdom contract suite, and `npm run check` covering the playground and both starters. The suite protects announcement ownership, versioned storage, composition trust boundaries, reactive app localization, Tooltip behavior, overlay focus/dismissal, validation announcement policy, and PageOutlet focus/announcement behavior.
+
+The remaining work is to make this gate mandatory in CI and expand it deliberately:
 
 - `typecheck` separate from emission;
 - core and component DOM tests;
@@ -278,15 +280,20 @@ Done when pull requests and Pages deployment cannot bypass the quality gate.
 ### Work Package 2 - Verify The Current Accessibility Contracts
 
 Implementation now covers Tooltip hover/focus behavior, removal of the incomplete
-Toolbar role, and document-scoped announcement ownership. The remaining work is
-to verify those decisions rather than redesign them:
+Toolbar role, and document-scoped announcement ownership. The contract suite
+also covers Tooltip attribute restoration and Escape behavior, plus the native
+semantic, focus, dismissal, and announcement contracts of Dialog, AlertDialog,
+and Popover. Browser checks are still needed for geometry and assistive-
+technology behavior. The remaining work is to verify those decisions rather than
+to redesign them:
 
 1. add SC 1.4.13 browser tests for Tooltip hover, focus, Escape, viewport edges,
    zoom, and touch fallback;
 2. retain native sequential focus for ActionsBar, Row, and Group, and add a
    complete Toolbar only when a roving-focus product case proves the need;
-3. add contract and browser tests for coordinated validation, route, status,
-   toast, and repeated-message announcements;
+3. retain the new contract coverage for coordinated validation policy and
+   PageOutlet focus/announcement behavior, then add browser tests for route,
+   status, toast, and repeated-message announcements;
 4. add browser tests for focus not obscured by sticky chrome, mobile menu close
    behavior, and focus restoration.
 

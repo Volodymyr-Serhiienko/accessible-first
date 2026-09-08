@@ -21,6 +21,7 @@ Use this file when you are an AI coding agent working in this repository.
   - `docs/app-starter.md`
   - `docs/templates.md`
   - `docs/style-system.md`
+  - `docs/testing.md`
   - `docs/components/README.md`
   - `docs/ai-usage.md`
 
@@ -36,6 +37,9 @@ and documented.
 
 ```bash
 npm run build
+npm run typecheck
+npm test
+npm run check
 npm run playground:dev
 npm run playground:build
 npm run example:static:dev
@@ -44,7 +48,7 @@ npm run example:routed:dev
 npm run example:routed:build
 ```
 
-Prefer `npm run build` for type checking. The project uses strict TypeScript,
+Use `npm run typecheck` for a no-output TypeScript gate and `npm run check` before push. The project uses strict TypeScript,
 including `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
 
 ## Architecture Rules
