@@ -115,8 +115,8 @@ textarea[data-af-component="text-field"] {
     inset-block-start: 0.05rem;
     inline-size: 0.38rem;
     block-size: 0.72rem;
-    border-inline-end: 2px solid #16a34a;
-    border-block-end: 2px solid #16a34a;
+    border-inline-end: 2px solid var(--af-color-success);
+    border-block-end: 2px solid var(--af-color-success);
     transform: rotate(45deg);
 }
 

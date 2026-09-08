@@ -81,3 +81,4 @@ AI coding agents should start with [llms.txt](./llms.txt), [AGENTS.md](./AGENTS.
 - [Validation Announcements](./docs/core/validation-announcements.md)
 - [Roadmap](./docs/roadmap.md)
 - [Component Reference](./docs/components/README.md)
+- [Style System](./docs/style-system.md)

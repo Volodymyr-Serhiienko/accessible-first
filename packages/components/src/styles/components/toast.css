@@ -41,15 +41,15 @@
 }
 
 [data-af-toast][data-af-variant="info"] {
-    border-inline-start-color: var(--af-color-focus);
+    border-inline-start-color: var(--af-color-info);
 }
 
 [data-af-toast][data-af-variant="success"] {
-    border-inline-start-color: #15803d;
+    border-inline-start-color: var(--af-color-success);
 }
 
 [data-af-toast][data-af-variant="warning"] {
-    border-inline-start-color: #b45309;
+    border-inline-start-color: var(--af-color-warning);
 }
 
 [data-af-toast][data-af-variant="danger"] {

@@ -19,6 +19,7 @@ documented. Use the source examples in this repository.
 - [Application Starter](docs/app-starter.md): practical starter recipe.
 - [Application Templates](docs/templates.md): template selection guide.
 - [Component Reference](docs/components/README.md): component documentation map.
+- [Style System](docs/style-system.md): global CSS, tokens, overrides, themes, and forced-colors policy.
 - [Architecture](docs/architecture.md): layer model and architecture rules.
 - [Hints and Announcements](docs/hints-and-announcements.md): speech and hint rules.
 - [Localization](docs/localization.md): framework and app localization.

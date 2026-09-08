@@ -1,4 +1,6 @@
 :root {
+    color-scheme: light;
+
     --af-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --af-target-size: 44px;
     --af-focus-ring-width: 2px;
@@ -23,12 +25,31 @@
     --af-color-tooltip-bg: #111827;
     --af-color-tooltip-fg: #ffffff;
     --af-color-tooltip-border: #334155;
+    --af-color-info: #1d4ed8;
+    --af-color-success: #15803d;
+    --af-color-warning: #b45309;
     --af-color-danger: #b91c1c;
     --af-color-danger-fg: #ffffff;
     --af-color-focus: #2563eb;
     --af-color-disabled-bg: #e5e7eb;
     --af-color-disabled-fg: #6b7280;
     --af-color-surface-hover: #f1f5f9;
+
+    --af-color-status-neutral-bg: #f1f5f9;
+    --af-color-status-neutral-fg: #1f2937;
+    --af-color-status-neutral-border: #94a3b8;
+    --af-color-status-info-bg: #dbeafe;
+    --af-color-status-info-fg: #1e3a8a;
+    --af-color-status-info-border: #60a5fa;
+    --af-color-status-success-bg: #dcfce7;
+    --af-color-status-success-fg: #14532d;
+    --af-color-status-success-border: #22c55e;
+    --af-color-status-warning-bg: #fef3c7;
+    --af-color-status-warning-fg: #78350f;
+    --af-color-status-warning-border: #f59e0b;
+    --af-color-status-danger-bg: #fee2e2;
+    --af-color-status-danger-fg: #7f1d1d;
+    --af-color-status-danger-border: #ef4444;
 
     --af-color-link: #0645ad;
     --af-color-link-visited: #5a2a83;
@@ -38,6 +59,8 @@
 }
 
 :root[data-af-theme="dark"] {
+    color-scheme: dark;
+
     --af-color-bg: #111827;
     --af-color-fg: #f9fafb;
     --af-color-muted: #d1d5db;
@@ -47,6 +70,9 @@
     --af-color-tooltip-bg: #1f2937;
     --af-color-tooltip-fg: #f9fafb;
     --af-color-tooltip-border: #4b5563;
+    --af-color-info: #60a5fa;
+    --af-color-success: #22c55e;
+    --af-color-warning: #f59e0b;
     --af-color-danger: #f87171;
     --af-color-danger-fg: #111827;
     --af-color-focus: #93c5fd;
@@ -54,9 +80,70 @@
     --af-color-disabled-fg: #d1d5db;
     --af-color-surface-hover: #1f2937;
 
+    --af-color-status-neutral-bg: #1f2937;
+    --af-color-status-neutral-fg: #f9fafb;
+    --af-color-status-neutral-border: #64748b;
+    --af-color-status-info-bg: #172554;
+    --af-color-status-info-fg: #bfdbfe;
+    --af-color-status-info-border: #3b82f6;
+    --af-color-status-success-bg: #052e16;
+    --af-color-status-success-fg: #bbf7d0;
+    --af-color-status-success-border: #22c55e;
+    --af-color-status-warning-bg: #451a03;
+    --af-color-status-warning-fg: #fde68a;
+    --af-color-status-warning-border: #f59e0b;
+    --af-color-status-danger-bg: #450a0a;
+    --af-color-status-danger-fg: #fecaca;
+    --af-color-status-danger-border: #ef4444;
+
     --af-color-link: #93c5fd;
     --af-color-link-visited: #c4b5fd;
 
     --af-color-backdrop: rgba(0, 0, 0, 0.72);
     --af-shadow-overlay: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+
+@media (forced-colors: active) {
+    :root,
+    :root[data-af-theme="dark"] {
+        --af-color-bg: Canvas;
+        --af-color-fg: CanvasText;
+        --af-color-muted: CanvasText;
+        --af-color-border: CanvasText;
+        --af-color-primary: Highlight;
+        --af-color-primary-fg: HighlightText;
+        --af-color-tooltip-bg: Canvas;
+        --af-color-tooltip-fg: CanvasText;
+        --af-color-tooltip-border: CanvasText;
+        --af-color-info: Highlight;
+        --af-color-success: Highlight;
+        --af-color-warning: Highlight;
+        --af-color-danger: Highlight;
+        --af-color-danger-fg: HighlightText;
+        --af-color-focus: Highlight;
+        --af-color-disabled-bg: ButtonFace;
+        --af-color-disabled-fg: GrayText;
+        --af-color-surface-hover: Canvas;
+
+        --af-color-status-neutral-bg: Canvas;
+        --af-color-status-neutral-fg: CanvasText;
+        --af-color-status-neutral-border: CanvasText;
+        --af-color-status-info-bg: Canvas;
+        --af-color-status-info-fg: CanvasText;
+        --af-color-status-info-border: CanvasText;
+        --af-color-status-success-bg: Canvas;
+        --af-color-status-success-fg: CanvasText;
+        --af-color-status-success-border: CanvasText;
+        --af-color-status-warning-bg: Canvas;
+        --af-color-status-warning-fg: CanvasText;
+        --af-color-status-warning-border: CanvasText;
+        --af-color-status-danger-bg: Canvas;
+        --af-color-status-danger-fg: CanvasText;
+        --af-color-status-danger-border: CanvasText;
+
+        --af-color-link: LinkText;
+        --af-color-link-visited: VisitedText;
+        --af-color-backdrop: Canvas;
+        --af-shadow-overlay: none;
+    }
 }

@@ -1,7 +1,7 @@
 [data-af-composition="status-message"] {
-    --af-status-message-bg: #f8fafc;
-    --af-status-message-fg: #1f2937;
-    --af-status-message-border: #94a3b8;
+    --af-status-message-bg: var(--af-color-status-neutral-bg);
+    --af-status-message-fg: var(--af-color-status-neutral-fg);
+    --af-status-message-border: var(--af-color-status-neutral-border);
 
     box-sizing: border-box;
     inline-size: fit-content;
@@ -22,57 +22,27 @@
 }
 
 [data-af-composition="status-message"][data-af-variant="info"] {
-    --af-status-message-bg: #f0f6ff;
-    --af-status-message-fg: #23466e;
-    --af-status-message-border: #9fb7d7;
+    --af-status-message-bg: var(--af-color-status-info-bg);
+    --af-status-message-fg: var(--af-color-status-info-fg);
+    --af-status-message-border: var(--af-color-status-info-border);
 }
 
 [data-af-composition="status-message"][data-af-variant="success"] {
-    --af-status-message-bg: #eefaf3;
-    --af-status-message-fg: #195c36;
-    --af-status-message-border: #74b891;
+    --af-status-message-bg: var(--af-color-status-success-bg);
+    --af-status-message-fg: var(--af-color-status-success-fg);
+    --af-status-message-border: var(--af-color-status-success-border);
 }
 
 [data-af-composition="status-message"][data-af-variant="warning"] {
-    --af-status-message-bg: #fff8df;
-    --af-status-message-fg: #6b4a00;
-    --af-status-message-border: #d8b75f;
+    --af-status-message-bg: var(--af-color-status-warning-bg);
+    --af-status-message-fg: var(--af-color-status-warning-fg);
+    --af-status-message-border: var(--af-color-status-warning-border);
 }
 
 [data-af-composition="status-message"][data-af-variant="danger"] {
-    --af-status-message-bg: #fff1f1;
-    --af-status-message-fg: #842020;
-    --af-status-message-border: #e3a3a3;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="status-message"] {
-    --af-status-message-bg: #1f2937;
-    --af-status-message-fg: #f9fafb;
-    --af-status-message-border: #64748b;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="status-message"][data-af-variant="info"] {
-    --af-status-message-bg: #162538;
-    --af-status-message-fg: #bfd8ff;
-    --af-status-message-border: #54759f;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="status-message"][data-af-variant="success"] {
-    --af-status-message-bg: #143322;
-    --af-status-message-fg: #a8e6bd;
-    --af-status-message-border: #4c8d67;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="status-message"][data-af-variant="warning"] {
-    --af-status-message-bg: #382706;
-    --af-status-message-fg: #ffe8a3;
-    --af-status-message-border: #9c781d;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="status-message"][data-af-variant="danger"] {
-    --af-status-message-bg: #3b1717;
-    --af-status-message-fg: #ffc3c3;
-    --af-status-message-border: #9d4f4f;
+    --af-status-message-bg: var(--af-color-status-danger-bg);
+    --af-status-message-fg: var(--af-color-status-danger-fg);
+    --af-status-message-border: var(--af-color-status-danger-border);
 }
 
 [data-af-status-message-icon] {

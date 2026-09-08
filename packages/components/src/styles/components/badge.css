@@ -1,7 +1,7 @@
 [data-af-composition="badge"] {
-    --af-badge-bg: #f1f5f9;
-    --af-badge-fg: #1f2937;
-    --af-badge-border: #94a3b8;
+    --af-badge-bg: var(--af-color-status-neutral-bg);
+    --af-badge-fg: var(--af-color-status-neutral-fg);
+    --af-badge-border: var(--af-color-status-neutral-border);
 
     box-sizing: border-box;
     max-inline-size: 100%;
@@ -23,57 +23,27 @@
 }
 
 [data-af-composition="badge"][data-af-variant="info"] {
-    --af-badge-bg: #dbeafe;
-    --af-badge-fg: #1e3a8a;
-    --af-badge-border: #60a5fa;
+    --af-badge-bg: var(--af-color-status-info-bg);
+    --af-badge-fg: var(--af-color-status-info-fg);
+    --af-badge-border: var(--af-color-status-info-border);
 }
 
 [data-af-composition="badge"][data-af-variant="success"] {
-    --af-badge-bg: #dcfce7;
-    --af-badge-fg: #14532d;
-    --af-badge-border: #22c55e;
+    --af-badge-bg: var(--af-color-status-success-bg);
+    --af-badge-fg: var(--af-color-status-success-fg);
+    --af-badge-border: var(--af-color-status-success-border);
 }
 
 [data-af-composition="badge"][data-af-variant="warning"] {
-    --af-badge-bg: #fef3c7;
-    --af-badge-fg: #78350f;
-    --af-badge-border: #f59e0b;
+    --af-badge-bg: var(--af-color-status-warning-bg);
+    --af-badge-fg: var(--af-color-status-warning-fg);
+    --af-badge-border: var(--af-color-status-warning-border);
 }
 
 [data-af-composition="badge"][data-af-variant="danger"] {
-    --af-badge-bg: #fee2e2;
-    --af-badge-fg: #7f1d1d;
-    --af-badge-border: #ef4444;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="badge"] {
-    --af-badge-bg: #1f2937;
-    --af-badge-fg: #f9fafb;
-    --af-badge-border: #64748b;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="info"] {
-    --af-badge-bg: #172554;
-    --af-badge-fg: #bfdbfe;
-    --af-badge-border: #3b82f6;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="success"] {
-    --af-badge-bg: #052e16;
-    --af-badge-fg: #bbf7d0;
-    --af-badge-border: #22c55e;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="warning"] {
-    --af-badge-bg: #451a03;
-    --af-badge-fg: #fde68a;
-    --af-badge-border: #f59e0b;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="badge"][data-af-variant="danger"] {
-    --af-badge-bg: #450a0a;
-    --af-badge-fg: #fecaca;
-    --af-badge-border: #ef4444;
+    --af-badge-bg: var(--af-color-status-danger-bg);
+    --af-badge-fg: var(--af-color-status-danger-fg);
+    --af-badge-border: var(--af-color-status-danger-border);
 }
 
 [data-af-badge-icon] {

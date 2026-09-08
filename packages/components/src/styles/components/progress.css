@@ -1,15 +1,11 @@
 [data-af-composition="progress"] {
-    --af-progress-track: #e5e7eb;
+    --af-progress-track: var(--af-color-disabled-bg);
     --af-progress-fill: var(--af-color-primary);
 
     display: grid;
     gap: var(--af-space-2);
     min-inline-size: 0;
     color: var(--af-color-fg);
-}
-
-:root[data-af-theme="dark"] [data-af-composition="progress"] {
-    --af-progress-track: #374151;
 }
 
 [data-af-progress-header] {
@@ -61,23 +57,15 @@
 }
 
 [data-af-composition="progress"][data-af-variant="success"] {
-    --af-progress-fill: #15803d;
+    --af-progress-fill: var(--af-color-success);
 }
 
 [data-af-composition="progress"][data-af-variant="warning"] {
-    --af-progress-fill: #b45309;
+    --af-progress-fill: var(--af-color-warning);
 }
 
 [data-af-composition="progress"][data-af-variant="danger"] {
     --af-progress-fill: var(--af-color-danger);
-}
-
-:root[data-af-theme="dark"] [data-af-composition="progress"][data-af-variant="success"] {
-    --af-progress-fill: #22c55e;
-}
-
-:root[data-af-theme="dark"] [data-af-composition="progress"][data-af-variant="warning"] {
-    --af-progress-fill: #f59e0b;
 }
 
 [data-af-composition="progress"][data-af-state="indeterminate"] [data-af-progress-control] {

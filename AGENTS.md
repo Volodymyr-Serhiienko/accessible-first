@@ -20,6 +20,7 @@ Use this file when you are an AI coding agent working in this repository.
   - `docs/app-blueprint.md`
   - `docs/app-starter.md`
   - `docs/templates.md`
+  - `docs/style-system.md`
   - `docs/components/README.md`
   - `docs/ai-usage.md`
 

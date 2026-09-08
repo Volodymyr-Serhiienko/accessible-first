@@ -73,6 +73,7 @@ Data attributes are not accessibility replacements. ARIA and native HTML semanti
 ## Default Styles
 
 The public style entry point is `packages/components/src/styles/index.css`.
+See [Style System](../style-system.md) for the global CSS contract, semantic tokens, application overrides, theme behavior, and forced-colors baseline.
 
 Internally, styles are split by concern:
 
