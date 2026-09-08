@@ -110,7 +110,7 @@ feature.
 | P2 | The framework is renderer-independent in intent but browser-DOM-first in execution. Many composition paths eagerly require `document` or `window`; some others guard browser access. | The current wording can lead developers to expect server rendering or hydration support that does not yet exist. | State supported environments precisely: client-rendered browser DOM today. Treat SSR/hydration as a future architecture decision with a compatibility layer, not an implied feature. |
 | P2 | Public API growth is faster than contract verification. The central component barrel exposes many families and rich `update()` APIs, while lifecycle, update idempotency, and destroy restoration have no automated regression suite. | Small changes to a shared primitive can affect a large number of components. | Add contract tests for every component family: create, update, keyboard path, ARIA relation, destroy, remount, and localized update. |
 | P2 | The default styles need an explicit compatibility and token policy. | There is a solid light/dark baseline, but no documented forced-colors/high-contrast policy, typography/density contract, browser support matrix, or automated contrast/reflow verification. | Add semantic tokens for all status states, document global versus opt-in CSS, adopt a browser support policy, and test forced colors, 200/400% zoom, text spacing, reduced motion, and narrow viewports. |
-| P2 | `Html()` accepts raw HTML after a documentation-only trust warning. | It is intentionally an escape hatch, but an ordinary string type makes accidental unsanitized use easy in data-driven apps. | Rename or constrain the escape hatch to make trust explicit, document a sanitizer boundary, and test that normal composition APIs remain text-safe. |
+| P2 | `TrustedHtml()` makes raw markup insertion explicit, but it deliberately accepts a normal string and does not sanitize it. | Explicit naming prevents accidental use less often, but it cannot establish whether dynamic data is safe. | Keep it as the sole marked escape hatch, document the sanitizer boundary, and test that normal composition APIs remain text-safe. |
 | P2 | Diagnostics are valuable developer feedback, not an accessibility or production-health proof. | They can inspect landmark, heading, metadata, localization, manifest, and route structure, but cannot determine focus behavior, color contrast, reading order, speech quality, network health, or security. | Keep diagnostics, clearly describe their scope, add machine-readable reporting, and let real apps register domain-specific reports. |
 | P2 | The MPA/native-link API has documentation but no runnable starter comparable to the hash-routed starter. | The roadmap promises SPA, MPA, and static support; only static and hash SPA are demonstrated end-to-end. | Add a deliberately tiny native-link fixture or integration test before presenting MPA support as equally proven. It does not need to become a third large starter. |
 | P3 | Documentation duplicates component lists and usage rules across README, AGENTS, llms, AI usage, roadmaps, and component pages. | This is currently helpful but will drift as APIs evolve. | Define one machine-readable public API/component manifest and generate or validate inventories and documentation links from it. Keep prose guides curated. |
@@ -235,9 +235,9 @@ uses four questions for every export:
 | Live feedback | `createLiveRegion()`, isolated `createAnnouncer()`, and document-coordinated delivery solve distinct levels of control. | Keep all three, but document `createActionAnnouncer()` as the normal application entry point and document-level channels as advanced infrastructure. |
 | IconButton hints | The API now has one canonical hint model: `hint`, `hintDisplay`, and `hintAnnounceOnHover`. Unused `tooltip`, `announceOnHover`, and `setTooltip()` aliases were removed. | Keep native `title` as a deliberate HTML attribute, separate from Accessible First hint behavior. |
 | Icon labels | `IconLabel()` is a small composition primitive for visible icon-and-caption controls and navigation. It adds no interactive ARIA role or focus behavior. | Demonstrate it in the Navigation playground section after the current API pass; do not turn site navigation into an ARIA `Menu`. |
-| App localization | `createAppLocalization()` already exposes the locale controller methods directly, while its `locale` property repeats the same controller. | Trace external use, then remove the duplicate alias if no integration needs identity access. Keep `format` and `requiredMessageKeys`. |
+| App localization | `createAppLocalization()` now exposes the locale controller directly with `format` and `requiredMessageKeys`; the redundant `.locale` self-alias was removed. | Keep the small bundle focused. Add new properties only when they provide behavior unavailable on the controller itself. |
 | Public templates and route chrome | Hash, link, static, route chrome, and lower-level routing APIs are each useful at different levels, but the root barrel presents them with equal weight. | Do not remove working advanced APIs. Mark normal entry points, advanced recipes, and internal helpers in documentation now; design subpath exports before package publication. |
-| Raw HTML | `Html()` accepts raw markup through an ordinary string API. | Replace with an explicitly named trusted-HTML escape hatch before public package release; do not change normal text-safe composition APIs. |
+| Trusted HTML | `TrustedHtml()` is the explicit escape hatch for already trusted or sanitized markup. | Keep one strongly named API; never imply that it sanitizes dynamic content. |
 
 No API should be removed merely because it is low-level. Removal is appropriate
 when two public paths solve the same job, one has clearer semantics, and project
@@ -275,13 +275,19 @@ responsive navigation, routing, localization refresh, and destroy behavior.
 
 Done when pull requests and Pages deployment cannot bypass the quality gate.
 
-### Work Package 2 - Close The Current Accessibility Gaps
+### Work Package 2 - Verify The Current Accessibility Contracts
 
-1. Correct Tooltip hover/focus behavior and add the SC 1.4.13 tests.
-2. Resolve the Toolbar role contract.
-3. Create a document-scoped announcement ownership design and test it against
-   validation, route, status, and toast scenarios.
-4. Add browser tests for focus not obscured by sticky chrome, mobile menu close
+Implementation now covers Tooltip hover/focus behavior, removal of the incomplete
+Toolbar role, and document-scoped announcement ownership. The remaining work is
+to verify those decisions rather than redesign them:
+
+1. add SC 1.4.13 browser tests for Tooltip hover, focus, Escape, viewport edges,
+   zoom, and touch fallback;
+2. retain native sequential focus for ActionsBar, Row, and Group, and add a
+   complete Toolbar only when a roving-focus product case proves the need;
+3. add contract and browser tests for coordinated validation, route, status,
+   toast, and repeated-message announcements;
+4. add browser tests for focus not obscured by sticky chrome, mobile menu close
    behavior, and focus restoration.
 
 Done when these flows are tested on the selected desktop and mobile matrix.
@@ -340,9 +346,9 @@ high-value sequence is:
 
 1. agree the support and WCAG target policy;
 2. establish the quality gate;
-3. fix and test Tooltip and Toolbar;
-4. define and test announcement ownership;
-5. turn known responsive chrome scenarios into browser fixtures;
+3. test Tooltip, coordinated announcements, and native sequential action layouts;
+4. turn known responsive chrome scenarios into browser fixtures;
+5. complete the public-surface and style-contract audit;
 6. continue the Study Languages read-only learner flow;
 7. promote only patterns that survive the reference app;
 8. prepare package publication only after the tested public surface is stable.

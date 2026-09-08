@@ -1,12 +1,9 @@
-import { Em, Grid, H3, Html, Li, P, Panel,
-    Section, Small, Stack, Strong, Ul,
-    VisuallyHidden, type ComposedNode
-} from "../af";
+import { Em, Grid, H3, Li, P, Panel, Section, Small, Stack, Strong, TrustedHtml, Ul, VisuallyHidden, type ComposedNode } from "../af";
 
 export function MarkupDemo(): ComposedNode {
     return Section({
         id: "markup",
-        title: "Markup helpers and native HTML",
+        title: "Markup helpers and trusted HTML",
         children: [
             Grid(
                 { minColumnWidth: "17rem", gap: "1rem" },
@@ -29,14 +26,14 @@ export function MarkupDemo(): ComposedNode {
                 ),
                 Panel(
                     Stack(
-                        H3("Native HTML fragment"),
-                        Html({
+                        H3("Trusted HTML fragment"),
+                        TrustedHtml({
                             html: `
                                 <div class="native-html-demo">
-                                    <p>Native HTML can still be inserted when the project needs trusted static markup.</p>
+                                    <p>Trusted static markup can be inserted when the project needs a native HTML fragment.</p>
                                     <ul>
                                         <li>Useful for documentation fragments.</li>
-                                        <li>Useful for imported content blocks.</li>
+                                        <li>Useful for already sanitized imported content.</li>
                                     </ul>
                                 </div>
                             `

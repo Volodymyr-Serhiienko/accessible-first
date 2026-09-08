@@ -54,8 +54,6 @@ export interface AppLocalization<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
 > extends LocaleController<TLocale, AppLocalizationMessageKey<TKey>> {
-    /** Shared controller alias for code that prefers explicit property access. */
-    readonly locale: LocaleController<TLocale, AppLocalizationMessageKey<TKey>>;
     /** Intl-backed formatter that follows the current application locale. */
     readonly format: LocaleFormatter<TLocale>;
     /** Required framework and app-owned message keys intended for localization diagnostics. */
@@ -93,7 +91,9 @@ function getAppLocalizationFallbackMessages<
     if (!normalizedFallback) return null;
 
     for (const [locale, localeMessages] of Object.entries(messages)) {
-        if (normalizeAppLocalizationLocale(locale) === normalizedFallback) return localeMessages;
+        if (normalizeAppLocalizationLocale(locale) === normalizedFallback) {
+            return localeMessages;
+        }
     }
 
     return null;
@@ -139,7 +139,9 @@ function getFormatterOptions<
     };
     const timeZone = options.formatterOptions?.timeZone;
 
-    if (timeZone !== undefined) formatterOptions.timeZone = timeZone;
+    if (timeZone !== undefined) {
+        formatterOptions.timeZone = timeZone;
+    }
 
     return formatterOptions;
 }
@@ -159,7 +161,6 @@ export function createAppLocalization<
 
     return {
         ...locale,
-        locale,
         format,
         requiredMessageKeys
     };

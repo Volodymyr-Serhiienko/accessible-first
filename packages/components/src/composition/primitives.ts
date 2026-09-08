@@ -56,9 +56,9 @@ export interface GridOptions extends LayoutPrimitiveOptions {
 }
 
 /**
- * Options for trusted HTML fragments.
+ * Options for already trusted or sanitized HTML fragments.
  */
-export interface HtmlOptions extends BaseCompositionOptions {
+export interface TrustedHtmlOptions extends BaseCompositionOptions {
     html: string;
 }
 
@@ -356,12 +356,12 @@ export function Container(...args: Array<CompositionChild | ContainerOptions>): 
 }
 
 /**
- * Inserts a trusted HTML fragment.
+ * Inserts an already trusted HTML fragment.
  *
- * Html intentionally uses innerHTML. Pass only static markup or content that
- * was already sanitized before reaching Accessible First.
+ * TrustedHtml intentionally uses innerHTML. Pass only static markup or content
+ * that was sanitized before reaching Accessible First.
  */
-export function Html(options: HtmlOptions): ComposedNode {
+export function TrustedHtml(options: TrustedHtmlOptions): ComposedNode {
     const wrapper = createElement("div", getCompositionElementOptions(options, {
         "data-af-composition": "html"
     }));

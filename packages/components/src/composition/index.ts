@@ -11,7 +11,16 @@ export {
     getCompositionElementOptions,
     setElementAttributeValue
 } from "./options";
-export { Container, Group, Panel, Row, Section, Stack, Grid, Html } from "./primitives";
+export {
+    Container,
+    Group,
+    Panel,
+    Row,
+    Section,
+    Stack,
+    Grid,
+    TrustedHtml
+} from "./primitives";
 export { Div, Em, H1, H2, H3, Li, Ol, P, Small, Span, Strong, Ul } from "./tags";
 export { VisuallyHidden } from "./visuallyHidden";
 export { Image } from "./image";
@@ -34,9 +43,9 @@ export type {
     ContainerOptions,
     GridOptions,
     GroupOptions,
-    HtmlOptions,
     LayoutPrimitiveOptions,
-    SectionOptions
+    SectionOptions,
+    TrustedHtmlOptions
 } from "./primitives";
 export type { TagOptions } from "./tags";
 export type {

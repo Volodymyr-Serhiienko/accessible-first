@@ -217,10 +217,10 @@ Use meaningful `alt` text when the image communicates content. Use `decorative: 
 
 ## Trusted HTML
 
-`Html()` inserts trusted native HTML fragments:
+`TrustedHtml()` inserts native HTML fragments that are already trusted or sanitized:
 
 ```ts
-Html({
+TrustedHtml({
     html: "<p>Trusted static markup.</p>"
 });
 ```
