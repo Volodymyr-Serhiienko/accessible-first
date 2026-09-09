@@ -23,12 +23,22 @@ stack.remove(entry);
 
 ---
 
-### defaultOverlayStack
+### Default behavior
 
-A shared overlay stack used by default overlay behavior.
+Dismissable layers automatically use a stack owned by their DOM `Document`.
+Independent documents, including iframes, therefore do not compete for the
+same topmost overlay. Applications normally do not create or configure this
+default stack.
+
+Pass an explicit stack only when several custom layers in the same document
+need application-owned coordination:
 
 ```ts
-import { defaultOverlayStack } from "@accessible-first/core";
+const stack = createOverlayStack();
+
+createDismissableLayer(element, {
+    overlayStack: stack
+});
 ```
 
 ---

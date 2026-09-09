@@ -11,7 +11,7 @@ export function FormSectionDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Profile section in a form"),
-                        P("FormSection gives the area semantic structure, while Form collects validation and moves focus to the first invalid field."),
+                        P("FormSection gives the area semantic structure, while Form moves focus to the first invalid field and announces one short submit result."),
                         Form({
                             announceValidation: false,
                             children: ({ field }) => FormSection({
@@ -48,17 +48,25 @@ export function FormSectionDemo(): ComposedNode {
                                 })
                             ],
                             onValidSubmit() {
-                                announce("Form is submited.", {
-                                    variant: "success",
-                                    politeness: "polite"
+                                announce("Profile saved successfully.", {
+                                    variant: "success"
                                 });
                             },
-                            onInvalidSubmit() {
-                                announce("This field is not valid.", {
-                                    variant: "warning",
-                                    politeness: "polite"
+                            onInvalidSubmit(detail) {
+                                const count = detail.invalidResults.length;
+                                const message = count === 1
+                                    ? "Profile has 1 error. Review the highlighted field."
+                                    : `Profile has ${count} errors. Review the highlighted fields.`;
+
+                                announce(message, {
+                                    variant: "warning"
                                 });
-                            } 
+                            },
+                            onReset() {
+                                announce("Profile form cleared.", {
+                                    variant: "info"
+                                });
+                            }
                         })
                     )
                 ),
@@ -74,9 +82,24 @@ export function FormSectionDemo(): ComposedNode {
                                     label: "Channels",
                                     description: "Choose any channels that should be available for important updates.",
                                     children: [
-                                        Checkbox({ label: "Email" }),
-                                        Checkbox({ label: "SMS" }),
-                                        Checkbox({ label: "In-app notifications" })
+                                        Checkbox({
+                                            label: "Email",
+                                            onCheckedChange(detail) {
+                                                announce(`Email notifications ${detail.checked ? "selected" : "cleared"}.`);
+                                            }
+                                        }),
+                                        Checkbox({
+                                            label: "SMS",
+                                            onCheckedChange(detail) {
+                                                announce(`SMS notifications ${detail.checked ? "selected" : "cleared"}.`);
+                                            }
+                                        }),
+                                        Checkbox({
+                                            label: "In-app notifications",
+                                            onCheckedChange(detail) {
+                                                announce(`In-app notifications ${detail.checked ? "selected" : "cleared"}.`);
+                                            }
+                                        })
                                     ]
                                 })
                             ],

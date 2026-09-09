@@ -1,5 +1,7 @@
 [data-af-component="button"] {
+    box-sizing: border-box;
     min-inline-size: var(--af-target-size);
+    max-inline-size: 100%;
     min-block-size: var(--af-target-size);
     display: inline-flex;
     align-items: center;
@@ -11,11 +13,23 @@
     font-family: var(--af-font-family);
     font: inherit;
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.15;
+    text-align: center;
     text-decoration: none;
+    white-space: normal;
+    overflow-wrap: break-word;
     cursor: pointer;
     user-select: none;
     touch-action: manipulation;
+}
+
+[data-af-component="button"]:has(
+    > [data-af-composition="icon-label"][data-af-icon-label-position="top"]
+),
+[data-af-component="button"]:has(
+    > [data-af-composition="icon-label"][data-af-icon-label-position="bottom"]
+) {
+    padding-block: var(--af-space-2);
 }
 
 [data-af-component="button"]:focus-visible {

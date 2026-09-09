@@ -14,12 +14,12 @@ import {
 } from "../composition";
 
 /**
- * Content accepted by Badge slots.
+ * Content accepted by Badge text and icon slots.
  */
 export type BadgeCompositionContent = CompositionContent;
 
 /**
- * Visual color variant for Badge.
+ * Visual tone of Badge.
  */
 export type BadgeVariant = "neutral" | "info" | "success" | "warning" | "danger";
 
@@ -29,7 +29,7 @@ export type BadgeVariant = "neutral" | "info" | "success" | "warning" | "danger"
 export type BadgeSize = "md";
 
 /**
- * Position of the optional badge icon.
+ * Position of an optional Badge icon.
  */
 export type BadgeIconPosition = "start" | "end";
 
@@ -37,7 +37,7 @@ export type BadgeIconPosition = "start" | "end";
  * Options for Badge().
  */
 export interface BadgeOptions extends BaseCompositionOptions {
-    text?: string;
+    text?: string | null;
     children?: CompositionChild[];
     icon?: BadgeCompositionContent | null;
     iconPosition?: BadgeIconPosition;
@@ -65,34 +65,37 @@ export interface ComposedBadge extends ComposedNode<HTMLSpanElement> {
     setText(text: string): void;
     setContent(content: BadgeCompositionContent | null): void;
     setIcon(content: BadgeCompositionContent | null): void;
-    setAccessibleLabel(label: string | null): void;
     update(options: BadgeUpdateOptions): void;
     destroy(): void;
 }
 
 type BadgeSlotContent = Exclude<BadgeCompositionContent, undefined> | null;
 
-function normalizeSlotContent(content: BadgeCompositionContent | null): BadgeSlotContent {
+function normalizeSlotContent(
+    content: BadgeCompositionContent | null | undefined
+): BadgeSlotContent {
     return content === undefined ? null : content;
 }
 
 function getInitialContent(options: BadgeOptions): CompositionChild[] {
     if (options.children !== undefined) return options.children;
-    if (options.text !== undefined) return [options.text];
+    if (options.text !== undefined && options.text !== null) return [options.text];
 
     return [];
 }
 
-function getTrimmedLabel(label: string | null): string | null {
-    const value = label?.trim() ?? "";
+function normalizeAccessibleLabel(value: string | null | undefined): string | null {
+    const text = value?.trim() ?? "";
 
-    return value ? value : null;
+    return text || null;
 }
 
 /**
  * Creates a compact static label for status, category, count, or metadata.
  */
 export function Badge(options: BadgeOptions = {}): ComposedBadge {
+    const initialChildren = getInitialContent(options);
+
     const element = createElement("span", getCompositionElementOptions(options, {
         "data-af-composition": "badge"
     }));
@@ -113,15 +116,15 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
         }
     });
 
+    let iconContent: BadgeSlotContent = normalizeSlotContent(options.icon);
+    let hasIcon = hasCompositionContent(iconContent);
     let variant: BadgeVariant = options.variant ?? "neutral";
     let size: BadgeSize = options.size ?? "md";
     let iconPosition: BadgeIconPosition = options.iconPosition ?? "start";
-    let iconContent: BadgeSlotContent = normalizeSlotContent(options.icon);
-    let accessibleLabel = getTrimmedLabel(options.accessibleLabel ?? null);
-    let hasIcon = hasCompositionContent(iconContent);
+    let accessibleLabel = normalizeAccessibleLabel(options.accessibleLabel);
 
     const iconSlot = createContentSlot(icon, toCompositionChildren(iconContent));
-    const contentSlot = createContentSlot(content, getInitialContent(options));
+    const contentSlot = createContentSlot(content, initialChildren);
 
     element.append(icon, content, accessibleLabelElement);
 
@@ -142,7 +145,7 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
         if (accessibleLabel) {
             accessibleLabelElement.textContent = accessibleLabel;
             accessibleLabelElement.hidden = false;
-            setElementAttributeValue(content, "aria-hidden", true);
+            setElementAttributeValue(content, "aria-hidden", "true");
         } else {
             accessibleLabelElement.textContent = "";
             accessibleLabelElement.hidden = true;
@@ -167,11 +170,6 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
         sync();
     }
 
-    function setAccessibleLabel(label: string | null): void {
-        accessibleLabel = getTrimmedLabel(label);
-        sync();
-    }
-
     sync();
 
     return {
@@ -187,7 +185,6 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
         setText,
         setContent,
         setIcon,
-        setAccessibleLabel,
 
         update(nextOptions): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -200,17 +197,25 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
                 applyCompositionElementOptions(content, nextOptions.contentOptions);
             }
 
-            if (nextOptions.children !== undefined) {
-                setContent(nextOptions.children);
-            } else if (nextOptions.text !== undefined) {
-                setText(nextOptions.text);
-            }
-
-            if ("icon" in nextOptions) setIcon(nextOptions.icon ?? null);
-            if ("accessibleLabel" in nextOptions) setAccessibleLabel(nextOptions.accessibleLabel ?? null);
-            if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
+            if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
+
+            if ("accessibleLabel" in nextOptions) {
+                accessibleLabel = normalizeAccessibleLabel(nextOptions.accessibleLabel);
+            }
+
+            if ("icon" in nextOptions) {
+                iconContent = normalizeSlotContent(nextOptions.icon);
+                hasIcon = hasCompositionContent(iconContent);
+                iconSlot.set(toCompositionChildren(iconContent));
+            }
+
+            if (nextOptions.children !== undefined) {
+                contentSlot.set(nextOptions.children);
+            } else if ("text" in nextOptions) {
+                contentSlot.set(nextOptions.text === null ? [] : [nextOptions.text]);
+            }
 
             sync();
         },

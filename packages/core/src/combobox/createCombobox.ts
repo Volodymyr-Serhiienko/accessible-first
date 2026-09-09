@@ -10,7 +10,8 @@ import {
 } from "../collection";
 import {
     createAttributeSnapshot,
-    getOwnerDocument
+    getOwnerDocument,
+    getOwnerWindow
 } from "../dom";
 import { addEventListener, type Cleanup } from "../events";
 import { dismissVirtualKeyboard } from "../focus";
@@ -88,6 +89,7 @@ export function createCombobox(
     options: ComboboxOptions
 ): Combobox {
     const attributes = createAttributeSnapshot();
+    const ownerWindow = getOwnerWindow(input);
 
     const originalValue = input.value;
     const originalDisabled = input.disabled;
@@ -431,7 +433,7 @@ export function createCombobox(
             return;
         }
 
-        window.requestAnimationFrame(() => {
+        ownerWindow.requestAnimationFrame(() => {
             if (pointerDownInsideListbox) {
                 return;
             }
@@ -505,7 +507,7 @@ export function createCombobox(
             event.preventDefault();
         }
 
-        window.setTimeout(() => {
+        ownerWindow.setTimeout(() => {
             pointerDownInsideListbox = false;
         }, 0);
     }

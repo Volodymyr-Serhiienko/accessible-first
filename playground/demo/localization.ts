@@ -201,7 +201,7 @@ const ukMessages = {
     "dialog.closeText": "Закрити",
     "dialog.fallbackLabel": "Діалог",
     "headerTools.closeText": "Закрити панель",
-    "headerTools.description": "Пошук, команди, мова, тема та інші елементи керування заголовка.",
+    "headerTools.description": "Додаткові елементи керування застосунком.",
     "headerTools.hint": "Інструменти заголовка",
     "headerTools.title": "Інструменти заголовка",
     "headerTools.trigger": "Інструменти заголовка",
@@ -274,7 +274,7 @@ const ruMessages = {
     "dialog.closeText": "Закрыть",
     "dialog.fallbackLabel": "Диалог",
     "headerTools.closeText": "Закрыть панель",
-    "headerTools.description": "Поиск, команды, язык, тема и другие элементы управления заголовка.",
+    "headerTools.description": "Дополнительные элементы управления приложением.",
     "headerTools.hint": "Инструменты заголовка",
     "headerTools.title": "Инструменты заголовка",
     "headerTools.trigger": "Инструменты заголовка",
@@ -348,7 +348,6 @@ export const playgroundLocalization = createAppLocalization<PlaygroundLocale, Pl
 export const playgroundLocale: PlaygroundLocaleController = playgroundLocalization;
 
 export const playgroundFormat = playgroundLocalization.format;
-
 
 export function t(key: PlaygroundMessageKey, params?: LocaleMessageParams): string {
     return playgroundLocalization.t(key, params);

@@ -16,13 +16,18 @@ and recorded results. The recommended evaluation structure follows
 
 ## Evidence Collected
 
-- The full source type check passes with `tsc --noEmit`.
+- The full quality gate passes: `npm run typecheck`, twenty-two focused Vitest
+  contract files with forty-nine tests, and all three Vite production builds
+  for Playground and both runnable starters.
 - Local Markdown links within `docs/` resolve successfully.
-- The repository has no tracked unit, DOM, end-to-end, visual-regression, or
-  accessibility test files.
-- The only GitHub workflow builds and deploys the playground. It does not run
-  a separate type check, tests, accessibility checks, example builds, or
-  documentation validation.
+- The tracked suite covers composition ownership, localization, storage,
+  document live regions, validation announcements, tooltip behavior, overlay
+  contracts, page outlets, form validation, core combobox behavior, responsive
+  navigation, and composed Menu/Tabs behavior.
+- The GitHub Pages workflow runs `npm ci`, an audit gate, and `npm run check`
+  for pull requests and `main` pushes before deployment.
+- Browser end-to-end, visual-regression, automated accessibility, and
+  assistive-technology tests are not yet tracked.
 - The packages are intentionally source-first and private. Their manifest
   entry points already describe future package output, but the root TypeScript
   build emits to a different directory shape.
@@ -46,9 +51,10 @@ component feedback. Action and validation helpers, hover announcements,
 tooltips, disclosure and popover open messages, PageOutlet fallback route
 speech, ThemeToggle, Toast, and Combobox empty-result feedback share one
 polite/assertive live-region pair per document. Dialog and AlertDialog are
-intentionally focus-driven and do not create live-region messages. No test
-infrastructure has been added yet, so this completed implementation still needs
-the quality-gate coverage described below.
+intentionally focus-driven and do not create live-region messages. Focused DOM
+contracts now protect the shared channel and validation strategy; browser and
+cross-screen-reader verification remain deliberate quality work rather than an
+implicit conformance claim.
 
 ## What Is Already Strong
 
@@ -100,12 +106,12 @@ feature.
 
 | Priority | Finding | Why it matters | Recommended direction |
 | --- | --- | --- | --- |
-| P0 | There is no automated test suite or quality gate. | Focus, keyboard, live-region, routing, lifecycle, locale-refresh, and responsive regressions can return silently. The deployment workflow currently proves only that Vite built the playground. | Establish a small but real test pyramid and make it mandatory in CI before expanding the public API. |
+| P1 | GitHub Actions runs the full quality gate for pull requests and `main` pushes, but branch protection is a repository setting outside this source tree. | Focus, keyboard, live-region, routing, lifecycle, locale-refresh, and responsive regressions are now checked before deployment; merges can still bypass the check until GitHub requires its status. | Keep the workflow, require its `build` status through branch protection, and add browser coverage for high-risk journeys. |
 | P0 before publishing | Package manifests are publication-shaped while the build is repository-shaped. `packages/*/package.json` points to `dist/index.*`, while the root compiler emits under root `dist/packages/*/src`. Packages are also coupled through relative `core/src` imports. | A future `npm publish` could ship broken entry points or the wrong source layout. | Keep source-first status explicit now. Design package-local builds, `exports`, style entry points, package dependencies, and release verification before any publication attempt. |
 | P1 | Tooltip interaction contract is resolved in implementation, but unverified by automated browser tests. | Custom tooltip content triggered by hover is covered by WCAG 2.2 SC 1.4.13. It must be dismissible, hoverable, and persistent unless an exception applies. See [W3C guidance](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus). | Protect focus, Escape, trigger-to-tooltip hover transition, viewport edges, zoom, and touch fallback with browser tests before making an AA baseline claim. |
 | P1 | The incomplete `Toolbar` primitive was removed from the public API. | An ARIA widget role must not promise a keyboard model the component does not implement. Native sequential Tab behavior remains correct for ActionsBar, Row, and Group. | Keep Toolbar out of the public API until a complete roving-focus widget contract and browser tests are justified by real application use. |
 | P1 | Accessibility is designed thoughtfully but not verified as a product-level contract. | WCAG compliance cannot be inferred from ARIA attributes, manual notes, or diagnostics alone. Speech output also differs between NVDA, JAWS, VoiceOver, and TalkBack. | Set WCAG 2.2 AA as the initial target. Maintain an explicit browser/AT matrix and test representative flows with real users where possible. Do not market unverified conformance. |
-| P1 | Document-scoped announcement ownership is implemented, but lacks automated and cross-screen-reader verification. | Shared ownership now prevents framework emitters from constructing competing live regions, while visible StatusMessage and dialogs retain their distinct semantic roles. Speech output still varies across AT/browser combinations. | Add contract and browser tests for priority, repeat messages, cleanup, focus-driven dialogs, Toast, validation, routes, and interaction between concurrent feedback sources. |
+| P1 | Document-scoped announcement ownership has focused DOM coverage but lacks browser and cross-screen-reader verification. | Shared ownership now prevents framework emitters from constructing competing live regions; StatusMessage and Toast also protect their visible and spoken feedback boundaries. Speech output still varies across AT/browser combinations. | Keep focused contracts for priority, repeats, cleanup, StatusMessage, Toast, validation, and routes; add browser and assistive-technology journeys for their interaction. |
 | P2 | `packages/components` contains composition, UI controls, page layout, routing, public templates, localization, metadata, PWA, and diagnostics in one public package. | It is convenient during source-first development but makes package ownership, tree-shaking, release versioning, and stable APIs harder as the project grows. | Do not split immediately. First publish an internal dependency map and define stable public families: core, DOM composition/UI, app runtime, public recipes, and styles. Use that map to guide a later package split or subpath export design. |
 | P2 | The framework is renderer-independent in intent but browser-DOM-first in execution. Many composition paths eagerly require `document` or `window`; some others guard browser access. | The current wording can lead developers to expect server rendering or hydration support that does not yet exist. | State supported environments precisely: client-rendered browser DOM today. Treat SSR/hydration as a future architecture decision with a compatibility layer, not an implied feature. |
 | P2 | Public API growth is faster than contract verification. The central component barrel exposes many families and rich `update()` APIs, while lifecycle, update idempotency, and destroy restoration have no automated regression suite. | Small changes to a shared primitive can affect a large number of components. | Add contract tests for every component family: create, update, keyboard path, ARIA relation, destroy, remount, and localized update. |
@@ -234,7 +240,7 @@ uses four questions for every export:
 | --- | --- | --- |
 | Live feedback | `createLiveRegion()`, isolated `createAnnouncer()`, and document-coordinated delivery solve distinct levels of control. | Keep all three, but document `createActionAnnouncer()` as the normal application entry point and document-level channels as advanced infrastructure. |
 | IconButton hints | The API now has one canonical hint model: `hint`, `hintDisplay`, and `hintAnnounceOnHover`. Unused `tooltip`, `announceOnHover`, and `setTooltip()` aliases were removed. | Keep native `title` as a deliberate HTML attribute, separate from Accessible First hint behavior. |
-| Icon labels | `IconLabel()` is a small composition primitive for visible icon-and-caption controls and navigation. It adds no interactive ARIA role or focus behavior. | Demonstrate it in the Navigation playground section after the current API pass; do not turn site navigation into an ARIA `Menu`. |
+| Icon labels | `IconLabel()` is a small composition primitive for visible icon-and-caption controls and navigation. It adds no interactive ARIA role or focus behavior. | Demonstrate it with a real Button or Link in the Playground composition section; do not turn site navigation into an ARIA `Menu`. |
 | App localization | `createAppLocalization()` now exposes the locale controller directly with `format` and `requiredMessageKeys`; the redundant `.locale` self-alias was removed. | Keep the small bundle focused. Add new properties only when they provide behavior unavailable on the controller itself. |
 | Public templates and route chrome | Hash, link, static, route chrome, and lower-level routing APIs are each useful at different levels, but the root barrel presents them with equal weight. | Do not remove working advanced APIs. Mark normal entry points, advanced recipes, and internal helpers in documentation now; design subpath exports before package publication. |
 | Trusted HTML | `TrustedHtml()` is the explicit escape hatch for already trusted or sanitized markup. | Keep one strongly named API; never imply that it sanitizes dynamic content. |
@@ -260,15 +266,15 @@ Done when the policy is documented and linked from the roadmap and AI guide.
 
 ### Work Package 1 - Quality Gate
 
-The local foundation is complete: `npm run typecheck`, an eighteen-test Vitest/jsdom contract suite, and `npm run check` covering the playground and both starters. The suite protects announcement ownership, versioned storage, composition trust boundaries, reactive app localization, Tooltip behavior, overlay focus/dismissal, validation announcement policy, and PageOutlet focus/announcement behavior.
+The local foundation is complete: `npm run typecheck`, a forty-nine-test Vitest/jsdom contract suite, and `npm run check` covering the playground and both starters. The suite protects announcement ownership, versioned storage, composition trust boundaries, reactive app localization, Tooltip behavior, document-owned overlay dismissal, Combobox keyboard and owner-window behavior, responsive-navigation focus restoration, Menu and Tabs semantics, validation announcement policy including reset completion timing, StatusMessage and Toast feedback, ThemeToggle synchronization and announcement behavior, PageOutlet focus/announcement behavior, the description/announcement contracts of Disclosure, Accordion, and composed Popover, native semantic contracts for result summaries, information blocks, badges, progress indicators, tables, and description lists, native field contracts for TextField, Select, Checkbox, Switch, and RadioGroup, the distinct description policies of FieldGroup, FormSection, and SettingsGroup, link-versus-button navigation contracts for Breadcrumbs, Navigation, and Pagination, and semantic-neutral layout plus Screen structure and focus fallback. The GitHub Pages workflow runs this same gate after a clean Node 24 install for every pull request and `main` push.
 
-The remaining work is to make this gate mandatory in CI and expand it deliberately:
+The remaining work is to make the successful CI status required for merge and expand coverage deliberately:
 
-- `typecheck` separate from emission;
-- core and component DOM tests;
+- require the workflow `build` check with GitHub branch protection;
+- keep typecheck separate from emission;
+- expand core and component DOM tests;
 - browser smoke tests for the playground and both starters;
 - accessibility scans and visual regression fixtures for high-risk controls;
-- build checks for playground and both starters;
 - Markdown/API/package validation.
 
 Start with high-risk primitives, not an attempt to test every option at once:
@@ -300,6 +306,8 @@ to redesign them:
 Done when these flows are tested on the selected desktop and mobile matrix.
 
 ### Work Package 3 - Stable Public Surface
+
+The execution order, criteria, and family-by-family decision log live in [Public API Audit - September 2026](./public-api-audit-2026-09.md).
 
 - catalogue all exports by layer and stability;
 - identify provisional APIs, especially rich recipe and `update()` APIs;

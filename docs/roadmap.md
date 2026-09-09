@@ -8,7 +8,9 @@ This roadmap is a working plan, not a history log. Finished details belong in co
 
 Strengthen the framework's accessibility and public-runtime foundations while continuing toward the first real application: an accessible foreign-language learning app.
 
-The current cross-cutting audit and its prioritized work packages live in [Framework Audit - September 2026](./framework-audit-2026-09.md). It is the source of truth for stabilization work; this roadmap keeps only the active direction.
+The current cross-cutting audit and its prioritized work packages live in [Framework Audit - September 2026](./framework-audit-2026-09.md). The current public-surface review is tracked separately in [Public API Audit - September 2026](./public-api-audit-2026-09.md). Together they are the source of truth for stabilization work; this roadmap keeps only the active direction.
+
+The active documentation pass for Playground examples and local styles is [Playground And CSS Audit - September 2026](./playground-css-audit-2026-09.md).
 
 The immediate foundation is now two runnable starters:
 

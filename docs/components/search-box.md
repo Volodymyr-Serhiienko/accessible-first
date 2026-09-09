@@ -107,6 +107,10 @@ SearchBox owns a responsive width by default. Prefer `width` for normal componen
 - `--af-search-box-preferred-width` - internal responsive fallback width, defaulting to a `clamp(...)` between the min and max values.
 - `--af-search-box-width` - preferred width set by the `width` option.
 
+`SearchBox` is composed directly from its underlying `Combobox`, not from a
+second wrapper element. Its internal combobox width follows the resolved
+SearchBox width automatically, including in a constrained header or tools panel.
+
 ## Locale-Aware Search
 
 The default filter uses `normalizeLocaleSearchText()` and `matchesLocaleSearchText()` from the localization layer. This keeps simple in-memory search useful across languages without adding a heavy search engine.

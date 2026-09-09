@@ -26,7 +26,7 @@ HeaderBar({
 - Renders one control set and moves it between inline placement and the overflow panel.
 - Switches to menu placement when controls would overflow the header or wrap below the brand row.
 - Probes inline placement again when the header becomes wider.
-- Opens the overflow panel as a popover with dialog semantics, title, description, announcement, collision handling, and explicit close button.
+- Opens the overflow panel as a popover with dialog semantics, title, description, announcement, collision handling, and explicit close button.\n- Uses a generic localized description by default, so the panel remains accurate when the configured controls change.
 - Restores focus to the trigger when the close button is used.
 - Closes when focus leaves the panel, when the anchor disappears, or when the popover dismiss behavior closes it.
 - Subscribes to locale changes when the locale provider supports `subscribe()`.

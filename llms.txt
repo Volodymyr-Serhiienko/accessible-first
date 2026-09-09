@@ -19,6 +19,7 @@ documented. Use the source examples in this repository.
 - [Application Starter](docs/app-starter.md): practical starter recipe.
 - [Application Templates](docs/templates.md): template selection guide.
 - [Component Reference](docs/components/README.md): component documentation map.
+- [Core API Reference](docs/core/README.md): low-level behavior module map.
 - [Style System](docs/style-system.md): global CSS, tokens, overrides, themes, and forced-colors policy.
 - [Testing And Toolchain](docs/testing.md): supported maintainer runtime, quality gate, contract suite, and manual-test boundary.
 - [Architecture](docs/architecture.md): layer model and architecture rules.

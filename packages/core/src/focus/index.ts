@@ -18,4 +18,3 @@ export { focusProgrammatically } from "./focusProgrammatically";
 export { getFocusableElements } from "./getFocusableElements";
 export { hasFocusableElements } from "./hasFocusableElements";
 export { isFocusable } from "./isFocusable";
-export { restoreFocus } from "./restoreFocus";

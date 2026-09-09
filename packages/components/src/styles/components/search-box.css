@@ -1,4 +1,5 @@
 [data-af-search-box] {
+    --af-combobox-width: 100%;
     --af-search-box-min-width: 10rem;
     --af-search-box-max-width: 24rem;
     --af-search-box-preferred-width: clamp(

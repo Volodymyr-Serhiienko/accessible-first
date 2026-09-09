@@ -12,12 +12,14 @@ import {
 
 type TestField = FormValidatableField & {
     readonly control: HTMLInputElement;
+    readonly clearValidationSpy: ReturnType<typeof vi.fn>;
 };
 
 function createInvalidField(): TestField {
     const element = document.createElement("div");
     const label = document.createElement("label");
     const control = document.createElement("input");
+    const clearValidationSpy = vi.fn();
 
     control.id = "lesson-name";
     label.htmlFor = control.id;
@@ -28,6 +30,8 @@ function createInvalidField(): TestField {
     return {
         element,
         control,
+        clearValidation: clearValidationSpy,
+        clearValidationSpy,
 
         validate() {
             return {
@@ -94,5 +98,41 @@ describe("Form validation announcements", () => {
 
         expect(document.querySelectorAll("[data-af-live-region]"))
             .toHaveLength(0);
+    });
+
+    it("calls onReset after native reset, validation cleanup, and focus restoration", () => {
+        vi.useFakeTimers();
+
+        const field = createInvalidField();
+        const onReset = vi.fn();
+        const form = Form({
+            fields: [field],
+            onReset,
+            scrollFirstInvalid: false
+        });
+
+        document.body.append(form.element);
+        form.body.append(field.element);
+
+        field.control.defaultValue = "Original value";
+        field.control.value = "Draft value";
+
+        form.reset();
+
+        expect(onReset).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(20);
+
+        expect(field.control.value).toBe("Original value");
+        expect(field.clearValidationSpy).toHaveBeenCalledOnce();
+        expect(document.activeElement).toBe(field.control);
+        expect(onReset).toHaveBeenCalledWith(
+            expect.objectContaining({
+                event: expect.objectContaining({ type: "reset" })
+            }),
+            form
+        );
+
+        form.destroy();
     });
 });

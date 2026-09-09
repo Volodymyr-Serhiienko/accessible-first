@@ -83,6 +83,7 @@ Each component document should contain:
 - [HashRoutedApp](./hash-routed-app.md)
 - [HashRouter](./hash-router.md)
 - [LinkRoutedApp](./link-routed-app.md)
+- [Page](./page.md)
 - [PageLayout](./page-layout.md)
 - [PageOutlet](./page-outlet.md)
 - [PublicAppTemplate](./public-app-template.md)

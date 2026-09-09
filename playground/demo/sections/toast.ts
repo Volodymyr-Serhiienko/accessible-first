@@ -1,5 +1,5 @@
 import { Button, Grid, H3, P, Panel, Row, Section, Stack, type ComposedNode, type Toast } from "../af";
-import { notifications } from "../status";
+import { announce, notifications } from "../status";
 
 export function ToastDemo(): ComposedNode {
     let persistentToast: Toast | null = null;
@@ -75,7 +75,15 @@ export function ToastDemo(): ComposedNode {
         text: "Clear all",
         variant: "secondary",
         onPress() {
+            if (notifications.getToasts().length === 0) {
+                return;
+            }
+
             notifications.closeAll();
+
+            announce("All notifications cleared.", {
+                variant: "success"
+            });
         }
     });
 

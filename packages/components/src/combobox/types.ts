@@ -11,7 +11,6 @@ import type {
     ComboboxOptions as CoreComboboxOptions,
     ComboboxSide as CoreComboboxSide,
     ComboboxStrategy as CoreComboboxStrategy,
-    ComboboxUpdateOptions as CoreComboboxUpdateOptions,
     ComboboxValueChangeDetail as CoreComboboxValueChangeDetail,
     ComboboxValueChangeReason
 } from "../../../core/src/combobox";
@@ -132,6 +131,5 @@ export type {
     ComboboxActiveOptionChangeReason,
     ComboboxOpenChangeReason,
     ComboboxOption,
-    ComboboxValueChangeReason,
-    CoreComboboxUpdateOptions
+    ComboboxValueChangeReason
 };

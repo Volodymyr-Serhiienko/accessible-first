@@ -87,6 +87,7 @@ Form({
 - Validates registered fields on submit by default.
 - Prevents default submit by default.
 - Moves focus to the first invalid field by default.
+- Runs native reset effects before calling an optional reset callback.
 - Uses `announceValidation: "auto"` by default, so invalid submit does not duplicate the focused field speech.
 - Announces a custom validation summary when `validationSummaryMessage` is provided, or detailed validation feedback when focus is not moved.
 - Uses `ActionsBar` for form-level actions.
@@ -119,6 +120,7 @@ Form({
 - `onSubmit` - Called after submit handling.
 - `onValidSubmit` - Called when submit validation passes.
 - `onInvalidSubmit` - Called when submit validation fails.
+- `onReset` - Called after native reset effects, validation cleanup, and optional focus restoration finish. Use it for an application-owned localized reset result.
 - `actionsOptions` - Common DOM options for the actions slot.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
@@ -131,6 +133,11 @@ Registered fields are validated with `announce: false`, so invalid submit does n
 Use `validationSummaryMessage` when an application needs a short localized submit result such as "Check the highlighted fields." In `"auto"` mode that short summary may be announced before focus moves, while detailed errors still belong to the fields themselves.
 
 Use `announceValidation: true` only when the workflow deliberately needs aggregate speech even though focus may move. Use `announceValidation: false` when a page-level `StatusMessage`, toast, or custom announcer owns the submit result.
+
+`Form` does not invent reset copy. Use `onReset` when the application should
+announce a concise localized outcome such as "Profile form cleared." The
+callback runs after validation cleanup and optional first-field focus
+restoration, so it describes completed state rather than a pending reset.
 
 ## Field Contract
 
@@ -172,5 +179,5 @@ Useful hooks include `[data-af-composition="form"]`, `[data-af-form-body]`, `[da
 - Focus moves to the first invalid field.
 - Field error messages remain visible and connected to controls.
 - Valid submit calls the valid callback.
-- Reset behavior remains native unless customized by application code.
+- Reset clears validation state, restores focus according to `focusFirstOnReset`, and invokes `onReset` once after those effects finish.
 - Layout remains readable on small screens.

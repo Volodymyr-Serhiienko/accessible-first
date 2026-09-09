@@ -7,10 +7,10 @@ import type {
     DismissableLayerEvent,
     DismissableLayerOptions
 } from "./types";
+import type { OverlayStackEntry } from "../overlay-stack";
 import {
-    defaultOverlayStack,
-    type OverlayStackEntry
-} from "../overlay-stack";
+    getDocumentOverlayStack
+} from "../overlay-stack/getDocumentOverlayStack";
 
 function resolveBranch(branch: DismissableLayerBranch): HTMLElement | null {
     return typeof branch === "function" ? branch() : branch ?? null;
@@ -66,7 +66,7 @@ export function createDismissableLayer(
     const ownerDocument = getOwnerDocument(element);
 
     const useOverlayStack = options.useOverlayStack ?? true;
-    const overlayStack = options.overlayStack ?? defaultOverlayStack;
+    const overlayStack = options.overlayStack ?? getDocumentOverlayStack(ownerDocument);
 
     const dismissOnEscape = options.dismissOnEscape ?? true;
     const dismissOnPointerDownOutside =

@@ -73,7 +73,7 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "dialog.closeText": "Close",
     "dialog.fallbackLabel": "Dialog",
     "headerTools.closeText": "Close panel",
-    "headerTools.description": "Search, commands, language, theme, and other header controls.",
+    "headerTools.description": "Additional application controls.",
     "headerTools.hint": "Header tools",
     "headerTools.title": "Header tools",
     "headerTools.trigger": "Header tools",

@@ -23,6 +23,7 @@ Use this file when you are an AI coding agent working in this repository.
   - `docs/style-system.md`
   - `docs/testing.md`
   - `docs/components/README.md`
+  - `docs/core/README.md`
   - `docs/ai-usage.md`
 
 ## Current Publication Status

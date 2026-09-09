@@ -26,7 +26,9 @@ export function TextFieldDemo(): ComposedNode {
                             },
                             onValidationChange(detail) {
                                 if (detail.state === "valid") {
-                                    announce("Email looks valid.", { variant: "success" });
+                                    announce("Email looks valid.", {
+                                        variant: "success"
+                                    });
                                 }
                             }
                         })
@@ -35,33 +37,25 @@ export function TextFieldDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Search input"),
-                        P("Native input types keep mobile keyboards and browser behavior useful."),
+                        P("Native input types keep mobile keyboards and browser behavior useful. Search results should be announced only when the application has a meaningful completed result."),
                         TextField({
                             label: "Search documentation",
                             type: "search",
                             placeholder: "Search components",
-                            inputMode: "search",
-                            onValueInput(detail) {
-                                if (detail.value.length >= 3) {
-                                    announce(`Searching for ${detail.value}.`);
-                                }
-                            }
+                            inputMode: "search"
                         })
                     )
                 ),
                 Panel(
                     Stack(
                         H3("Multiline input"),
-                        P("Use multiline for longer free-form text."),
+                        P("Use multiline for longer free-form text. Completed changes can update application state without announcing every typed character."),
                         TextField({
                             label: "Feedback",
                             multiline: true,
                             rows: 4,
                             description: "Share any accessibility issues you noticed.",
-                            maxLength: 400,
-                            onValueChange(detail) {
-                                announce(`Feedback length ${detail.value.length} characters.`);
-                            }
+                            maxLength: 400
                         })
                     )
                 )

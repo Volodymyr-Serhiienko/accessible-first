@@ -106,6 +106,21 @@ export interface FormCompositionSubmitDetail extends FormCompositionValidationDe
 }
 
 /**
+ * Reset detail passed after native form reset effects finish.
+ */
+export interface FormCompositionResetDetail {
+    event: Event;
+}
+
+/**
+ * Called after native reset, validation cleanup, and optional focus restoration.
+ */
+export type FormCompositionOnReset = (
+    detail: FormCompositionResetDetail,
+    form: ComposedForm
+) => void;
+
+/**
  * Builds a localized validation summary announcement for invalid form submits.
  */
 export type FormCompositionValidationSummaryMessage = (
@@ -192,6 +207,7 @@ export interface FormCompositionOptions extends BaseCompositionOptions {
     onSubmit?: FormCompositionOnSubmit | null;
     onValidSubmit?: FormCompositionOnSubmit | null;
     onInvalidSubmit?: FormCompositionOnSubmit | null;
+    onReset?: FormCompositionOnReset | null;
 }
 
 /**
@@ -338,10 +354,12 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     let onSubmit = options.onSubmit ?? null;
     let onValidSubmit = options.onValidSubmit ?? null;
     let onInvalidSubmit = options.onInvalidSubmit ?? null;
+    let onReset = options.onReset ?? null;
     let validationAnnouncer: ValidationAnnouncer | null = null;
     const cleanups: Cleanup[] = [];
     let pendingResetFrame: number | null = null;
     let resetEventHandled = false;
+    let lastResetEvent: Event | null = null;
 
     function getAnnouncer(): ValidationAnnouncer {
         validationAnnouncer ??= createValidationAnnouncer({
@@ -507,12 +525,20 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     function runResetEffects(): void {
         pendingResetFrame = null;
 
+        const event = lastResetEvent;
+
+        lastResetEvent = null;
+
         if (clearValidationOnReset) {
             clearValidation();
         }
 
         if (focusFirstOnReset) {
             focusFirstField();
+        }
+
+        if (event) {
+            onReset?.({ event }, composed);
         }
     }
 
@@ -648,8 +674,9 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         onInvalidSubmit?.(detail, composed);
     }
 
-    function handleReset(): void {
+    function handleReset(event: Event): void {
         resetEventHandled = true;
+        lastResetEvent = event;
         scheduleResetEffects();
     }
 
@@ -743,6 +770,9 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
             if ("onSubmit" in nextOptions) onSubmit = nextOptions.onSubmit ?? null;
             if ("onValidSubmit" in nextOptions) onValidSubmit = nextOptions.onValidSubmit ?? null;
             if ("onInvalidSubmit" in nextOptions) onInvalidSubmit = nextOptions.onInvalidSubmit ?? null;
+            if ("onReset" in nextOptions) {
+                onReset = nextOptions.onReset ?? null;
+            }
 
             sync();
         },

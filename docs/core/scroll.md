@@ -4,7 +4,7 @@
 
 The Scroll module provides small utilities for working with scroll containers.
 
-It is used by higher-level behavior such as roving focus, menus, listboxes, comboboxes, and tree views.
+It is used by higher-level behavior such as roving focus, menus, listboxes, comboboxes, and route outlets.
 
 ## Public API
 
@@ -44,6 +44,11 @@ resetInitialScrollPosition({
 ```
 
 It returns a controller when pending animation-frame resets need to be canceled.
+
+`manualRestoration` defaults to `true` and sets `history.scrollRestoration` to
+`"manual"`. This is intentional for a client-routed application that must start
+at the top, but it changes browser history behavior for the app lifetime. Pass
+`manualRestoration: false` when native history restoration should remain in control.
 
 ```ts
 const reset = resetInitialScrollPosition();

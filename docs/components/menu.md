@@ -97,6 +97,17 @@ Item options:
 - `hoverAnnouncement` - Custom hover announcement text for one item.
 - `onSelect` - Called when this item is activated.
 
+## Speech And Hover Announcements
+
+`Menu` keeps `announceOnHover` enabled by default. It provides a polite label
+announcement when a mouse pointer enters an item, helping screen reader and
+pointer combinations that do not reliably speak menu items on hover.
+
+Set `announceOnHover: false` on `Menu()` to disable pointer-hover speech for
+every item. Set it on one item to opt that item out, or provide
+`hoverAnnouncement` for localized item-specific text. This setting affects
+pointer hover only; keyboard selection keeps its normal menu semantics.
+
 ## Update Notes
 
 `orientation`, `loop`, `typeahead`, `typeaheadTimeout`, `closeOnSelect`, and `defaultValue` are creation-time options.
