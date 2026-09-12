@@ -70,8 +70,8 @@ export interface RouteChromeBreadcrumbsOptions<
         RouteBreadcrumbsOptions<AppRouteDescriptor>,
         "routes" | "current" | "trailOptions" | "breadcrumbItemsOptions"
     > {
-    /** Optional route list used only for breadcrumbs, useful for adding synthetic routes. */
-    routes?: readonly AppRouteDescriptor[];
+    /** Optional route list used only for breadcrumbs. Defaults to the route chrome route list. */
+    routes?: readonly TRoute[];
     /** Current route override for breadcrumbs. Defaults to the route chrome current route. */
     current?: RouteBreadcrumbsCurrent<TRoute>;
     /** Optional synthetic root route used as the parent for routes without parentId. */
@@ -177,12 +177,19 @@ function getBreadcrumbCurrent<TRoute extends AppRouteDescriptor>(
     return current;
 }
 
+function getBreadcrumbSourceRoutes<TRoute extends AppRouteDescriptor>(
+    routes: readonly TRoute[],
+    options: RouteChromeBreadcrumbsOptions<TRoute> | undefined
+): readonly TRoute[] {
+    return options?.routes ?? routes;
+}
+
 function getBreadcrumbRoutes<TRoute extends AppRouteDescriptor>(
     routes: readonly TRoute[],
     options: RouteChromeBreadcrumbsOptions<TRoute> | undefined
 ): AppRouteDescriptor[] {
     const root = options?.root ?? null;
-    const breadcrumbRoutes = [...(options?.routes ?? routes)];
+    const breadcrumbRoutes = [...getBreadcrumbSourceRoutes(routes, options)];
 
     if (!root || breadcrumbRoutes.some((route) => route.id === root.id)) return breadcrumbRoutes;
 
@@ -377,6 +384,7 @@ export function createRouteChrome<
             breadcrumbItemsOptions: _breadcrumbItemsOptions,
             ...breadcrumbOptions
         } = options.breadcrumbs ?? {};
+        const breadcrumbSourceRoutes = getBreadcrumbSourceRoutes(routes, options.breadcrumbs);
         const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
             ...breadcrumbOptions,
             routes: getBreadcrumbRoutes(routes, options.breadcrumbs),
@@ -385,7 +393,7 @@ export function createRouteChrome<
         const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
         const breadcrumbItemsOptions = getRouteChromeBreadcrumbItemsOptions(routeText, options.breadcrumbs);
         const routeBreadcrumbItemsOptions = createRouteChromeBreadcrumbItemsOptions(
-            routes,
+            breadcrumbSourceRoutes,
             breadcrumbItemsOptions
         );
 

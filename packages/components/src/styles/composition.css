@@ -92,8 +92,22 @@
 
 [data-af-composition="section"] > :is(h2, h3, h4, h5, h6) {
     margin: 0;
-    font-size: 1.125rem;
     line-height: 1.25;
+}
+
+[data-af-composition="section"] > h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+[data-af-composition="section"] > h3 {
+    font-size: 1.125rem;
+    font-weight: 650;
+}
+
+[data-af-composition="section"] > :is(h4, h5, h6) {
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 [data-af-composition="section"] > :where(p, ul, ol) {
