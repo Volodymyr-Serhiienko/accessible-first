@@ -8,6 +8,11 @@ import type { ComposedPageOutlet, PageOutletAnnouncement, PageOutletFocusTarget 
 export interface HashRouterRoute {
     id: string;
     title: string;
+    /**
+     * Optional focus target used after this route renders.
+     * Navigation options still take precedence for one-off overrides.
+     */
+    focusTarget?: Exclude<PageOutletFocusTarget, null>;
     render(): CompositionContent;
 }
 
@@ -281,7 +286,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
             scroll: navigateOptions.scroll ?? true,
             focusTarget: "focusTarget" in navigateOptions
                 ? navigateOptions.focusTarget ?? null
-                : "first-heading",
+                : route.focusTarget ?? "first-heading",
             announcement: "announcement" in navigateOptions
                 ? navigateOptions.announcement ?? false
                 : options.getAnnouncement?.(route, previousRoute) ?? true

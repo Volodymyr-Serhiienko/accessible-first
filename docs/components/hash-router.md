@@ -91,6 +91,12 @@ Each route needs:
 - `title` - Human-readable route title.
 - `render` - Function that returns composition content for the route.
 
+Routes can optionally set `focusTarget` to one of the normal `PageOutlet` focus
+targets such as `"first-heading"`, `"first-focusable"`, `"outlet"`, an element, or a
+resolver. The route default applies after a normal navigation; an explicit
+`router.navigate(..., { focusTarget })` still wins for that one operation. Use a route
+default only when the same first destination is reliably best for that complete screen.
+
 Routes may include extra application-specific fields such as `label`, `keywords`, `category`, or permissions. The router preserves the route object type.
 
 ## Document Metadata
@@ -179,6 +185,7 @@ The helper calls `router.setNavigation(...)`, synchronizes the initial route, an
 - Breadcrumbs update after route changes.
 - Search result activation uses the same focus and scroll behavior as navigation activation.
 - Re-activating the current navigation item focuses the active screen.
+- A route-specific `focusTarget` takes effect unless the activating control supplies an override.
 - Browser back and forward restore the previous screen.
 - Header, navigation, footer, and theme controls stay stable unless the app intentionally refreshes shell chrome.
 - Locale refresh can re-render the current route without pushing history or moving focus unexpectedly.

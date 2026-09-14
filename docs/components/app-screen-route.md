@@ -68,6 +68,7 @@ A starter route often needs both metadata and content:
 
 AppScreenRoute accepts all `AppRouteDescriptor` fields, plus these route screen slots:
 
+- `focusTarget` - optional PageOutlet focus target used after opening this route. A direct navigation option still overrides it.
 - `children` - Accessible First components, native nodes, text, or a resolver receiving the created route. Rendered into the Screen body.
 - `actions` - optional controls passed to the Screen's internal ActionsBar.
 - `footer` - optional Screen footer content.
@@ -94,6 +95,10 @@ createAppScreenRoute({
 By default, the helper wraps route content in `Screen`, so the route title and description follow the same focus and screen reader behavior as manual screens. The generated route title is an `h1` unless `screen.headingLevel` overrides it.
 
 Keep route `title` and `description` meaningful. They can feed visible Screen text, navigation, search, command palette, metadata, diagnostics, and route-loaded announcements through `routeText`.
+
+Use `focusTarget: "first-focusable"` only when the screen deliberately begins with a
+single, clearly labelled command. Most routes should retain the default first-heading
+focus, which gives screen-reader users a stable orientation point.
 
 Use `screen: false` only when another component already owns the page-level landmark/heading structure.
 

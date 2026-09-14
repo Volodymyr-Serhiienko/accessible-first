@@ -1,5 +1,6 @@
 import type { CompositionContent } from "../composition";
 import type { HashRouterRoute } from "../routing";
+import type { PageOutletFocusTarget } from "../page-outlet";
 import {
     Screen,
     type ScreenOptions
@@ -41,6 +42,11 @@ export type AppScreenRoute<
 export type AppScreenRouteOptions<
     TExtension extends object = object
 > = AppRouteDescriptor & TExtension & {
+    /**
+     * Optional PageOutlet focus target applied when this route opens.
+     * Per-navigation focusTarget options still override this default.
+     */
+    focusTarget?: Exclude<PageOutletFocusTarget, null>;
     /** Accessible First components or native nodes rendered into the Screen body. */
     children?: AppScreenRouteSlot<AppScreenRoute<TExtension>> | null;
     /** Optional Screen action controls, passed to the internal ActionsBar. */
