@@ -135,4 +135,34 @@ describe("Page composition contracts", () => {
 
         screen.destroy();
     });
+
+    it("keeps composition spacing declarative without adding semantics", () => {
+        const section = Section({
+            title: "Review",
+            gap: "1.25rem"
+        });
+        const panel = Panel({ gap: "0.875rem" }, "Panel content.");
+        const row = Row({ gap: "0.5rem" }, "Previous", "Next");
+        const stack = Stack({ gap: "1rem" }, "Title", "Description");
+        const group = Group({
+            label: "Review controls",
+            gap: "0.75rem"
+        }, "Control content.");
+
+        expect(section.element.style.getPropertyValue("--af-section-gap"))
+            .toBe("1.25rem");
+        expect(panel.element.style.getPropertyValue("--af-panel-gap"))
+            .toBe("0.875rem");
+        expect(row.element.style.getPropertyValue("--af-row-gap"))
+            .toBe("0.5rem");
+        expect(stack.element.style.getPropertyValue("--af-stack-gap"))
+            .toBe("1rem");
+        expect(group.element.style.getPropertyValue("--af-group-gap"))
+            .toBe("0.75rem");
+
+        expect(panel.element.getAttribute("role")).toBeNull();
+        expect(row.element.getAttribute("role")).toBeNull();
+        expect(stack.element.getAttribute("role")).toBeNull();
+        expect(group.element.getAttribute("role")).toBe("group");
+    });
 });

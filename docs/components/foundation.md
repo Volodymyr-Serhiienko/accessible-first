@@ -25,6 +25,22 @@ Composed components and layout helpers support common DOM options:
 - `className` adds a CSS class.
 - `attributes` adds native attributes, including `aria-*`, `data-*`, and `style`.
 
+`Section`, `Panel`, `Stack`, `Row`, and `Group` also accept `gap` for an explicit
+local layout interval. Their defaults are deliberately usable without it: `Section`
+uses `0.75rem` to separate a heading from ordinary content, `Panel` uses `0.75rem`
+between direct children, and `Stack` uses `1rem` between larger content blocks.
+
+```ts
+Section({
+    title: "Review",
+    gap: "1rem",
+    children: [summary, ActionsBar({ primary: submit })]
+});
+```
+
+Use `gap` when a particular composition needs a different rhythm. Do not add
+component-specific margins merely to compensate for a missing parent layout.
+
 Prefer `className` for reusable styles:
 
 ```ts

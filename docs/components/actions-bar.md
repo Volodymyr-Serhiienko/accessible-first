@@ -40,6 +40,20 @@ ActionsBar({
 });
 ```
 
+Compact actions that fill each row after wrapping:
+
+```ts
+ActionsBar({
+    align: "start",
+    fillOnWrap: true,
+    primary: [
+        Button({ text: "Listen" }),
+        Button({ text: "Pause" }),
+        Button({ text: "Stop" })
+    ]
+});
+```
+
 Separated primary and secondary actions:
 
 ```ts
@@ -71,6 +85,8 @@ ActionsBar({
 - Keeps secondary and primary actions in separate slots.
 - Supports start, end, between, and stretch alignment.
 - Wraps actions on small screens.
+- With `fillOnWrap`, keeps compact intrinsic button widths until wrapping is
+  necessary, then shares each wrapped row's available width between its actions.
 - Can be reused internally by components such as `Dialog` and `AlertDialog` for consistent action layout.
 - Does not add keyboard behavior because native controls own their interactions.
 - Does not use live regions or forced announcements; actions speak through their own button or link labels.
@@ -84,6 +100,8 @@ ActionsBar({
 - `secondary` - Secondary action or actions.
 - `children` - Convenience content when separate slots are not needed.
 - `align` - `"start"`, `"end"`, `"between"`, or `"stretch"`. Defaults to `"end"`.
+- `fillOnWrap` - When `true`, wrapped action rows fill their available width while
+  an unwrapped row keeps its natural width. Defaults to `false`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
 - `primaryOptions` - Common DOM options for the primary slot.
@@ -106,7 +124,7 @@ actions.update({
 
 ## Styling
 
-Useful hooks include `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, `[data-af-actions-bar-primary]`, `[data-af-align]`, `[data-af-variant]`, and `[data-af-size]`.
+Useful hooks include `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, `[data-af-actions-bar-primary]`, `[data-af-align]`, `[data-af-fill-on-wrap]`, `[data-af-variant]`, and `[data-af-size]`.
 
 ```ts
 ActionsBar({
@@ -122,5 +140,7 @@ ActionsBar({
 - Group label is useful when the actions need extra context.
 - `label` and `labelledBy` are not both needed; visible headings should usually use `labelledBy`.
 - Actions wrap cleanly on small screens.
+- With `fillOnWrap`, a single wrapped action occupies the full row and multiple
+  actions share its available width.
 - Touch targets remain comfortable on mobile.
 - Text contrast is readable in light and dark themes.

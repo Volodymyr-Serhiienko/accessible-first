@@ -30,6 +30,13 @@ or a business-specific dense table. Do not copy framework defaults into an app
 stylesheet. When a visual rule repeats across the playground, templates, or two
 real applications, evaluate it for promotion into the library.
 
+The baseline treats vertical spacing as a property of the parent composition rather
+than an accident of browser margins. `Section` separates a heading and its ordinary
+content with `0.75rem`; `Panel` has the same direct-child rhythm; `Stack` separates
+larger blocks with `1rem`. Use the `gap` option on these primitives when a specific
+screen needs a denser or looser layout, instead of adding ad hoc margins to buttons,
+tables, or headings.
+
 ## Tokens
 
 All framework colors are theme tokens. Applications may override them on

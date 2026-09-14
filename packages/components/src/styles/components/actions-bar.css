@@ -45,6 +45,18 @@
     flex: 1 1 min(100%, 7rem);
 }
 
+[data-af-composition="actions-bar"][data-af-fill-on-wrap="true"] [data-af-actions-bar-secondary],
+[data-af-composition="actions-bar"][data-af-fill-on-wrap="true"] [data-af-actions-bar-primary] {
+    display: flex;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+}
+
+[data-af-composition="actions-bar"][data-af-fill-on-wrap="true"] [data-af-actions-bar-secondary] > *,
+[data-af-composition="actions-bar"][data-af-fill-on-wrap="true"] [data-af-actions-bar-primary] > * {
+    flex: 1 1 auto;
+}
+
 [data-af-actions-bar-secondary][hidden],
 [data-af-actions-bar-primary][hidden] {
     display: none !important;

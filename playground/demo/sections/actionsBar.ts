@@ -80,6 +80,22 @@ export function ActionsBarDemo(): ComposedNode {
                             ]
                         })
                     )
+                ),
+                Panel(
+                    Stack(
+                        H3("Fill after wrapping"),
+                        P("Keep actions compact on a wide row, then let each wrapped row use the available width."),
+                        ActionsBar({
+                            label: "Speech actions",
+                            align: "start",
+                            fillOnWrap: true,
+                            primary: [
+                                Button({ text: "Listen" }),
+                                Button({ text: "Pause" }),
+                                Button({ text: "Stop" })
+                            ]
+                        })
+                    )
                 )
             )
         ]

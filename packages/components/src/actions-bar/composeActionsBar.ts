@@ -46,6 +46,11 @@ export interface ActionsBarOptions extends BaseCompositionOptions {
     secondary?: ActionsBarCompositionContent | null;
     children?: ActionsBarCompositionContent;
     align?: ActionsBarAlign;
+    /**
+     * Lets wrapped action rows fill the available inline space while keeping
+     * naturally sized actions when the whole group fits on one line.
+     */
+    fillOnWrap?: boolean;
     variant?: ActionsBarVariant;
     size?: ActionsBarSize;
     primaryOptions?: BaseCompositionOptions;
@@ -96,6 +101,7 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     let label = options.label ?? null;
     let labelledBy = options.labelledBy ?? null;
     let align: ActionsBarAlign = options.align ?? "end";
+    let fillOnWrap = options.fillOnWrap ?? false;
     let variant: ActionsBarVariant = options.variant ?? "default";
     let size: ActionsBarSize = options.size ?? "md";
     let hasPrimary = hasCompositionContent(getPrimaryContent(options));
@@ -109,6 +115,11 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     function sync(): void {
         element.setAttribute("data-af-composition", "actions-bar");
         element.setAttribute("data-af-align", align);
+        if (fillOnWrap) {
+            element.setAttribute("data-af-fill-on-wrap", "true");
+        } else {
+            element.removeAttribute("data-af-fill-on-wrap");
+        }
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
 
@@ -194,6 +205,9 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
             if ("secondary" in nextOptions) setSecondary(nextOptions.secondary ?? null);
 
             if (nextOptions.align !== undefined) align = nextOptions.align;
+            if ("fillOnWrap" in nextOptions) {
+                fillOnWrap = nextOptions.fillOnWrap ?? false;
+            }
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.size !== undefined) size = nextOptions.size;
 

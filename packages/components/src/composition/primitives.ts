@@ -13,6 +13,7 @@ import type {
  */
 export interface LayoutPrimitiveOptions extends BaseCompositionOptions {
     children?: CompositionChild[];
+    gap?: string;
 }
 
 /**
@@ -23,7 +24,8 @@ export type ContainerAlign = "start" | "center" | "end";
 /**
  * Options for Container().
  */
-export interface ContainerOptions extends LayoutPrimitiveOptions {
+export interface ContainerOptions extends BaseCompositionOptions {
+    children?: CompositionChild[];
     maxWidth?: string;
     gutter?: string;
     align?: ContainerAlign;
@@ -37,6 +39,7 @@ export interface SectionOptions extends BaseCompositionOptions {
     titleId?: string;
     headingLevel?: 2 | 3 | 4 | 5 | 6;
     children?: CompositionChild[];
+    gap?: string;
 }
 
 /**
@@ -52,7 +55,6 @@ export interface GroupOptions extends LayoutPrimitiveOptions {
 export interface GridOptions extends LayoutPrimitiveOptions {
     columns?: number | string;
     minColumnWidth?: string;
-    gap?: string;
 }
 
 /**
@@ -91,6 +93,7 @@ function hasLayoutOption(value: Record<string, unknown>): boolean {
         || "className" in value
         || "attributes" in value
         || "children" in value
+        || "gap" in value
     );
 }
 
@@ -183,6 +186,18 @@ function createComposedElement<KTagName extends keyof HTMLElementTagNameMap>(
     return { element };
 }
 
+function applyGap(
+    node: ComposedNode,
+    property: string,
+    gap: string | undefined
+): ComposedNode {
+    if (gap !== undefined) {
+        node.element.style.setProperty(property, gap);
+    }
+
+    return node;
+}
+
 function getSectionLabelledBy(options: SectionOptions, titleId: string): string {
     const value = options.attributes?.["aria-labelledby"];
 
@@ -230,6 +245,10 @@ export function Section(options: SectionOptions): ComposedNode {
 
     append(section, heading, ...(options.children ?? []));
 
+    if (options.gap !== undefined) {
+        section.style.setProperty("--af-section-gap", options.gap);
+    }
+
     return { element: section };
 }
 
@@ -241,9 +260,9 @@ export function Panel(options: LayoutPrimitiveOptions, ...children: CompositionC
 export function Panel(...args: Array<CompositionChild | LayoutPrimitiveOptions>): ComposedNode {
     const { options, children } = resolveLayoutArgs(args);
 
-    return createComposedElement("div", options, {
+    return applyGap(createComposedElement("div", options, {
         "data-af-composition": "panel"
-    }, children);
+    }, children), "--af-panel-gap", options.gap);
 }
 
 /**
@@ -254,9 +273,9 @@ export function Row(options: LayoutPrimitiveOptions, ...children: CompositionChi
 export function Row(...args: Array<CompositionChild | LayoutPrimitiveOptions>): ComposedNode {
     const { options, children } = resolveLayoutArgs(args);
 
-    return createComposedElement("div", options, {
+    return applyGap(createComposedElement("div", options, {
         "data-af-layout": "row"
-    }, children);
+    }, children), "--af-row-gap", options.gap);
 }
 
 /**
@@ -267,9 +286,9 @@ export function Stack(options: LayoutPrimitiveOptions, ...children: CompositionC
 export function Stack(...args: Array<CompositionChild | LayoutPrimitiveOptions>): ComposedNode {
     const { options, children } = resolveLayoutArgs(args);
 
-    return createComposedElement("div", options, {
+    return applyGap(createComposedElement("div", options, {
         "data-af-layout": "stack"
-    }, children);
+    }, children), "--af-stack-gap", options.gap);
 }
 
 /**
@@ -290,7 +309,11 @@ export function Group(...args: Array<CompositionChild | GroupOptions>): Composed
         attributes["aria-label"] = options.label;
     }
 
-    return createComposedElement("div", options, attributes, children);
+    return applyGap(
+        createComposedElement("div", options, attributes, children),
+        "--af-group-gap",
+        options.gap
+    );
 }
 
 /**
