@@ -111,6 +111,39 @@ const store = createVersionedStorage({
 
 Use `getBrowserStorage("local")` or `getBrowserStorage("session")` when an app needs explicit browser storage selection. If storage is unavailable, reads can still return the configured default value and writes fail quietly through the result API.
 
+## Scoped Application Storage
+
+Use `createScopedStorage()` when one application owns several independent
+versioned records but should keep them under one physical browser-storage key.
+The scope stores raw strings, while each record still owns its own JSON
+envelope, validation, and version migrations.
+
+```ts
+const appStorage = createScopedStorage({
+    key: "my-app.state",
+    legacyKeys: {
+        locale: "my-app.locale",
+        preferences: "my-app.preferences"
+    }
+});
+
+const preferences = createVersionedStorage<Preferences>({
+    key: "preferences",
+    version: 1,
+    storage: appStorage,
+    validate: isPreferences
+});
+```
+
+Configured `legacyKeys` are copied into the new scope and removed only after
+the scoped record is written. `createScopedStorage()` returns `null` when the
+browser backend is unavailable, so it can be passed directly to
+`createVersionedStorage()` or `createAppLocalization()`.
+
+The scope itself intentionally has no application version. Use record-level
+versions only where a record's schema changes. Do not put secrets, credentials,
+or authoritative server data in browser storage.
+
 ## Result API
 
 Use `readResult()` when diagnostics or application flows need to know what happened:

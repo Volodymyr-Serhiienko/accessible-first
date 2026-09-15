@@ -51,7 +51,7 @@ npm run example:routed:build
 ## Main Source Areas
 
 - `packages/core/src`: DOM, ARIA, focus, keyboard, live-region, overlay,
-  selection, typeahead, validation, and platform behavior utilities.
+  selection, typeahead, validation, speech, storage, and platform behavior utilities.
 - `packages/components/src`: composition helpers, components, app shell,
   routing, public app templates, localization, metadata, manifest, diagnostics,
   and styles.
@@ -71,7 +71,7 @@ Layout and content: Screen, Section, Stack, Row, Grid, Container, HeaderBar,
 ActionsBar, EmptyState, InfoCard, Badge, Image, Icon, IconLabel, DescriptionList.
 
 Data and flows: Table, Pagination, Progress, ResultSummary, ListDetail,
-SettingsGroup, Form, FieldGroup, FormSection.
+SettingsGroup, Form, FieldGroup, FormSection, SpeechControls, SpeechButton.
 
 App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,
 HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
@@ -96,6 +96,9 @@ RobotsTxt, AppRouteSitemap, AppDiagnostics.
   in ordinary application code.
 - Use resolver functions for localized shell, header, footer, content, metadata,
   and route text so locale changes can refresh without a full page reload.
+- Use `createBrowserSpeechEngine()` only behind a visible user action. Supply
+  all speech-control labels and status text from application localization; do
+  not expect the framework to insert English UI copy.
 - Enable diagnostics in starters and public apps.
 - Use static templates for route-free sites and routed templates for SPA-like
   apps.

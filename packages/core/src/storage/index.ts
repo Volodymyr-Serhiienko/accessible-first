@@ -1,12 +1,17 @@
-/** Minimal sync key-value storage accepted by Accessible First storage helpers. */
-export interface StorageLike {
-    getItem(key: string): string | null;
-    setItem(key: string, value: string): void;
-    removeItem(key: string): void;
-}
+import { getBrowserStorage } from "./browser";
+import type { StorageLike } from "./types";
 
-/** Browser storage backend kind. */
-export type BrowserStorageKind = "local" | "session";
+export { getBrowserStorage, type BrowserStorageKind } from "./browser";
+export {
+    createScopedStorage,
+    type ScopedStorage,
+    type ScopedStorageErrorDetail,
+    type ScopedStorageLegacyReader,
+    type ScopedStorageOperation,
+    type ScopedStorageOptions,
+    type ScopedStorageRecord
+} from "./createScopedStorage";
+export type { StorageLike } from "./types";
 
 /** Stored Accessible First versioned record. */
 export interface VersionedStorageRecord<TValue = unknown> {
@@ -190,17 +195,6 @@ function isVersionedStorageRecord(value: unknown): value is VersionedStorageReco
         && Number.isInteger(version)
         && version >= 0
         && "value" in value;
-}
-
-/** Returns browser localStorage or sessionStorage safely. */
-export function getBrowserStorage(kind: BrowserStorageKind = "local"): StorageLike | null {
-    if (typeof window === "undefined") return null;
-
-    try {
-        return kind === "session" ? window.sessionStorage : window.localStorage;
-    } catch {
-        return null;
-    }
 }
 
 /** Creates a small in-memory StorageLike backend. */

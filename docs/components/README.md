@@ -60,6 +60,7 @@ Each component document should contain:
 - [SearchBox](./search-box.md)
 - [Select](./select.md)
 - [SettingsGroup](./settings-group.md)
+- [SpeechControls And SpeechButton](./speech.md)
 - [StatusMessage](./status-message.md)
 - [Switch](./switch.md)
 - [Table](./table.md)

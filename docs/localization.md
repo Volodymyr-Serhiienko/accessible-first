@@ -104,6 +104,11 @@ export const format = appLocalization.format;
 export const t = appLocalization.t;
 ```
 
+The controller accepts the minimal `StorageLike` contract. Pass a
+`createScopedStorage()` result when locale selection should live beside other
+application records under one browser-storage key; normal browser
+`localStorage` remains the default.
+
 ## Application Template
 
 Applications should keep one locale file near the app shell. The playground uses `playground/demo/localization.ts` as the reference template:

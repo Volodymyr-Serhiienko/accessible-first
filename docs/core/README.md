@@ -17,6 +17,7 @@ existing DOM or building a reusable behavior layer.
 - [Focus](./focus.md)
 - [Scroll](./scroll.md)
 - [Live Region](./live-region.md)
+- [Speech](./speech.md)
 - [Validation Announcements](./validation-announcements.md)
 
 ## Collections And Keyboard Models
@@ -41,7 +42,7 @@ existing DOM or building a reusable behavior layer.
 ## Data And Forms
 
 - [Form Field](./form-field.md)
-- [Storage](./storage.md)
+- [Storage: versioned records and scoped application namespaces](./storage.md)
 
 ## Choosing A Layer
 

@@ -2,6 +2,10 @@ import {
     accessibleFirstEnglishMessages,
     type AccessibleFirstMessageKey
 } from "./messages";
+import {
+    getBrowserStorage,
+    type StorageLike
+} from "../../../core/src/storage";
 
 /**
  * Supported locale code, such as "en", "uk", "ru", or "en-US".
@@ -158,7 +162,7 @@ export interface LocaleControllerOptions<
     fallbackLocale?: TLocale;
     initialLocale?: string | null;
     storageKey?: string | null;
-    storage?: Storage | null;
+    storage?: StorageLike | null;
     messages?: LocaleMessagesByLocale<TKey>;
     documentElement?: HTMLElement | null;
     syncDocumentLanguage?: boolean;
@@ -220,16 +224,6 @@ type LocaleMessageRegistry = Record<string, LocaleMessage>;
 
 function getDefaultNavigatorSource(): LocaleNavigatorSource | null {
     return typeof navigator === "undefined" ? null : navigator;
-}
-
-function getDefaultStorage(): Storage | null {
-    if (typeof window === "undefined") return null;
-
-    try {
-        return window.localStorage;
-    } catch {
-        return null;
-    }
 }
 
 function normalizeLocale(value: string | null | undefined): string | null {
@@ -314,7 +308,7 @@ export function resolveSupportedLocale<TLocale extends LocaleCode>(
     return fallbackLocale;
 }
 
-function readStoredLocale(storage: Storage | null, storageKey: string | null): string | null {
+function readStoredLocale(storage: StorageLike | null, storageKey: string | null): string | null {
     if (!storage || !storageKey) return null;
 
     try {
@@ -325,7 +319,7 @@ function readStoredLocale(storage: Storage | null, storageKey: string | null): s
 }
 
 function writeStoredLocale(
-    storage: Storage | null,
+    storage: StorageLike | null,
     storageKey: string | null,
     locale: string
 ): void {
@@ -436,7 +430,7 @@ export function createLocaleController<
     const supportedLocales: readonly TLocale[] = options.supportedLocales ?? [defaultLocale];
     const fallbackLocale: TLocale = options.fallbackLocale ?? supportedLocales[0] ?? defaultLocale;
     const storageKey = options.storageKey === undefined ? DEFAULT_STORAGE_KEY : options.storageKey;
-    const storage = options.storage === undefined ? getDefaultStorage() : options.storage;
+    const storage = options.storage === undefined ? getBrowserStorage("local") : options.storage;
     const syncLanguage = options.syncDocumentLanguage ?? true;
     const syncDirection = options.syncDocumentDirection ?? true;
     const resolveDirection = options.getDirection ?? getLocaleDirection;

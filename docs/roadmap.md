@@ -12,6 +12,17 @@ The current cross-cutting audit and its prioritized work packages live in [Frame
 
 The active documentation pass for Playground examples and local styles is [Playground And CSS Audit - September 2026](./playground-css-audit-2026-09.md).
 
+The first real-application findings and the promotion boundary for Study
+Languages are recorded in [Study Languages Integration Audit - September
+2026](./study-languages-integration-audit-2026-09.md). It prioritizes scoped
+storage, browser speech, and a future parameterized-routing design;
+lesson data and pedagogical rules remain application-owned.
+
+The proposed boundary and contract for that next routing step are in
+[Parameterized Routes Design - September
+2026](./parameterized-routes-design-2026-09.md). It is a proposal: exact
+routes remain the default until the pattern API is agreed.
+
 The immediate foundation is now two runnable starters:
 
 1. `examples/minimal-routed-public-app` for SPA-like public applications;
@@ -29,6 +40,10 @@ These layers are ready to build on, with normal refinements expected:
 - accessible component baseline: buttons, links, icons, images, disclosures, dialogs, alerts, tabs, listboxes, menus, selects, comboboxes, popovers, tooltips, toasts, form fields, navigation, breadcrumbs, responsive navigation, header, screen, list/detail, tables, pagination, progress, result summaries, and status/empty/info patterns;
 - app foundation: hash routing, native-link routing, route-free public static templates, public routed apps, public app templates, route chrome, route text, route registry, app identity, metadata, manifest, sitemap, robots, diagnostics, and locale refresh;
 - localization foundation: framework service-text registry, app localization helper, locale formatter, required-key diagnostics, route text resolvers, document `lang` / `dir` sync, LanguageSelect, and reactive app refresh.
+- client-state foundation: versioned records plus scoped browser storage for one
+  application-owned storage namespace without a custom storage facade.
+- optional browser speech foundation: a provider-neutral speech contract,
+  Web Speech adapter, and localized composition controls without framework copy.
 
 ## Active Phase
 
@@ -80,20 +95,22 @@ Status: active through the Study Languages rewrite.
 
 Likely reusable patterns to validate in the app before moving into Accessible First:
 
-- versioned preference/progress storage for locale, language pair, learner mode, speech settings, and later progress migrations;
-- speech controller for Web Speech API queues, mixed-language reading, spelling, pause/resume/stop, voice warmup, and speech-rate preferences;
-- async resource loading with accessible loading, empty, retry, and error states;
+- parameterized routes for large or remotely updated content catalogs, designed
+  across routing, breadcrumbs, metadata, and diagnostics before implementation;
+- async resource loading with accessible loading, empty, retry, error, and
+  cache-fallback states;
 - data-provider contracts that can swap static seed data, local storage, HTTP APIs, and hosted databases;
 - import/export and validation surfaces;
 - admin data-management patterns with real keyboard and screen-reader ergonomics.
 
 ## Near-Term Sequence
 
-1. Keep the first Study Languages screen lean by using `StatusMessage`, `ActionsBar`, and existing layout primitives instead of local mini-components.
-2. Promote a small versioned storage helper into the framework before progress and preferences spread through the app.
-3. Draft the Study Languages domain model and data-provider interfaces around seed data first.
-4. Build the next learner-facing screen, then split the app wiring into identity, shell/header, routes, and diagnostics files when the second screen proves the shape.
-5. Promote proven application patterns into the framework only after real use.
+1. Keep Study Languages screens lean by using `StatusMessage`, `ActionsBar`, and existing layout primitives instead of local mini-components.
+2. Use the completed scoped-storage adapter for locale, preferences, and progress; keep record versions and migrations local to their schemas.
+3. Use the completed browser speech API in Study Languages and verify it with
+   real keyboard, touch, and screen-reader activation.
+4. Agree parameterized-route semantics before the lesson catalog or a remote source grows.
+5. Promote further application patterns only after real use proves their boundary.
 
 ## What Not To Do Yet
 

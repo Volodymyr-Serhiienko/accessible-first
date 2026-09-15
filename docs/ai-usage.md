@@ -17,7 +17,8 @@ Use Accessible First when the task needs:
 - localization from the beginning;
 - document metadata, manifest, route metadata, sitemap, robots, and diagnostics;
 - reusable app foundations for SPA, MPA, and static public sites;
-- versioned client-side storage for preferences, progress, and small non-sensitive state.
+- versioned client-side storage for preferences, progress, and small
+  non-sensitive state, optionally grouped under one application storage key.
 
 ## First Choice: Template
 
@@ -108,12 +109,15 @@ Start from [Component Reference](./components/README.md). Important families:
 - Layout and content: Screen, Section, Stack, Row, Grid, Container, HeaderBar,
   ActionsBar, EmptyState, StatusMessage, InfoCard, Badge, Image, Icon, DescriptionList.
 - Data and flows: Table, Pagination, Progress, ResultSummary, ListDetail,
-  SettingsGroup, Form, FieldGroup, FormSection.
+  SettingsGroup, Form, FieldGroup, FormSection, SpeechControls, SpeechButton.
 - App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,
   HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
   RouteCommandPalette, RouteBreadcrumbs, HashRouter, HashRoutedApp,
   LinkRoutedApp, PublicAppTemplate, PublicStaticAppTemplate.
 - Core helpers: Storage, live regions, focus, keyboard, ARIA, events, scroll, and validation announcements.
+- Optional client capability: `createBrowserSpeechEngine()` with explicit
+  user-initiated playback, language-tagged segments, and no framework-owned
+  visible text.
 - Public metadata and diagnostics: AppIdentity, DocumentMetadata,
   WebAppManifest, RobotsTxt, AppRouteSitemap, AppDiagnostics.
 

@@ -12,7 +12,8 @@ A new Accessible First application should start with reliable foundations:
 - one locale controller for framework service text and application copy;
 - one route/page declaration model when routing is needed;
 - one public app template selected as static, hash SPA, native-link, or MPA;
-- one versioned storage layer for non-sensitive preferences and local progress;
+- one versioned storage layer for non-sensitive preferences and local progress,
+  optionally backed by one scoped browser-storage namespace;
 - one shell with header, navigation, main content, optional before/after outlet content, and footer;
 - predictable focus movement for desktop keyboard and mobile screen reader users;
 - diagnostics that report page, route, metadata, localization, manifest, and app-owned health issues.
@@ -33,7 +34,7 @@ src/
     routes.ts          # routed apps
     routeText.ts       # localized route text for routed apps
     diagnostics.ts     # optional when diagnostics are not handled by the template helper
-    storage.ts         # app-owned keys using the core versioned storage helper
+    storage.ts         # app-owned record schemas using core versioned/scoped storage
     footer.ts
   localization/
     index.ts

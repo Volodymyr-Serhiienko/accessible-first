@@ -101,10 +101,14 @@ Common composition components include `Button`, `Link`, `IconButton`, `IconLabel
 `ToastViewport`, `Navigation`, `ResponsiveNavigation`, `RouteChrome`,
 `AppHeader`, `AppShell`, `Screen`, `Section`, `Stack`, `Grid`, `Table`,
 `Pagination`, `Progress`, `ResultSummary`, `ListDetail`, `EmptyState`, and
-`InfoCard`.
+`InfoCard`, `SpeechControls`, and `SpeechButton`.
 
 When a component needs visible or spoken help text, follow the shared
 description/hint/announcement rules in `docs/hints-and-announcements.md`.
+
+Use `createBrowserSpeechEngine()` only through a visible user action. Keep
+speech request content visible in the application and supply every control,
+status, and failure string through application localization.
 
 ## Accessibility Checks
 

@@ -38,10 +38,17 @@ export {
 } from "../../../core/src/scroll";
 export {
     createMemoryStorage,
+    createScopedStorage,
     createVersionedStorage,
     getBrowserStorage,
     type BrowserStorageKind,
     type MemoryStorage,
+    type ScopedStorage,
+    type ScopedStorageErrorDetail,
+    type ScopedStorageLegacyReader,
+    type ScopedStorageOperation,
+    type ScopedStorageOptions,
+    type ScopedStorageRecord,
     type StorageLike,
     type VersionedStorage,
     type VersionedStorageChangeDetail,
@@ -66,6 +73,19 @@ export {
     type VersionedStorageWriteResult,
     type VersionedStorageWriteStatus
 } from "../../../core/src/storage";
+export {
+    createBrowserSpeechEngine,
+    type BrowserSpeechEngineOptions,
+    type SpeechEngine,
+    type SpeechEngineCapabilities,
+    type SpeechPlayback,
+    type SpeechPlaybackListener,
+    type SpeechPlaybackState,
+    type SpeechPlaybackStatus,
+    type SpeechRequest,
+    type SpeechSegment,
+    type SpeechSegmentMode
+} from "../../../core/src/speech";
 export {
     createValidationAnnouncer,
     shouldAnnounceValidationFeedback,
