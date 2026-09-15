@@ -64,6 +64,39 @@ A starter route often needs both metadata and content:
 
 `createAppScreenRoute()` and `createAppScreenRoutes()` keep that first app shape compact without hiding the lower-level route model.
 
+## Parameterized Screen Routes
+
+Use `createAppScreenRoutePattern()` when one Screen recipe should resolve many
+concrete hash routes. It creates the same normal `AppScreenRoute` instances as
+the static helpers, while the router owns matching and canonical hrefs.
+
+```ts
+const lessonMaterialsRoute = createAppScreenRoutePattern({
+    id: "lesson.materials",
+    pattern: "lessons/:lessonNumber/materials",
+    parse(params) {
+        const lessonNumber = Number(params.lessonNumber);
+
+        return Number.isInteger(lessonNumber) && lessonNumber > 0
+            ? { lessonNumber }
+            : null;
+    },
+    create({ lessonNumber }) {
+        return {
+            parentId: `lessons/${lessonNumber}`,
+            title: `Lesson ${lessonNumber} materials`,
+            children: () => LessonMaterials({ lessonNumber })
+        };
+    }
+});
+```
+
+The framework supplies the concrete route id to the inner factory. Keep
+product lookup, authorization, locking, locale text keys, and unavailable
+states inside the resolved route; the pattern should only parse location data.
+Pass the returned pattern through `HashRouter` or `HashRoutedApp` `router`
+options as `routePatterns`.
+
 ## Options
 
 AppScreenRoute accepts all `AppRouteDescriptor` fields, plus these route screen slots:

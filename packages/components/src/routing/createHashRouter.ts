@@ -1,6 +1,7 @@
 import type { CompositionContent } from "../composition";
 import type { DocumentMetadataUpdateOptions } from "../document-metadata";
 import type { ComposedPageOutlet, PageOutletAnnouncement, PageOutletFocusTarget } from "../page-outlet";
+import type { HashRouterRouteMatcher } from "./createHashRouterRoutePattern";
 
 /**
  * Route definition accepted by createHashRouter().
@@ -82,6 +83,8 @@ export type HashRouterUnsubscribe = () => void;
  */
 export interface HashRouterOptions<TRoute extends HashRouterRoute> {
     routes: TRoute[];
+    /** Optional parameterized route matchers evaluated after exact route ids. */
+    routePatterns?: readonly HashRouterRouteMatcher<TRoute>[];
     outlet: ComposedPageOutlet;
     navigation?: HashRouterNavigation | null;
     defaultRoute?: string | TRoute;
@@ -104,9 +107,13 @@ export interface HashRouterOptions<TRoute extends HashRouterRoute> {
  */
 export interface HashRouter<TRoute extends HashRouterRoute> {
     readonly routes: readonly TRoute[];
+    /** Parameterized route matchers registered alongside exact routes. */
+    readonly routePatterns: readonly HashRouterRouteMatcher<TRoute>[];
     getCurrentRoute(): TRoute;
     getRouteHref(routeOrId: TRoute | string): string;
     getRouteById(id: string | null | undefined): TRoute | null;
+    /** Finds a registered parameterized route matcher by its stable definition id. */
+    getRoutePatternById(id: string | null | undefined): HashRouterRouteMatcher<TRoute> | null;
     navigate(routeOrId: TRoute | string | null | undefined, options?: HashRouterNavigateOptions): boolean;
     refresh(options?: HashRouterRefreshOptions): boolean;
     syncFromLocation(options?: HashRouterNavigateOptions): boolean;
@@ -128,6 +135,10 @@ function normalizeRouteId(value: string): string {
 
 function getRouteId(routeOrId: HashRouterRoute | string): string {
     return typeof routeOrId === "string" ? normalizeRouteId(routeOrId) : routeOrId.id;
+}
+
+function getHashRouteHref(routeId: string): string {
+    return `#${routeId.split("/").map((segment) => encodeURIComponent(segment)).join("/")}`;
 }
 
 function getFirstRoute<TRoute extends HashRouterRoute>(routes: TRoute[]): TRoute {
@@ -177,6 +188,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
     options: HashRouterOptions<TRoute>
 ): HashRouter<TRoute> {
     const routes = [...options.routes];
+    const routePatterns = [...(options.routePatterns ?? [])];
     const firstRoute = getFirstRoute(routes);
     const ownerWindow = options.outlet.element.ownerDocument.defaultView ?? window;
     const routeChangeHandlers = new Set<HashRouterRouteChangeHandler<TRoute>>();
@@ -192,7 +204,37 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
 
         const routeId = normalizeRouteId(id);
 
-        return routes.find((route) => route.id === routeId) ?? null;
+        const exactRoute = routes.find((route) => route.id === routeId) ?? null;
+
+        if (exactRoute) return exactRoute;
+
+        let matchedRoute: TRoute | null = null;
+        let matchedPattern: HashRouterRouteMatcher<TRoute> | null = null;
+
+        for (const pattern of routePatterns) {
+            const route = pattern.match(id);
+
+            if (!route) continue;
+
+            if (matchedRoute) {
+                throw new Error(
+                    `Hash route "${routeId}" matches both patterns "${matchedPattern?.id}" and "${pattern.id}".`
+                );
+            }
+
+            matchedRoute = route;
+            matchedPattern = pattern;
+        }
+
+        return matchedRoute;
+    }
+
+    function getRoutePatternById(id: string | null | undefined): HashRouterRouteMatcher<TRoute> | null {
+        if (!id) return null;
+
+        const patternId = normalizeRouteId(id);
+
+        return routePatterns.find((pattern) => pattern.id === patternId) ?? null;
     }
 
     function resolveRoute(routeOrId: TRoute | string | null | undefined): TRoute | null {
@@ -223,7 +265,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
     }
 
     function getRouteHref(routeOrId: TRoute | string): string {
-        return `#${encodeURIComponent(getRouteId(routeOrId))}`;
+        return getHashRouteHref(getRouteId(routeOrId));
     }
 
     function syncHistory(route: TRoute, navigateOptions: HashRouterNavigateOptions): void {
@@ -371,9 +413,11 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
 
     router = {
         routes,
+        routePatterns,
         getCurrentRoute,
         getRouteHref,
         getRouteById,
+        getRoutePatternById,
         navigate,
         refresh,
         syncFromLocation,

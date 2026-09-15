@@ -2,7 +2,20 @@
 
 ## Status
 
-**Proposal. No routing API changes have been made from this document.**
+**Initial hash-routing implementation complete; native-link parity remains a
+future design and validation step.**
+
+The first implementation exposes `createHashRouterRoutePattern()` and
+`createAppScreenRoutePattern()`. HashRouter receives patterns through its
+separate `routePatterns` option while `routes` remains the static route list
+used by ordinary navigation. `RouteBreadcrumbs` now accepts `getTrail()` for
+an application-owned chain of resolved dynamic instances.
+
+The implementation intentionally covers hash routing only. It has contract
+coverage for exact-route precedence, decoded parsing, canonical href encoding,
+ambiguous-pattern rejection, Screen route creation, and dynamic breadcrumb
+trails. Native links, route registry, sitemap, public metadata, and automatic
+catalog search remain separate validation steps.
 
 The first Study Languages screens prove that exact routes are the right
 default for small applications and static public sites. They also expose a
@@ -194,11 +207,11 @@ Before release, tests must cover:
 - Study Languages migration with legacy links and a lesson loaded after app
   startup.
 
-## Decision Needed Before Implementation
+## Next Validation
 
-The proposed direction is deliberately conservative: a small segment-pattern
+The implemented boundary is deliberately conservative: a small segment-pattern
 primitive, a resolved route instance, typed href generation, and dynamic
-routes hidden from global navigation by default. The remaining product-facing
-choice is the public Study Languages URL shape shown above. Once that direction
-is accepted, implementation can proceed in the framework first, followed by a
-small migration of the application route factories.
+routes hidden from global navigation by default. Study Languages now uses the
+public URL shape shown above. Validate it with real lesson navigation before
+extending the API to native links, route registry, sitemap, public metadata, or
+automatic catalog surfaces.

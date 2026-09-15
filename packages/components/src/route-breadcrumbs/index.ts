@@ -4,5 +4,6 @@ export type {
     ComposedRouteBreadcrumbs,
     RouteBreadcrumbsCurrent,
     RouteBreadcrumbsOptions,
+    RouteBreadcrumbsTrailResolver,
     RouteBreadcrumbsUpdateOptions
 } from "./composeRouteBreadcrumbs";

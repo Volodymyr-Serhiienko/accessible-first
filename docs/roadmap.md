@@ -15,13 +15,13 @@ The active documentation pass for Playground examples and local styles is [Playg
 The first real-application findings and the promotion boundary for Study
 Languages are recorded in [Study Languages Integration Audit - September
 2026](./study-languages-integration-audit-2026-09.md). It prioritizes scoped
-storage, browser speech, and a future parameterized-routing design;
+storage, browser speech, and initial parameterized hash routing;
 lesson data and pedagogical rules remain application-owned.
 
 The proposed boundary and contract for that next routing step are in
 [Parameterized Routes Design - September
-2026](./parameterized-routes-design-2026-09.md). It is a proposal: exact
-routes remain the default until the pattern API is agreed.
+2026](./parameterized-routes-design-2026-09.md). Exact routes remain the
+default; parameterized routes are being validated through Study Languages.
 
 The immediate foundation is now two runnable starters:
 
@@ -95,8 +95,8 @@ Status: active through the Study Languages rewrite.
 
 Likely reusable patterns to validate in the app before moving into Accessible First:
 
-- parameterized routes for large or remotely updated content catalogs, designed
-  across routing, breadcrumbs, metadata, and diagnostics before implementation;
+- validate parameterized hash routes for large or remotely updated content
+  catalogs before extending native links, metadata, sitemap, and diagnostics;
 - async resource loading with accessible loading, empty, retry, error, and
   cache-fallback states;
 - data-provider contracts that can swap static seed data, local storage, HTTP APIs, and hosted databases;
@@ -109,7 +109,8 @@ Likely reusable patterns to validate in the app before moving into Accessible Fi
 2. Use the completed scoped-storage adapter for locale, preferences, and progress; keep record versions and migrations local to their schemas.
 3. Use the completed browser speech API in Study Languages and verify it with
    real keyboard, touch, and screen-reader activation.
-4. Agree parameterized-route semantics before the lesson catalog or a remote source grows.
+4. Validate parameterized lesson routes in Study Languages before the lesson
+   catalog or a remote source grows; extend the contract only from evidence.
 5. Promote further application patterns only after real use proves their boundary.
 
 ## What Not To Do Yet

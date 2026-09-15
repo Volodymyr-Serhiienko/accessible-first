@@ -20,6 +20,11 @@ export type RouteBreadcrumbsCurrent<
     TRoute extends AppRouteDescriptor = AppRouteDescriptor
 > = TRoute | string | null | undefined;
 
+/** Resolves the route trail displayed for the current route. */
+export type RouteBreadcrumbsTrailResolver<
+    TRoute extends AppRouteDescriptor = AppRouteDescriptor
+> = (current: RouteBreadcrumbsCurrent<TRoute>) => readonly TRoute[];
+
 /**
  * Options for RouteBreadcrumbs().
  */
@@ -28,6 +33,8 @@ export interface RouteBreadcrumbsOptions<
 > extends Omit<BreadcrumbsOptions, "items"> {
     routes: readonly TRoute[];
     current: RouteBreadcrumbsCurrent<TRoute>;
+    /** Optional resolved trail for dynamic route instances. */
+    getTrail?: RouteBreadcrumbsTrailResolver<TRoute>;
     trailOptions?: AppRouteTrailOptions<TRoute>;
     breadcrumbItemsOptions?: AppRouteBreadcrumbItemsOptions<TRoute>;
 }
@@ -64,6 +71,7 @@ export function RouteBreadcrumbs<
     const {
         routes: _routes,
         current: _current,
+        getTrail: _getTrail,
         trailOptions: _trailOptions,
         breadcrumbItemsOptions: _breadcrumbItemsOptions,
         ...breadcrumbsOptions
@@ -71,12 +79,15 @@ export function RouteBreadcrumbs<
 
     let routes = options.routes;
     let current = options.current;
+    let getTrail = options.getTrail;
     let trailOptions = options.trailOptions;
     let breadcrumbItemsOptions = options.breadcrumbItemsOptions;
 
     function getItems(): BreadcrumbsItem[] {
         return createAppRouteBreadcrumbItems(
-            createAppRouteTrail(routes, current, trailOptions),
+            getTrail
+                ? [...getTrail(current)]
+                : createAppRouteTrail(routes, current, trailOptions),
             breadcrumbItemsOptions
         );
     }
@@ -111,6 +122,7 @@ export function RouteBreadcrumbs<
             const {
                 routes: nextRoutes,
                 current: nextCurrent,
+                getTrail: nextGetTrail,
                 trailOptions: nextTrailOptions,
                 breadcrumbItemsOptions: nextBreadcrumbItemsOptions,
                 ...breadcrumbsUpdateOptions
@@ -118,6 +130,7 @@ export function RouteBreadcrumbs<
 
             if (nextRoutes !== undefined) routes = nextRoutes;
             if ("current" in nextOptions) current = nextCurrent;
+            if ("getTrail" in nextOptions) getTrail = nextGetTrail;
             if ("trailOptions" in nextOptions) trailOptions = nextTrailOptions;
             if ("breadcrumbItemsOptions" in nextOptions) {
                 breadcrumbItemsOptions = nextBreadcrumbItemsOptions;

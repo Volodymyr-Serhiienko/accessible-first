@@ -304,7 +304,7 @@ export function getAppRouteHref(route: AppRouteDescriptor): string | null {
         return route.href ?? null;
     }
 
-    return `#${encodeURIComponent(route.id)}`;
+    return `#${route.id.split("/").map((segment) => encodeURIComponent(segment)).join("/")}`;
 }
 
 /**

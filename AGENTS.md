@@ -110,6 +110,11 @@ Use `createBrowserSpeechEngine()` only through a visible user action. Keep
 speech request content visible in the application and supply every control,
 status, and failure string through application localization.
 
+For a data-driven hash catalog, keep `routes` finite and use a validated
+`createHashRouterRoutePattern()` or `createAppScreenRoutePattern()` for detail
+instances. Do not generate one static route for every loaded item; keep product
+catalog search, hierarchy, and redirect policy in the application.
+
 ## Accessibility Checks
 
 Before calling a change complete, think through:

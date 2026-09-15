@@ -47,6 +47,7 @@ When breadcrumbs are part of a routed app shell, `createRouteChrome()` can add a
 
 - `routes` - Required route metadata list.
 - `current` - Current route object, route id, `null`, or `undefined`.
+- `getTrail` - Optional resolver for a complete dynamic route-instance trail.
 - `trailOptions` - Options passed to `createAppRouteTrail()`.
 - `breadcrumbItemsOptions` - Options passed to `createAppRouteBreadcrumbItems()`.
 - all `Breadcrumbs` options except `items`.
@@ -62,6 +63,29 @@ When breadcrumbs are part of a routed app shell, `createRouteChrome()` can add a
 ## Styling
 
 RouteBreadcrumbs uses the normal Breadcrumbs DOM structure and styles.
+
+## Dynamic Route Trails
+
+Static `parentId` values are enough for ordinary route lists. For a resolved
+parameterized route, pass `getTrail(current)` when parent instances are also
+dynamic or application data determines the hierarchy.
+
+```ts
+RouteBreadcrumbs({
+    routes: staticRoutes,
+    current: route,
+    getTrail(current) {
+        return current
+            ? [lessonsRoute, levelRoute, lessonRoute, current]
+            : [lessonsRoute];
+    }
+});
+```
+
+The resolver returns the complete ordered trail of the same route type used by
+the component. It is separate from data loading and URL matching: the router
+resolves the current route, while the application decides its meaningful
+hierarchy.
 
 It also adds:
 

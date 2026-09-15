@@ -28,6 +28,7 @@ export {
     createAppScreenRoute,
     createAppScreenRoutes
 } from "./createAppScreenRoute";
+export { createAppScreenRoutePattern } from "./createAppScreenRoutePattern";
 export {
     createLocalizedAppRouteText
 } from "./createLocalizedAppRouteText";
@@ -79,6 +80,7 @@ export type {
     AppScreenRouteScreenOptions,
     AppScreenRouteSlot
 } from "./createAppScreenRoute";
+export type { AppScreenRoutePatternOptions } from "./createAppScreenRoutePattern";
 export type {
     AppRouteLoadedAnnouncementResolver,
     AppRouteLocaleTextKeys,

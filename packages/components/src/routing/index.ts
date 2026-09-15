@@ -3,6 +3,7 @@ export {
     createHashRouter,
     createHashRouterRouteActivationHandler
 } from "./createHashRouter";
+export { createHashRouterRoutePattern } from "./createHashRouterRoutePattern";
 export { bindHashRouterRouteControls } from "./bindHashRouterRouteControls";
 
 export type {
@@ -18,6 +19,13 @@ export type {
     HashRouterRouteChangeHandler,
     HashRouterUnsubscribe
 } from "./createHashRouter";
+
+export type {
+    HashRouterRouteMatcher,
+    HashRouterRoutePattern,
+    HashRouterRoutePatternOptions,
+    HashRouterRoutePatternRawParams
+} from "./createHashRouterRoutePattern";
 
 export type {
     HashRouterCurrentRouteControl,

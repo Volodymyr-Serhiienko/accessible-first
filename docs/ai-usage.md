@@ -77,6 +77,10 @@ createPublicStaticAppTemplate({
 Use resolver functions for localized identity, shell, content, and metadata so
 language changes can refresh app-owned UI.
 
+Keep static route lists finite. For a hash-routed data catalog, use a validated
+`createHashRouterRoutePattern()` or `createAppScreenRoutePattern()` and keep
+catalog search, hierarchy, and redirects application-owned.
+
 ## Routed App Starter Pattern
 
 ```ts
@@ -113,6 +117,7 @@ Start from [Component Reference](./components/README.md). Important families:
 - App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,
   HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
   RouteCommandPalette, RouteBreadcrumbs, HashRouter, HashRoutedApp,
+  createHashRouterRoutePattern, createAppScreenRoutePattern,
   LinkRoutedApp, PublicAppTemplate, PublicStaticAppTemplate.
 - Core helpers: Storage, live regions, focus, keyboard, ARIA, events, scroll, and validation announcements.
 - Optional client capability: `createBrowserSpeechEngine()` with explicit

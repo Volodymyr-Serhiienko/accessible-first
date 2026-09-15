@@ -76,6 +76,7 @@ SettingsGroup, Form, FieldGroup, FormSection, SpeechControls, SpeechButton.
 App foundation: Page, AppShell, PageLayout, PageOutlet, AppHeader,
 HeaderTools, Navigation, ResponsiveNavigation, RouteChrome, RouteSearchBox,
 RouteCommandPalette, RouteBreadcrumbs, HashRouter, HashRoutedApp,
+createHashRouterRoutePattern, createAppScreenRoutePattern,
 LinkRoutedApp, PublicAppTemplate, PublicStaticAppTemplate.
 
 Public metadata and diagnostics: AppIdentity, DocumentMetadata, WebAppManifest,
@@ -96,6 +97,10 @@ RobotsTxt, AppRouteSitemap, AppDiagnostics.
   in ordinary application code.
 - Use resolver functions for localized shell, header, footer, content, metadata,
   and route text so locale changes can refresh without a full page reload.
+- Keep static route lists finite. For a hash-routed data catalog, use a
+  validated `createHashRouterRoutePattern()` or
+  `createAppScreenRoutePattern()` and keep catalog search, hierarchy, and
+  redirects application-owned.
 - Use `createBrowserSpeechEngine()` only behind a visible user action. Supply
   all speech-control labels and status text from application localization; do
   not expect the framework to insert English UI copy.

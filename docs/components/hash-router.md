@@ -69,6 +69,57 @@ router.start();
 - Refresh method: `router.refresh(options)`
 - Reuses: `PageOutlet`, native URL hash/history, route-aware navigation, and current-route controls with `setCurrent(...)`
 
+## Parameterized Routes
+
+Exact `routes` remain the default. Use `routePatterns` only when a finite
+static list would grow with application data, such as a lesson, product, or
+document catalog loaded after deployment.
+
+```ts
+const lessonRoute = createHashRouterRoutePattern({
+    id: "lesson",
+    pattern: "lessons/:lessonNumber",
+    parse(params) {
+        const lessonNumber = Number(params.lessonNumber);
+
+        return Number.isInteger(lessonNumber) && lessonNumber > 0
+            ? { lessonNumber }
+            : null;
+    },
+    create({ lessonNumber }, routeId) {
+        return {
+            id: routeId,
+            title: `Lesson ${lessonNumber}`,
+            render: () => LessonScreen({ lessonNumber })
+        };
+    }
+});
+
+const router = createHashRouter({
+    routes: [homeRoute, settingsRoute],
+    routePatterns: [lessonRoute],
+    outlet
+});
+
+Link({
+    href: lessonRoute.getHref({ lessonNumber: 12 }),
+    text: "Lesson 12"
+});
+```
+
+Patterns contain literal slash-separated segments and whole `:parameter`
+segments only. `parse()` receives decoded strings, validates them, and returns
+the typed object used by both `create()` and `getHref()`. Keep each parameter
+name in that returned object; for example `:lessonNumber` maps to
+`{ lessonNumber }`.
+
+The generated route has a concrete id such as `lessons/12`, so it uses the
+normal render, focus, metadata, locale-refresh, and announcement flow. Exact
+route ids always win. If two patterns resolve one location, the router throws
+a configuration error instead of silently treating array order as behavior.
+Pattern routes are not added to `router.routes`, so an application must
+explicitly supply catalog items to navigation, search, or a sitemap.
+
 ## Behavior
 
 - Resolves the initial route from `window.location.hash`.

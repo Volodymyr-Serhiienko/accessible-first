@@ -139,7 +139,7 @@ voices, mobile gesture policies, and NVDA, TalkBack, and VoiceOver speech.
 
 ### 3. Exact-ID Routing Will Not Scale To Remote Lesson Catalogs
 
-**Priority: design next; implement only after the contract is agreed.**
+**Priority: initial hash implementation complete; validate before broader extraction.**
 
 Study Languages currently creates four exact hash routes per lesson: lesson
 hub, learning, materials, and grammar. That is readable with two local
@@ -167,12 +167,11 @@ modes from the same route descriptor family:
 
 The proposed boundary and required contract checks are recorded in
 [Parameterized Routes Design - September
-2026](./parameterized-routes-design-2026-09.md). It needs agreement before
-implementation because public route identity, breadcrumb ancestry, diagnostics,
-and search indexing have to remain unambiguous. In particular, the lesson
-catalog screen should list available lessons, while internal parameterized
-activity routes should not automatically become thousands of top-level
-navigation items.
+2026](./parameterized-routes-design-2026-09.md). The next validation must keep
+public route identity, breadcrumb ancestry, diagnostics, and search indexing
+unambiguous. In particular, the lesson catalog screen should list available
+lessons, while internal parameterized activity routes should not automatically
+become thousands of top-level navigation items.
 
 ### 4. Cached Async Resources Need a Small Provider Boundary, Not a Large Data Layer
 
@@ -239,8 +238,8 @@ framework APIs:
   states do not repeat; the domain decision remains local;
 - split `lessonLearning.ts` into a pure flow controller, local content
   mapping, and composition view before it grows with images and recall modes;
-- keep the dynamic lesson route factories local until parameterized route
-  support has a settled public contract;
+- keep product-level lesson hierarchy and redirect policy local while the new
+  parameterized route contract is validated;
 - use `SettingsGroup` where the setup page's nested settings need a labelled
   preference group, but do not create a product-specific settings form
   component.
@@ -275,9 +274,9 @@ generic application framework while still removing genuine repeated work.
    contract with tests.
 2. Completed: extract browser speech and its composition controls, then replace
    the app's browser engine and controls without changing its product workflow.
-3. Agree the parameterized-route design before adding more lessons or a remote
-   catalog. Implement it alongside route, breadcrumb, metadata, and diagnostic
-   tests; retain exact static routes as the simple default.
+3. Completed initial hash implementation: validate parameterized lesson,
+   activity, and breadcrumb routes in Study Languages before extending native
+   links, sitemap, public metadata, and route-registry behavior.
 4. Add the next learning mode and a second content provider. Use the evidence
    to decide whether a sequential activity controller and async cache adapter
    should join the framework.

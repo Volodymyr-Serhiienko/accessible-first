@@ -16,8 +16,8 @@ and recorded results. The recommended evaluation structure follows
 
 ## Evidence Collected
 
-- The full quality gate passes: `npm run typecheck`, twenty-seven focused Vitest
-  contract files with sixty-four tests, and all three Vite production builds
+- The full quality gate passes: `npm run typecheck`, twenty-eight focused Vitest
+  contract files with sixty-seven tests, and all three Vite production builds
   for Playground and both runnable starters.
 - Local Markdown links within `docs/` resolve successfully.
 - The tracked suite covers composition ownership, localization, storage,
@@ -266,7 +266,7 @@ Done when the policy is documented and linked from the roadmap and AI guide.
 
 ### Work Package 1 - Quality Gate
 
-The local foundation is complete: `npm run typecheck`, a sixty-four-test Vitest/jsdom contract suite, and `npm run check` covering the playground and both starters. The suite protects announcement ownership, versioned and scoped storage, browser speech and speech controls, composition trust boundaries, reactive app localization, Tooltip behavior, document-owned overlay dismissal, Combobox keyboard and owner-window behavior, responsive-navigation focus restoration, Menu and Tabs semantics, validation announcement policy including reset completion timing, StatusMessage and Toast feedback, ThemeToggle synchronization and announcement behavior, PageOutlet focus/announcement behavior, the description/announcement contracts of Disclosure, Accordion, and composed Popover, native semantic contracts for result summaries, information blocks, badges, progress indicators, tables, and description lists, native field contracts for TextField, Select, Checkbox, Switch, and RadioGroup, the distinct description policies of FieldGroup, FormSection, and SettingsGroup, link-versus-button navigation contracts for Breadcrumbs, Navigation, and Pagination, and semantic-neutral layout plus Screen structure and focus fallback. The GitHub Pages workflow runs this same gate after a clean Node 24 install for every pull request and `main` push.
+The local foundation is complete: `npm run typecheck`, a sixty-seven-test Vitest/jsdom contract suite, and `npm run check` covering the playground and both starters. The suite protects announcement ownership, versioned and scoped storage, browser speech and speech controls, parameterized hash-route parsing and resolution, composition trust boundaries, reactive app localization, Tooltip behavior, document-owned overlay dismissal, Combobox keyboard and owner-window behavior, responsive-navigation focus restoration, Menu and Tabs semantics, validation announcement policy including reset completion timing, StatusMessage and Toast feedback, ThemeToggle synchronization and announcement behavior, PageOutlet focus/announcement behavior, the description/announcement contracts of Disclosure, Accordion, and composed Popover, native semantic contracts for result summaries, information blocks, badges, progress indicators, tables, and description lists, native field contracts for TextField, Select, Checkbox, Switch, and RadioGroup, the distinct description policies of FieldGroup, FormSection, and SettingsGroup, link-versus-button navigation contracts for Breadcrumbs, Navigation, and Pagination, and semantic-neutral layout plus Screen structure and focus fallback. The GitHub Pages workflow runs this same gate after a clean Node 24 install for every pull request and `main` push.
 
 The remaining work is to make the successful CI status required for merge and expand coverage deliberately:
 
