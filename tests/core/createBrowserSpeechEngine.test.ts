@@ -85,7 +85,7 @@ describe("createBrowserSpeechEngine", () => {
         expect(playback.getState()).toEqual({ status: "completed" });
     });
 
-    it("spells Unicode letters and numbers without speaking punctuation or whitespace", () => {
+    it("spells Unicode letters and numbers, with optional spoken whitespace and no punctuation", () => {
         const fake = createFakeSynthesizer();
         const engine = createBrowserSpeechEngine({
             speechSynthesis: fake.synthesis,
@@ -96,16 +96,21 @@ describe("createBrowserSpeechEngine", () => {
             segments: [{
                 text: "A, \u4e2d 2.",
                 language: "zh-Hans",
-                mode: "spell"
+                mode: "spell",
+                spellWhitespaceText: "\u7a7a\u683c"
             }]
         });
 
         complete(fake.spoken[0] as SpeechSynthesisUtterance);
         complete(fake.spoken[1] as SpeechSynthesisUtterance);
+        complete(fake.spoken[2] as SpeechSynthesisUtterance);
+        complete(fake.spoken[3] as SpeechSynthesisUtterance);
 
         expect(fake.spoken.map((utterance) => utterance.text)).toEqual([
             "A",
+            "\u7a7a\u683c",
             "\u4e2d",
+            "\u7a7a\u683c",
             "2"
         ]);
     });

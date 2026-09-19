@@ -33,7 +33,9 @@ unrelated asynchronous callback.
 - `SpeechRequest` contains one or more ordered `SpeechSegment` values.
 - Each segment has text and a BCP 47 `language` tag. It can override request
   `rate` and use `mode: "spell"` to read Unicode letters and numbers one by
-  one.
+  one. Spell mode always ignores punctuation. Set `spellWhitespaceText` to a
+  localized word such as `"space"` when word boundaries should be spoken;
+  omit it to skip whitespace.
 - `SpeechPlayback` exposes the current state, pause, resume, stop, and a
   subscription method.
 - `SpeechPlaybackStatus` distinguishes normal completion from stopped,

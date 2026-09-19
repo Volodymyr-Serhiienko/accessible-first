@@ -8,6 +8,11 @@ export interface SpeechSegment {
     readonly language: string;
     /** Reads text normally by default, or spells letters and numbers individually. */
     readonly mode?: SpeechSegmentMode;
+    /**
+     * Optional localized word spoken for whitespace while spelling.
+     * Punctuation is always omitted from spelling output.
+     */
+    readonly spellWhitespaceText?: string;
     /** Optional per-segment rate that overrides the request rate. */
     readonly rate?: number;
 }

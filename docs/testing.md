@@ -55,8 +55,9 @@ The current suite protects these public contracts:
   notifies subscribers about later changes; scoped storage isolates raw records,
   migrates legacy physical keys only after persistence, and works with both
   versioned storage and localization;
-- browser speech queues multilingual segments, filters spelling input, guards
-  stale completion events, documents pause/restart behavior, exposes
+- browser speech queues multilingual segments, filters spelling input, can
+  speak localized whitespace while omitting punctuation, guards stale
+  completion events, documents pause/restart behavior, exposes
   unavailable playback, and backs composition controls with native buttons;
 - `IconLabel()` stays semantic-neutral and cleans up child composition, while
   ordinary composition remains text-safe and `TrustedHtml()` is the explicit

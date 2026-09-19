@@ -125,8 +125,9 @@ on screen load. This is a platform constraint, not an application defect.
 The covered contract verifies:
 
 - ordered multilingual segment queue and per-segment rate selection;
-- spell mode ignores punctuation and whitespace but retains letters and
-  numbers from Unicode scripts;
+- spell mode retains letters and numbers from Unicode scripts, always ignores
+  punctuation, and can speak whitespace when an application supplies a
+  localized label for it;
 - stop invalidates stale completion events;
 - pause/resume follows the documented browser strategy;
 - unavailable and failed playback have deterministic states;

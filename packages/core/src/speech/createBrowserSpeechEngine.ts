@@ -91,13 +91,27 @@ function getSpeechQueue(
             }];
         }
 
-        return Array.from(text)
-            .filter((character) => /[\p{L}\p{N}]/u.test(character))
-            .map((character) => ({
-                text: character,
-                language: segment.language,
-                rate: segment.rate
-            }));
+        const whitespaceText = segment.spellWhitespaceText?.trim() ?? "";
+
+        return Array.from(text).flatMap((character) => {
+            if (/[\p{L}\p{N}]/u.test(character)) {
+                return [{
+                    text: character,
+                    language: segment.language,
+                    rate: segment.rate
+                }];
+            }
+
+            if (/\s/u.test(character) && whitespaceText) {
+                return [{
+                    text: whitespaceText,
+                    language: segment.language,
+                    rate: segment.rate
+                }];
+            }
+
+            return [];
+        });
     });
 }
 
