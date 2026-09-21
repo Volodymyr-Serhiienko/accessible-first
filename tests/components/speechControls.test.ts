@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     SpeechButton,
-    SpeechControls
+    SpeechControls,
+    SpeechToggleButton
 } from "../../packages/components/src";
 import type {
     SpeechEngine,
@@ -139,6 +140,43 @@ describe("speech composition", () => {
 
         expect(button.element.getAttribute("aria-label")).toBe("Listen to Hello");
         expect(onUnavailable).toHaveBeenCalledTimes(1);
+
+        button.destroy();
+    });
+
+    it("switches one speech action between start, pause, and resume", () => {
+        const mutablePlayback = createPlayback();
+        const engine = createEngine(mutablePlayback.playback);
+        const button = SpeechToggleButton({
+            engine,
+            request: {
+                segments: [{ text: "Hello", language: "en" }]
+            },
+            startText: "Start",
+            pauseText: "Pause",
+            resumeText: "Resume"
+        });
+
+        document.body.append(button.element);
+
+        expect(button.element.textContent).toBe("Start");
+
+        button.element.click();
+
+        expect(engine.speak).toHaveBeenCalledTimes(1);
+        expect(button.element.textContent).toBe("Pause");
+
+        button.element.click();
+
+        expect(button.element.textContent).toBe("Resume");
+
+        button.element.click();
+
+        expect(button.element.textContent).toBe("Pause");
+
+        mutablePlayback.setState("completed");
+
+        expect(button.element.textContent).toBe("Start");
 
         button.destroy();
     });

@@ -8,3 +8,8 @@ export {
     type ComposedSpeechControls,
     type SpeechControlsOptions
 } from "./composeSpeechControls";
+export {
+    SpeechToggleButton,
+    type ComposedSpeechToggleButton,
+    type SpeechToggleButtonOptions
+} from "./composeSpeechToggleButton";

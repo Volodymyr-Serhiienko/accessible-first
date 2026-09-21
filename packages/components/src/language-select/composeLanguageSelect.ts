@@ -36,6 +36,23 @@ export interface LanguageSelectItem<TLocale extends LocaleCode = LocaleCode> {
 }
 
 /**
+ * Display format used for automatic language option names.
+ */
+export type LanguageSelectNameFormat =
+    | "localized"
+    | "native"
+    | "localized-and-native";
+
+/**
+ * Optionally overrides one automatic locale label for the current UI locale.
+ * Return null or undefined to retain the standard name-format behavior.
+ */
+export type LanguageSelectItemLabelResolver<TLocale extends LocaleCode = LocaleCode> = (
+    locale: TLocale,
+    currentLocale: TLocale
+) => string | null | undefined;
+
+/**
  * Details emitted when LanguageSelect changes the active locale.
  */
 export interface LanguageSelectChangeDetail<TLocale extends LocaleCode = LocaleCode> {
@@ -66,6 +83,16 @@ export interface LanguageSelectOptions<
     > {
     locale: LocaleController<TLocale, TKey | AccessibleFirstMessageKey>;
     items?: readonly LanguageSelectItem<TLocale>[];
+    /**
+     * Display format for automatic items. Ignored when explicit `items` are supplied.
+     * Defaults to the localized UI-language name.
+     */
+    nameFormat?: LanguageSelectNameFormat;
+    /**
+     * Optional resolver for exceptional automatic item labels. Ignored when
+     * explicit `items` are supplied.
+     */
+    getItemLabel?: LanguageSelectItemLabelResolver<TLocale> | null;
     persist?: LocaleSetOptions["persist"];
     syncDocumentLanguage?: LocaleSetOptions["syncDocumentLanguage"];
     width?: string | null;
@@ -123,6 +150,40 @@ function getLocaleDisplayName(locale: string, displayLocale: string): string {
     }
 }
 
+function getAutomaticLanguageName(
+    locale: string,
+    displayLocale: string,
+    format: LanguageSelectNameFormat
+): string {
+    const localizedName = getLocaleDisplayName(locale, displayLocale);
+
+    if (format === "localized") return localizedName;
+
+    const nativeName = getLocaleDisplayName(locale, locale);
+
+    if (format === "native" || nativeName === localizedName) {
+        return format === "native" ? nativeName : localizedName;
+    }
+
+    return `${localizedName} (${nativeName})`;
+}
+
+function getAutomaticItemLabel<TLocale extends LocaleCode>(
+    options: LanguageSelectOptions<TLocale>,
+    locale: TLocale,
+    currentLocale: TLocale
+): string {
+    const resolvedLabel = options.getItemLabel?.(locale, currentLocale)?.trim();
+
+    if (resolvedLabel) return resolvedLabel;
+
+    return getAutomaticLanguageName(
+        locale,
+        currentLocale,
+        options.nameFormat ?? "localized"
+    );
+}
+
 function getLanguageItems<TLocale extends LocaleCode>(
     options: LanguageSelectOptions<TLocale>,
     currentLocale: TLocale
@@ -131,7 +192,12 @@ function getLanguageItems<TLocale extends LocaleCode>(
 
     return options.locale.supportedLocales.map((locale) => ({
         locale,
-        label: getLocaleDisplayName(locale, currentLocale)
+        label: getAutomaticItemLabel(options, locale, currentLocale),
+        optionOptions: {
+            attributes: {
+                lang: currentLocale
+            }
+        }
     }));
 }
 

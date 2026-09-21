@@ -1,12 +1,13 @@
 # Speech Controls
 
-`SpeechControls` and `SpeechButton` provide accessible composition controls
+`SpeechControls`, `SpeechToggleButton`, and `SpeechButton` provide accessible composition controls
 for an application-supplied `SpeechEngine`. They do not own product copy,
 language settings, provider selection, or playback policy.
 
 Use `SpeechControls` for a visible start, pause/resume, and stop group. Use
-`SpeechButton` for compact, per-item playback such as a word, label, or table
-cell.
+`SpeechToggleButton` for one compact visible action that progresses through
+start, pause, and resume. Use `SpeechButton` for compact, per-item playback
+such as a word, label, or table cell.
 
 ## Quick Start
 
@@ -29,6 +30,16 @@ SpeechButton({
     engine,
     request: wordRequest,
     label: t("reader.listenToWord", { word }),
+    onUnavailable: () => announce(t("reader.unavailable")),
+    onFailure: () => announce(t("reader.failed"))
+});
+
+SpeechToggleButton({
+    engine,
+    request: grammarRequest,
+    startText: t("reader.start"),
+    pauseText: t("reader.pause"),
+    resumeText: t("reader.resume"),
     onUnavailable: () => announce(t("reader.unavailable")),
     onFailure: () => announce(t("reader.failed"))
 });
@@ -61,6 +72,15 @@ text in the framework.
 - Does not create a status message itself, because compact item actions usually
   need feedback chosen by their containing workflow.
 
+### SpeechToggleButton
+
+- Starts a request from its initial action, pauses while speech is active, and
+  resumes after a pause without moving focus.
+- Returns to its start action when playback completes, becomes unavailable, or
+  fails.
+- Delegates unavailable and failed playback to optional application callbacks;
+  it intentionally does not create a status message of its own.
+
 ## Options
 
 `SpeechControls` requires `engine`, `request`, `label`, `startText`,
@@ -73,6 +93,10 @@ text in the framework.
 `onPress`; use `icon` to replace the default speaker graphic. `onUnavailable`
 and `onFailure` are optional application callbacks.
 
+`SpeechToggleButton` requires `engine`, `request`, `startText`, `pauseText`,
+and `resumeText`. It accepts normal `Button` options except `children`,
+`onPress`, and `text`; `onUnavailable` and `onFailure` are optional callbacks.
+
 Both components accept ordinary composition `id`, `className`, and `attributes`
 options.
 
@@ -84,6 +108,9 @@ Its outer hook is `[data-af-composition="speech-controls"]`.
 `SpeechButton` uses the standard `IconButton` styles and adds
 `[data-af-speech-button]` to its native button.
 
+`SpeechToggleButton` uses the standard `Button` styles and adds
+`[data-af-speech-toggle-button]` to its native button.
+
 ## Manual Checks
 
 - Every action has localized visible text or an accessible icon-button label.
@@ -93,5 +120,7 @@ Its outer hook is `[data-af-composition="speech-controls"]`.
 - Wrapped action rows remain usable on narrow screens.
 - Per-item buttons have a useful label such as "Listen to water", rather than
   a generic "Play".
+- A single-action control reads start, pause, and resume labels in the active
+  interface language as its state changes.
 - Verify browser user-gesture restrictions with real keyboard, touch, and
   screen-reader activation.

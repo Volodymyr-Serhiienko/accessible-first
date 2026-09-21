@@ -1,10 +1,12 @@
 import { append } from "./append";
+import { toCompositionChildren } from "./content";
 import { createElement } from "./createElement";
 import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
     ComposedNode,
     CompositionChild,
+    CompositionContent,
     ElementAttributes
 } from "./types";
 
@@ -35,7 +37,7 @@ export interface ContainerOptions extends BaseCompositionOptions {
  * Options for Section().
  */
 export interface SectionOptions extends BaseCompositionOptions {
-    title: string;
+    title: CompositionContent;
     titleId?: string;
     headingLevel?: 2 | 3 | 4 | 5 | 6;
     children?: CompositionChild[];
@@ -218,10 +220,9 @@ export function Section(options: SectionOptions): ComposedNode {
     const titleId = options.titleId ?? `${sectionId}-title`;
     const headingTag = `h${options.headingLevel ?? 2}` as keyof HTMLElementTagNameMap;
 
-    const heading = createElement(headingTag, {
-        id: titleId,
-        text: options.title
-    });
+    const heading = createElement(headingTag, { id: titleId });
+
+    append(heading, ...toCompositionChildren(options.title));
 
     const baseOptions: BaseCompositionOptions = {
         id: sectionId

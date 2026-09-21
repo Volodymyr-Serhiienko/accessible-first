@@ -137,7 +137,9 @@ Navigation should keep real links as the baseline. SPA routing can intercept the
 
 Current primitives are intentionally small:
 
-- `Section` creates a labelled document section.
+- `Section` creates a labelled document section. Its `title` accepts plain or
+  composed content, so a heading can carry language metadata without putting
+  that language on its controls or body.
 - `Panel` frames a related content block.
 - `Row` arranges children horizontally and wraps.
 - `Stack` arranges children vertically.
@@ -171,6 +173,44 @@ Section({
 ```
 
 Use native helpers such as `P`, `H1`, `H2`, `H3`, `Ul`, and `Li` when they make the page easier to read.
+
+## Language-Specific Text
+
+`LanguageText()` marks a word, phrase, or passage whose human language differs
+from the surrounding page. It renders a semantic-neutral `span` with the
+supplied BCP 47 `lang` value and, when needed, a `dir` value:
+
+```ts
+P(
+    "Before the noun, use ",
+    LanguageText({
+        text: "an apple",
+        lang: "en-GB"
+    }),
+    "."
+);
+```
+
+An optional pronunciation can have its own language tag, which is useful for
+transliteration and phonetic notation:
+
+```ts
+LanguageText({
+    text: "苹果",
+    lang: "zh-CN",
+    pronunciation: {
+        text: "píngguǒ",
+        lang: "zh-Latn-pinyin",
+        prefix: " (",
+        suffix: ")"
+    }
+});
+```
+
+Use `update(...)` only when an already-mounted teaching or application screen
+changes its text. `LanguageText` supplies DOM language metadata; it does not
+announce content or configure a separate speech engine, whose request segments
+still need their own language tags.
 
 ## Icon Labels
 

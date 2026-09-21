@@ -42,6 +42,9 @@ LanguageSelect({
 
 - Reads the current locale from `locale.getLocale()`.
 - Uses `locale.supportedLocales` to create options when custom `items` are not provided.
+- Can show automatic option names in the interface language, their native
+  language, or both. The combined format leads with the interface-language
+  name, so a screen reader can pronounce the option coherently.
 - Persists changes through `locale.setLocale()` using the controller storage rules.
 - Updates `document.documentElement.lang` through the locale controller unless disabled.
 - Subscribes to locale changes and keeps the native select value synchronized.
@@ -52,6 +55,10 @@ LanguageSelect({
 
 - `locale` - Required `LocaleController` instance.
 - `items` - Optional custom language items. Defaults to `locale.supportedLocales`.
+- `nameFormat` - Format for automatic names: `"localized"` (default),
+  `"native"`, or `"localized-and-native"`. Ignored when `items` is provided.
+- `getItemLabel` - Optional resolver for exceptional automatic names. It receives
+  the item locale and current UI locale; return `null` to use `nameFormat`.
 - `label` - Optional select label. Defaults to localized `languageSelect.label`.
 - `persist` - Optional override for whether user changes are saved.
 - `syncDocumentLanguage` - Optional override for `document.lang` synchronization.
@@ -77,6 +84,16 @@ LanguageSelect({
 
 When labels are omitted, LanguageSelect uses `Intl.DisplayNames` where available and falls back to the locale code.
 
+To retain a native name for sighted users while making the leading text match
+the active interface language, omit `items` and use:
+
+```ts
+LanguageSelect({
+    locale,
+    nameFormat: "localized-and-native"
+});
+```
+
 ## Runtime App Text
 
 LanguageSelect changes the locale controller. Components that subscribe to the controller update themselves. Application-owned text produced with `t(...)` should refresh through the application layer, usually with `createLocaleRefresh()` near `AppShell`.
@@ -97,3 +114,5 @@ Useful variables:
 - Changing language updates `document.documentElement.lang`.
 - The selected language persists after reload when storage is enabled.
 - Header layout remains usable with longer localized language names.
+- With `localized-and-native`, each option leads with a name that matches the
+  interface language and retains the native name in parentheses.

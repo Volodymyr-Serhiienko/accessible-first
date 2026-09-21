@@ -123,6 +123,9 @@ Start from [Component Reference](./components/README.md). Important families:
 - Optional client capability: `createBrowserSpeechEngine()` with explicit
   user-initiated playback, language-tagged segments, and no framework-owned
   visible text.
+- Use `LanguageText()` for a word, phrase, or passage whose human language
+  differs from its surrounding page content. Pass a BCP 47 `lang` tag and use
+  a separately tagged `pronunciation` only when it is visibly needed.
 - Public metadata and diagnostics: AppIdentity, DocumentMetadata,
   WebAppManifest, RobotsTxt, AppRouteSitemap, AppDiagnostics.
 

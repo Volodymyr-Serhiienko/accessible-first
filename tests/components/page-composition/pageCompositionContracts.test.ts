@@ -8,6 +8,7 @@ import {
     Container,
     Grid,
     Group,
+    LanguageText,
     Panel,
     Row,
     Section,
@@ -164,5 +165,19 @@ describe("Page composition contracts", () => {
         expect(row.element.getAttribute("role")).toBeNull();
         expect(stack.element.getAttribute("role")).toBeNull();
         expect(group.element.getAttribute("role")).toBe("group");
+    });
+
+    it("accepts language-specific rich content in section headings", () => {
+        const section = Section({
+            title: LanguageText({
+                text: "Spraknotat",
+                lang: "nb"
+            })
+        });
+
+        const title = section.element.querySelector<HTMLElement>("h2 span");
+
+        expect(title?.textContent).toBe("Spraknotat");
+        expect(title?.lang).toBe("nb");
     });
 });
