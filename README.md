@@ -70,12 +70,12 @@ AI coding agents should start with [llms.txt](./llms.txt), [AGENTS.md](./AGENTS.
 
 ## Documentation
 
+- [Vision](./docs/vision.md)
+- [Principles](./docs/principles.md)
 - [Architecture](./docs/architecture.md)
 - [Application Blueprint](./docs/app-blueprint.md)
 - [Application Starter](./docs/app-starter.md)
 - [Application Templates](./docs/templates.md)
-- [Framework Audit - September 2026](./docs/framework-audit-2026-09.md)
-- [Public API Audit - September 2026](./docs/public-api-audit-2026-09.md)
 - [AI Usage Guide](./docs/ai-usage.md)
 - [Hints And Announcements](./docs/hints-and-announcements.md)
 - [Localization](./docs/localization.md)

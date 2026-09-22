@@ -115,8 +115,31 @@ viewport positioning, browser focus timing, or screen-reader speech. Continue
 testing those flows in the deployed and local playground, templates, and real
 applications.
 
+## Accessibility Evaluation Boundary
+
+Accessible First uses WCAG 2.2 AA as an engineering target. Passing the quality
+gate, diagnostics, automated accessibility scans, or one manual check is not a
+conformance claim. A formal claim needs a defined application scope,
+representative user journeys, recorded browser and assistive-technology results,
+and an evaluation method such as [WCAG-EM](https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/).
+
+Keep a manual compatibility matrix for representative journeys across:
+
+- Windows with Chrome or Edge and NVDA;
+- macOS with Safari and VoiceOver;
+- Android with Chrome and TalkBack;
+- iOS with Safari and VoiceOver;
+- keyboard-only desktop at normal and 200% zoom;
+- touch, landscape, text enlargement, reduced motion, and forced-colors or
+  high-contrast modes where the platform provides them.
+
+Test a journey rather than only a component: route changes, form errors and
+success feedback, disclosures and overlays, mobile navigation, settings changes,
+and a long-content page. Record known support limits instead of implying that a
+DOM contract proves speech quality or platform behavior.
+
 The next automated layer is browser coverage for high-risk journeys: tooltip
 persistence and viewport placement, dialogs and popovers, validation and route
 announcements, sticky chrome focus visibility, responsive navigation, locale
 refresh, and narrow-screen reflow. These tests will complement, not replace,
-the manual NVDA, VoiceOver, and TalkBack matrix in the framework audit.
+the manual compatibility matrix above.

@@ -98,6 +98,18 @@ const breadcrumbItems = createAppRouteBreadcrumbItems(trail);
 
 Use route helpers and route-aware components when one route list should feed navigation, search, breadcrumbs, parent route trails, and routing metadata.
 
+## Supported Runtime
+
+Accessible First currently supports client-rendered browser DOM applications.
+Composition and enhancement APIs may create or enhance DOM directly, and many
+features intentionally use browser capabilities such as `document`, `window`,
+history, storage, media queries, and Web Speech.
+
+Hash routing, native-link routing, static public pages, and multi-page app
+recipes describe navigation and document structure; they do not imply SSR or
+hydration support. Treat server rendering and hydration as a future explicit
+compatibility design, not as a current capability.
+
 ## Interaction Scenarios
 
 Accessible First should treat interaction as a first-class design surface, not only as component behavior.
@@ -120,6 +132,8 @@ Keyboard shortcuts are useful accelerators for desktop applications, but visible
 - Keep component APIs small, but expose escape hatches through native attributes and DOM access.
 - Restore component mutations on `destroy()`.
 - Add page and app patterns only after real examples prove they are useful.
+- Promote an app pattern only after it is product-independent, has a clear
+  owner, and has been useful in more than one real workflow.
 - Prefer real links and route metadata before SPA-only abstractions, so static pages, multi-page apps, server-rendered pages, and client-side shells can share one navigation model.
 - Save original child-component methods before extending composed objects with `Object.assign()`, so wrapper `update()` methods cannot accidentally call themselves.
 

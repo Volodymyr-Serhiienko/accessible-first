@@ -8,20 +8,23 @@ This roadmap is a working plan, not a history log. Finished details belong in co
 
 Strengthen the framework's accessibility and public-runtime foundations while continuing toward the first real application: an accessible foreign-language learning app.
 
-The current cross-cutting audit and its prioritized work packages live in [Framework Audit - September 2026](./framework-audit-2026-09.md). The current public-surface review is tracked separately in [Public API Audit - September 2026](./public-api-audit-2026-09.md). Together they are the source of truth for stabilization work; this roadmap keeps only the active direction.
+The stabilization pass is complete for the current source-first stage. Its
+lasting decisions are now kept in the architecture, component, style, testing,
+AI, and starter guides rather than in separate audit reports.
 
-The active documentation pass for Playground examples and local styles is [Playground And CSS Audit - September 2026](./playground-css-audit-2026-09.md).
+Current guardrails:
 
-The first real-application findings and the promotion boundary for Study
-Languages are recorded in [Study Languages Integration Audit - September
-2026](./study-languages-integration-audit-2026-09.md). It prioritizes scoped
-storage, browser speech, and initial parameterized hash routing;
-lesson data and pedagogical rules remain application-owned.
-
-The proposed boundary and contract for that next routing step are in
-[Parameterized Routes Design - September
-2026](./parameterized-routes-design-2026-09.md). Exact routes remain the
-default; parameterized routes are being validated through Study Languages.
+- the framework supports client-rendered browser DOM applications today; SSR
+  and hydration require a future explicit design;
+- normal applications start with a public template, then composition components;
+  enhancement and core APIs are deliberate lower-level escape hatches;
+- exact routes remain the default; typed parameterized hash routes are for
+  data-driven detail screens and stay out of navigation/search catalogs unless
+  an application supplies finite items deliberately;
+- public patterns are promoted only after repeated, product-independent use;
+- before npm publication, package-local builds, export maps, style entry
+  points, package dependencies, and release verification must be designed and
+  tested together.
 
 The immediate foundation is now two runnable starters:
 
@@ -95,8 +98,8 @@ Status: active through the Study Languages rewrite.
 
 Likely reusable patterns to validate in the app before moving into Accessible First:
 
-- validate parameterized hash routes for large or remotely updated content
-  catalogs before extending native links, metadata, sitemap, and diagnostics;
+- keep parameterized hash routing validated in real data-driven flows before
+  extending it to native links, metadata, sitemap, or diagnostics;
 - async resource loading with accessible loading, empty, retry, error, and
   cache-fallback states;
 - data-provider contracts that can swap static seed data, local storage, HTTP APIs, and hosted databases;
@@ -109,8 +112,8 @@ Likely reusable patterns to validate in the app before moving into Accessible Fi
 2. Use the completed scoped-storage adapter for locale, preferences, and progress; keep record versions and migrations local to their schemas.
 3. Use the completed browser speech API in Study Languages and verify it with
    real keyboard, touch, and screen-reader activation.
-4. Validate parameterized lesson routes in Study Languages before the lesson
-   catalog or a remote source grows; extend the contract only from evidence.
+4. Validate parameterized lesson routes when Study Languages adds remote or
+   editable content; extend the contract only from evidence.
 5. Promote further application patterns only after real use proves their boundary.
 
 ## What Not To Do Yet
@@ -129,8 +132,6 @@ High priority:
 
 - DataTable behavior on top of native Table: sorting, selection, pagination, responsive alternatives;
 - Drawer / SidePanel / Sheet for application panels and mobile layouts;
-- Toolbar and grouped action improvements;
-- IconLabel composition primitive for consistent icon-and-caption navigation or actions, after validating the existing Button, Link, and Navigation composition contract;
 - Stepper / Wizard for guided workflows;
 - FileUpload with accessible validation and progress;
 - Avatar / UserMenu / ProfileAction for app headers;
@@ -139,6 +140,7 @@ High priority:
 Research or later:
 
 - Calendar / DatePicker with native-first fallback;
+- Toolbar only after a real application needs a complete roving-focus keyboard model;
 - virtualized large lists only after performance need is proven;
 - rich text editing only after core app patterns are stable;
 - charts only with accessible data summaries and non-visual alternatives.
