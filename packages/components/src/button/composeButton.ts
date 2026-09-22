@@ -25,6 +25,9 @@ export type ButtonCompositionOnPress = (
     button: ComposedButton
 ) => void;
 
+/** Text, or text candidates, used to reserve space for a changing button label. */
+export type ButtonReservedText = string | readonly string[] | null;
+
 /**
  * Options for Button(), the composition API that creates and enhances a native button.
  * Use `text` for simple labels or `children` for richer content.
@@ -34,6 +37,7 @@ export interface ButtonCompositionOptions
         BaseCompositionOptions {
     text?: string;
     children?: CompositionChild[];
+    reserveText?: ButtonReservedText;
     selected?: boolean;
     hint?: string | null;
     hintId?: string;
@@ -83,6 +87,23 @@ function getChildren(options: ButtonCompositionOptions): CompositionChild[] {
     return [];
 }
 
+function getReservedText(value: ButtonReservedText | undefined): string | null {
+    const candidates = typeof value === "string"
+        ? [value]
+        : value ?? [];
+    let reservedText = "";
+
+    for (const candidate of candidates) {
+        const text = candidate.trim();
+
+        if (Array.from(text).length > Array.from(reservedText).length) {
+            reservedText = text;
+        }
+    }
+
+    return reservedText || null;
+}
+
 function getButtonOptions(
     options: ButtonCompositionUpdateOptions,
     onPress?: (event: Event) => void
@@ -117,11 +138,28 @@ function getSelectedStateOptions(
  */
 export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     const element = createElement("button", getCompositionElementOptions(options));
-    const content = createContentSlot(element, getChildren(options));
+    const contentElement = createElement("span", {
+        attributes: {
+            "data-af-button-content": ""
+        }
+    });
+    const content = createContentSlot(contentElement, getChildren(options));
     const selectedState = createSelectedState(element, getSelectedStateOptions(options));
+
+    element.append(contentElement);
 
     let composed!: ComposedButton;
     let onPress = options.onPress ?? null;
+    let reservedText = getReservedText(options.reserveText);
+
+    function syncReservedText(): void {
+        if (reservedText === null) {
+            element.removeAttribute("data-af-button-reserved-text");
+            return;
+        }
+
+        element.setAttribute("data-af-button-reserved-text", reservedText);
+    }
 
     function handlePress(event: Event): void {
         onPress?.(event, composed);
@@ -133,6 +171,8 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     );
 
     const controlHint = createControlHint(element, getControlHintOptions(options));
+
+    syncReservedText();
 
     function setText(text: string): void {
         content.set([text]);
@@ -157,6 +197,11 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
             if (nextOptions.selected !== undefined) {
                 selectedState.setSelected(nextOptions.selected);
+            }
+
+            if ("reserveText" in nextOptions) {
+                reservedText = getReservedText(nextOptions.reserveText);
+                syncReservedText();
             }
 
             button.update(getButtonOptions(nextOptions));

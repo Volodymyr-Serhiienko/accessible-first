@@ -145,6 +145,7 @@ export function SpeechControls(options: SpeechControlsOptions): ComposedSpeechCo
 
     const pauseButton = Button({
         text: options.pauseText,
+        reserveText: [options.pauseText, options.resumeText],
         disabled: true,
         onPress: () => {
             const state = playback?.getState();

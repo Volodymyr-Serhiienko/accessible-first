@@ -45,6 +45,23 @@ Button({
 });
 ```
 
+Changing-label action without a layout shift:
+
+```ts
+Button({
+    text: "Start",
+    reserveText: ["Start", "Answer", "Next"],
+    onPress(_event, button) {
+        button.setText("Answer");
+    }
+});
+```
+
+`reserveText` keeps enough inline space for the longest expected label. Its
+CSS sizing text is hidden from assistive technologies. Use it for sequential
+actions whose changing labels represent distinct commands; use `pressed` for a
+true on/off control instead.
+
 Stable-label toggle button:
 
 ```ts
@@ -96,6 +113,7 @@ const button = createButton(existingButton, {
 
 - `text` - Simple visible label.
 - `children` - Rich content instead of `text`.
+- `reserveText` - One or more expected labels used to reserve stable inline space when `text` changes. The longest supplied candidate is used.
 - `disabled` - Disables the button.
 - `pressed` - Adds `aria-pressed` for true toggle buttons with stable labels.
 - `selected` - Adds visual/action state through `data-af-selected`; it is not an ARIA state.
@@ -129,6 +147,7 @@ Button({
 - `Space` activates the button.
 - Disabled state cannot be activated.
 - Stable-label toggle buttons announce pressed state through `aria-pressed`.
+- Changing-label buttons with `reserveText` do not shift neighbouring controls.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
 - Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
 - Text contrast is readable in light and dark themes.

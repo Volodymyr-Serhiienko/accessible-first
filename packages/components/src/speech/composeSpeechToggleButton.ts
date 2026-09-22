@@ -14,7 +14,7 @@ import type {
 /** Options for SpeechToggleButton(). */
 export interface SpeechToggleButtonOptions extends Omit<
     ButtonCompositionOptions,
-    "children" | "onPress" | "text"
+    "children" | "onPress" | "reserveText" | "text"
 > {
     /** Engine that owns playback. */
     engine: SpeechEngine;
@@ -160,6 +160,7 @@ export function SpeechToggleButton(
     const button = Button({
         ...buttonOptions,
         text: startText,
+        reserveText: [startText, pauseText, resumeText],
         onPress: () => {
             const state = playback?.getState();
 

@@ -23,11 +23,37 @@
     touch-action: manipulation;
 }
 
+[data-af-button-content] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    min-inline-size: 0;
+}
+
+[data-af-component="button"][data-af-button-reserved-text] {
+    display: inline-grid;
+    grid-template-columns: minmax(0, max-content);
+    place-items: center;
+}
+
+[data-af-component="button"][data-af-button-reserved-text]::before {
+    content: attr(data-af-button-reserved-text);
+    grid-area: 1 / 1;
+    visibility: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+[data-af-component="button"][data-af-button-reserved-text] > [data-af-button-content] {
+    grid-area: 1 / 1;
+}
+
 [data-af-component="button"]:has(
-    > [data-af-composition="icon-label"][data-af-icon-label-position="top"]
+    [data-af-button-content] > [data-af-composition="icon-label"][data-af-icon-label-position="top"]
 ),
 [data-af-component="button"]:has(
-    > [data-af-composition="icon-label"][data-af-icon-label-position="bottom"]
+    [data-af-button-content] > [data-af-composition="icon-label"][data-af-icon-label-position="bottom"]
 ) {
     padding-block: var(--af-space-2);
 }
