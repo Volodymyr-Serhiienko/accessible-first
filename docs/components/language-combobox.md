@@ -29,7 +29,7 @@ AppHeader({
 
 - Uses the current locale and `locale.supportedLocales` to generate items unless `items` is supplied.
 - Keeps the input read-only: it is a language chooser, not a text-search field.
-- Opens on focus. Arrow keys only change the active listbox option.
+- Focus alone leaves the list closed. Click or tap opens it intentionally; Arrow keys open it for keyboard navigation and then change only the active listbox option.
 - Applies the locale only after `Enter` or pointer selection, then persists and synchronizes `document.lang` through the locale controller.
 - Uses the same `nameFormat`, exceptional-label resolver, item language metadata, and automatic width calculation as LanguageSelect.
 - Reacts to external locale changes and refreshes the selected value and localized labels.
@@ -53,8 +53,8 @@ Useful hooks: `[data-af-language-combobox]`, `[data-af-composition="combobox"]`,
 
 ## Manual Checks
 
-- Focusing the control opens the available language list without changing the active locale.
-- Arrow keys update the active option; `Enter` applies it once.
+- Focusing the control leaves the list closed and does not change the active locale.
+- Click or tap opens the available language list; Arrow keys also open it and update the active option. `Enter` applies it once.
 - Escape and focus loss close the list without applying a pending option.
 - Pointer selection applies one locale and returns focus predictably.
 - Localized-and-native labels remain intelligible for both sighted users and screen readers.

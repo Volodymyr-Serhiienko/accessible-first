@@ -221,7 +221,7 @@ export function LanguageCombobox<
         value: options.locale.getLocale(),
         autocomplete: "none",
         filterOption: null,
-        openOnFocus: true,
+        openOnFocus: false,
         openOnInput: false,
         closeOnBlur: true,
         dismissKeyboardOnSelection: true,
@@ -266,6 +266,12 @@ export function LanguageCombobox<
 
     const combobox = Combobox(comboboxOptions);
 
+    function handleControlClick(): void {
+        combobox.open();
+    }
+
+    combobox.input.addEventListener("click", handleControlClick);
+
     syncSizing(initialItems);
 
     function syncLocaleSubscription(): void {
@@ -307,6 +313,7 @@ export function LanguageCombobox<
         destroy(): void {
             unsubscribeLocale?.();
             unsubscribeLocale = null;
+            combobox.input.removeEventListener("click", handleControlClick);
             combobox.destroy();
         },
 

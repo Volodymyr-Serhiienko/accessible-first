@@ -74,7 +74,7 @@ describe("LanguageSelect", () => {
 });
 
 describe("LanguageCombobox", () => {
-    it("keeps arrow navigation pending until Enter selects a locale", () => {
+    it("opens only on an intentional interaction and keeps arrow navigation pending until Enter", () => {
         const locale = createLocaleController<"en" | "ru">({
             supportedLocales: ["en", "ru"],
             fallbackLocale: "en",
@@ -88,6 +88,15 @@ describe("LanguageCombobox", () => {
         });
 
         document.body.append(combobox.element);
+        combobox.control.focus();
+
+        expect(combobox.combobox.isOpen()).toBe(false);
+
+        combobox.control.click();
+
+        expect(combobox.combobox.isOpen()).toBe(true);
+
+        combobox.combobox.close();
         combobox.control.dispatchEvent(new KeyboardEvent("keydown", {
             key: "ArrowDown",
             bubbles: true
@@ -99,6 +108,7 @@ describe("LanguageCombobox", () => {
 
         expect(locale.getLocale()).toBe("en");
         expect(combobox.control.readOnly).toBe(true);
+        expect(combobox.combobox.isOpen()).toBe(true);
         expect(combobox.combobox.getActiveItem()?.value).toBe("ru");
 
         combobox.control.dispatchEvent(new KeyboardEvent("keydown", {
