@@ -6,7 +6,9 @@ import {
 interface FakeSynthesizer {
     readonly spoken: SpeechSynthesisUtterance[];
     readonly cancel: ReturnType<typeof vi.fn>;
+    readonly getVoices: ReturnType<typeof vi.fn>;
     readonly synthesis: SpeechSynthesis;
+    setVoices(voices: readonly SpeechSynthesisVoice[]): void;
 }
 
 function createFakeUtterance(text: string): SpeechSynthesisUtterance {
@@ -24,19 +26,39 @@ function createFakeUtterance(text: string): SpeechSynthesisUtterance {
 function createFakeSynthesizer(): FakeSynthesizer {
     const spoken: SpeechSynthesisUtterance[] = [];
     const cancel = vi.fn();
+    let voices: readonly SpeechSynthesisVoice[] = [{
+        lang: "uk-UA"
+    } as SpeechSynthesisVoice];
+    const getVoices = vi.fn(() => voices);
+    const voiceChangeListeners = new Set<EventListener>();
+
+    function setVoices(nextVoices: readonly SpeechSynthesisVoice[]): void {
+        voices = nextVoices;
+        voiceChangeListeners.forEach((listener) => {
+            listener(new Event("voiceschanged"));
+        });
+    }
 
     return {
         spoken,
         cancel,
+        getVoices,
         synthesis: {
             cancel,
-            getVoices: () => [{
-                lang: "uk-UA"
-            } as SpeechSynthesisVoice],
+            getVoices,
+            addEventListener(
+                type: string,
+                listener: EventListenerOrEventListenerObject | null
+            ): void {
+                if (type === "voiceschanged" && typeof listener === "function") {
+                    voiceChangeListeners.add(listener);
+                }
+            },
             speak(utterance: SpeechSynthesisUtterance): void {
                 spoken.push(utterance);
             }
-        } as unknown as SpeechSynthesis
+        } as unknown as SpeechSynthesis,
+        setVoices
     };
 }
 
@@ -83,6 +105,46 @@ describe("createBrowserSpeechEngine", () => {
         complete(fake.spoken[1] as SpeechSynthesisUtterance);
 
         expect(playback.getState()).toEqual({ status: "completed" });
+    });
+
+    it("caches preferred voices until the browser reports that voices changed", () => {
+        const fake = createFakeSynthesizer();
+        const firstVoice = {
+            lang: "en-US",
+            name: "First English voice"
+        } as SpeechSynthesisVoice;
+        const updatedVoice = {
+            lang: "en-US",
+            name: "Updated English voice"
+        } as SpeechSynthesisVoice;
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: fake.synthesis,
+            createUtterance: createFakeUtterance
+        });
+
+        fake.setVoices([firstVoice]);
+        engine.speak({
+            segments: [
+                { text: "One", language: "en-US" },
+                { text: "Two", language: "en-US" }
+            ]
+        });
+
+        expect(fake.spoken[0]?.voice).toBe(firstVoice);
+        expect(fake.getVoices).toHaveBeenCalledTimes(1);
+
+        complete(fake.spoken[0] as SpeechSynthesisUtterance);
+
+        expect(fake.spoken[1]?.voice).toBe(firstVoice);
+        expect(fake.getVoices).toHaveBeenCalledTimes(1);
+
+        fake.setVoices([updatedVoice]);
+        engine.speak({
+            segments: [{ text: "Three", language: "en-US" }]
+        });
+
+        expect(fake.spoken[2]?.voice).toBe(updatedVoice);
+        expect(fake.getVoices).toHaveBeenCalledTimes(2);
     });
 
     it("spells Unicode letters and numbers, with optional spoken whitespace and no punctuation", () => {

@@ -22,6 +22,14 @@ interface SpeechQueueItem {
 }
 
 type UtteranceFactory = (text: string) => SpeechSynthesisUtterance;
+type VoiceResolver = (language: string) => SpeechSynthesisVoice | null;
+
+interface VoiceCache {
+    voices: readonly SpeechSynthesisVoice[] | null;
+    readonly resolvedVoices: Map<string, SpeechSynthesisVoice | null>;
+}
+
+const voiceCaches = new WeakMap<SpeechSynthesis, VoiceCache>();
 
 function getDefaultSpeechSynthesis(): SpeechSynthesis | null {
     return typeof speechSynthesis === "undefined"
@@ -129,9 +137,45 @@ function getPreferredVoice(
     ) ?? null;
 }
 
+function createVoiceResolver(synthesizer: SpeechSynthesis): VoiceResolver {
+    let cache = voiceCaches.get(synthesizer);
+
+    if (!cache) {
+        cache = {
+            voices: null,
+            resolvedVoices: new Map<string, SpeechSynthesisVoice | null>()
+        };
+
+        const cacheToReset = cache;
+        synthesizer.addEventListener("voiceschanged", () => {
+            cacheToReset.voices = null;
+            cacheToReset.resolvedVoices.clear();
+        });
+        voiceCaches.set(synthesizer, cache);
+    }
+
+    const activeCache = cache;
+
+    return (language) => {
+        const normalizedLanguage = language.toLowerCase();
+
+        if (activeCache.resolvedVoices.has(normalizedLanguage)) {
+            return activeCache.resolvedVoices.get(normalizedLanguage) ?? null;
+        }
+
+        activeCache.voices ??= synthesizer.getVoices();
+
+        const voice = getPreferredVoice(activeCache.voices, language);
+        activeCache.resolvedVoices.set(normalizedLanguage, voice);
+
+        return voice;
+    };
+}
+
 function createBrowserPlayback(
     synthesizer: SpeechSynthesis,
     createUtterance: UtteranceFactory,
+    resolveVoice: VoiceResolver,
     request: SpeechRequest
 ): SpeechPlayback {
     const queue = getSpeechQueue(request.segments);
@@ -179,10 +223,7 @@ function createBrowserPlayback(
 
         const revision = ++utteranceRevision;
         const utterance = createUtterance(next.text);
-        const voice = getPreferredVoice(
-            synthesizer.getVoices(),
-            next.language
-        );
+        const voice = resolveVoice(next.language);
 
         utterance.lang = next.language;
         utterance.rate = Math.min(10, Math.max(0.1, next.rate ?? defaultRate));
@@ -311,6 +352,7 @@ export function createBrowserSpeechEngine(
         : getDefaultUtteranceFactory();
 
     let activePlayback: SpeechPlayback | null = null;
+    let resolveVoice: VoiceResolver | null = null;
 
     function getCapabilities(): SpeechEngineCapabilities {
         const available = Boolean(synthesizer && createUtterance);
@@ -338,9 +380,12 @@ export function createBrowserSpeechEngine(
                 return activePlayback;
             }
 
+            resolveVoice ??= createVoiceResolver(synthesizer);
+
             activePlayback = createBrowserPlayback(
                 synthesizer,
                 createUtterance,
+                resolveVoice,
                 request
             );
 

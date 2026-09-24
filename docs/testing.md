@@ -57,7 +57,8 @@ The current suite protects these public contracts:
   versioned storage and localization;
 - browser speech queues multilingual segments, filters spelling input, can
   speak localized whitespace while omitting punctuation, guards stale
-  completion events, documents pause/restart behavior, exposes
+  completion events, refreshes cached voice resolution when the browser
+  reports changed voices, documents pause/restart behavior, exposes
   unavailable playback, and backs composition controls with native buttons;
 - `IconLabel()` stays semantic-neutral and cleans up child composition, while
   ordinary composition remains text-safe and `TrustedHtml()` is the explicit
