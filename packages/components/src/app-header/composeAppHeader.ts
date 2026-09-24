@@ -21,6 +21,11 @@ import {
     type HeaderToolsOptions
 } from "../header-tools";
 import {
+    LanguageCombobox,
+    type ComposedLanguageCombobox,
+    type LanguageComboboxOptions
+} from "../language-combobox";
+import {
     LanguageSelect,
     type ComposedLanguageSelect,
     type LanguageSelectOptions
@@ -64,7 +69,24 @@ export interface AppHeaderBrandOptions extends Partial<Omit<BrandOptions, "name"
 export type AppHeaderLanguageSelectOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
-> = Omit<LanguageSelectOptions<TLocale, TKey>, "locale">;
+> = Omit<LanguageSelectOptions<TLocale, TKey>, "locale"> & {
+    control?: "select";
+};
+
+/** Explicit opt-in options for the select-only LanguageCombobox header control. */
+export type AppHeaderLanguageComboboxOptions<
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+> = Omit<LanguageComboboxOptions<TLocale, TKey>, "locale"> & {
+    control: "combobox";
+};
+
+/** Language control options managed by AppHeader. Native select remains the default. */
+export type AppHeaderLanguageOptions<
+    TLocale extends LocaleCode = LocaleCode,
+    TKey extends string = AccessibleFirstMessageKey
+> = AppHeaderLanguageSelectOptions<TLocale, TKey>
+    | AppHeaderLanguageComboboxOptions<TLocale, TKey>;
 
 /**
  * ThemeToggle options managed by AppHeader. The locale comes from AppHeader.locale.
@@ -93,8 +115,8 @@ export interface AppHeaderOptions<
     locale?: AppHeaderLocale<TLocale, TKey> | null;
     /** App controls placed before the generated language and theme controls. */
     controls?: CompositionChild[];
-    /** Language selector options. Use false to omit the generated language selector. */
-    language?: AppHeaderLanguageSelectOptions<TLocale, TKey> | false;
+    /** Language control options. Set control: "combobox" for confirmed locale selection. */
+    language?: AppHeaderLanguageOptions<TLocale, TKey> | false;
     /** Theme toggle options. Use false to omit the generated theme toggle. */
     theme?: AppHeaderThemeToggleOptions | false;
     /** Header overflow behavior. Use false to render controls directly in the actions slot. */
@@ -108,7 +130,7 @@ export interface ComposedAppHeader<TLocale extends LocaleCode = LocaleCode>
     extends ComposedHeaderBar {
     readonly header: ComposedHeaderBar;
     readonly brandControl: ComposedBrand | null;
-    readonly languageControl: ComposedLanguageSelect<TLocale> | null;
+    readonly languageControl: ComposedLanguageSelect<TLocale> | ComposedLanguageCombobox<TLocale> | null;
     readonly themeControl: ComposedThemeToggle | null;
     readonly toolsControl: ComposedHeaderTools | null;
     readonly controls: readonly CompositionChild[];
@@ -175,12 +197,24 @@ function createLanguageControl<
     TKey extends string
 >(
     locale: AppHeaderLocale<TLocale, TKey> | null,
-    options: AppHeaderLanguageSelectOptions<TLocale, TKey> | false | undefined
-): ComposedLanguageSelect<TLocale> | null {
+    options: AppHeaderLanguageOptions<TLocale, TKey> | false | undefined
+): ComposedLanguageSelect<TLocale> | ComposedLanguageCombobox<TLocale> | null {
     if (!locale || options === false) return null;
 
+    if (options?.control === "combobox") {
+        const { control: _control, ...comboboxOptions } = options;
+
+        return LanguageCombobox({
+            ...comboboxOptions,
+            locale
+        });
+    }
+
+    const nativeSelectOptions: AppHeaderLanguageSelectOptions<TLocale, TKey> = options ?? {};
+    const { control: _control, ...selectOptions } = nativeSelectOptions;
+
     return LanguageSelect({
-        ...(options ?? {}),
+        ...selectOptions,
         locale
     });
 }

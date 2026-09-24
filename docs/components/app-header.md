@@ -1,6 +1,6 @@
 # AppHeader
 
-AppHeader is a higher-level application header recipe built from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect`, and `ThemeToggle`.
+AppHeader is a higher-level application header recipe built from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect` or `LanguageCombobox`, and `ThemeToggle`.
 
 Use it when an app needs the common header stack: brand identity, route/search/command controls, language selection, theme switching, and automatic overflow into a compact tools panel when space is tight.
 
@@ -49,7 +49,8 @@ AppHeader({
 - Derives a decorative brand logo from `identity.icons.svg` when `brand.logo` is omitted.
 - Accepts already-composed brand content through `brandContent` for advanced layouts.
 - Places custom `controls` before generated language and theme controls.
-- Adds `LanguageSelect` automatically when `locale` is supplied, unless `language: false` is set.
+- Adds native `LanguageSelect` automatically when `locale` is supplied, unless `language: false` is set.
+- Uses `LanguageCombobox` instead when `language.control` is explicitly `"combobox"`; this defers a locale change until the user confirms an option.
 - Adds `ThemeToggle` automatically unless `theme: false` is set.
 - Wraps controls in `HeaderTools` by default so one control set moves between inline and overflow placement.
 - Uses `HeaderBar` for the actual header layout and keeps native page landmarks outside the component.
@@ -61,7 +62,7 @@ AppHeader({
 - `brandContent` - custom composed brand content. Takes priority over `identity` and `brand`.
 - `locale` - shared `LocaleController` for language, theme, and header tools service text.
 - `controls` - app-specific controls, such as route search, command palette, profile actions, or settings buttons.
-- `language` - `LanguageSelect` options without `locale`. Use `false` to omit the generated selector.
+- `language` - native `LanguageSelect` options without `locale`, or `{ control: "combobox", ... }` for confirmed language selection. Use `false` to omit the generated control.
 - `theme` - `ThemeToggle` options without `locale`. Use `false` to omit the generated toggle.
 - `tools` - `HeaderTools` options without `controls` and `locale`. Use `false` to render controls directly in the actions slot.
 - `content` - optional `HeaderBar` content slot for custom layouts.
@@ -70,7 +71,7 @@ AppHeader({
 
 ## Styling
 
-AppHeader does not add a new visual wrapper. Style the underlying hooks from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect`, `ThemeToggle`, and any custom controls.
+AppHeader does not add a new visual wrapper. Style the underlying hooks from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect`, `LanguageCombobox`, `ThemeToggle`, and any custom controls.
 
 Prefer component options such as `brandMaxWidth`, `Brand({ maxWidth })`, `SearchBox({ maxWidth })`, and `HeaderTools({ inlineProbeDelta })` before adding app-specific CSS.
 

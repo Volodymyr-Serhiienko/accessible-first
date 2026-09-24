@@ -64,7 +64,9 @@ The current suite protects these public contracts:
   ordinary composition remains text-safe and `TrustedHtml()` is the explicit
   raw-markup boundary;
 - `createAppLocalization()` reacts to locale changes, updates document language,
-  keeps formatting reactive, and has no duplicate `.locale` alias;
+  keeps formatting reactive, and has no duplicate `.locale` alias; LanguageSelect
+  and LanguageCombobox keep automatic labels reactive, while the latter defers
+  a locale change until explicit selection;
 - `createTooltip()` restores author attributes, honors Escape without moving
   focus, and uses the coordinated live region only for an explicit hover
   announcement;

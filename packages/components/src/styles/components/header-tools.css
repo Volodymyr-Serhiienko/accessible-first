@@ -72,13 +72,15 @@
 }
 
 [data-af-header-tools-controls] [data-af-route-command-palette],
-[data-af-header-tools-controls] [data-af-language-select] {
+[data-af-header-tools-controls] [data-af-language-select],
+[data-af-header-tools-controls] [data-af-language-combobox] {
     inline-size: 100%;
 }
 
 [data-af-header-tools-controls] [data-af-route-command-palette] > [data-af-component="button"],
 [data-af-header-tools-controls] > [data-af-component="button"],
-[data-af-header-tools-controls] [data-af-language-select] select {
+[data-af-header-tools-controls] [data-af-language-select] select,
+[data-af-header-tools-controls] [data-af-language-combobox] [data-af-component="combobox"] {
     inline-size: 100%;
 }
 

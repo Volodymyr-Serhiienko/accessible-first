@@ -1,0 +1,11 @@
+[data-af-language-combobox] {
+    box-sizing: border-box;
+    inline-size: min(100%, var(--af-language-combobox-width, 20rem));
+    max-inline-size: 100%;
+}
+
+[data-af-language-combobox] [data-af-component="combobox"] {
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}

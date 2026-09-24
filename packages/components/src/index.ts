@@ -29,6 +29,7 @@ export * from "./header-tools";
 export * from "./icon-button";
 export * from "./info-card";
 export * from "./language-select";
+export * from "./language-combobox";
 export * from "./link";
 export * from "./listbox";
 export * from "./list-detail";

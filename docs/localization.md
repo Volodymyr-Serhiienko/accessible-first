@@ -259,7 +259,7 @@ The first migration covers these framework-owned fallbacks:
 - `CommandPalette`: trigger, title, description, search label, placeholder, empty result text, and internal dialog close fallback.
 - `Dialog`: close button text in composition and behavior fallback accessible names.
 - `IconButton`: missing accessible-name fallback.
-- `LanguageSelect`: default language picker label.
+- `LanguageSelect` and `LanguageCombobox`: default language picker label.
 - `LocaleRefresh`: app-owned refresh callbacks for composed shell and route text.
 - `ListDetail`: list/detail region labels.
 - `OverflowScroller`: previous/next control labels.
@@ -273,7 +273,7 @@ The first migration covers these framework-owned fallbacks:
 - `ThemeToggle`: toggle labels and default change announcements.
 - `ToastViewport`: region label, close/dismiss labels, and fallback notification text.
 
-LanguageSelect is the current simple header control for user-selected locale changes. A richer `LanguageMenu` or action-overflow pattern should be added only if native select is not enough for a specific app header.
+LanguageSelect is the default simple header control for user-selected locale changes. When arrow-key exploration must not apply a locale immediately, AppHeader can use `LanguageCombobox` through `language: { control: "combobox" }`; it commits only on Enter or pointer selection. Add a language menu only when a real application needs menu-specific behavior.
 
 ## Future I18n Gates
 

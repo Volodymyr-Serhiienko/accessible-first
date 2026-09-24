@@ -16,9 +16,16 @@ import {
     type SelectCompositionUpdateOptions
 } from "../select";
 import type {
-    BaseCompositionOptions,
     ComposedNode
 } from "../composition";
+import {
+    getLanguagePickerItems,
+    getLanguagePickerWidth,
+    getLocaleDisplayName,
+    type LanguagePickerItem,
+    type LanguagePickerItemLabelResolver,
+    type LanguagePickerNameFormat
+} from "./languageOptions";
 
 /**
  * Localized message keys used by LanguageSelect fallback text.
@@ -28,29 +35,18 @@ export type LanguageSelectMessageKey = "languageSelect.label";
 /**
  * One locale option accepted by LanguageSelect().
  */
-export interface LanguageSelectItem<TLocale extends LocaleCode = LocaleCode> {
-    locale: TLocale;
-    label?: string;
-    disabled?: boolean;
-    optionOptions?: BaseCompositionOptions;
-}
+export type LanguageSelectItem<TLocale extends LocaleCode = LocaleCode> = LanguagePickerItem<TLocale>;
 
 /**
  * Display format used for automatic language option names.
  */
-export type LanguageSelectNameFormat =
-    | "localized"
-    | "native"
-    | "localized-and-native";
+export type LanguageSelectNameFormat = LanguagePickerNameFormat;
 
 /**
  * Optionally overrides one automatic locale label for the current UI locale.
  * Return null or undefined to retain the standard name-format behavior.
  */
-export type LanguageSelectItemLabelResolver<TLocale extends LocaleCode = LocaleCode> = (
-    locale: TLocale,
-    currentLocale: TLocale
-) => string | null | undefined;
+export type LanguageSelectItemLabelResolver<TLocale extends LocaleCode = LocaleCode> = LanguagePickerItemLabelResolver<TLocale>;
 
 /**
  * Details emitted when LanguageSelect changes the active locale.
@@ -124,83 +120,6 @@ export interface ComposedLanguageSelect<TLocale extends LocaleCode = LocaleCode>
     isDestroyed(): boolean;
 }
 
-interface DisplayNamesConstructor {
-    new(locales: string | readonly string[], options: { type: "language" }): {
-        of(code: string): string | undefined;
-    };
-}
-
-function getDisplayNamesConstructor(): DisplayNamesConstructor | null {
-    const intl = Intl as typeof Intl & { DisplayNames?: DisplayNamesConstructor };
-
-    return intl.DisplayNames ?? null;
-}
-
-function getLocaleDisplayName(locale: string, displayLocale: string): string {
-    const DisplayNames = getDisplayNamesConstructor();
-
-    if (!DisplayNames) return locale.toUpperCase();
-
-    try {
-        return new DisplayNames([displayLocale, locale, "en"], {
-            type: "language"
-        }).of(locale) ?? locale.toUpperCase();
-    } catch {
-        return locale.toUpperCase();
-    }
-}
-
-function getAutomaticLanguageName(
-    locale: string,
-    displayLocale: string,
-    format: LanguageSelectNameFormat
-): string {
-    const localizedName = getLocaleDisplayName(locale, displayLocale);
-
-    if (format === "localized") return localizedName;
-
-    const nativeName = getLocaleDisplayName(locale, locale);
-
-    if (format === "native" || nativeName === localizedName) {
-        return format === "native" ? nativeName : localizedName;
-    }
-
-    return `${localizedName} (${nativeName})`;
-}
-
-function getAutomaticItemLabel<TLocale extends LocaleCode>(
-    options: LanguageSelectOptions<TLocale>,
-    locale: TLocale,
-    currentLocale: TLocale
-): string {
-    const resolvedLabel = options.getItemLabel?.(locale, currentLocale)?.trim();
-
-    if (resolvedLabel) return resolvedLabel;
-
-    return getAutomaticLanguageName(
-        locale,
-        currentLocale,
-        options.nameFormat ?? "localized"
-    );
-}
-
-function getLanguageItems<TLocale extends LocaleCode>(
-    options: LanguageSelectOptions<TLocale>,
-    currentLocale: TLocale
-): LanguageSelectItem<TLocale>[] {
-    if (options.items !== undefined) return [...options.items];
-
-    return options.locale.supportedLocales.map((locale) => ({
-        locale,
-        label: getAutomaticItemLabel(options, locale, currentLocale),
-        optionOptions: {
-            attributes: {
-                lang: currentLocale
-            }
-        }
-    }));
-}
-
 function toSelectItems<TLocale extends LocaleCode>(
     items: readonly LanguageSelectItem<TLocale>[],
     currentLocale: TLocale
@@ -216,37 +135,6 @@ function toSelectItems<TLocale extends LocaleCode>(
 
         return selectItem;
     });
-}
-
-function getTextLength(value: string | null | undefined): number {
-    return [...(value?.trim() ?? "")].length;
-}
-
-function getAutoLanguageSelectWidth(
-    items: readonly SelectCompositionItem[],
-    label: string | null
-): string {
-    const longestTextLength = Math.max(
-        4,
-        getTextLength(label),
-        ...items.map((item) => getTextLength(item.label))
-    );
-
-    return `calc(${longestTextLength}ch + 3.25rem)`;
-}
-
-function getLanguageSelectWidth(
-    width: string | null,
-    autoWidth: boolean,
-    items: readonly SelectCompositionItem[],
-    label: string | null
-): string | null {
-    const explicitWidth = width?.trim();
-
-    if (explicitWidth) return explicitWidth;
-    if (!autoWidth) return null;
-
-    return getAutoLanguageSelectWidth(items, label);
 }
 
 function getSelectLabel<TLocale extends LocaleCode>(
@@ -332,14 +220,18 @@ export function LanguageSelect<
     let onLocaleChange = options.onLocaleChange ?? null;
     let unsubscribeLocale: (() => void) | null = null;
 
-    const initialItems = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+    const initialItems = getLanguagePickerItems(
+        currentOptions,
+        currentOptions.locale.getLocale(),
+        currentOptions.locale.supportedLocales
+    );
     const initialSelectItems = toSelectItems(initialItems, currentOptions.locale.getLocale());
 
     function syncLanguageSelectSizing(
         selectItems: readonly SelectCompositionItem[],
         label: string | null
     ): void {
-        const nextWidth = getLanguageSelectWidth(width, autoWidth, selectItems, label);
+        const nextWidth = getLanguagePickerWidth(width, autoWidth, selectItems, label);
 
         if (nextWidth === null) {
             select.element.style.removeProperty("--af-language-select-width");
@@ -350,7 +242,11 @@ export function LanguageSelect<
     }
 
     function syncSelectFromLocale(): void {
-        const items = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+        const items = getLanguagePickerItems(
+            currentOptions,
+            currentOptions.locale.getLocale(),
+            currentOptions.locale.supportedLocales
+        );
         const label = getSelectLabel(currentOptions, currentOptions.locale);
         const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
 
@@ -449,7 +345,11 @@ export function LanguageSelect<
             if ("width" in nextOptions) width = nextOptions.width ?? null;
             if ("autoWidth" in nextOptions) autoWidth = nextOptions.autoWidth ?? true;
 
-            const items = getLanguageItems(currentOptions, currentOptions.locale.getLocale());
+            const items = getLanguagePickerItems(
+                currentOptions,
+                currentOptions.locale.getLocale(),
+                currentOptions.locale.supportedLocales
+            );
             const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
             const label = getSelectLabel(currentOptions, currentOptions.locale);
 

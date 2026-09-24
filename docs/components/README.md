@@ -44,6 +44,7 @@ Each component document should contain:
 - [Image](./image.md)
 - [InfoCard](./info-card.md)
 - [LanguageSelect](./language-select.md)
+- [LanguageCombobox](./language-combobox.md)
 - [Link](./link.md)
 - [ListDetail](./list-detail.md)
 - [Listbox](./listbox.md)
