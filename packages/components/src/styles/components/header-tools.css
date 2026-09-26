@@ -1,6 +1,12 @@
-[data-af-composition="header-tools"],
-[data-af-header-tools-inline] {
+[data-af-composition="header-tools"] {
     display: contents;
+}
+
+[data-af-header-tools-inline] {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--af-header-tools-inline-gap, var(--af-space-3));
 }
 
 [data-af-header-tools-menu] {
@@ -11,6 +17,11 @@
 [data-af-header-tools-inline][hidden],
 [data-af-header-tools-menu][hidden] {
     display: none !important;
+}
+
+[data-af-header-bar-actions] [data-af-header-tools-inline] [data-af-language-combobox] {
+    inline-size: min(100%, var(--af-header-language-combobox-width, 18rem));
+    min-inline-size: 0;
 }
 
 [data-af-header-tools-menu]:not([hidden]) {

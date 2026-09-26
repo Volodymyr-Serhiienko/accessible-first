@@ -50,7 +50,7 @@ Row(
 - In `display: "switch"`, exposes a stable switch label and `aria-checked`, while the visual control shows sun/moon icons.
 - Applies dark theme with `data-af-theme="dark"`.
 - Applies light theme by removing `data-af-theme`, matching the framework's existing token strategy.
-- Keeps its visual selected state synchronized with the active dark theme in button display.
+- Keeps an optional visual selected state synchronized with the configured `selectedTheme` in button display.
 - Observes external `data-af-theme` changes, including system-theme synchronization from `createPage({ theme: "system" })`.
 - Announces theme changes by default.
 - Switch display shows and announces a tooltip by default using the current action label.
@@ -62,7 +62,7 @@ Row(
 - `toDarkLabel` - Button text or switch tooltip while the current theme is light. Defaults to `"Dark theme"`.
 - `toLightLabel` - Button text or switch tooltip while the current theme is dark. Defaults to `"Light theme"`.
 - `switchLabel` - Stable accessible label for switch display. Defaults to localized `"Dark theme"`.
-- `selectedTheme` - Theme that marks the button visually selected. Defaults to `"dark"`. Use `null` to disable selected styling. Used by button display.
+- `selectedTheme` - Theme that marks the button visually selected. Defaults to `null`; set `"light"` or `"dark"` only when an explicit selected state is useful. Used by button display.
 - `announcement` - `true`, `false`, fixed text, or a function. Defaults to `true`.
 - `announcementPoliteness` - `"polite"` or `"assertive"`. Defaults to `"polite"`.
 - `onThemeChange` - Called after the toggle changes the theme.
@@ -72,7 +72,7 @@ Row(
 ## Manual Checks
 
 - Initial text or switch state matches the already applied theme.
-- Initial selected state matches the already applied theme in button display.
+- When `selectedTheme` is set, its selected state matches the already applied theme in button display.
 - Button and switch displays toggle between light and dark themes.
 - Screen reader users hear the changed theme through the document-coordinated announcement channel.
 - Switch display exposes `role="switch"` and `aria-checked`.

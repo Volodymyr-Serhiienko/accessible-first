@@ -36,6 +36,63 @@ function normalizeText(text: string | null | undefined): string | null {
     return trimmed ? trimmed : null;
 }
 
+type TooltipPlacement = "top" | "bottom";
+
+interface TooltipViewportPosition {
+    left: number;
+    top: number;
+    placement: TooltipPlacement;
+}
+
+function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}
+
+function getTooltipViewportPosition(
+    triggerRect: DOMRect,
+    tooltipRect: DOMRect,
+    ownerWindow: Window,
+    viewportPadding: number,
+    gap: number
+): TooltipViewportPosition {
+    const viewportWidth = ownerWindow.visualViewport?.width
+        ?? ownerWindow.innerWidth;
+    const viewportHeight = ownerWindow.visualViewport?.height
+        ?? ownerWindow.innerHeight;
+    const maxLeft = Math.max(
+        viewportPadding,
+        viewportWidth - viewportPadding - tooltipRect.width
+    );
+    const left = clamp(
+        triggerRect.left + (triggerRect.width - tooltipRect.width) / 2,
+        viewportPadding,
+        maxLeft
+    );
+    const spaceAbove = Math.max(0, triggerRect.top - viewportPadding);
+    const spaceBelow = Math.max(
+        0,
+        viewportHeight - triggerRect.bottom - viewportPadding
+    );
+    const placement: TooltipPlacement = (
+        spaceAbove < tooltipRect.height && spaceBelow > spaceAbove
+    )
+        ? "bottom"
+        : "top";
+    const preferredTop = placement === "bottom"
+        ? triggerRect.bottom + gap
+        : triggerRect.top - gap - tooltipRect.height;
+    const maxTop = Math.max(
+        viewportPadding,
+        viewportHeight - viewportPadding - tooltipRect.height
+    );
+
+    return {
+        left,
+        top: clamp(preferredTop, viewportPadding, maxTop),
+        placement
+    };
+}
+
 /**
  * Adds a visual tooltip, optional aria-describedby text, Escape dismissal,
  * and optional polite mouse-hover announcement to an element.
@@ -57,10 +114,12 @@ export function createTooltip(
     let visualContent: HTMLElement | null = null;
     let announcer: DocumentAnnouncementChannel | null = null;
     let cleanups: Cleanup[] = [];
+    let visualCleanups: Cleanup[] = [];
     let destroyed = false;
     let dismissed = false;
     let positionFrame = 0;
     let pointerOver = false;
+    let pointerOverTooltip = false;
     let focusWithin = false;
 
     function getTooltipId(): string {
@@ -83,39 +142,27 @@ export function createTooltip(
     }
 
     function updateVisualPosition(): void {
-        if (!visualContent || !text) return;
+        if (!visualContent || !text || dismissed || !isActive()) return;
 
         const ownerWindow = getOwnerWindow(element);
         const viewportPadding = 8;
         const triggerRect = element.getBoundingClientRect();
+        const tooltipRect = visualContent.getBoundingClientRect();
 
-        visualContent.style.setProperty("--af-tooltip-shift-x", "0px");
-        visualContent.setAttribute("data-af-tooltip-placement", "top");
+        if (tooltipRect.width <= 0 || tooltipRect.height <= 0) return;
 
-        const topRect = visualContent.getBoundingClientRect();
-        const spaceAbove = Math.max(0, triggerRect.top - viewportPadding);
-        const spaceBelow = Math.max(
-            0,
-            ownerWindow.innerHeight - triggerRect.bottom - viewportPadding
+        const position = getTooltipViewportPosition(
+            triggerRect,
+            tooltipRect,
+            ownerWindow,
+            viewportPadding,
+            8
         );
 
-        if (topRect.top < viewportPadding && spaceBelow > spaceAbove) {
-            visualContent.setAttribute("data-af-tooltip-placement", "bottom");
-        }
-
-        const rect = visualContent.getBoundingClientRect();
-        const minLeft = viewportPadding;
-        const maxRight = ownerWindow.innerWidth - viewportPadding;
-
-        let shift = 0;
-
-        if (rect.left < minLeft) {
-            shift = minLeft - rect.left;
-        } else if (rect.right > maxRight) {
-            shift = maxRight - rect.right;
-        }
-
-        visualContent.style.setProperty("--af-tooltip-shift-x", `${shift}px`);
+        visualContent.style.setProperty("--af-tooltip-left", `${position.left}px`);
+        visualContent.style.setProperty("--af-tooltip-top", `${position.top}px`);
+        visualContent.setAttribute("data-af-tooltip-placement", position.placement);
+        visualContent.setAttribute("data-af-tooltip-positioned", "");
     }
 
     function scheduleVisualPositionUpdate(): void {
@@ -145,8 +192,8 @@ export function createTooltip(
 
     function ensureVisualContent(): HTMLElement {
         if (visualContent) {
-            if (visualContent.parentElement !== element) {
-                element.append(visualContent);
+            if (visualContent.parentElement !== getContainer()) {
+                getContainer().append(visualContent);
             }
 
             return visualContent;
@@ -158,7 +205,19 @@ export function createTooltip(
         visualContent.setAttribute("data-af-tooltip-placement", "top");
         visualContent.textContent = text ?? "";
 
-        element.append(visualContent);
+        getContainer().append(visualContent);
+        visualCleanups = [
+            addEventListener<PointerEvent>(
+                visualContent,
+                "pointerenter",
+                handleVisualPointerEnter
+            ),
+            addEventListener<PointerEvent>(
+                visualContent,
+                "pointerleave",
+                handleVisualPointerLeave
+            )
+        ];
 
         return visualContent;
     }
@@ -170,8 +229,14 @@ export function createTooltip(
 
     function removeVisualContent(): void {
         cancelPositionUpdate();
+
+        for (const cleanup of visualCleanups.splice(0)) {
+            cleanup();
+        }
+
         visualContent?.remove();
         visualContent = null;
+        pointerOverTooltip = false;
     }
 
     function getAnnouncementText(): string {
@@ -200,7 +265,31 @@ export function createTooltip(
     }
 
     function isActive(): boolean {
-        return pointerOver || focusWithin;
+        return pointerOver || pointerOverTooltip || focusWithin;
+    }
+
+    function isVisualTarget(target: EventTarget | null): boolean {
+        return target instanceof Node && visualContent?.contains(target) === true;
+    }
+
+    function isTriggerTarget(target: EventTarget | null): boolean {
+        return target instanceof Node && element.contains(target);
+    }
+
+    function syncVisualVisibility(): void {
+        if (!visualContent) return;
+
+        if (!text || dismissed || !isActive()) {
+            cancelPositionUpdate();
+            visualContent.removeAttribute("data-af-tooltip-visible");
+            visualContent.removeAttribute("data-af-tooltip-positioned");
+
+            return;
+        }
+
+        visualContent.setAttribute("data-af-tooltip-visible", "");
+        visualContent.removeAttribute("data-af-tooltip-positioned");
+        scheduleVisualPositionUpdate();
     }
 
     function resetDismissalWhenInactive(): void {
@@ -213,6 +302,7 @@ export function createTooltip(
         dismissed = true;
         element.setAttribute("data-af-tooltip-dismissed", "true");
         announcer?.clear();
+        syncVisualVisibility();
     }
 
     function syncText(): void {
@@ -221,7 +311,8 @@ export function createTooltip(
 
             const visual = ensureVisualContent();
             visual.textContent = text;
-            scheduleVisualPositionUpdate();
+            visual.removeAttribute("data-af-tooltip-positioned");
+            syncVisualVisibility();
         } else {
             element.removeAttribute("data-af-tooltip");
             element.removeAttribute("data-af-tooltip-dismissed");
@@ -267,7 +358,7 @@ export function createTooltip(
             resetDismissal();
         }
 
-        scheduleVisualPositionUpdate();
+        syncVisualVisibility();
 
         if (event.pointerType && event.pointerType !== "mouse") return;
         if (!announceOnHover) return;
@@ -279,9 +370,24 @@ export function createTooltip(
         }
     }
 
-    function handlePointerLeave(): void {
+    function handlePointerLeave(event: PointerEvent): void {
         pointerOver = false;
+        pointerOverTooltip = isVisualTarget(event.relatedTarget);
         announcer?.clear();
+        syncVisualVisibility();
+        resetDismissalWhenInactive();
+    }
+
+    function handleVisualPointerEnter(): void {
+        pointerOverTooltip = true;
+        syncVisualVisibility();
+    }
+
+    function handleVisualPointerLeave(event: PointerEvent): void {
+        pointerOverTooltip = false;
+        pointerOver = isTriggerTarget(event.relatedTarget);
+        announcer?.clear();
+        syncVisualVisibility();
         resetDismissalWhenInactive();
     }
 
@@ -294,7 +400,7 @@ export function createTooltip(
             resetDismissal();
         }
 
-        scheduleVisualPositionUpdate();
+        syncVisualVisibility();
     }
 
     function handleFocusOut(event: FocusEvent): void {
@@ -306,6 +412,7 @@ export function createTooltip(
 
         focusWithin = false;
         announcer?.clear();
+        syncVisualVisibility();
         resetDismissalWhenInactive();
     }
 

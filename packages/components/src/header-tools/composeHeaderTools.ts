@@ -188,17 +188,6 @@ function isInlineOverflowing(container: HTMLElement, inlineHost: HTMLElement): b
     const tolerance = 1;
     const containerRect = container.getBoundingClientRect();
     const brandRect = getBrandSlot(container)?.getBoundingClientRect() ?? null;
-
-    if (brandRect) {
-        return controls.some((control) => {
-            const rect = control.getBoundingClientRect();
-
-            return rect.left < containerRect.left - tolerance
-                || rect.right > containerRect.right + tolerance
-                || rect.top > brandRect.bottom - tolerance;
-        });
-    }
-
     const firstTop = controls[0]?.getBoundingClientRect().top ?? containerRect.top;
 
     return controls.some((control) => {
@@ -206,6 +195,7 @@ function isInlineOverflowing(container: HTMLElement, inlineHost: HTMLElement): b
 
         return rect.left < containerRect.left - tolerance
             || rect.right > containerRect.right + tolerance
+            || (brandRect !== null && rect.top > brandRect.bottom - tolerance)
             || Math.abs(rect.top - firstTop) > tolerance;
     });
 }

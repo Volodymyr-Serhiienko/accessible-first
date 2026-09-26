@@ -1,3 +1,7 @@
+[data-af-component="button"][data-af-theme-toggle-display="button"] {
+    white-space: nowrap;
+}
+
 [data-af-component="button"][data-af-theme-toggle-display="switch"] {
     --af-theme-toggle-switch-width: 3.5rem;
     --af-theme-toggle-switch-track-height: 1.75rem;

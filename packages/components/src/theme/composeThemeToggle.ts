@@ -286,7 +286,7 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
     let unsubscribeLocale: (() => void) | null = null;
     let selectedTheme: ResolvedTheme | null = "selectedTheme" in options
         ? options.selectedTheme ?? null
-        : "dark";
+        : null;
     let announcement: ThemeToggleAnnouncement = options.announcement ?? true;
     let announcementPoliteness: LiveRegionPoliteness = options.announcementPoliteness ?? "polite";
     let onThemeChange = options.onThemeChange ?? null;

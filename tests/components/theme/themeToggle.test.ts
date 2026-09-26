@@ -43,6 +43,7 @@ describe("ThemeToggle", () => {
             target,
             toDarkLabel: "Use dark theme",
             toLightLabel: "Use light theme",
+            selectedTheme: "dark",
             announcement(detail) {
                 return `${detail.theme} theme activated`;
             },
@@ -89,6 +90,20 @@ describe("ThemeToggle", () => {
 
         expect(document.querySelectorAll("[data-af-live-region]"))
             .toHaveLength(0);
+    });
+
+    it("does not visually select the button display unless selectedTheme is configured", () => {
+        const target = createTarget("dark");
+        const toggle = ThemeToggle({
+            target,
+            announcement: false
+        });
+
+        document.body.append(toggle.element);
+
+        expect(toggle.element.hasAttribute("data-af-selected")).toBe(false);
+
+        toggle.destroy();
     });
 
     it("keeps switch semantics synchronized with external theme changes", async () => {
