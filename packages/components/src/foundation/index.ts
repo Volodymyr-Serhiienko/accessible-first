@@ -75,7 +75,15 @@ export {
 } from "../../../core/src/storage";
 export {
     createBrowserSpeechEngine,
+    createBrowserSpeechVoiceCatalog,
+    findBrowserSpeechVoice,
+    getPreferredBrowserSpeechVoice,
+    isBrowserSpeechVoiceCompatible,
     type BrowserSpeechEngineOptions,
+    type BrowserSpeechVoice,
+    type BrowserSpeechVoiceCatalog,
+    type BrowserSpeechVoiceCatalogOptions,
+    type BrowserSpeechVoicePreference,
     type SpeechEngine,
     type SpeechEngineCapabilities,
     type SpeechPlayback,

@@ -125,7 +125,7 @@ RouteChrome sits above individual route-aware controls and below full app templa
 `createAppRouteChrome` builds on that and can also create:
 
 - an `AppHeader` from `header` options, including identity-derived brand defaults when `header.identity` is supplied;
-- shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`, including optional after-outlet navigation return links;
+- shell slot values for `header`, `navigation`, `beforeOutlet`, `afterOutlet`, and `footer`, including optional before-outlet notices and after-outlet navigation return links;
 - route-control bindings that can be returned directly from `HashRoutedApp.renderChrome(...)` or `LinkRoutedApp.renderChrome(...)`.
 
 `createHashAppRouteChrome` builds on `createAppRouteChrome` and adds standard hash-route activation defaults: update history, scroll to the outlet, and move focus into the rendered route content.
@@ -203,6 +203,7 @@ Public app templates can use `routeChrome: true` when the app wants the standard
 - `header.routeControlsPlacement` - `"start"` or `"end"`. Defaults to `"start"`, so route search and commands appear before custom controls.
 - `shell` - optional `AppShell.update(...)` options returned with the chrome slots.
 - `navigationReturnLink` - optional `ResponsiveNavigationFocusLink` options without `navigation`; creates an after-outlet link that returns focus to the generated route navigation.
+- `beforeOutlet` - optional content appended after generated breadcrumbs and before the route outlet. Use it for persistent route-contextual notices without rebuilding or replacing breadcrumbs.
 - `afterOutlet` - optional content for the shell after-outlet slot. When `navigationReturnLink` is also provided, the generated return link is prepended before this content.
 - `footer` - optional content for the shell footer slot.
 
@@ -221,7 +222,7 @@ Public app templates can use `routeChrome: true` when the app wants the standard
 `createAppRouteChrome`, `createHashAppRouteChrome`, and `createLinkAppRouteChrome` return the same route chrome controller, plus:
 
 - `appHeader` - composed `AppHeader`, or `null`.
-- `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated. `afterOutlet` can include the generated `navigationReturnLink` plus app-provided after-outlet content.
+- `header`, `navigation`, `beforeOutlet`, `afterOutlet`, `footer` - shell slot content when supplied/generated. `beforeOutlet` combines generated breadcrumbs with app-provided content; `afterOutlet` can include the generated `navigationReturnLink` plus app-provided after-outlet content.
 - `navigationControl` and `currentRouteControls` - route-control bindings ready to return from routed app render callbacks.
 
 ## SPA And MPA Use

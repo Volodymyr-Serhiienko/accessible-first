@@ -108,6 +108,8 @@ export interface ComposedSelect
     setLabel(label: string | null): void;
     getItem(value: string): ComposedSelectItem | null;
     getSelectedItems(): ComposedSelectItem[];
+    /** Replaces the native option set while preserving the composed control. */
+    replaceItems(items: SelectCompositionItem[], value?: SelectCompositionValue): void;
     update(options: SelectCompositionUpdateOptions): void;
     destroy(): void;
 }
@@ -243,7 +245,7 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         "data-af-select-control": ""
     }));
 
-    const itemNodes = createItemNodes(options.items);
+    let itemNodes = createItemNodes(options.items);
     const initialValue = getInitialValue(options, itemNodes);
     const placeholder = options.placeholder?.trim();
 
@@ -311,6 +313,103 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         return composedItems.find((item) => item.value === value) ?? null;
     }
 
+    function createComposedItems(): ComposedSelectItem[] {
+        return itemNodes.map((node): ComposedSelectItem => ({
+            value: node.value,
+            option: node.option,
+
+            getText(): string {
+                return getElementText(node.option, node.value);
+            },
+
+            setLabel(label): void {
+                node.option.textContent = label;
+            },
+
+            setDisabled(disabled): void {
+                syncItemDisabled(node, disabled);
+            },
+
+            isDisabled(): boolean {
+                return node.disabled;
+            }
+        }));
+    }
+
+    function getReplacementDefaultValue(
+        items: SelectCompositionItem[],
+        enabledValues: Set<string>
+    ): SelectCompositionValue | undefined {
+        if (options.defaultValue !== undefined) {
+            const configuredValues = Array.isArray(options.defaultValue)
+                ? options.defaultValue.filter((item) => enabledValues.has(item))
+                : enabledValues.has(options.defaultValue)
+                    ? [options.defaultValue]
+                    : [];
+
+            if (configuredValues.length > 0) {
+                return select.multiple ? configuredValues : configuredValues[0];
+            }
+        }
+
+        const defaultValues = items
+            .map((item, index) => item.defaultSelected ? itemNodes[index] : null)
+            .filter((node): node is SelectItemNode => Boolean(
+                node && !node.disabled
+            ))
+            .map((node) => node.value);
+
+        if (defaultValues.length === 0) return undefined;
+
+        return select.multiple ? defaultValues : defaultValues[0];
+    }
+
+    function getReplacementValue(
+        items: SelectCompositionItem[],
+        value: SelectCompositionValue | undefined
+    ): SelectCompositionValue {
+        if (value !== undefined) return value;
+
+        const enabledValues = new Set(
+            itemNodes.filter((node) => !node.disabled).map((node) => node.value)
+        );
+        const currentValues = selectComponent.getValues().filter((currentValue) =>
+            enabledValues.has(currentValue)
+        );
+
+        if (select.multiple) return currentValues;
+        if (currentValues[0] !== undefined) return currentValues[0];
+
+        const defaultValue = getReplacementDefaultValue(items, enabledValues);
+
+        if (defaultValue !== undefined) return defaultValue;
+
+        return placeholder ? "" : itemNodes.find((node) => !node.disabled)?.value ?? "";
+    }
+
+    function replaceItems(
+        items: SelectCompositionItem[],
+        value?: SelectCompositionValue
+    ): void {
+        if (selectComponent.isDestroyed()) return;
+
+        itemNodes = createItemNodes(items);
+        const replacementValue = getReplacementValue(items, value);
+
+        select.replaceChildren();
+
+        if (placeholder && !select.multiple && replacementValue === "") {
+            select.append(createPlaceholderOption(placeholder));
+        }
+
+        for (const node of itemNodes) {
+            select.append(node.option);
+        }
+
+        composedItems = createComposedItems();
+        selectComponent.setValue(replacementValue);
+    }
+
     const handleValueChange = (detail: SelectChangeDetail): void => {
         const selectedOptions = new Set(detail.selectedOptions);
         const selectedItems = composedItems.filter((item) => selectedOptions.has(item.option));
@@ -331,31 +430,14 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         getSelectOptions(options, initialValue, handleValueChange)
     );
 
-    composedItems = itemNodes.map((node): ComposedSelectItem => ({
-        value: node.value,
-        option: node.option,
-
-        getText(): string {
-            return getElementText(node.option, node.value);
-        },
-
-        setLabel(label): void {
-            node.option.textContent = label;
-        },
-
-        setDisabled(disabled): void {
-            syncItemDisabled(node, disabled);
-        },
-
-        isDisabled(): boolean {
-            return node.disabled;
-        }
-    }));
+    composedItems = createComposedItems();
 
     composed = {
         element,
         select,
-        items: composedItems,
+        get items(): ComposedSelectItem[] {
+            return composedItems;
+        },
 
         getValue: selectComponent.getValue,
         getValues: selectComponent.getValues,
@@ -379,6 +461,8 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
 
             return composedItems.filter((item) => selectedOptions.has(item.option));
         },
+
+        replaceItems,
 
         update(nextOptions): void {
             applyCompositionElementOptions(element, nextOptions);

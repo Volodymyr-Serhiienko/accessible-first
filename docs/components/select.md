@@ -131,6 +131,25 @@ select.update({
 });
 ```
 
+For an asynchronously replaced option set, use `replaceItems(...)`. It keeps
+the same native `<select>` and its label, replaces every option atomically, and
+preserves the current value only when that value is still available. Pass an
+explicit next value when the caller owns selection state:
+
+```ts
+select.replaceItems(
+    availableVoices.map((voice) => ({
+        value: voice.id,
+        label: voice.name
+    })),
+    selectedVoiceId
+);
+```
+
+`replaceItems(...)` does not emit a value-change callback. It is intended for
+data refreshes; call application state updates explicitly when a refreshed list
+changes the intended selection.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="select"]`, `[data-af-component="select"]`, `[data-af-select-label]`, `[data-af-select-control]`, `[data-af-select-option]`, `[data-af-variant]`, and `[data-af-state]`.

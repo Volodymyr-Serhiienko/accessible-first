@@ -89,6 +89,8 @@ export interface AppRouteChromeOptions<
     header?: AppRouteChromeHeaderOptions<TLocale, TKey> | false;
     /** Optional after-outlet link that returns focus to the generated route navigation. */
     navigationReturnLink?: AppRouteChromeNavigationReturnLinkOptions | false | null;
+    /** Optional content appended after generated breadcrumbs before the shell outlet. */
+    beforeOutlet?: AppShellCompositionContent | null;
     /** Optional content returned for the shell after-outlet slot. */
     afterOutlet?: AppShellCompositionContent | null;
     /** Optional content returned for the shell footer slot. */
@@ -278,6 +280,30 @@ function createNavigationReturnLink<TRoute extends AppRouteDescriptor>(
     });
 }
 
+function getBeforeOutletContent<
+    TRoute extends AppRouteDescriptor,
+    TLocale extends LocaleCode,
+    TKey extends string
+>(
+    options: AppRouteChromeOptions<TRoute, TLocale, TKey>,
+    breadcrumbs: AppShellCompositionContent | null
+): AppShellCompositionContent | null {
+    if (!("beforeOutlet" in options)) {
+        return breadcrumbs;
+    }
+
+    const customContent = options.beforeOutlet ?? null;
+
+    if (!breadcrumbs) {
+        return customContent;
+    }
+
+    return [
+        ...toCompositionChildren(breadcrumbs),
+        ...toCompositionChildren(customContent)
+    ];
+}
+
 function getAfterOutletContent<
     TRoute extends AppRouteDescriptor,
     TLocale extends LocaleCode,
@@ -309,12 +335,13 @@ export function createAppRouteChrome<
     const routeChrome = createRouteChrome(getRouteChromeOptions(options));
     const appHeader = createAppRouteHeader<TLocale, TKey>(routeChrome.headerControls, options.header);
     const navigationReturnLink = createNavigationReturnLink(routeChrome, options.navigationReturnLink);
+    const beforeOutlet = getBeforeOutletContent(options, routeChrome.breadcrumbs);
     const afterOutlet = getAfterOutletContent(options, navigationReturnLink);
     const appRouteChrome: AppRouteChrome<TRoute, TLocale> = {
         routeChrome,
         appHeader,
         navigation: routeChrome.navigation,
-        beforeOutlet: routeChrome.breadcrumbs,
+        beforeOutlet,
         navigationControl: routeChrome.navigationControl,
         currentRouteControls: routeChrome.currentRouteControls
     };

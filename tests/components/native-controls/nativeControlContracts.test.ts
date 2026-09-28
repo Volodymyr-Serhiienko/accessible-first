@@ -79,6 +79,40 @@ describe("Native control contracts", () => {
         select.destroy();
     });
 
+    it("replaces dynamic select items without rebuilding the native control", () => {
+        const select = Select({
+            label: "Speech voice",
+            value: "voice-b",
+            items: [
+                { value: "voice-a", label: "Voice A" },
+                { value: "voice-b", label: "Voice B" }
+            ]
+        });
+        const nativeControl = select.select;
+
+        select.replaceItems([
+            { value: "voice-b", label: "Voice B (updated)" },
+            { value: "voice-c", label: "Voice C" }
+        ]);
+
+        expect(select.select).toBe(nativeControl);
+        expect(select.getValue()).toBe("voice-b");
+        expect(select.items.map((item) => item.getText())).toEqual([
+            "Voice B (updated)",
+            "Voice C"
+        ]);
+
+        select.replaceItems([
+            { value: "voice-c", label: "Voice C" }
+        ]);
+
+        expect(select.getValue()).toBe("voice-c");
+        expect(select.getSelectedItems().map((item) => item.value))
+            .toEqual(["voice-c"]);
+
+        select.destroy();
+    });
+
     it("uses a native checkbox and an explicit switch role only where needed", () => {
         const onCheckboxChange = vi.fn();
         const onSwitchChange = vi.fn();

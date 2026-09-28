@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-    createBrowserSpeechEngine
+    createBrowserSpeechEngine,
+    createBrowserSpeechVoiceCatalog
 } from "../../packages/core/src/speech";
 
 interface FakeSynthesizer {
@@ -8,7 +9,7 @@ interface FakeSynthesizer {
     readonly cancel: ReturnType<typeof vi.fn>;
     readonly getVoices: ReturnType<typeof vi.fn>;
     readonly synthesis: SpeechSynthesis;
-    setVoices(voices: readonly SpeechSynthesisVoice[]): void;
+    setVoices(voices: readonly SpeechSynthesisVoice[], notify?: boolean): void;
 }
 
 function createFakeUtterance(text: string): SpeechSynthesisUtterance {
@@ -32,8 +33,14 @@ function createFakeSynthesizer(): FakeSynthesizer {
     const getVoices = vi.fn(() => voices);
     const voiceChangeListeners = new Set<EventListener>();
 
-    function setVoices(nextVoices: readonly SpeechSynthesisVoice[]): void {
+    function setVoices(
+        nextVoices: readonly SpeechSynthesisVoice[],
+        notify = true
+    ): void {
         voices = nextVoices;
+
+        if (!notify) return;
+
         voiceChangeListeners.forEach((listener) => {
             listener(new Event("voiceschanged"));
         });
@@ -52,6 +59,14 @@ function createFakeSynthesizer(): FakeSynthesizer {
             ): void {
                 if (type === "voiceschanged" && typeof listener === "function") {
                     voiceChangeListeners.add(listener);
+                }
+            },
+            removeEventListener(
+                type: string,
+                listener: EventListenerOrEventListenerObject | null
+            ): void {
+                if (type === "voiceschanged" && typeof listener === "function") {
+                    voiceChangeListeners.delete(listener);
                 }
             },
             speak(utterance: SpeechSynthesisUtterance): void {
@@ -145,6 +160,86 @@ describe("createBrowserSpeechEngine", () => {
 
         expect(fake.spoken[2]?.voice).toBe(updatedVoice);
         expect(fake.getVoices).toHaveBeenCalledTimes(2);
+    });
+
+    it("uses voices discovered through a catalog refresh", () => {
+        const fake = createFakeSynthesizer();
+        const catalog = createBrowserSpeechVoiceCatalog({
+            speechSynthesis: fake.synthesis
+        });
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: fake.synthesis,
+            createUtterance: createFakeUtterance
+        });
+        const UkrainianVoice = {
+            lang: "uk_UA",
+            name: "Ukrainian device voice",
+            voiceURI: "uk-ua",
+            localService: true,
+            default: true
+        } as SpeechSynthesisVoice;
+
+        fake.setVoices([], false);
+        engine.speak({
+            segments: [{ text: "One", language: "uk-UA" }]
+        });
+
+        expect(fake.spoken[0]?.voice).toBeNull();
+
+        fake.setVoices([UkrainianVoice], false);
+        catalog.refresh();
+        engine.speak({
+            segments: [{ text: "Two", language: "uk-UA" }]
+        });
+
+        expect(fake.spoken[1]?.voice).toBe(UkrainianVoice);
+        catalog.destroy();
+    });
+
+    it("uses a saved compatible voice preference and falls back when it disappears", () => {
+        const fake = createFakeSynthesizer();
+        const automaticVoice = {
+            lang: "en-US",
+            name: "Automatic English",
+            voiceURI: "automatic-en",
+            localService: true,
+            default: true
+        } as SpeechSynthesisVoice;
+        const selectedVoice = {
+            lang: "en-US",
+            name: "Selected English",
+            voiceURI: "selected-en",
+            localService: true,
+            default: false
+        } as SpeechSynthesisVoice;
+        let preference = {
+            lang: "en-US",
+            name: "Selected English",
+            voiceURI: "selected-en"
+        };
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: fake.synthesis,
+            createUtterance: createFakeUtterance,
+            getVoicePreference: () => preference
+        });
+
+        fake.setVoices([automaticVoice, selectedVoice]);
+        engine.speak({
+            segments: [{ text: "One", language: "en-US" }]
+        });
+
+        expect(fake.spoken[0]?.voice).toBe(selectedVoice);
+
+        preference = {
+            lang: "en-US",
+            name: "No longer installed",
+            voiceURI: "missing-en"
+        };
+        engine.speak({
+            segments: [{ text: "Two", language: "en-US" }]
+        });
+
+        expect(fake.spoken[1]?.voice).toBe(automaticVoice);
     });
 
     it("spells Unicode letters and numbers, with optional spoken whitespace and no punctuation", () => {

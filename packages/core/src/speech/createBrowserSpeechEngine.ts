@@ -8,11 +8,27 @@ import type {
     SpeechRequest,
     SpeechSegment
 } from "./types";
+import {
+    findBrowserSpeechVoice,
+    getPreferredBrowserSpeechVoice,
+    type BrowserSpeechVoicePreference
+} from "./browserSpeechVoices";
+import {
+    getBrowserSpeechVoiceCache,
+    getCachedBrowserSpeechVoices
+} from "./browserSpeechVoiceCache";
 
 /** Options for the browser Web Speech API engine. */
 export interface BrowserSpeechEngineOptions {
     speechSynthesis?: SpeechSynthesis | null;
     createUtterance?: ((text: string) => SpeechSynthesisUtterance) | null;
+    /**
+     * Resolves an application-owned voice preference for a BCP 47 language.
+     * A missing or unavailable preference falls back to the browser choice.
+     */
+    getVoicePreference?: (
+        language: string
+    ) => BrowserSpeechVoicePreference | null | undefined;
 }
 
 interface SpeechQueueItem {
@@ -23,13 +39,6 @@ interface SpeechQueueItem {
 
 type UtteranceFactory = (text: string) => SpeechSynthesisUtterance;
 type VoiceResolver = (language: string) => SpeechSynthesisVoice | null;
-
-interface VoiceCache {
-    voices: readonly SpeechSynthesisVoice[] | null;
-    readonly resolvedVoices: Map<string, SpeechSynthesisVoice | null>;
-}
-
-const voiceCaches = new WeakMap<SpeechSynthesis, VoiceCache>();
 
 function getDefaultSpeechSynthesis(): SpeechSynthesis | null {
     return typeof speechSynthesis === "undefined"
@@ -123,50 +132,41 @@ function getSpeechQueue(
     });
 }
 
-function getPreferredVoice(
-    voices: readonly SpeechSynthesisVoice[],
-    language: string
-): SpeechSynthesisVoice | null {
-    const normalizedLanguage = language.toLowerCase();
-    const baseLanguage = normalizedLanguage.split("-")[0];
-
-    return voices.find(
-        (voice) => voice.lang.toLowerCase() === normalizedLanguage
-    ) ?? voices.find(
-        (voice) => voice.lang.toLowerCase().split("-")[0] === baseLanguage
-    ) ?? null;
-}
-
-function createVoiceResolver(synthesizer: SpeechSynthesis): VoiceResolver {
-    let cache = voiceCaches.get(synthesizer);
-
-    if (!cache) {
-        cache = {
-            voices: null,
-            resolvedVoices: new Map<string, SpeechSynthesisVoice | null>()
-        };
-
-        const cacheToReset = cache;
-        synthesizer.addEventListener("voiceschanged", () => {
-            cacheToReset.voices = null;
-            cacheToReset.resolvedVoices.clear();
-        });
-        voiceCaches.set(synthesizer, cache);
-    }
-
-    const activeCache = cache;
+function createVoiceResolver(
+    synthesizer: SpeechSynthesis,
+    getVoicePreference: BrowserSpeechEngineOptions["getVoicePreference"]
+): VoiceResolver {
+    const voiceCache = getBrowserSpeechVoiceCache(synthesizer);
+    const resolvedVoices = new Map<string, SpeechSynthesisVoice | null>();
+    let resolvedVoiceRevision = voiceCache.revision;
 
     return (language) => {
         const normalizedLanguage = language.toLowerCase();
+        const activeVoiceCache = getBrowserSpeechVoiceCache(synthesizer);
 
-        if (activeCache.resolvedVoices.has(normalizedLanguage)) {
-            return activeCache.resolvedVoices.get(normalizedLanguage) ?? null;
+        if (resolvedVoiceRevision !== activeVoiceCache.revision) {
+            resolvedVoices.clear();
+            resolvedVoiceRevision = activeVoiceCache.revision;
         }
 
-        activeCache.voices ??= synthesizer.getVoices();
+        const voices = getCachedBrowserSpeechVoices(synthesizer);
 
-        const voice = getPreferredVoice(activeCache.voices, language);
-        activeCache.resolvedVoices.set(normalizedLanguage, voice);
+        const selectedVoice = findBrowserSpeechVoice(
+            voices,
+            language,
+            getVoicePreference?.(language)
+        );
+
+        if (selectedVoice) {
+            return selectedVoice;
+        }
+
+        if (resolvedVoices.has(normalizedLanguage)) {
+            return resolvedVoices.get(normalizedLanguage) ?? null;
+        }
+
+        const voice = getPreferredBrowserSpeechVoice(voices, language);
+        resolvedVoices.set(normalizedLanguage, voice);
 
         return voice;
     };
@@ -380,7 +380,10 @@ export function createBrowserSpeechEngine(
                 return activePlayback;
             }
 
-            resolveVoice ??= createVoiceResolver(synthesizer);
+            resolveVoice ??= createVoiceResolver(
+                synthesizer,
+                options.getVoicePreference
+            );
 
             activePlayback = createBrowserPlayback(
                 synthesizer,
