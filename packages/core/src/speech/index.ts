@@ -1,5 +1,9 @@
 export { createBrowserSpeechEngine, type BrowserSpeechEngineOptions } from "./createBrowserSpeechEngine";
 export {
+    afterSpeechCompletes,
+    afterSpeechSettles
+} from "./afterSpeechPlayback";
+export {
     createBrowserSpeechVoiceCatalog,
     findBrowserSpeechVoice,
     getPreferredBrowserSpeechVoice,

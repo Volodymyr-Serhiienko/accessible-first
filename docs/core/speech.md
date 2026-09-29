@@ -42,6 +42,24 @@ unrelated asynchronous callback.
   unavailable, paused, and failed playback.
 - `SpeechEngineCapabilities` lets applications decide which actions to offer.
 
+## Playback Follow-Ups
+
+Use `afterSpeechCompletes()` when an action must run only after the requested
+speech finishes normally. Use `afterSpeechSettles()` when the follow-up must
+also run after a stop, an unavailable engine, or a playback error. Both return
+a cleanup function, so a screen can cancel its pending follow-up when it is
+destroyed.
+
+```ts
+const playback = engine.speak(request);
+const cancelFollowUp = afterSpeechSettles(playback, () => {
+    focusElement(nextControl);
+});
+```
+
+Keep live-region announcements application-owned: spoken lesson material and
+screen-reader feedback often need different timing and localization rules.
+
 `createBrowserSpeechEngine()` starts the next segment after the preceding
 utterance ends and chooses an exact voice-language match before falling back to
 the base language. It keeps the current segment on pause and restarts that
