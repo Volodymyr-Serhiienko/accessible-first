@@ -40,18 +40,42 @@ interface SpeechQueueItem {
 type UtteranceFactory = (text: string) => SpeechSynthesisUtterance;
 type VoiceResolver = (language: string) => SpeechSynthesisVoice | null;
 
+type BrowserSpeechSynthesisSurface = {
+    cancel?: () => void;
+    speak?: (utterance: SpeechSynthesisUtterance) => void;
+};
+
+function hasBrowserSpeechSynthesisSurface(
+    synthesizer: SpeechSynthesis | null
+): synthesizer is SpeechSynthesis {
+    if (!synthesizer) return false;
+
+    const surface = synthesizer as unknown as BrowserSpeechSynthesisSurface;
+
+    return typeof surface.cancel === "function"
+        && typeof surface.speak === "function";
+}
+
 function getDefaultSpeechSynthesis(): SpeechSynthesis | null {
-    return typeof speechSynthesis === "undefined"
-        ? null
-        : speechSynthesis;
+    try {
+        return typeof speechSynthesis === "undefined"
+            ? null
+            : speechSynthesis;
+    } catch {
+        return null;
+    }
 }
 
 function getDefaultUtteranceFactory(): UtteranceFactory | null {
-    if (typeof SpeechSynthesisUtterance === "undefined") {
+    try {
+        if (typeof SpeechSynthesisUtterance === "undefined") {
+            return null;
+        }
+
+        return (text) => new SpeechSynthesisUtterance(text);
+    } catch {
         return null;
     }
-
-    return (text) => new SpeechSynthesisUtterance(text);
 }
 
 function createState(
@@ -205,7 +229,12 @@ function createBrowserPlayback(
     function cancelCurrentUtterance(): void {
         utteranceRevision += 1;
         currentUtterance = null;
-        synthesizer.cancel();
+
+        try {
+            synthesizer.cancel();
+        } catch {
+            // Some partial Web Speech implementations reject cancellation.
+        }
     }
 
     function speakNext(): void {
@@ -221,56 +250,64 @@ function createBrowserPlayback(
             return;
         }
 
-        const revision = ++utteranceRevision;
-        const utterance = createUtterance(next.text);
-        const voice = resolveVoice(next.language);
+        try {
+            const revision = ++utteranceRevision;
+            const utterance = createUtterance(next.text);
+            const voice = resolveVoice(next.language);
 
-        utterance.lang = next.language;
-        utterance.rate = Math.min(10, Math.max(0.1, next.rate ?? defaultRate));
-        utterance.volume = volume;
+            utterance.lang = next.language;
+            utterance.rate = Math.min(10, Math.max(0.1, next.rate ?? defaultRate));
+            utterance.volume = volume;
 
-        if (voice) {
-            utterance.voice = voice;
+            if (voice) {
+                utterance.voice = voice;
+            }
+
+            utterance.onend = () => {
+                if (
+                    revision !== utteranceRevision
+                    || state.status !== "speaking"
+                ) {
+                    return;
+                }
+
+                currentUtterance = null;
+                currentIndex += 1;
+                speakNext();
+            };
+
+            utterance.onerror = (event) => {
+                if (
+                    revision !== utteranceRevision
+                    || (
+                        state.status !== "speaking"
+                        && state.status !== "paused"
+                    )
+                ) {
+                    return;
+                }
+
+                if (
+                    event.error === "canceled"
+                    || event.error === "interrupted"
+                ) {
+                    setState("idle");
+                    return;
+                }
+
+                currentUtterance = null;
+                setState("error", event.error);
+            };
+
+            currentUtterance = utterance;
+            synthesizer.speak(utterance);
+        } catch (error) {
+            currentUtterance = null;
+            setState(
+                "error",
+                error instanceof Error ? error.message : "Speech synthesis failed."
+            );
         }
-
-        utterance.onend = () => {
-            if (
-                revision !== utteranceRevision
-                || state.status !== "speaking"
-            ) {
-                return;
-            }
-
-            currentUtterance = null;
-            currentIndex += 1;
-            speakNext();
-        };
-
-        utterance.onerror = (event) => {
-            if (
-                revision !== utteranceRevision
-                || (
-                    state.status !== "speaking"
-                    && state.status !== "paused"
-                )
-            ) {
-                return;
-            }
-
-            if (
-                event.error === "canceled"
-                || event.error === "interrupted"
-            ) {
-                setState("idle");
-                return;
-            }
-
-            currentUtterance = null;
-            setState("error", event.error);
-        };
-
-        currentUtterance = utterance;
-        synthesizer.speak(utterance);
     }
 
     function start(): void {
@@ -355,7 +392,9 @@ export function createBrowserSpeechEngine(
     let resolveVoice: VoiceResolver | null = null;
 
     function getCapabilities(): SpeechEngineCapabilities {
-        const available = Boolean(synthesizer && createUtterance);
+        const available = Boolean(
+            createUtterance && hasBrowserSpeechSynthesisSurface(synthesizer)
+        );
 
         return {
             available,
@@ -372,7 +411,7 @@ export function createBrowserSpeechEngine(
         speak(request: SpeechRequest): SpeechPlayback {
             activePlayback?.stop();
 
-            if (!synthesizer || !createUtterance) {
+            if (!createUtterance || !hasBrowserSpeechSynthesisSurface(synthesizer)) {
                 activePlayback = createStaticPlayback(
                     createState("unavailable")
                 );

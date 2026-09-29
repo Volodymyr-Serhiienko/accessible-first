@@ -180,4 +180,54 @@ describe("browser speech voices", () => {
         unsubscribe();
         catalog.destroy();
     });
+
+    it("keeps manual voice discovery available without a voice-change event API", () => {
+        const EnglishVoice = createVoice({
+            name: "Older WebKit English",
+            lang: "en-US",
+            voiceURI: "older-webkit-en"
+        });
+        const partialSynthesizer = {
+            getVoices(): SpeechSynthesisVoice[] {
+                return [EnglishVoice];
+            }
+        } as unknown as SpeechSynthesis;
+
+        const catalog = createBrowserSpeechVoiceCatalog({
+            speechSynthesis: partialSynthesizer
+        });
+
+        expect(catalog.isAvailable()).toBe(true);
+        expect(catalog.getVoices("en-GB").map((voice) => voice.name)).toEqual([
+            "Older WebKit English"
+        ]);
+        expect(() => catalog.destroy()).not.toThrow();
+    });
+
+    it("does not fail when an incomplete browser rejects event subscription", () => {
+        const EnglishVoice = createVoice({
+            name: "Restricted English",
+            lang: "en-US",
+            voiceURI: "restricted-en"
+        });
+        const partialSynthesizer = {
+            getVoices(): SpeechSynthesisVoice[] {
+                return [EnglishVoice];
+            },
+            addEventListener(): void {
+                throw new Error("Voice events are unavailable.");
+            }
+        } as unknown as SpeechSynthesis;
+
+        expect(() => {
+            const catalog = createBrowserSpeechVoiceCatalog({
+                speechSynthesis: partialSynthesizer
+            });
+
+            expect(catalog.refresh().map((voice) => voice.name)).toEqual([
+                "Restricted English"
+            ]);
+            catalog.destroy();
+        }).not.toThrow();
+    });
 });

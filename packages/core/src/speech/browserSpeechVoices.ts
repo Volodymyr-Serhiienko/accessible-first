@@ -1,7 +1,9 @@
 import {
+    canGetBrowserSpeechVoices,
     getBrowserSpeechVoiceCache,
     getCachedBrowserSpeechVoices,
-    refreshCachedBrowserSpeechVoices
+    refreshCachedBrowserSpeechVoices,
+    subscribeToBrowserSpeechVoiceChanges
 } from "./browserSpeechVoiceCache";
 
 export interface BrowserSpeechVoicePreference {
@@ -29,9 +31,13 @@ export interface BrowserSpeechVoiceCatalog {
 }
 
 function getDefaultSpeechSynthesis(): SpeechSynthesis | null {
-    return typeof speechSynthesis === "undefined"
-        ? null
-        : speechSynthesis;
+    try {
+        return typeof speechSynthesis === "undefined"
+            ? null
+            : speechSynthesis;
+    } catch {
+        return null;
+    }
 }
 
 const languageAliases: Readonly<Record<string, string>> = {
@@ -221,11 +227,15 @@ export function createBrowserSpeechVoiceCatalog(
         refresh();
     };
 
-    synthesizer?.addEventListener("voiceschanged", handleVoicesChanged);
+    const unsubscribeVoiceChanges = synthesizer
+        ? subscribeToBrowserSpeechVoiceChanges(synthesizer, handleVoicesChanged)
+        : () => {};
 
     return {
         isAvailable(): boolean {
-            return Boolean(synthesizer) && !destroyed;
+            return synthesizer !== null
+                && canGetBrowserSpeechVoices(synthesizer)
+                && !destroyed;
         },
 
         getVoices,
@@ -248,7 +258,7 @@ export function createBrowserSpeechVoiceCatalog(
 
             destroyed = true;
             listeners.clear();
-            synthesizer?.removeEventListener("voiceschanged", handleVoicesChanged);
+            unsubscribeVoiceChanges();
         }
     };
 }

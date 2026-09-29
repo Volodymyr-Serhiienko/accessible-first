@@ -51,9 +51,11 @@ all mobile engines.
 ## Browser Voice Preferences
 
 `createBrowserSpeechVoiceCatalog()` exposes the voices that the current browser
-makes available. It refreshes its cache when the browser dispatches
-`voiceschanged`, which commonly happens after an initially empty voice list on
-mobile devices. Call `catalog.refresh()` when a user opens speech settings or
+makes available. When the browser exposes `voiceschanged`, it refreshes its
+cache after delayed voice discovery on mobile devices. Older or partial Web
+Speech implementations may not expose an event surface; the catalog still
+works through explicit `catalog.refresh()` calls and must never block app
+startup. Call `catalog.refresh()` when a user opens speech settings or
 immediately before a user-triggered voice preview; this asks the browser for a
 fresh list without background polling.
 
@@ -90,10 +92,11 @@ empty catalog is not proof that speech cannot work: when an utterance has a
 language but no assigned `voice`, the browser may use its own device default.
 
 Use `engine.getCapabilities().available` as the feature check for the browser
-speech engine itself. It is `false` only when the browser context lacks either
-`speechSynthesis` or `SpeechSynthesisUtterance`; that is the point to show one
-clear application-level fallback notice. Do not show that notice merely because
-a compatible voice list is empty. A browser may still choose a device voice at
+speech engine itself. It is `false` when the browser context lacks a usable
+utterance constructor or the minimum `speechSynthesis.speak()` and `cancel()`
+methods; that is the point to show one clear application-level fallback notice.
+Do not show that notice merely because a compatible voice list is empty or the
+voice-change event is unavailable. A browser may still choose a device voice at
 speech time. The application cannot reliably test audible output during page
 load because browsers can reject non-user-initiated speech.
 

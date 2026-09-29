@@ -341,4 +341,48 @@ describe("createBrowserSpeechEngine", () => {
         expect(first.getState()).toEqual({ status: "idle" });
         expect(fake.cancel).toHaveBeenCalledTimes(1);
     });
+
+    it("treats a partial browser synthesis object as unavailable", () => {
+        const partialSynthesizer = {
+            getVoices(): SpeechSynthesisVoice[] {
+                return [];
+            }
+        } as unknown as SpeechSynthesis;
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: partialSynthesizer,
+            createUtterance: createFakeUtterance
+        });
+
+        expect(engine.getCapabilities()).toEqual({
+            available: false,
+            pause: false,
+            spelling: false
+        });
+        expect(engine.speak({
+            segments: [{ text: "Hello", language: "en-US" }]
+        }).getState()).toEqual({ status: "unavailable" });
+    });
+
+    it("returns a playback error when a browser rejects speech startup", () => {
+        const fake = createFakeSynthesizer();
+        const throwingSynthesizer = fake.synthesis as unknown as {
+            speak: (utterance: SpeechSynthesisUtterance) => void;
+        };
+
+        throwingSynthesizer.speak = () => {
+            throw new Error("Speech startup failed.");
+        };
+
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: fake.synthesis,
+            createUtterance: createFakeUtterance
+        });
+
+        expect(engine.speak({
+            segments: [{ text: "Hello", language: "en-US" }]
+        }).getState()).toEqual({
+            status: "error",
+            error: "Speech startup failed."
+        });
+    });
 });

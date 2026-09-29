@@ -5,9 +5,71 @@ interface BrowserSpeechVoiceCache {
 
 const voiceCaches = new WeakMap<SpeechSynthesis, BrowserSpeechVoiceCache>();
 
-function readVoices(synthesizer: SpeechSynthesis): readonly SpeechSynthesisVoice[] {
+type BrowserSpeechVoiceChangeSource = {
+    addEventListener?: (type: string, listener: EventListener) => void;
+    removeEventListener?: (type: string, listener: EventListener) => void;
+};
+
+type BrowserSpeechVoiceSource = {
+    getVoices?: () => SpeechSynthesisVoice[];
+};
+
+function getVoiceSource(synthesizer: SpeechSynthesis): BrowserSpeechVoiceSource {
+    return synthesizer as unknown as BrowserSpeechVoiceSource;
+}
+
+function getVoiceChangeSource(
+    synthesizer: SpeechSynthesis
+): BrowserSpeechVoiceChangeSource {
+    return synthesizer as unknown as BrowserSpeechVoiceChangeSource;
+}
+
+export function canGetBrowserSpeechVoices(
+    synthesizer: SpeechSynthesis
+): boolean {
+    return typeof getVoiceSource(synthesizer).getVoices === "function";
+}
+
+/**
+ * Older WebKit builds can expose speechSynthesis without a complete
+ * EventTarget surface. Voice discovery must remain an optional enhancement.
+ */
+export function subscribeToBrowserSpeechVoiceChanges(
+    synthesizer: SpeechSynthesis,
+    listener: () => void
+): () => void {
+    const source = getVoiceChangeSource(synthesizer);
+
+    if (typeof source.addEventListener !== "function") {
+        return () => {};
+    }
+
+    const eventListener: EventListener = () => {
+        listener();
+    };
+
     try {
-        return synthesizer.getVoices();
+        source.addEventListener("voiceschanged", eventListener);
+    } catch {
+        return () => {};
+    }
+
+    return () => {
+        if (typeof source.removeEventListener !== "function") return;
+
+        try {
+            source.removeEventListener("voiceschanged", eventListener);
+        } catch {
+            // Cleanup must be harmless for a partial browser implementation.
+        }
+    };
+}
+
+function readVoices(synthesizer: SpeechSynthesis): readonly SpeechSynthesisVoice[] {
+    if (!canGetBrowserSpeechVoices(synthesizer)) return [];
+
+    try {
+        return getVoiceSource(synthesizer).getVoices?.() ?? [];
     } catch {
         return [];
     }
@@ -26,7 +88,7 @@ export function getBrowserSpeechVoiceCache(
         };
 
         const cacheToReset = cache;
-        synthesizer.addEventListener("voiceschanged", () => {
+        subscribeToBrowserSpeechVoiceChanges(synthesizer, () => {
             cacheToReset.voices = null;
             cacheToReset.revision += 1;
         });
