@@ -121,6 +121,9 @@ const button = createButton(existingButton, {
 - `hintId` - Custom id for the generated hint text.
 - `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
 - `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the button.
+- `hintShowOnFocus` - Whether focus shows the visual tooltip (default `true`).
+  Set `false` with `hintDisplay: "both"` for a hover-only visual layer while keeping
+  the screen-reader description on focus.
 - `type` - `"button"`, `"submit"`, or `"reset"`.
 - `variant` - `"primary"`, `"secondary"`, `"ghost"`, or `"danger"`.
 - `size` - `"md"`.

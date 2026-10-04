@@ -36,7 +36,7 @@ const tooltip = createTooltip(button, {
 
 ## Behavior
 
-- Shows short visual text on mouse hover and keyboard focus.
+- Shows short visual text on mouse hover and, by default, keyboard focus.
 - Can connect the text to the trigger through `aria-describedby`.
 - Keeps tooltip content non-interactive.
 - Keeps the visual tooltip open while the pointer moves from the trigger onto it.
@@ -56,6 +56,8 @@ Enhancement options:
 - `id` - Optional id for the hidden described-by text node.
 - `describe` - Adds tooltip text to `aria-describedby`. Defaults to `false` for enhancement.
 - `announceOnHover` - Announces tooltip text when a mouse pointer enters the trigger.
+- `showOnFocus` - Shows the visual layer on keyboard focus (default `true`).
+  Setting `false` does not remove `aria-describedby` when `describe` is enabled.
 
 Composition options:
 
@@ -63,6 +65,8 @@ Composition options:
 - `text` - Tooltip text.
 - `describe` - Adds tooltip text to `aria-describedby`. Defaults to `true` for `Tooltip()`.
 - `announceOnHover` - Announces tooltip text when a mouse pointer enters the trigger.
+- `showOnFocus` - Same visual-focus option as the enhancement API; also available
+  through `setShowOnFocus()` and `update()`.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
 ## Tooltip Versus Popover

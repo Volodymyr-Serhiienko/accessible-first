@@ -16,6 +16,8 @@ export interface ControlHintOptions {
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
+    /** Whether focus also displays the visual tooltip; does not affect its description. */
+    hintShowOnFocus?: boolean;
 }
 
 /**
@@ -70,13 +72,15 @@ export function createControlHint(
     let hintId = options.hintId ?? "";
     let hintDisplay: ControlHintDisplay = options.hintDisplay ?? "description";
     let hintAnnounceOnHover = options.hintAnnounceOnHover ?? false;
+    let hintShowOnFocus = options.hintShowOnFocus ?? true;
     let descriptionElement: HTMLElement | null = null;
     let destroyed = false;
 
     const tooltip: Tooltip = createTooltip(element, {
         text: null,
         describe: false,
-        announceOnHover: hintAnnounceOnHover
+        announceOnHover: hintAnnounceOnHover,
+        showOnFocus: hintShowOnFocus
     });
 
     function shouldUseDescription(): boolean {
@@ -118,6 +122,7 @@ export function createControlHint(
 
     function syncTooltip(): void {
         tooltip.setAnnounceOnHover(hintAnnounceOnHover);
+        tooltip.setShowOnFocus(hintShowOnFocus);
         tooltip.setText(shouldUseTooltip() ? hint : null);
     }
 
@@ -192,6 +197,7 @@ export function createControlHint(
             if (nextOptions.hintAnnounceOnHover !== undefined) {
                 hintAnnounceOnHover = nextOptions.hintAnnounceOnHover;
             }
+            if (nextOptions.hintShowOnFocus !== undefined) hintShowOnFocus = nextOptions.hintShowOnFocus;
 
             sync();
         },

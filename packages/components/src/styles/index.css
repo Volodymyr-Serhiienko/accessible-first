@@ -46,5 +46,6 @@
 @import "./components/tabs.css";
 @import "./components/text-field.css";
 @import "./components/theme-toggle.css";
+@import "./components/account-control.css";
 @import "./components/toast.css";
 @import "./components/tooltip.css";

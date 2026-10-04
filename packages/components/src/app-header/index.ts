@@ -1,6 +1,7 @@
 export { AppHeader } from "./composeAppHeader";
 
 export type {
+    AppHeaderAccountControlOptions,
     AppHeaderBrandOptions,
     AppHeaderLanguageComboboxOptions,
     AppHeaderLanguageOptions,

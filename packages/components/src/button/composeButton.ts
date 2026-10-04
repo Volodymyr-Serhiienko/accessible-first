@@ -43,6 +43,8 @@ export interface ButtonCompositionOptions
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
+    /** Display the tooltip on focus as well as hover. Defaults to true. */
+    hintShowOnFocus?: boolean;
     onPress?: ButtonCompositionOnPress | null;
 }
 
@@ -77,6 +79,7 @@ function getControlHintOptions(
     if (options.hintAnnounceOnHover !== undefined) {
         hintOptions.hintAnnounceOnHover = options.hintAnnounceOnHover;
     }
+    if (options.hintShowOnFocus !== undefined) hintOptions.hintShowOnFocus = options.hintShowOnFocus;
 
     return hintOptions;
 }

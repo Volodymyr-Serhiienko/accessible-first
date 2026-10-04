@@ -20,6 +20,7 @@ Each component document should contain:
 ## Visual UI, Layout, And Form Components
 
 - [Accordion](./accordion.md)
+- [AccountControl](./account-control.md)
 - [ActionsBar](./actions-bar.md)
 - [AlertDialog](./alert-dialog.md)
 - [Badge](./badge.md)

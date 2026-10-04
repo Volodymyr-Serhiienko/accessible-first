@@ -7,7 +7,8 @@ import {
     vi
 } from "vitest";
 import {
-    createTooltip
+    createTooltip,
+    Tooltip
 } from "../../../packages/components/src/tooltip";
 
 const announcementDelay = 50;
@@ -42,6 +43,21 @@ function createRect(
 }
 
 describe("createTooltip", () => {
+    it("preserves the visual-focus option when a composed trigger is replaced", () => {
+        const trigger = createTrigger();
+        const composed = Tooltip({ trigger, text: "Account", showOnFocus: false });
+        document.body.append(composed.element);
+        trigger.focus();
+        expect(document.querySelector("[data-af-tooltip-visible]")).toBeNull();
+        expect(trigger.hasAttribute("aria-describedby")).toBe(true);
+        composed.setShowOnFocus(true);
+        expect(document.querySelector("[data-af-tooltip-visible]")).not.toBeNull();
+        composed.update({ trigger: createTrigger(), showOnFocus: false });
+        composed.target.focus();
+        expect(document.querySelector("[data-af-tooltip-visible]")).toBeNull();
+        composed.destroy();
+    });
+
     beforeEach(() => {
         vi.useFakeTimers();
     });

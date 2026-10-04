@@ -2,6 +2,7 @@
     position: fixed;
     z-index: var(--af-z-toast, 1100);
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
     inline-size: min(calc(100vw - 2rem), var(--af-toast-width, 26rem));
     pointer-events: none;
@@ -28,6 +29,8 @@
 }
 
 [data-af-toast] {
+    box-sizing: border-box;
+    min-inline-size: 0;
     pointer-events: auto;
     display: grid;
     gap: var(--af-space-3);
@@ -58,6 +61,8 @@
 
 [data-af-toast-content] {
     display: grid;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     gap: 0.25rem;
 }
 

@@ -2,6 +2,9 @@
  * Built-in user-facing service text keys owned by Accessible First.
  */
 export type AccessibleFirstMessageKey =
+    | "accountControl.signInLabel"
+    | "accountControl.signOutLabel"
+    | "accountControl.accountLabel"
     | "alertDialog.cancelText"
     | "alertDialog.confirmText"
     | "breadcrumbs.label"
@@ -60,6 +63,9 @@ export type AccessibleFirstMessageKey =
  * English fallback messages for Accessible First service text.
  */
 export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, string> = {
+    "accountControl.signInLabel": "Sign in",
+    "accountControl.signOutLabel": "Sign out",
+    "accountControl.accountLabel": "Account",
     "alertDialog.cancelText": "Cancel",
     "alertDialog.confirmText": "Confirm",
     "breadcrumbs.label": "Breadcrumb",

@@ -16,6 +16,8 @@ export interface TooltipOptions {
     id?: string;
     describe?: boolean;
     announceOnHover?: boolean;
+    /** Show the visual tooltip on keyboard focus. Description remains independent. */
+    showOnFocus?: boolean;
 }
 
 /**
@@ -26,6 +28,7 @@ export interface Tooltip {
     getText(): string | null;
     setDescribe(describe: boolean): void;
     setAnnounceOnHover(announceOnHover: boolean): void;
+    setShowOnFocus(showOnFocus: boolean): void;
     getContentElement(): HTMLElement | null;
     destroy(): void;
 }
@@ -109,6 +112,7 @@ export function createTooltip(
     let text = normalizeText(options.text);
     let describe = options.describe ?? false;
     let announceOnHover = options.announceOnHover ?? false;
+    let showOnFocus = options.showOnFocus ?? true;
     let tooltipId = options.id ?? "";
     let descriptionContent: HTMLElement | null = null;
     let visualContent: HTMLElement | null = null;
@@ -265,7 +269,7 @@ export function createTooltip(
     }
 
     function isActive(): boolean {
-        return pointerOver || pointerOverTooltip || focusWithin;
+        return pointerOver || pointerOverTooltip || (showOnFocus && focusWithin);
     }
 
     function isVisualTarget(target: EventTarget | null): boolean {
@@ -478,6 +482,13 @@ export function createTooltip(
             if (!announceOnHover) {
                 announcer?.clear();
             }
+        },
+
+        setShowOnFocus(value: boolean): void {
+            if (destroyed) return;
+            showOnFocus = value;
+            syncVisualVisibility();
+            resetDismissalWhenInactive();
         },
 
         getContentElement(): HTMLElement | null {

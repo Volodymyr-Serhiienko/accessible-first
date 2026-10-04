@@ -1,0 +1,10 @@
+[data-af-account-control] {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+[data-af-account-control-display="icon"] {
+    inline-size: var(--af-target-size);
+    min-inline-size: var(--af-target-size);
+    padding-inline: 0;
+}

@@ -65,6 +65,8 @@ const notifications = createToastViewport(element, {
 - Interactive toast actions are not recommended for flows that must be fully accessible to blind keyboard or screen reader users.
 - Pauses auto-dismiss on mouse hover when `pauseOnHover` is enabled.
 - Can limit the number of visible toasts.
+- Keeps padding/borders inside its mobile width and wraps long message tokens.
+- Clears a closed toast's live-region text without erasing newer notifications or other components' feedback.
 - Restores original viewport attributes on `destroy()`.
 
 ## Options
@@ -95,6 +97,20 @@ Toast options:
 - `actionLabel` - Optional accessible label for the action button.
 - `onAction` - Called when the action button is pressed.
 - `onClose` - Called when the toast closes.
+
+## Announcement Priority
+
+Use `politeness: "polite"` for routine and background feedback. Use `"assertive"`
+only when a result must interrupt current speech, not as a blanket viewport default.
+Keep the visible toast non-live and avoid announcing the same event through a
+second status, route announcement, or speech engine. Focus remains with the workflow.
+
+ARIA priority is a suggestion to assistive technology, not a speech scheduler.
+Assertive updates may discard queued speech rather than resume it afterward.
+Web applications cannot detect when a screen reader finishes reading, so do not
+promise toast-before-focus order or delay focus with a guessed speech duration.
+Closing a toast clears its owned live text, but cannot retract speech already
+queued inside a screen reader. Verify the actual order on target devices.
 
 ## Interactive Action Limitation
 

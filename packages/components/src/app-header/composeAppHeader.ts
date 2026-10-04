@@ -1,4 +1,5 @@
 import type { AppIdentity } from "../app-identity";
+import { AccountControl, type AccountControlOptions, type ComposedAccountControl } from "../account-control";
 import {
     Brand,
     type BrandCompositionContent,
@@ -93,6 +94,9 @@ export type AppHeaderLanguageOptions<
  */
 export type AppHeaderThemeToggleOptions = Omit<ThemeToggleOptions, "locale">;
 
+/** AccountControl options managed by AppHeader, sharing its locale provider. */
+export type AppHeaderAccountControlOptions = Omit<AccountControlOptions, "locale">;
+
 /**
  * HeaderTools options managed by AppHeader. Controls and locale come from AppHeader.
  */
@@ -119,6 +123,8 @@ export interface AppHeaderOptions<
     language?: AppHeaderLanguageOptions<TLocale, TKey> | false;
     /** Theme toggle options. Use false to omit the generated theme toggle. */
     theme?: AppHeaderThemeToggleOptions | false;
+    /** Optional account action placed after the theme toggle. Omitted by default. */
+    account?: AppHeaderAccountControlOptions | false;
     /** Header overflow behavior. Use false to render controls directly in the actions slot. */
     tools?: AppHeaderToolsOptions | false;
 }
@@ -132,6 +138,7 @@ export interface ComposedAppHeader<TLocale extends LocaleCode = LocaleCode>
     readonly brandControl: ComposedBrand | null;
     readonly languageControl: ComposedLanguageSelect<TLocale> | ComposedLanguageCombobox<TLocale> | null;
     readonly themeControl: ComposedThemeToggle | null;
+    readonly accountControl: ComposedAccountControl | null;
     readonly toolsControl: ComposedHeaderTools | null;
     readonly controls: readonly CompositionChild[];
 }
@@ -283,6 +290,7 @@ export function AppHeader<
         language: _languageOptions,
         locale: _localeOptions,
         theme: _themeOptions,
+        account: _accountOptions,
         tools: _toolsOptions,
         ...headerBarOptions
     } = options;
@@ -297,12 +305,16 @@ export function AppHeader<
         : brandControl;
     const languageControl = createLanguageControl(locale, options.language);
     const themeControl = createThemeControl(locale, options.theme);
+    const accountControl = options.account
+        ? AccountControl({ ...options.account, locale })
+        : null;
     const controls: CompositionChild[] = [
         ...(options.controls ?? [])
     ];
 
     if (languageControl) controls.push(languageControl);
     if (themeControl) controls.push(themeControl);
+    if (accountControl) controls.push(accountControl);
 
     const toolsControl = createToolsControl(locale, controls, options.tools);
     const actions = getActionsContent(controls, toolsControl, options.tools);
@@ -319,6 +331,7 @@ export function AppHeader<
         brandControl,
         languageControl,
         themeControl,
+        accountControl,
         toolsControl,
         controls
     };

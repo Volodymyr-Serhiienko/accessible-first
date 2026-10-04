@@ -1,6 +1,6 @@
 # AppHeader
 
-AppHeader is a higher-level application header recipe built from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect` or `LanguageCombobox`, and `ThemeToggle`.
+AppHeader is a higher-level application header recipe built from `HeaderBar`, `Brand`, `HeaderTools`, `LanguageSelect` or `LanguageCombobox`, `ThemeToggle`, and optional `AccountControl`.
 
 Use it when an app needs the common header stack: brand identity, route/search/command controls, language selection, theme switching, and automatic overflow into a compact tools panel when space is tight.
 
@@ -52,6 +52,7 @@ AppHeader({
 - Adds native `LanguageSelect` automatically when `locale` is supplied, unless `language: false` is set.
 - Uses `LanguageCombobox` instead when `language.control` is explicitly `"combobox"`; this defers a locale change until the user confirms an option.
 - Adds `ThemeToggle` automatically unless `theme: false` is set.
+- Adds `AccountControl` after the theme only when `account` options are supplied.
 - Wraps controls in `HeaderTools` by default so one control set moves between inline and overflow placement.
 - Uses `HeaderBar` for the actual header layout and keeps native page landmarks outside the component.
 
@@ -64,6 +65,7 @@ AppHeader({
 - `controls` - app-specific controls, such as route search, command palette, profile actions, or settings buttons.
 - `language` - native `LanguageSelect` options without `locale`, or `{ control: "combobox", ... }` for confirmed language selection. Use `false` to omit the generated control.
 - `theme` - `ThemeToggle` options without `locale`. Use `false` to omit the generated toggle.
+- `account` - [AccountControl](account-control.md) options without `locale`. Omitted by default; the app supplies session state and sign-in/sign-out handlers.
 - `tools` - `HeaderTools` options without `controls` and `locale`. Use `false` to render controls directly in the actions slot.
 - `content` - optional `HeaderBar` content slot for custom layouts.
 - `layout`, `brandMaxWidth`, `variant`, `size`, `brandOptions`, `contentOptions`, `actionsOptions` - forwarded to `HeaderBar`.
@@ -92,4 +94,5 @@ Use `HeaderTools` overflow for responsive headers instead of duplicating desktop
 - Identity-driven headers show the expected brand name and logo.
 - The HeaderTools trigger exposes a short tooltip/hint.
 - Opening the tools panel announces its title and description once.
-- Language and theme controls update when the shared locale changes.
+- Language, theme and account controls update when the shared locale changes.
+- Account actions follow the theme control; their subscriptions are cleaned up with the header.

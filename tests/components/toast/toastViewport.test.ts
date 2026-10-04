@@ -10,6 +10,7 @@ import {
     ToastViewport,
     type ToastCloseReason
 } from "../../../packages/components/src/toast";
+import { createDocumentAnnouncementChannel } from "../../../packages/core/src/live-region";
 
 describe("ToastViewport", () => {
     beforeEach(() => {
@@ -113,5 +114,71 @@ describe("ToastViewport", () => {
         expect(viewport.getToasts()).toEqual([]);
 
         viewport.destroy();
+    });
+
+    it("prioritizes an explicit action result without moving focus and clears it on expiry", () => {
+        const button = document.createElement("button");
+        document.body.append(button);
+        button.focus();
+        const viewport = ToastViewport({ duration: 5000, dismissible: false });
+        document.body.append(viewport.element);
+        const toast = viewport.show({ description: "Signed out", politeness: "assertive" });
+
+        vi.advanceTimersByTime(100);
+
+        expect(document.activeElement).toBe(button);
+        expect([...document.querySelectorAll('[aria-live="assertive"]')]
+            .map((region) => region.textContent)).toContain("Signed out");
+        expect([...document.querySelectorAll('[aria-live="polite"]')]
+            .every((region) => !region.textContent)).toBe(true);
+
+        vi.advanceTimersByTime(4900);
+
+        expect(toast.isClosed()).toBe(true);
+        expect([...document.querySelectorAll('[aria-live="assertive"]')]
+            .every((region) => !region.textContent)).toBe(true);
+        expect(document.activeElement).toBe(button);
+        viewport.destroy();
+        button.remove();
+    });
+
+    it("does not clear a newer toast when an older toast closes", () => {
+        const viewport = ToastViewport({ dismissible: false });
+        document.body.append(viewport.element);
+        const first = viewport.show({ description: "First notification" });
+        vi.advanceTimersByTime(100);
+        const second = viewport.show({ description: "Second notification" });
+        vi.advanceTimersByTime(100);
+
+        first.close();
+
+        expect([...document.querySelectorAll('[aria-live="polite"]')]
+            .map((region) => region.textContent)).toContain("Second notification");
+        second.close();
+        expect([...document.querySelectorAll('[aria-live="polite"]')]
+            .every((region) => !region.textContent)).toBe(true);
+        viewport.destroy();
+    });
+
+    it("clears each toast priority separately without erasing another component's feedback", () => {
+        const viewport = ToastViewport({ dismissible: false });
+        document.body.append(viewport.element);
+        const background = viewport.show({ description: "Background result", politeness: "polite" });
+        vi.advanceTimersByTime(100);
+        const urgent = viewport.show({ description: "Action result", politeness: "assertive" });
+        vi.advanceTimersByTime(100);
+        const other = createDocumentAnnouncementChannel({ document });
+        other.announce("Another component", { politeness: "assertive" });
+        vi.advanceTimersByTime(100);
+
+        background.close();
+        urgent.close();
+
+        expect([...document.querySelectorAll('[aria-live="polite"]')]
+            .every((region) => !region.textContent)).toBe(true);
+        expect([...document.querySelectorAll('[aria-live="assertive"]')]
+            .map((region) => region.textContent)).toContain("Another component");
+        viewport.destroy();
+        other.destroy();
     });
 });

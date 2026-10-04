@@ -23,6 +23,8 @@ export interface TooltipCompositionOptions extends BaseCompositionOptions {
     text: string | null;
     describe?: boolean;
     announceOnHover?: boolean;
+    /** Whether keyboard focus displays the visual layer. Description remains available. */
+    showOnFocus?: boolean;
 }
 
 /**
@@ -39,6 +41,7 @@ export interface ComposedTooltip extends ComposedNode<HTMLElement> {
     getText(): string | null;
     setDescribe(describe: boolean): void;
     setAnnounceOnHover(announceOnHover: boolean): void;
+    setShowOnFocus(showOnFocus: boolean): void;
     update(options: TooltipCompositionUpdateOptions): void;
     destroy(): void;
 }
@@ -62,11 +65,13 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
     let text = options.text;
     let describe = options.describe ?? true;
     let announceOnHover = options.announceOnHover ?? false;
+    let showOnFocus = options.showOnFocus ?? true;
     let target = getTooltipTarget(element);
     let tooltip: TooltipInstance = createTooltip(target, {
         text,
         describe,
-        announceOnHover
+        announceOnHover,
+        showOnFocus
     });
 
     function recreateTooltip(): void {
@@ -75,7 +80,8 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
         tooltip = createTooltip(target, {
             text,
             describe,
-            announceOnHover
+            announceOnHover,
+            showOnFocus
         });
     }
 
@@ -94,6 +100,11 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
         tooltip.setAnnounceOnHover(nextAnnounceOnHover);
     }
 
+    function setShowOnFocus(value: boolean): void {
+        showOnFocus = value;
+        tooltip.setShowOnFocus(value);
+    }
+
     return {
         element,
 
@@ -105,6 +116,7 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
         getText: () => tooltip.getText(),
         setDescribe,
         setAnnounceOnHover,
+        setShowOnFocus,
 
         update(nextOptions: TooltipCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
@@ -120,6 +132,7 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
             if (nextOptions.announceOnHover !== undefined) {
                 announceOnHover = nextOptions.announceOnHover;
             }
+            if (nextOptions.showOnFocus !== undefined) showOnFocus = nextOptions.showOnFocus;
 
             if (nextOptions.trigger !== undefined) {
                 triggerSlot.set(toCompositionChildren(nextOptions.trigger));
@@ -130,6 +143,7 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
             tooltip.setText(text);
             tooltip.setDescribe(describe);
             tooltip.setAnnounceOnHover(announceOnHover);
+            tooltip.setShowOnFocus(showOnFocus);
         },
 
         destroy(): void {

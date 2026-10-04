@@ -112,6 +112,7 @@ export function createToastViewport(
     let pauseOnHover = options.pauseOnHover ?? true;
     let newestOnTop = options.newestOnTop ?? true;
     let toasts: Toast[] = [];
+    const announcedToasts = new Map<ToastPoliteness, Toast>();
 
     const announcer = createDocumentAnnouncementChannel({
         document: ownerDocument
@@ -162,6 +163,7 @@ export function createToastViewport(
 
         ownerWindow.setTimeout(() => {
             if (!toast.isClosed()) {
+                announcedToasts.set(state.politeness, toast);
                 announcer.announce(message, {
                     politeness: state.politeness
                 });
@@ -187,6 +189,12 @@ export function createToastViewport(
 
     function removeToast(toast: Toast): void {
         toasts = toasts.filter((item) => item !== toast);
+        for (const [politeness, owner] of announcedToasts) {
+            if (owner !== toast) continue;
+
+            announcedToasts.delete(politeness);
+            announcer.clear({ politeness });
+        }
     }
 
     function createToast(input: ToastInput): Toast {
