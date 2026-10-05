@@ -71,6 +71,9 @@ const navigation = ResponsiveNavigation({
 ## Options
 
 - `items` - Required navigation items.
+- `leadingContent` - Optional factory forwarded to both lists. Each call must
+  create a new owned node; never return one shared dropdown instance. Ordinary
+  navigation links retain their native semantics. See [DropdownMenu](./dropdown-menu.md).
 - `trigger` - Mobile trigger content. Defaults to `"Menu"`.
 - `closeButton` - Mobile close button content. Defaults to localized `"Close menu"`; pass `null` to hide it when the surrounding shell provides another close route.
 - `triggerIconPosition` - Mobile trigger icon side: `"end"` or `"start"`. Defaults to `"end"`.

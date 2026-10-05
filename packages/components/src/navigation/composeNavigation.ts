@@ -1,6 +1,7 @@
 import {
     applyCompositionElementOptions,
     createElement,
+    createContentSlot,
     getCompositionElementOptions,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -89,6 +90,8 @@ export interface NavigationItem {
  */
 export interface NavigationOptions extends BaseCompositionOptions {
     items: NavigationItem[];
+    /** Creates independently owned leading content before the ordinary links. */
+    leadingContent?: (() => CompositionContent) | null;
     orientation?: NavigationOrientation;
     variant?: NavigationVariant;
     size?: NavigationSize;
@@ -156,6 +159,8 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     const composedItems: ComposedNavigationItem[] = [];
 
     let itemDefinitions = options.items;
+    let leadingContent = options.leadingContent ?? null;
+    let leadingSlot: ReturnType<typeof createContentSlot> | null = null;
     let orientation: NavigationOrientation = options.orientation ?? "horizontal";
     let variant: NavigationVariant = options.variant ?? "default";
     let size: NavigationSize = options.size ?? "md";
@@ -256,6 +261,8 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     }
 
     function disposeItems(): void {
+        leadingSlot?.dispose();
+        leadingSlot = null;
         for (const node of [...itemNodes].reverse()) {
             node.link.destroy();
         }
@@ -268,6 +275,14 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     function setItems(items: NavigationItem[]): void {
         itemDefinitions = items;
         disposeItems();
+
+        if (leadingContent) {
+            const control = createElement("li", {
+                attributes: { "data-af-navigation-item": "", "data-af-navigation-control": "" }
+            });
+            leadingSlot = createContentSlot(control, toCompositionChildren(leadingContent()));
+            element.append(control);
+        }
 
         itemNodes = itemDefinitions.map(createItemNode);
 
@@ -312,8 +327,12 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
                 onNavigate = nextOptions.onNavigate ?? null;
             }
 
+            if ("leadingContent" in nextOptions) leadingContent = nextOptions.leadingContent ?? null;
+
             if (nextOptions.items !== undefined) {
                 setItems(nextOptions.items);
+            } else if ("leadingContent" in nextOptions) {
+                setItems(itemDefinitions);
             } else {
                 sync();
             }

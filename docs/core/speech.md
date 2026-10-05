@@ -50,6 +50,13 @@ also run after a stop, an unavailable engine, or a playback error. Both return
 a cleanup function, so a screen can cancel its pending follow-up when it is
 destroyed.
 
+Cancel the previous follow-up before replacing playback, and cancel all owned
+follow-ups before stopping speech during screen teardown. A stopped request is
+settled, so `afterSpeechSettles()` can run immediately on `stop()`. Before moving
+focus, also check that the action is still current and the user has not moved to
+another control. If unavailable speech uses a separate announcement fallback,
+keep its non-speech follow-up explicit rather than silently skipping it.
+
 ```ts
 const playback = engine.speak(request);
 const cancelFollowUp = afterSpeechSettles(playback, () => {
@@ -145,3 +152,18 @@ segment through a live region; that would duplicate the speech itself.
   product.
 - Test with NVDA, TalkBack, or VoiceOver without letting status speech overlap
   the requested content.
+
+## Owned Speech Tasks
+
+`createSpeechTask(engine)` owns playback together with its callbacks. `speak(request,
+{ onComplete, onFallback })` cancels the previous request and unsubscribes before
+stopping it. Normal completion invokes `onComplete`; unavailable/failed synthesis
+invokes `onFallback`, then `onComplete` if the task is still current. A stopped
+request invokes neither. `cancel()` is reusable; `destroy()` prevents further speech.
+Engine capability/speak failures use the same fallback.
+
+Use this for interactive views where speech is optional but the next UI action
+must still work. Keep fallback text and focus policy in the application. Check that
+focus still belongs to the originating interaction before moving it, and call
+`destroy()` when removing the view. Do not combine this controller with an unowned
+completion subscription to the same request.

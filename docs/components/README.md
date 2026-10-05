@@ -50,6 +50,7 @@ Each component document should contain:
 - [ListDetail](./list-detail.md)
 - [Listbox](./listbox.md)
 - [Menu](./menu.md)
+- [DropdownMenu](./dropdown-menu.md)
 - [Navigation](./navigation.md)
 - [OverflowScroller](./overflow-scroller.md)
 - [Pagination](./pagination.md)

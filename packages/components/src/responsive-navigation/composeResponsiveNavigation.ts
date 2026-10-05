@@ -95,6 +95,8 @@ export type ResponsiveNavigationOverflowScrollerOptions = Omit<OverflowScrollerO
  */
 export interface ResponsiveNavigationOptions extends BaseCompositionOptions {
     items: NavigationItem[];
+    /** Creates a separate leading control for each desktop and mobile list. */
+    leadingContent?: NavigationOptions["leadingContent"];
     trigger?: ResponsiveNavigationTriggerContent;
     closeButton?: ResponsiveNavigationCloseButtonContent | null;
     triggerIconPosition?: ResponsiveNavigationTriggerIconPosition;
@@ -296,7 +298,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     }
 
     const desktopNavigation = Navigation(getNavigationOptions(
-        options.desktopNavigationOptions,
+        { ...options.desktopNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
         items,
         variant,
         size,
@@ -310,7 +312,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     });
 
     const mobileNavigation = Navigation(getNavigationOptions(
-        options.mobileNavigationOptions,
+        { ...options.mobileNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
         items,
         mobileVariant,
         size,
@@ -459,7 +461,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             }
 
             desktopNavigation.update(getNavigationUpdateOptions(
-                nextOptions.desktopNavigationOptions,
+                { ...nextOptions.desktopNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
                 nextOptions.items,
                 variant,
                 size,
@@ -474,7 +476,7 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
             desktopScroller.refresh();
 
             mobileNavigation.update(getNavigationUpdateOptions(
-                nextOptions.mobileNavigationOptions,
+                { ...nextOptions.mobileNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
                 nextOptions.items,
                 mobileVariant,
                 size,

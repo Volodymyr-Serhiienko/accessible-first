@@ -27,6 +27,7 @@
 @import "./components/list-detail.css";
 @import "./components/listbox.css";
 @import "./components/menu.css";
+@import "./components/dropdown-menu.css";
 @import "./components/navigation.css";
 @import "./components/overflow-scroller.css";
 @import "./components/page-outlet.css";

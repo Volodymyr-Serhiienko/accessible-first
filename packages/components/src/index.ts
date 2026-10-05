@@ -36,6 +36,7 @@ export * from "./listbox";
 export * from "./list-detail";
 export * from "./localization";
 export * from "./menu";
+export * from "./dropdown-menu";
 export * from "./navigation";
 export * from "./overflow-scroller";
 export * from "./page";

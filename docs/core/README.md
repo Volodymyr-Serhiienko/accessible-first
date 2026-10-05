@@ -9,6 +9,7 @@ existing DOM or building a reusable behavior layer.
 - [ARIA](./aria.md)
 - [DOM](./dom.md)
 - [Events](./events.md)
+- [Task Scope: cancellation and owned follow-ups](./task.md)
 - [ID](./id.md)
 - [Keyboard](./keyboard.md)
 

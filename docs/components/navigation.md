@@ -70,6 +70,10 @@ const navigation = Navigation({
 ## Options
 
 - `items` - Required navigation items.
+- `leadingContent` - Optional factory for an owned control before the links, such
+  as [DropdownMenu](./dropdown-menu.md). Called again when items are rebuilt;
+  its previous composed content is disposed. Pass `null` to remove it. It is not
+  a route item and does not receive link interception or current-route state.
 - `orientation` - `"horizontal"` or `"vertical"`. Defaults to `"horizontal"`.
 - `variant` - `"default"`, `"plain"`, or `"pills"`.
 - `size` - `"md"`.
@@ -126,3 +130,5 @@ Navigation({
 - Native navigation works without JavaScript routing.
 - SPA interception works only when `event.preventDefault()` is intentionally used.
 - Layout wraps cleanly on small screens.
+- Leading dropdown controls align to the inline start in vertical navigation,
+  matching the links instead of centering their label.

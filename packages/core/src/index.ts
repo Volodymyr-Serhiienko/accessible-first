@@ -21,5 +21,6 @@ export * from "./selection";
 export * from "./speech";
 export * from "./storage";
 export * from "./tabs";
+export * from "./task";
 export * from "./typeahead";
 export * from "./validation-announcements";

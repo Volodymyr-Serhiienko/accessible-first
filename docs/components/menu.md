@@ -140,6 +140,11 @@ menu.update({
 
 Useful hooks include `[data-af-component="menu"]`, `[data-af-menu-item]`, `[aria-disabled]`, `[data-af-disabled]`, `[data-af-orientation]`, and `[data-af-variant]`.
 
+All variants, including `plain`, reserve internal space for the item focus outline.
+This space follows the shared focus-ring width/offset tokens; scroll padding and
+item scroll margins keep focus clearance part of the scrollable layout. Do not
+remove this padding when placing a menu inside a popover.
+
 Useful CSS custom properties:
 
 - `--af-menu-width` - default menu inline size.

@@ -1,19 +1,25 @@
 [data-af-component="menu"] {
+    --af-menu-focus-space: calc(
+        var(--af-focus-ring-width) + var(--af-focus-ring-offset)
+    );
+
+    box-sizing: border-box;
     min-inline-size: min(100%, var(--af-menu-width, 16rem));
     max-block-size: var(--af-menu-max-block-size, 18rem);
     display: grid;
     gap: var(--af-space-2);
     overflow: auto;
+    scroll-padding: var(--af-menu-focus-space);
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
-    padding: var(--af-space-2);
+    padding: max(var(--af-space-2), var(--af-menu-focus-space));
     background: var(--af-color-bg);
 }
 
 [data-af-component="menu"][data-af-variant="plain"] {
     border-color: transparent;
     border-radius: 0;
-    padding: 0;
+    padding: var(--af-menu-focus-space);
 }
 
 [data-af-component="menu"][data-af-orientation="horizontal"] {
@@ -25,6 +31,7 @@
 }
 
 [data-af-menu-item] {
+    scroll-margin: var(--af-menu-focus-space);
     min-block-size: var(--af-target-size);
     display: flex;
     align-items: center;

@@ -24,3 +24,4 @@ export type {
     SpeechSegment,
     SpeechSegmentMode
 } from "./types";
+export * from "./createSpeechTask";
