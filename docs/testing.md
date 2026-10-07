@@ -126,7 +126,25 @@ conformance claim. A formal claim needs a defined application scope,
 representative user journeys, recorded browser and assistive-technology results,
 and an evaluation method such as [WCAG-EM](https://www.w3.org/WAI/test-evaluate/conformance/wcag-em/).
 
-Keep a manual compatibility matrix for representative journeys across:
+## Browser Compatibility
+
+AF demo production builds use the explicit profile in `build/browserTargets.ts`:
+ES2019, Chrome 87, Edge 88, Firefox 78, Safari 14.1 and iOS 14.5. These are build
+targets, not certified browser/assistive-technology results. Consuming apps own
+their support policy; there is no OS/model/User-Agent gate in the framework.
+Vite transforms syntax, not missing browser APIs ([Vite compatibility](https://vite.dev/guide/build.html#browser-compatibility)).
+Older/native-ESM-incompatible browsers require a separately tested legacy build,
+not just a smaller target value. No legacy/polyfill bundle is shipped by default.
+
+Optional capabilities degrade independently: Cache Storage/Web Locks can fall back
+to session memory/serialized work; absent Intl.Segmenter makes recorded spelling
+unavailable, not ordinary audio. An app may explicitly choose another spelling
+provider. MP3 playback still requires a user gesture and a usable HTML audio API.
+Web Speech is required only when an app deliberately selects its browser engine.
+Styles provide `vh` before `dvh` and a `:focus` fallback for browsers without
+`:focus-visible`; newer cosmetic selectors are progressive enhancements.
+
+Representative manual journeys:
 
 - Windows with Chrome or Edge and NVDA;
 - macOS with Safari and VoiceOver;

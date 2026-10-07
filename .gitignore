@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Application-owned audio supplied to the isolated playback example.
+examples/recorded-speech-pilot/public/recordings/
+examples/recorded-speech-pilot/public/spelling/
+examples/recorded-speech-pilot/public/materials/
+examples/recorded-speech-pilot/public/corrections/

@@ -6,6 +6,9 @@ TextField provides an accessible native text input or textarea with a visible la
 
 Use `TextField` when users need to enter short or long free-form text.
 
+Use [PasswordField](./password-field.md) for passwords with an accessible reveal
+button. It preserves the same validation and form contract.
+
 Use `Combobox` when users should type and choose from known options. Use `Select`, `Listbox`, or `RadioGroup` when the value should come from a fixed set.
 
 ## Quick Start

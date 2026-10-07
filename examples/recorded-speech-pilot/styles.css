@@ -1,0 +1,16 @@
+body { margin: 0; }
+main { box-sizing: border-box; max-inline-size: 52rem; margin-inline: auto; padding: 1.5rem; }
+h1 { font-size: 1.75rem; margin-block: 0 1.5rem; }
+.pilot-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-block-end: 1.5rem; }
+.pilot-fields select { inline-size: 100%; }
+.pilot-spelling-field { grid-column: 1 / -1; }
+.pilot-spelling-field[hidden] { display: none; }
+.pilot-range { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center; }
+.pilot-range input { grid-column: 1 / -1; inline-size: 100%; min-block-size: 2rem; margin: 0; }
+.pilot-range output { min-inline-size: 2.5rem; text-align: end; font-variant-numeric: tabular-nums; }
+.pilot-text { font-size: 1.5rem; line-height: 1.5; min-block-size: 4.5rem; margin-block: 1.5rem 0.75rem; overflow-wrap: anywhere; }
+.pilot-voice { font-size: 0.875rem; overflow-wrap: anywhere; }
+@media (max-width: 36rem) {
+    main { padding: 1rem; }
+    .pilot-fields { grid-template-columns: 1fr; }
+}

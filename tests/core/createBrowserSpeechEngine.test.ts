@@ -85,6 +85,21 @@ function complete(utterance: SpeechSynthesisUtterance): void {
 }
 
 describe("createBrowserSpeechEngine", () => {
+    it("can delegate voice selection to the browser without consulting voices or saved preferences", () => {
+        const fake = createFakeSynthesizer();
+        const getVoicePreference = vi.fn();
+        const engine = createBrowserSpeechEngine({
+            speechSynthesis: fake.synthesis,
+            createUtterance: createFakeUtterance,
+            voiceSelection: "automatic",
+            getVoicePreference
+        });
+        engine.speak({ segments: [{ text: "Hello", language: "en-GB", mode: "spell" }] });
+        expect(fake.spoken[0]).toMatchObject({ text: "H", lang: "en-GB", voice: null });
+        expect(fake.getVoices).not.toHaveBeenCalled();
+        expect(getVoicePreference).not.toHaveBeenCalled();
+    });
+
     it("reads ordered multilingual segments with their individual rates", () => {
         const fake = createFakeSynthesizer();
         const engine = createBrowserSpeechEngine({
@@ -270,6 +285,16 @@ describe("createBrowserSpeechEngine", () => {
             "\u7a7a\u683c",
             "2"
         ]);
+    });
+
+    it("speaks a dedicated whitespace segment only in spelling mode with a whitespace label", () => {
+        const fake = createFakeSynthesizer();
+        const engine = createBrowserSpeechEngine({ speechSynthesis: fake.synthesis, createUtterance: createFakeUtterance });
+        engine.speak({ segments: [{ text: " ", language: "en-GB", mode: "spell", spellWhitespaceText: "space" }] });
+        expect(fake.spoken.map((utterance) => utterance.text)).toEqual(["space"]);
+        engine.speak({ segments: [{ text: " ", language: "en-GB" }] });
+        engine.speak({ segments: [{ text: " ", language: "en-GB", mode: "spell" }] });
+        expect(fake.spoken).toHaveLength(1);
     });
 
     it("keeps stale completion events from changing stopped playback", () => {

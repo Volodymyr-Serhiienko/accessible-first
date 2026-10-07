@@ -1,0 +1,33 @@
+/* Older browsers must retain focus indication without :focus-visible support. */
+@supports not selector(:focus-visible) {
+    [data-af-component]:focus,
+    [data-af-composition="brand"]:focus,
+    [data-af-breadcrumbs-content]:focus,
+    [data-af-disclosure-trigger]:focus,
+    [data-af-menu-item]:focus,
+    [data-af-listbox-option]:focus,
+    [data-af-tabs-tab]:focus,
+    [data-af-dialog-surface]:focus,
+    [data-af-dialog-title]:focus,
+    [data-af-composition="page-outlet"]:focus,
+    [data-af-list-detail-list]:focus,
+    [data-af-list-detail-detail]:focus,
+    [data-af-pagination-control]:focus,
+    [data-af-toast-action]:focus,
+    [data-af-toast-close]:focus,
+    [data-af-skip-link]:focus {
+        outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+        outline-offset: var(--af-focus-ring-offset);
+    }
+
+    [data-af-checkbox-input]:focus + [data-af-checkbox-label] [data-af-checkbox-indicator],
+    [data-af-radio-input]:focus + [data-af-radio-label] [data-af-radio-indicator],
+    [data-af-switch-input]:focus + [data-af-switch-label] [data-af-switch-track] {
+        outline: var(--af-focus-ring-width) solid var(--af-color-focus);
+        outline-offset: var(--af-focus-ring-offset);
+    }
+
+    [data-af-skip-link]:focus {
+        transform: translateY(0);
+    }
+}

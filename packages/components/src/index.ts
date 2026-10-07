@@ -43,6 +43,7 @@ export * from "./page";
 export * from "./page-layout";
 export * from "./page-outlet";
 export * from "./pagination";
+export * from "./password-field";
 export * from "./popover";
 export * from "./progress";
 export * from "./public-app";

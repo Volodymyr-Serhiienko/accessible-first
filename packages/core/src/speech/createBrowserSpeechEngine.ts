@@ -23,6 +23,11 @@ export interface BrowserSpeechEngineOptions {
     speechSynthesis?: SpeechSynthesis | null;
     createUtterance?: ((text: string) => SpeechSynthesisUtterance) | null;
     /**
+     * Preferred matches the voice catalog (default). Automatic sets the language
+     * but leaves voice selection to the browser, ignoring saved voice preferences.
+     */
+    voiceSelection?: "preferred" | "automatic";
+    /**
      * Resolves an application-owned voice preference for a BCP 47 language.
      * A missing or unavailable preference falls back to the browser choice.
      */
@@ -118,7 +123,7 @@ function getSpeechQueue(
     segments: readonly SpeechSegment[]
 ): readonly SpeechQueueItem[] {
     return segments.flatMap((segment) => {
-        const text = segment.text.trim();
+        const text = segment.mode === "spell" && !segment.text.trim() ? segment.text : segment.text.trim();
 
         if (!text) {
             return [];
@@ -419,10 +424,9 @@ export function createBrowserSpeechEngine(
                 return activePlayback;
             }
 
-            resolveVoice ??= createVoiceResolver(
-                synthesizer,
-                options.getVoicePreference
-            );
+            resolveVoice ??= options.voiceSelection === "automatic"
+                ? () => null
+                : createVoiceResolver(synthesizer, options.getVoicePreference);
 
             activePlayback = createBrowserPlayback(
                 synthesizer,

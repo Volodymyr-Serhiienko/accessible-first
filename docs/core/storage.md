@@ -166,6 +166,22 @@ Common statuses:
 - `unavailable` - the configured storage backend is unavailable;
 - `error` - parsing, migration, validation, or storage access failed.
 
+## Bounded Public Response Cache
+
+`createBoundedResponseCache({ name, maxBytes, maxEntryBytes?, storage? })` stores
+public successful `Response` bodies in an application-named Cache Storage cache.
+Use `read(url)`, `write(url, response)` and `retain(new Set(activeUrls))`.
+The helper performs no fetch, URL selection, authentication or application catalog
+validation. It rejects opaque/partial/error/private/no-store responses, limits
+individual bodies and total body bytes, and evicts least-recently-used entries.
+Headers/browser bookkeeping are not included in the byte budget.
+
+Unavailable/disabled Cache Storage uses a bounded in-memory fallback. Operations
+are serialized, with cross-tab Web Locks when available; without Web Locks,
+coordination across tabs is best effort. `retain` touches only this named cache.
+Applications own asset integrity, offline readiness, freshness and retry policy.
+Do not store account or otherwise private responses. A browser may evict the cache.
+
 ## Accessibility Notes
 
 Storage is not an accessibility surface by itself. Components and application flows should announce user-visible effects with `StatusMessage`, `Toast`, `PageOutlet`, or `createActionAnnouncer()`.

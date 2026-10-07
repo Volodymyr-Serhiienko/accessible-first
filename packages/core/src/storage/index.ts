@@ -12,6 +12,7 @@ export {
     type ScopedStorageRecord
 } from "./createScopedStorage";
 export type { StorageLike } from "./types";
+export { createBoundedResponseCache, type BoundedResponseCache, type BoundedResponseCacheOptions } from "./createBoundedResponseCache";
 
 /** Stored Accessible First versioned record. */
 export interface VersionedStorageRecord<TValue = unknown> {

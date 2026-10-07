@@ -44,15 +44,17 @@
     "dev": "vite",
     "playground:dev": "vite --host 0.0.0.0",
     "playground:build": "vite build",
-    "example:routed:dev": "vite examples/minimal-routed-public-app --host 0.0.0.0",
-    "example:routed:build": "vite build examples/minimal-routed-public-app --base ./ --outDir dist",
-    "example:static:dev": "vite examples/minimal-static-public-site --host 0.0.0.0",
-    "example:static:build": "vite build examples/minimal-static-public-site --base ./ --outDir dist",
+    "example:routed:dev": "vite examples/minimal-routed-public-app --config examples/minimal-routed-public-app/vite.config.ts --host 0.0.0.0",
+    "example:routed:build": "vite build examples/minimal-routed-public-app --config examples/minimal-routed-public-app/vite.config.ts --base ./ --outDir dist",
+    "example:static:dev": "vite examples/minimal-static-public-site --config examples/minimal-static-public-site/vite.config.ts --host 0.0.0.0",
+    "example:static:build": "vite build examples/minimal-static-public-site --config examples/minimal-static-public-site/vite.config.ts --base ./ --outDir dist",
+    "example:audio:dev": "vite examples/recorded-speech-pilot --config examples/recorded-speech-pilot/vite.config.ts --host 0.0.0.0",
+    "example:audio:build": "vite build examples/recorded-speech-pilot --config examples/recorded-speech-pilot/vite.config.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run test && npm run playground:build && npm run example:routed:build && npm run example:static:build"
+    "check": "npm run typecheck && npm run test && npm run playground:build && npm run example:routed:build && npm run example:static:build && npm run example:audio:build"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

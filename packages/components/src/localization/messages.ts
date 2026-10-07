@@ -34,6 +34,7 @@ export type AccessibleFirstMessageKey =
     | "pagination.next"
     | "pagination.page"
     | "pagination.previous"
+    | "passwordField.visibilityLabel"
     | "resultSummary.empty"
     | "resultSummary.filtered"
     | "resultSummary.one"
@@ -95,6 +96,7 @@ export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, s
     "pagination.next": "Next page",
     "pagination.page": "Page {page}",
     "pagination.previous": "Previous page",
+    "passwordField.visibilityLabel": "Show password",
     "resultSummary.empty": "No results.",
     "resultSummary.filtered": "{count} of {total} results shown.",
     "resultSummary.one": "1 result.",

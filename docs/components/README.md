@@ -69,6 +69,7 @@ Each component document should contain:
 - [Table](./table.md)
 - [Tabs](./tabs.md)
 - [TextField](./text-field.md)
+- [PasswordField](./password-field.md)
 - [ThemeToggle](./theme-toggle.md)
 - [Toast](./toast.md)
 - [Tooltip](./tooltip.md)

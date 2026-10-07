@@ -1,4 +1,15 @@
 export { createBrowserSpeechEngine, type BrowserSpeechEngineOptions } from "./createBrowserSpeechEngine";
+export { createAudioSpeechEngine } from "./createAudioSpeechEngine";
+export { createAudioSpeechResolver, type AudioSpeechRecording } from "./createAudioSpeechResolver";
+export { createAudioSpellingResolver } from "./createAudioSpellingResolver";
+export { createSpeechEngineRouter, type SpeechEngineRouterOptions } from "./createSpeechEngineRouter";
+export type {
+    AudioSpeechEngineOptions,
+    AudioSpeechErrorCode,
+    SpeechAudioClip,
+    SpeechAudioResolver,
+    SpeechAudioSource
+} from "./audioSpeechTypes";
 export {
     afterSpeechCompletes,
     afterSpeechSettles

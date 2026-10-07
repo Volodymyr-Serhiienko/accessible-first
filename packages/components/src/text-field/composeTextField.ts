@@ -219,6 +219,9 @@ function isResetControl(target: EventTarget | null): target is HTMLElement {
 function shouldSkipBlurValidation(event: FocusEvent, control: TextFieldElement): boolean {
     const nextTarget = event.relatedTarget;
 
+    if (nextTarget instanceof HTMLElement && nextTarget.hasAttribute("data-af-password-visibility")
+        && nextTarget.parentElement === control.parentElement) return true;
+
     if (!isResetControl(nextTarget)) return false;
 
     return control.form?.contains(nextTarget) ?? false;

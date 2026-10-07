@@ -21,6 +21,7 @@
     z-index: var(--af-z-tooltip, 950);
     inline-size: max-content;
     max-inline-size: min(16rem, calc(100vw - 2rem));
+    max-block-size: calc(100vh - 1rem);
     max-block-size: calc(100dvh - 1rem);
     padding: 0.4rem 0.625rem;
     color: var(--af-color-tooltip-fg);

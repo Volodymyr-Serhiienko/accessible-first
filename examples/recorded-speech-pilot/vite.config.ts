@@ -1,8 +1,7 @@
 import { defineConfig } from "vite";
-import { browserBuildTargets } from "./build/browserTargets.ts";
+import { browserBuildTargets } from "../../build/browserTargets.ts";
 
 export default defineConfig({
-    root: "playground",
     base: "./",
     build: {
         target: [...browserBuildTargets],

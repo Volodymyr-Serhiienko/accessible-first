@@ -4,6 +4,12 @@
 for an application-supplied `SpeechEngine`. They do not own product copy,
 language settings, provider selection, or playback policy.
 
+The same controls accept browser synthesis, recorded audio, or an explicit
+text/spelling engine router. See [Core speech](../core/speech.md) for creation,
+autoplay errors, cancellation, and browser-default spelling voices.
+For a real-recording check with the same components, use the
+[isolated audio example](../../examples/recorded-speech-pilot/README.md).
+
 Use `SpeechControls` for a visible start, pause/resume, and stop group. Use
 `SpeechToggleButton` for one compact visible action that progresses through
 start, pause, and resume. Use `SpeechButton` for compact, per-item playback

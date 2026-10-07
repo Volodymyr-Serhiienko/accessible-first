@@ -138,3 +138,18 @@ textarea[data-af-component="text-field"] {
 [data-af-text-field-validation-icon][data-af-validation-state="invalid"]::after {
     transform: rotate(-45deg);
 }
+
+[data-af-password-field] [data-af-component="text-field"] {
+    padding-inline-end: calc(var(--af-target-size) + 2.75rem);
+}
+
+[data-af-password-field] [data-af-text-field-validation-icon] {
+    inset-inline-end: calc(var(--af-target-size) + var(--af-space-3));
+}
+
+[data-af-password-visibility] {
+    position: absolute;
+    inset-inline-end: 1px;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+}
