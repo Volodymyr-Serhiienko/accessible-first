@@ -31,6 +31,11 @@
     min-inline-size: 0;
 }
 
+[data-af-component="button"][data-af-pending="true"] {
+    cursor: progress;
+    opacity: 0.75;
+}
+
 [data-af-component="button"][data-af-button-reserved-text] {
     display: inline-grid;
     grid-template-columns: minmax(0, max-content);

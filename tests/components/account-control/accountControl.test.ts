@@ -48,7 +48,8 @@ describe("AccountControl", () => {
     it("blocks pending actions without replacing the label", () => {
         const onSignOut = vi.fn();
         const control = AccountControl({ signedIn: true, pending: true, onSignOut });
-        expect(control.element.disabled).toBe(true);
+        expect(control.element.disabled).toBe(false);
+        expect(control.element.hasAttribute("aria-disabled")).toBe(false);
         expect(control.element.getAttribute("aria-busy")).toBe("true");
         expect(control.element.textContent).toBe("Sign out");
         control.element.click();

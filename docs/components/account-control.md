@@ -33,10 +33,10 @@ Omitting `account` leaves existing headers unchanged.
 - `source`: optional external state source; use null to detach it.
 - `signInLabel`, `signOutLabel`, `accountLabel`: action labels and the account tooltip.
 - `locale`: fallback text provider for `accountControl.signInLabel`,
-  `accountControl.signOutLabel`, `accountControl.accountLabel`.
+  `accountControl.signOutLabel`, `accountControl.accountLabel`, `pending.waitMessage`.
 - `onSignIn`, `onSignOut`: receive the native event and composed control.
 - Native button/base options include `disabled`, `variant`, `id`, attributes and hints.
-  The default variant is ghost; pending also disables the button.
+  The default variant is ghost; pending preserves focus and native enabled semantics.
 - `getState()`, `update(partialOptions)`, `destroy()` and the underlying `button`.
 
 ## Behavior And Accessibility
@@ -46,6 +46,8 @@ handle errors. The application confirms actions and provides visible feedback.
 This is a native action button, not a switch or an `aria-pressed` authentication flag.
 Enter/Space activate it using normal button behavior. Pending sets `aria-busy` and
 blocks repeated activation without changing the action label.
+Long waits use the Button pending announcement; `pendingMessage: false` makes shared
+or background work silent. Initial pending does not announce on page entry.
 
 The icon variant has the current action as its accessible name. Both variants keep
 the account description in `aria-describedby`, so screen readers can read it on

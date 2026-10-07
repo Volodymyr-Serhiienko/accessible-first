@@ -1,4 +1,4 @@
-import type { Component } from "../foundation";
+import type { Component, PendingStateOptions } from "../foundation";
 
 /**
  * Visual style variant for a button.
@@ -19,7 +19,7 @@ export type ButtonPressedState = boolean | "mixed" | null;
 /**
  * Options for createButton().
  */
-export interface ButtonOptions {
+export interface ButtonOptions extends PendingStateOptions {
     disabled?: boolean;
     pressed?: ButtonPressedState;
     type?: "button" | "submit" | "reset";
@@ -37,6 +37,8 @@ export interface ButtonUpdateOptions extends Partial<ButtonOptions> {}
  * Button behavior controller returned by createButton().
  */
 export interface Button extends Component {
+    setPending(pending: boolean): void;
+    isPending(): boolean;
     setDisabled(disabled: boolean): void;
     isDisabled(): boolean;
     setPressed(pressed: ButtonPressedState): void;

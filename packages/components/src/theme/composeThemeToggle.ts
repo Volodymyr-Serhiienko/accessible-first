@@ -68,7 +68,7 @@ export type ThemeToggleOnChange = (
  * Options for ThemeToggle().
  */
 export interface ThemeToggleOptions
-    extends Omit<ButtonCompositionOptions, "text" | "children" | "onPress" | "selected" | "pressed"> {
+    extends Omit<ButtonCompositionOptions, "text" | "children" | "onPress" | "selected" | "pressed" | "locale"> {
     target?: HTMLElement | null;
     display?: ThemeToggleDisplay;
     toDarkLabel?: string;

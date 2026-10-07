@@ -4,6 +4,7 @@
 export type ComponentState =
     | "idle"
     | "ready"
+    | "pending"
     | "disabled"
     | "destroyed";
 

@@ -1,4 +1,5 @@
 export { Table } from "./composeTable";
+export type { TableSortDirection, TableSortState, TableOnSortChange } from "./tableSorting";
 
 export type {
     ComposedTable,

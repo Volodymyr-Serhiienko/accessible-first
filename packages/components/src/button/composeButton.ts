@@ -15,6 +15,7 @@ import {
     type SelectedStateOptions
 } from "../foundation";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
+import { accessibleFirstEnglishMessages, getLocaleText, type LocaleTextProvider } from "../localization";
 
 /**
  * Called when the composed button is activated.
@@ -35,6 +36,8 @@ export type ButtonReservedText = string | readonly string[] | null;
 export interface ButtonCompositionOptions
     extends Omit<ButtonOptions, "onPress">,
         BaseCompositionOptions {
+    /** Localization of the default waiting announcement. */
+    locale?: LocaleTextProvider<"pending.waitMessage"> | null;
     text?: string;
     children?: CompositionChild[];
     reserveText?: ButtonReservedText;
@@ -116,6 +119,9 @@ function getButtonOptions(
     if (onPress !== undefined) buttonOptions.onPress = onPress;
 
     if (options.disabled !== undefined) buttonOptions.disabled = options.disabled;
+    if (options.pending !== undefined) buttonOptions.pending = options.pending;
+    if (options.pendingMessage !== undefined) buttonOptions.pendingMessage = options.pendingMessage;
+    if (options.pendingDelay !== undefined) buttonOptions.pendingDelay = options.pendingDelay;
     if ("pressed" in options) buttonOptions.pressed = options.pressed ?? null;
     if (options.type !== undefined) buttonOptions.type = options.type;
     if (options.variant !== undefined) buttonOptions.variant = options.variant;
@@ -154,6 +160,13 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     let composed!: ComposedButton;
     let onPress = options.onPress ?? null;
     let reservedText = getReservedText(options.reserveText);
+    let locale = options.locale;
+    let pendingMessage = options.pendingMessage;
+    const waitingMessage = () => {
+        if (pendingMessage === false) return "";
+        if (typeof pendingMessage === "function") return pendingMessage();
+        return pendingMessage ?? getLocaleText(locale, "pending.waitMessage", accessibleFirstEnglishMessages["pending.waitMessage"]);
+    };
 
     function syncReservedText(): void {
         if (reservedText === null) {
@@ -170,7 +183,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
     const button = createButton(
         element,
-        getButtonOptions(options, handlePress)
+        { ...getButtonOptions(options, handlePress), pendingMessage: pendingMessage === false ? false : waitingMessage }
     );
 
     const controlHint = createControlHint(element, getControlHintOptions(options));
@@ -193,6 +206,8 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
         update(nextOptions: ButtonCompositionUpdateOptions): void {
             applyCompositionElementOptions(element, nextOptions);
+            if ("locale" in nextOptions) locale = nextOptions.locale;
+            if ("pendingMessage" in nextOptions) pendingMessage = nextOptions.pendingMessage;
 
             if ("onPress" in nextOptions) {
                 onPress = nextOptions.onPress ?? null;
@@ -207,7 +222,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
                 syncReservedText();
             }
 
-            button.update(getButtonOptions(nextOptions));
+            button.update({ ...getButtonOptions(nextOptions), pendingMessage: pendingMessage === false ? false : waitingMessage });
 
             if (nextOptions.children !== undefined) {
                 content.set(nextOptions.children);

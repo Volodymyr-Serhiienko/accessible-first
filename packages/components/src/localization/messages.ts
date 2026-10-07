@@ -2,6 +2,7 @@
  * Built-in user-facing service text keys owned by Accessible First.
  */
 export type AccessibleFirstMessageKey =
+    | "pending.waitMessage"
     | "accountControl.signInLabel"
     | "accountControl.signOutLabel"
     | "accountControl.accountLabel"
@@ -64,6 +65,7 @@ export type AccessibleFirstMessageKey =
  * English fallback messages for Accessible First service text.
  */
 export const accessibleFirstEnglishMessages: Record<AccessibleFirstMessageKey, string> = {
+    "pending.waitMessage": "Please wait",
     "accountControl.signInLabel": "Sign in",
     "accountControl.signOutLabel": "Sign out",
     "accountControl.accountLabel": "Account",

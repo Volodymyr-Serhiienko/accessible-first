@@ -103,6 +103,8 @@ const button = createButton(existingButton, {
 - Adds `role="button"` for non-native triggers.
 - Routes `Enter` and `Space` activation for non-native triggers through the normal click path.
 - Supports disabled state.
+- Exposes `setPending(boolean)`/`isPending()` for focus-preserving request guarding;
+  initial pending is silent and completion cancels its waiting announcement.
 - Supports `aria-pressed` for true toggle buttons with stable labels.
 - Supports visual selected state through `data-af-selected`.
 - Supports optional `hint` through `aria-describedby` and optional visual tooltip.
@@ -115,6 +117,10 @@ const button = createButton(existingButton, {
 - `children` - Rich content instead of `text`.
 - `reserveText` - One or more expected labels used to reserve stable inline space when `text` changes. The longest supplied candidate is used.
 - `disabled` - Disables the button.
+- `pending` - Blocks repeated activation without disabling, removing focus or changing the label.
+- `pendingMessage` - Waiting text/resolver, or `false` for silent/shared work. `Button` uses localized `pending.waitMessage`; `createButton` is silent unless supplied.
+- `pendingDelay` - Delay before the waiting announcement, 500 ms by default.
+- `locale` - `Button` text provider for `pending.waitMessage`.
 - `pressed` - Adds `aria-pressed` for true toggle buttons with stable labels.
 - `selected` - Adds visual/action state through `data-af-selected`; it is not an ARIA state.
 - `hint` - Supporting context for the button.
@@ -149,6 +155,7 @@ Button({
 - `Enter` activates the button.
 - `Space` activates the button.
 - Disabled state cannot be activated.
+- Pending keeps label/focus, blocks repeat activation, and announces a long wait once.
 - Stable-label toggle buttons announce pressed state through `aria-pressed`.
 - Changing-label buttons with `reserveText` do not shift neighbouring controls.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.

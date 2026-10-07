@@ -1,4 +1,7 @@
 import { createId } from "../../../core/src/id";
+import { createPendingState } from "../foundation";
+import { createTableSortButton, syncTableSortHeader,
+    type TableOnSortChange, type TableSortState } from "./tableSorting";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -119,6 +122,8 @@ export interface TableColumn<TItem = Record<string, unknown>> {
     id: TableColumnId;
     /** Native table header content. */
     header: TableCompositionContent;
+    /** Renders a native sort-request button. Sorting is controlled by the consumer. */
+    sortable?: boolean;
     /** Optional renderer for body cells. Omit for simple object rows keyed by column id. */
     cell?: TableCellRenderer<TItem>;
     /** Renders body cells in this column as row headers with scope="row". */
@@ -141,6 +146,14 @@ export interface TableOptions<TItem = Record<string, unknown>> extends BaseCompo
     columns: readonly TableColumn<TItem>[];
     /** Row data rendered through column cell renderers or object property fallback. */
     rows: readonly TItem[];
+    /** Confirmed sorting state. Table never sorts or mutates the supplied rows. */
+    sort?: TableSortState | null;
+    /** Requests ascending/descending order for a sortable column. */
+    onSortChange?: TableOnSortChange | null;
+    /** Prevents sort activation while keeping header buttons focusable. */
+    sortDisabled?: boolean;
+    /** Guards sort requests while loading without marking headers disabled. */
+    pending?: boolean;
     /** Optional supporting text associated with the table through aria-describedby. */
     description?: TableCompositionContent | null;
     /** Optional empty-state row shown when rows is empty. No default text is generated. */
@@ -317,12 +330,14 @@ function getBodyCellAttributes<TItem>(column: TableColumn<TItem>): ElementAttrib
     return attributes;
 }
 
-function createHeaderCellNode<TItem>(column: TableColumn<TItem>): TableHeaderCellNode {
+function createHeaderCellNode<TItem>(column: TableColumn<TItem>, onSort: (columnId: string, event: Event) => void): TableHeaderCellNode {
     const cell = createElement("th", getCompositionElementOptions(
         column.headerOptions,
         getHeaderCellAttributes(column)
     ));
-    const slot = createContentSlot(cell, toCompositionChildren(column.header));
+    const slot = createContentSlot(cell, column.sortable
+        ? [createTableSortButton(column.header, event => onSort(column.id, event))]
+        : toCompositionChildren(column.header));
 
     setCellAlignment(cell, column.align);
 
@@ -394,6 +409,7 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
     const element = createElement("div", getCompositionElementOptions(options, {
         "data-af-composition": "table"
     }));
+    const pendingState = createPendingState(element, { pending: options.pending ?? false });
 
     const description = createElement("div", getCompositionElementOptions(options.descriptionOptions, {
         "data-af-table-description": ""
@@ -427,6 +443,9 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
 
     let columns = [...options.columns];
     let rows = [...options.rows];
+    let sort = options.sort ?? null;
+    let onSortChange = options.onSortChange;
+    let sortDisabled = options.sortDisabled ?? false;
     let variant: TableVariant = options.variant ?? "default";
     let size: TableSize = options.size ?? "md";
     let responsive: TableResponsive = options.responsive ?? "scroll";
@@ -472,6 +491,10 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
 
         description.hidden = !hasDescription;
         setElementAttributeValue(table, "aria-describedby", hasDescription ? description.id : null);
+        headerCellNodes.forEach((cell, index) => {
+            const column = columns[index];
+            if (column?.sortable) syncTableSortHeader(cell.element, column.id, sort, sortDisabled || !onSortChange);
+        });
     }
 
     function disposeHeader(): void {
@@ -499,7 +522,11 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
             }
         });
 
-        headerCellNodes = columns.map(createHeaderCellNode);
+        headerCellNodes = columns.map(column => createHeaderCellNode(column, (columnId, event) => {
+            if (sortDisabled || !onSortChange || pendingState.guard(event)) return;
+            onSortChange({ columnId, direction: sort?.columnId === columnId && sort.direction === "ascending"
+                ? "descending" : "ascending" }, event);
+        }));
         headerCellNodes.forEach((cell) => {
             row.append(cell.element);
             headerCells.push(createComposedHeaderCell(cell));
@@ -633,6 +660,7 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
             let shouldRenderBody = false;
 
             applyCompositionElementOptions(element, nextOptions);
+            if (nextOptions.pending !== undefined) pendingState.setPending(nextOptions.pending);
 
             if (nextOptions.tableOptions !== undefined) applyCompositionElementOptions(table, nextOptions.tableOptions);
             if (nextOptions.captionOptions !== undefined) applyCompositionElementOptions(caption, nextOptions.captionOptions);
@@ -649,6 +677,9 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
             if (nextOptions.responsive !== undefined) responsive = nextOptions.responsive;
             if (nextOptions.captionDisplay !== undefined) captionDisplay = nextOptions.captionDisplay;
             if (nextOptions.descriptionDisplay !== undefined) descriptionDisplay = nextOptions.descriptionDisplay;
+            if ("sort" in nextOptions) sort = nextOptions.sort ?? null;
+            if ("onSortChange" in nextOptions) onSortChange = nextOptions.onSortChange;
+            if (nextOptions.sortDisabled !== undefined) sortDisabled = nextOptions.sortDisabled;
 
             if ("rowOptions" in nextOptions) {
                 rowOptions = nextOptions.rowOptions;
@@ -683,6 +714,7 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
         },
 
         destroy(): void {
+            pendingState.destroy();
             captionSlot.dispose();
             descriptionSlot.dispose();
             disposeHeader();

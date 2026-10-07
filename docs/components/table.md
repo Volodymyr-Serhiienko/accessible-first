@@ -76,12 +76,18 @@ Table({
 - Allows custom cell renderers for badges, buttons, progress, links, and composed content.
 - Shows an application-owned `emptyState` row when rows are empty. No default text is generated.
 - Wraps wide tables in a responsive horizontal scroller by default so the page itself does not overflow on small screens.
+- Supports controlled sort requests through native header buttons, keeping `aria-sort`
+  on the active column and focus on the same button when rows/state update.
 
 ## Options
 
 - `caption` - required accessible caption content.
 - `columns` - required column definitions.
 - `rows` - required row data.
+- `sort` - confirmed `{ columnId, direction: "ascending" | "descending" }`, or `null`.
+- `onSortChange(sort, event)` - requests sorting; the consumer owns ordering/filtering.
+- `sortDisabled` - blocks activation without removing header buttons from Tab order.
+- `pending` - marks the table busy and guards repeated sort requests without making headers unavailable. It does not announce; use a shared localized pending helper for the surrounding request.
 - `description` - optional supporting content connected with `aria-describedby`.
 - `emptyState` - optional content shown as a single full-width row when `rows` is empty.
 - `captionDisplay` - `"visible"` or `"visually-hidden"`. Defaults to `"visible"`.
@@ -97,6 +103,7 @@ Column options:
 
 - `id` - stable column id. Also used as the object property name when `cell` is omitted.
 - `header` - column header content.
+- `sortable` - renders a sort-request button. Without `onSortChange` it is unavailable.
 - `cell` - optional renderer called with `(item, context)`.
 - `rowHeader` - renders body cells in this column as `<th scope="row">`.
 - `align` - `"start"`, `"center"`, or `"end"`.
@@ -115,6 +122,36 @@ table.setEmptyState("No results");
 table.update({ variant: "striped" });
 table.destroy();
 ```
+
+## Sorting And Filtering
+
+Table does not sort, filter or mutate supplied rows. This avoids accidentally
+sorting only the current page of a server-paginated result. Mark sortable columns
+and confirm the state only after the requested data is available:
+
+```ts
+const table = Table({
+    caption: "Users",
+    columns: [{ id: "email", header: "Email", sortable: true, rowHeader: true }],
+    rows: initialRows,
+    sort: { columnId: "email", direction: "ascending" },
+    async onSortChange(sort) {
+        if (table.element.getAttribute("aria-busy") === "true") return;
+        table.update({ pending: true });
+        try {
+            const rows = await loadSortedRows(sort);
+            table.update({ rows, sort });
+        } finally {
+            table.update({ pending: false });
+        }
+    }
+});
+```
+
+Handle loading failures, request cancellation and feedback in the consumer.
+Filters belong to the surrounding form (`TextField`, `Select`, etc.); their domain
+rules and queries are not Table concerns. `update({ rows, sort })` preserves header
+buttons; `setColumns()` replaces them. Native buttons provide Enter/Space activation.
 
 ## Styling
 
@@ -135,6 +172,13 @@ Use real tables only for real tabular relationships. If the content is a set of 
 Prefer one row-header column when each row has a primary item. This makes screen-reader table navigation much clearer.
 
 Focusable controls inside cells remain in normal Tab order. Keep their labels row-specific, for example `Practice hello`, not only `Practice`.
+
+Rows are not Tab stops by default: screen readers already provide table navigation.
+For a directory that deliberately supports Tab through every record, opt in with
+`rowOptions: row => ({ attributes: { tabindex: "0", "aria-label": row.summary } })`.
+Keep native row semantics, provide a concise application-owned summary and avoid
+duplicating this stop when each row already has an equivalent primary action.
+The row focus outline is inset so it is not clipped by the scrolling viewport.
 
 Descriptions should explain how to interpret the table, not repeat the caption or every visible column header. Use `descriptionDisplay: "visually-hidden"` when the guidance is useful for screen-reader users but visually redundant.
 

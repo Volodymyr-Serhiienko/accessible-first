@@ -104,6 +104,22 @@ Applications can import the single entry point or copy only the pieces they need
 
 Shared helpers keep repeated accessibility behavior out of individual components.
 
+`createPendingState(element, options)` supplies focus-preserving async state:
+`setPending`, `isPending`, `guard(event)`, `update` and `destroy`. Pending adds
+`aria-busy`/`data-af-pending`, not disabled semantics. Supply localized
+`pendingMessage` (text/resolver), or `false` to remain silent. Initial pending is
+silent; a later transition/guarded press schedules one message after `pendingDelay`
+(default 500 ms). Completion/destroy cancel pending speech and clear only this
+helper's announcement. Speech uses the shared document channel outside the busy
+subtree; newer results from other controls are preserved.
+
+Use `disabled` for truly unavailable actions, `pending` for in-flight requests.
+Button controllers expose `setPending`/`isPending`; Table accepts `pending` to guard
+sorting. Keep application request guards too: programmatic form submission or other
+entry points can bypass a button click. Do not hide controls from assistive technology
+or rename them solely to suppress screen-reader feedback. Check actual reader behavior
+manually; a live-region implementation cannot control every reader's speech queue.
+
 `createHoverAnnouncement(element, options)` announces an element label through a polite live region when a mouse pointer enters the element. It does not create a visual tooltip.
 
 Use it for controls that already have visible text but may not be announced reliably by some screen reader and pointer-hover combinations.

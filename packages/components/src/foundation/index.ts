@@ -17,6 +17,7 @@ export {
     type SelectedState,
     type SelectedStateOptions
 } from "./createSelectedState";
+export { createPendingState, type PendingState, type PendingStateOptions, type PendingMessage } from "./createPendingState";
 export {
     createControlHint,
     type ControlHint,

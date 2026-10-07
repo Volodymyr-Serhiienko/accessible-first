@@ -1,7 +1,7 @@
 import { setAriaAttribute, setAriaDisabled, setRole } from "../../../core/src/aria";
 import { addEventListener } from "../../../core/src/events";
 import { isEnterKey, isSpaceKey } from "../../../core/src/keyboard";
-import { createComponentLifecycle } from "../foundation";
+import { createComponentLifecycle, createPendingState } from "../foundation";
 import { restoreAttribute } from "../../../core/src/dom";
 
 import type { Button, ButtonOptions, ButtonPressedState, ButtonUpdateOptions } from "./types";
@@ -42,9 +42,11 @@ export function createButton(
     let disabled = options.disabled ?? false;
     let pressed: ButtonPressedState = options.pressed ?? null;
     let onPress = options.onPress ?? null;
+    const pendingState = createPendingState(element, options);
+    lifecycle.addCleanup(pendingState.destroy);
 
     function syncDisabled(): void {
-        lifecycle.setState(disabled ? "disabled" : "ready");
+        lifecycle.setState(disabled ? "disabled" : pendingState.isPending() ? "pending" : "ready");
 
         if (nativeButton) {
             nativeButton.disabled = disabled;
@@ -64,6 +66,8 @@ export function createButton(
             event.stopPropagation();
             return;
         }
+
+        if (pendingState.guard(event)) return;
 
         onPress?.(event);
     }
@@ -146,6 +150,14 @@ export function createButton(
     return {
         element,
 
+        setPending(nextPending: boolean): void {
+            if (lifecycle.isDestroyed()) return;
+            pendingState.setPending(nextPending);
+            syncDisabled();
+        },
+
+        isPending: pendingState.isPending,
+
         setDisabled(nextDisabled: boolean): void {
             if (lifecycle.isDestroyed()) return;
 
@@ -169,6 +181,9 @@ export function createButton(
         },
 
         update(nextOptions: ButtonUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+            pendingState.update(nextOptions);
+            syncDisabled();
             if (nextOptions.disabled !== undefined) {
                 this.setDisabled(nextOptions.disabled);
             }

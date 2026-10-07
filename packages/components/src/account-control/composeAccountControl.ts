@@ -23,6 +23,7 @@ export interface AccountControlStateSource {
 
 /** Localized fallback keys used by AccountControl. */
 export type AccountControlMessageKey =
+    | "pending.waitMessage"
     | "accountControl.signInLabel"
     | "accountControl.signOutLabel"
     | "accountControl.accountLabel";
@@ -33,7 +34,7 @@ export type AccountControlOnAction = (event: Event, control: ComposedAccountCont
 /** Options for the reusable account action, without server or storage dependencies. */
 export interface AccountControlOptions extends Omit<
     ButtonCompositionOptions,
-    "text" | "children" | "onPress" | "selected" | "pressed" | "reserveText"
+    "text" | "children" | "onPress" | "selected" | "pressed" | "reserveText" | "locale"
 > {
     display?: AccountControlDisplay;
     signedIn?: boolean;
@@ -105,13 +106,14 @@ export function AccountControl(options: AccountControlOptions = {}): ComposedAcc
             hintShowOnFocus: false,
             hintAnnounceOnHover: false,
             ...buttonOptions,
-            disabled: state.pending || current.disabled === true,
+            disabled: current.disabled === true,
+            pending: state.pending,
+            locale: locale ?? null,
             attributes: {
                 ...current.attributes,
                 "data-af-account-control": "",
                 "data-af-account-control-display": display,
                 "data-af-account-control-signed-in": String(state.signedIn),
-                "aria-busy": state.pending ? "true" : null,
                 "aria-label": display === "icon" ? label : current.attributes?.["aria-label"] ?? null
             },
             ...(display === "icon"
