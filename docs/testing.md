@@ -29,11 +29,17 @@ npm test
 npm run playground:build
 npm run example:routed:build
 npm run example:static:build
+npm run example:audio:build
 npm run check
+npm audit --audit-level=high
 ```
 
-`npm run check` runs the type check, contract suite, playground build, and both
-starter builds in that order. It is the local pre-push gate.
+`npm run check` runs the type check, contract suite, playground build, both
+starter builds and the recorded-audio example. Before pushing, also run
+`npm audit --audit-level=high`: GitHub Pages requires this separate security gate.
+The audit needs network access and checks the committed dependency tree. For a
+dependency failure, reproduce `npm ci --no-audit --no-fund` first, update only the
+affected compatible package and commit the lockfile; do not bypass the CI audit.
 
 ## Current Contract Suite
 

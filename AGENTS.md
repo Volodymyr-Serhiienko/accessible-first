@@ -49,7 +49,9 @@ npm run example:routed:dev
 npm run example:routed:build
 ```
 
-Use `npm run typecheck` for a no-output TypeScript gate and `npm run check` before push. The project uses strict TypeScript,
+Use `npm run typecheck` for a no-output TypeScript gate. Before push, run `npm run check`
+and `npm audit --audit-level=high`, matching the separate GitHub Pages security gate.
+The project uses strict TypeScript,
 including `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess`.
 
 ## Architecture Rules
