@@ -43,6 +43,8 @@ const tooltip = createTooltip(button, {
 - Supports `Escape` dismissal while the trigger remains hovered or focused, including mouse-hover use without first clicking the trigger.
 - Renders its fixed visual layer in the document overlay, so container queries and trigger layout cannot expand page scroll area.
 - Positions that layer inside the viewport on both axes, moving below the trigger when there is not enough space above it.
+- Wraps long text without horizontal scrolling. Only text taller than the available
+  viewport scrolls vertically; the pointer bridge never creates scrollbars.
 - Can politely announce the text on mouse hover when needed.
 - Uses the document-coordinated announcement channel, so leaving the trigger cannot clear newer framework feedback.
 - Touch and mobile screen reader users should not depend on the visual hover layer.
@@ -97,6 +99,9 @@ Tooltip({
 - A tooltip near either horizontal edge remains fully visible.
 - Tooltip remains above following page content when it opens below a trigger.
 - Opening a tooltip near any viewport edge does not add horizontal or vertical page scrolling.
+- Short and multiline tooltips have no internal scrollbars; long unbroken text wraps.
+- Check fractional line heights as well: glyph rounding must not create a one-pixel
+  vertical scrollbar in otherwise fitting text.
 - Trigger keeps its accessible name.
 - `aria-describedby` is added only when description is useful.
 - Text is readable in light and dark themes.

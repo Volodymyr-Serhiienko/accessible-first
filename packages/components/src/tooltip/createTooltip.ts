@@ -116,6 +116,7 @@ export function createTooltip(
     let tooltipId = options.id ?? "";
     let descriptionContent: HTMLElement | null = null;
     let visualContent: HTMLElement | null = null;
+    let visualTextContent: HTMLElement | null = null;
     let announcer: DocumentAnnouncementChannel | null = null;
     let cleanups: Cleanup[] = [];
     let visualCleanups: Cleanup[] = [];
@@ -207,7 +208,10 @@ export function createTooltip(
         visualContent.setAttribute("aria-hidden", "true");
         visualContent.setAttribute("data-af-tooltip-visual", "");
         visualContent.setAttribute("data-af-tooltip-placement", "top");
-        visualContent.textContent = text ?? "";
+        visualTextContent = ownerDocument.createElement("span");
+        visualTextContent.setAttribute("data-af-tooltip-text", "");
+        visualTextContent.textContent = text ?? "";
+        visualContent.append(visualTextContent);
 
         getContainer().append(visualContent);
         visualCleanups = [
@@ -240,6 +244,7 @@ export function createTooltip(
 
         visualContent?.remove();
         visualContent = null;
+        visualTextContent = null;
         pointerOverTooltip = false;
     }
 
@@ -314,7 +319,7 @@ export function createTooltip(
             element.setAttribute("data-af-tooltip", "");
 
             const visual = ensureVisualContent();
-            visual.textContent = text;
+            if (visualTextContent) visualTextContent.textContent = text;
             visual.removeAttribute("data-af-tooltip-positioned");
             syncVisualVisibility();
         } else {

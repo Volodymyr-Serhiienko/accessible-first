@@ -43,6 +43,33 @@ function createRect(
 }
 
 describe("createTooltip", () => {
+    it("keeps visual text in its own scroller without replacing the pointer bridge on updates", () => {
+        const trigger = createTrigger();
+        const tooltip = createTooltip(trigger, {
+            text: "Short hint.",
+            describe: true
+        });
+        const visual = document.querySelector<HTMLElement>("[data-af-tooltip-visual]");
+        const content = visual?.querySelector<HTMLElement>("[data-af-tooltip-text]");
+
+        expect(content?.parentElement).toBe(visual);
+        expect(content?.textContent).toBe("Short hint.");
+        expect(visual?.getAttribute("aria-hidden")).toBe("true");
+
+        tooltip.setText("A longer hint that wraps onto multiple lines.");
+
+        expect(visual?.querySelector("[data-af-tooltip-text]")).toBe(content);
+        expect(content?.textContent).toBe("A longer hint that wraps onto multiple lines.");
+        expect(tooltip.getContentElement()?.textContent).toBe(content?.textContent);
+
+        tooltip.setText(null);
+        expect(document.querySelector("[data-af-tooltip-text]")).toBeNull();
+        tooltip.setText("Restored hint.");
+        expect(document.querySelector("[data-af-tooltip-text]")?.textContent).toBe("Restored hint.");
+        tooltip.destroy();
+        expect(document.querySelector("[data-af-tooltip-text]")).toBeNull();
+    });
+
     it("preserves the visual-focus option when a composed trigger is replaced", () => {
         const trigger = createTrigger();
         const composed = Tooltip({ trigger, text: "Account", showOnFocus: false });

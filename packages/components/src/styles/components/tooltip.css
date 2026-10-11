@@ -34,11 +34,23 @@
     line-height: 1.25;
     text-align: center;
     white-space: normal;
-    overflow: auto;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     display: none;
     visibility: hidden;
     pointer-events: auto;
+}
+
+/* Keep the pointer bridge outside the text's scrollable area. */
+[data-af-tooltip-text] {
+    box-sizing: border-box;
+    display: block;
+    max-inline-size: 100%;
+    max-block-size: calc(100vh - 1rem - 0.8rem - 2px);
+    max-block-size: calc(100dvh - 1rem - 0.8rem - 2px);
+    /* Glyph ink can extend past a fractional line box after pixel rounding. */
+    padding-block: 1px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 [data-af-tooltip-visual]::before {
