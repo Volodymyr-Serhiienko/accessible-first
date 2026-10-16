@@ -54,6 +54,9 @@ Useful variables:
 - `--af-header-tools-panel-mobile-width` - preferred mobile popover width. Defaults to `20rem`.
 
 Controls inside the panel are constrained to the panel width. Search boxes are allowed to fill the panel even when they use a narrower inline width.
+The panel uses its preferred width from the first positioning measurement,
+bounded by the viewport. It must not shrink to the space beside the trigger or
+grow in response to focus/wheel repositioning. The mobile width applies at 640px.
 Inline text buttons use their intrinsic label/reserved-label width instead of
 shrinking into multiple lines. If controls no longer fit beside the brand,
 HeaderTools moves them into the panel, where long labels may wrap normally.
@@ -97,3 +100,7 @@ rethrowing the first error; late updates do nothing. Internal controllers are bo
 - Tab moves through panel controls and reaches the close button.
 - Closing the panel returns focus to the trigger.
 - Resizing back to a wide viewport moves the same controls inline again.
+- At the collapse boundary, first opening, focus changes and scrolling retain
+  the preferred panel width. The repeatable real-CSS regression is
+  `tests/browser/header-tools-width.html` (`npm run test:styles`). Check desktop,
+  mobile, RTL, custom widths and large text; it does not simulate mobile AT.

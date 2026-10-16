@@ -45,10 +45,17 @@
     flex: 1 1 0;
 }
 
-[data-af-header-tools-panel] {
+[data-af-component="popover"][data-af-header-tools-panel] {
     position: fixed;
     --af-popover-max-width: var(--af-header-tools-panel-width, 22rem);
     --af-popover-mobile-width: var(--af-header-tools-panel-mobile-width, 20rem);
+    inline-size: min(var(--af-popover-max-width), calc(100% - 1rem));
+}
+
+@media (max-width: 640px) {
+    [data-af-component="popover"][data-af-header-tools-panel] {
+        inline-size: min(var(--af-popover-mobile-width), calc(100% - 1rem));
+    }
 }
 
 [data-af-header-tools-title] {
