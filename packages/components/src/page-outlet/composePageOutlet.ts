@@ -1,4 +1,6 @@
-import { restoreAttribute } from "../../../core/src/dom";
+import { isHTMLElement, restoreAttribute } from "../../../core/src/dom";
+import { runCleanups } from "../../../core/src/events";
+import { createPreparedContentOwner, type PreparedContentOwner } from "../composition/preparedContent";
 import { focusProgrammatically, getFocusableElements } from "../../../core/src/focus";
 import {
     createDocumentAnnouncementChannel,
@@ -136,6 +138,7 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
     const contentSlot = createContentSlot(element, toCompositionChildren(options.children));
 
     let composed!: ComposedPageOutlet;
+    let preparedOwner!: PreparedContentOwner;
     let title = options.title ?? null;
     let documentTitle = options.documentTitle ?? null;
     let label = options.label ?? null;
@@ -145,6 +148,25 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
     let announcementPoliteness: LiveRegionPoliteness = options.announcementPoliteness ?? "polite";
     let announcer: DocumentAnnouncementChannel | null = null;
     let destroyed = false;
+    let revision = 0;
+    let scrollFrame: { window: Window; id: number } | null = null;
+
+    function isCurrent(current: number): boolean {
+        return !destroyed && current === revision;
+    }
+
+    function cancelScroll(): void {
+        const frame = scrollFrame;
+        scrollFrame = null;
+        if (frame) frame.window.cancelAnimationFrame(frame.id);
+    }
+
+    function beginUpdate(): number {
+        revision += 1;
+        cancelScroll();
+        announcer?.clear();
+        return revision;
+    }
 
     function syncAttributes(): void {
         element.setAttribute("data-af-composition", "page-outlet");
@@ -172,7 +194,7 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
 
     function resolveFocusTarget(target: PageOutletFocusTarget): HTMLElement | null {
         if (target === null) return null;
-        if (target instanceof HTMLElement) return target;
+        if (isHTMLElement(target)) return target;
 
         if (typeof target === "function") {
             return target(composed);
@@ -197,29 +219,32 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         });
     }
 
-    function scheduleScrollToStart(): void {
+    function scheduleScrollToStart(current: number): void {
         const ownerWindow = element.ownerDocument.defaultView;
 
-        if (!ownerWindow) return;
+        if (!ownerWindow || !isCurrent(current)) return;
 
-        ownerWindow.requestAnimationFrame(() => {
-            if (destroyed) return;
-
+        const id = ownerWindow.requestAnimationFrame(() => {
+            if (!isCurrent(current)) return;
+            scrollFrame = null;
             scrollToStart();
         });
+        scrollFrame = { window: ownerWindow, id };
     }
 
-    function focus(target: PageOutletFocusTarget = focusTarget): boolean {
+    function focus(target: PageOutletFocusTarget = focusTarget, current = revision): boolean {
+        if (!isCurrent(current)) return false;
         const targetElement = resolveFocusTarget(target);
 
-        if (!targetElement) return false;
+        if (!isCurrent(current) || !targetElement) return false;
 
-        return focusProgrammatically(targetElement, {
+        const moved = focusProgrammatically(targetElement, {
             preventScroll: true
         });
+        return isCurrent(current) && moved;
     }
 
-    function announceRender(nextAnnouncement: PageOutletAnnouncement): void {
+    function announceRender(nextAnnouncement: PageOutletAnnouncement, current: number): void {
         const context: PageOutletAnnouncementContext = {
             title,
             documentTitle,
@@ -228,7 +253,7 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
 
         const message = resolveAnnouncement(nextAnnouncement, context);
 
-        if (!message) return;
+        if (!isCurrent(current) || !message) return;
 
         announcer ??= createDocumentAnnouncementChannel({
             document: element.ownerDocument
@@ -239,9 +264,11 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         });
     }
 
-    function runRenderEffects(options: PageOutletRenderOptions = {}): void {
+    function runRenderEffects(options: PageOutletRenderOptions, current: number): void {
+        if (!isCurrent(current)) return;
         if ("title" in options) title = options.title ?? null;
         if ("documentTitle" in options) syncDocumentTitle(options.documentTitle ?? null);
+        if (!isCurrent(current)) return;
 
         const shouldScroll = options.scroll ?? scrollOnRender;
         const nextFocusTarget = "focusTarget" in options ? options.focusTarget ?? null : focusTarget;
@@ -252,19 +279,21 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         if (shouldScroll) {
             scrollToStart();
         }
+        if (!isCurrent(current)) return;
 
-        const focusMoved = focus(nextFocusTarget);
+        const focusMoved = focus(nextFocusTarget, current);
+        if (!isCurrent(current)) return;
 
         if (nextAnnouncement === undefined) {
             if (!focusMoved) {
-                announceRender(true);
+                announceRender(true, current);
             }
         } else {
-            announceRender(nextAnnouncement);
+            announceRender(nextAnnouncement, current);
         }
 
-        if (shouldScroll) {
-            scheduleScrollToStart();
+        if (shouldScroll && isCurrent(current)) {
+            scheduleScrollToStart(current);
         }
     }
 
@@ -272,8 +301,11 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         children: CompositionChild[],
         renderOptions: PageOutletRenderOptions = {}
     ): void {
+        if (destroyed) return;
+        const current = beginUpdate();
+        preparedOwner.accept(children);
         contentSlot.set(children);
-        runRenderEffects(renderOptions);
+        runRenderEffects(renderOptions, current);
     }
 
     if (documentTitle !== null) {
@@ -290,6 +322,8 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         },
 
         setTitle(nextTitle): void {
+            if (destroyed) return;
+            beginUpdate();
             title = nextTitle;
         },
 
@@ -302,6 +336,8 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
         focus,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const current = beginUpdate();
             applyCompositionElementOptions(element, nextOptions);
 
             if ("label" in nextOptions) label = nextOptions.label ?? null;
@@ -315,22 +351,27 @@ export function PageOutlet(options: PageOutletOptions = {}): ComposedPageOutlet 
             }
 
             if (nextOptions.children !== undefined) {
+                preparedOwner.accept(nextOptions.children);
                 contentSlot.set(nextOptions.children);
             }
 
-            syncAttributes();
+            if (isCurrent(current)) syncAttributes();
         },
 
         destroy(): void {
             if (destroyed) return;
 
             destroyed = true;
-            announcer?.destroy();
-            contentSlot.dispose();
-            restoreAttribute(element, "tabindex", originalTabIndex);
-            element.remove();
+            revision += 1;
+            try { runCleanups([cancelScroll, () => announcer?.destroy(), () => contentSlot.dispose()]); }
+            finally {
+                restoreAttribute(element, "tabindex", originalTabIndex);
+                element.remove();
+            }
         }
     };
 
+    preparedOwner = createPreparedContentOwner(composed);
+    preparedOwner.accept(options.children);
     return composed;
 }

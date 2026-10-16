@@ -9,6 +9,8 @@ import {
     type CompositionContent
 } from "../composition";
 import { createId } from "../../../core/src/id";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
+import { runCleanups } from "../../../core/src/events";
 import { createDisclosure } from "./createDisclosure";
 import type {
     Disclosure as DisclosureInstance,
@@ -88,19 +90,6 @@ function shouldUseAriaDescription(
     description: HTMLElement
 ): boolean {
     return mode === "aria" && Boolean(getDescriptionText(description));
-}
-
-function syncTriggerDescription(
-    trigger: HTMLElement,
-    description: HTMLElement,
-    mode: DisclosureDescriptionMode
-): void {
-    if (shouldUseAriaDescription(mode, description)) {
-        trigger.setAttribute("aria-describedby", description.id);
-        return;
-    }
-
-    trigger.removeAttribute("aria-describedby");
 }
 
 function getDescriptionAnnouncement(description: HTMLElement): DisclosureAnnouncement | undefined {
@@ -206,6 +195,9 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
 
     let descriptionMode = options.descriptionMode ?? "content";
     let hasExplicitAnnouncement = options.announcement !== undefined;
+    let destroyed = false;
+    let revision = 0;
+    const descriptionReference = createAriaReferenceOwner(trigger, "aria-describedby");
 
     const triggerContent = createContentSlot(trigger, toCompositionChildren(options.trigger));
     const panelContent = createContentSlot(body, toCompositionChildren(options.panel));
@@ -214,10 +206,13 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
     let onOpenChange = options.onOpenChange ?? null;
 
     const handleOpenChange = (open: boolean): void => {
-        onOpenChange?.(open, composed);
+        if (!destroyed) onOpenChange?.(open, composed);
     };
 
-    syncTriggerDescription(trigger, description, descriptionMode);
+    function syncDescription(): void {
+        if (!destroyed) descriptionReference.set(shouldUseAriaDescription(descriptionMode, description) ? [description.id] : []);
+    }
+    syncDescription();
     element.append(trigger, panel);
 
     const disclosure = createDisclosure(
@@ -226,19 +221,47 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
     );
 
     function setDescription(nextDescription: string | null): void {
-        const text = nextDescription?.trim() ?? "";
-
-        description.textContent = text;
-        description.hidden = !text;
-        syncTriggerDescription(trigger, description, descriptionMode);
+        update({ description: nextDescription });
     }
 
     function setTriggerContent(children: DisclosureCompositionContent): void {
-        triggerContent.set(toCompositionChildren(children));
+        update({ trigger: children });
     }
 
     function setPanelContent(children: DisclosureCompositionContent): void {
-        panelContent.set(toCompositionChildren(children));
+        update({ panel: children });
+    }
+
+    function update(nextOptions: DisclosureCompositionUpdateOptions): void {
+        if (destroyed || disclosure.isDestroyed()) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if ("onOpenChange" in nextOptions) onOpenChange = nextOptions.onOpenChange ?? null;
+        if (nextOptions.descriptionId !== undefined) description.id = nextOptions.descriptionId || createId("af-disclosure-description");
+        if ("description" in nextOptions) {
+            const text = nextOptions.description?.trim() ?? "";
+            description.textContent = text;
+            description.hidden = !text;
+        }
+        if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
+        if (nextOptions.announcement !== undefined) hasExplicitAnnouncement = true;
+        runCleanups([
+            () => { if (!destroyed && current === revision && nextOptions.trigger !== undefined) triggerContent.set(toCompositionChildren(nextOptions.trigger)); },
+            () => { if (!destroyed && current === revision && nextOptions.panel !== undefined) panelContent.set(toCompositionChildren(nextOptions.panel)); },
+            () => {
+                if (destroyed || current !== revision) return;
+                syncDescription();
+                disclosure.update(getDisclosureUpdateOptions(nextOptions, handleOpenChange,
+                    getDescriptionAnnouncement(description), !hasExplicitAnnouncement && "description" in nextOptions));
+            }
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([disclosure.destroy, triggerContent.dispose, panelContent.dispose, descriptionReference.destroy]);
     }
 
     composed = {
@@ -252,51 +275,8 @@ export function Disclosure(options: DisclosureCompositionOptions): ComposedDiscl
         setTriggerContent,
         setPanelContent,
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if ("onOpenChange" in nextOptions) {
-                onOpenChange = nextOptions.onOpenChange ?? null;
-            }
-
-            if (nextOptions.descriptionId !== undefined) {
-                description.id = nextOptions.descriptionId;
-            }
-
-            if ("description" in nextOptions) {
-                setDescription(nextOptions.description ?? null);
-            }
-
-            if (nextOptions.descriptionMode !== undefined) {
-                descriptionMode = nextOptions.descriptionMode;
-                syncTriggerDescription(trigger, description, descriptionMode);
-            }
-
-            if (nextOptions.announcement !== undefined) {
-                hasExplicitAnnouncement = true;
-            }
-
-            disclosure.update(getDisclosureUpdateOptions(
-                nextOptions,
-                handleOpenChange,
-                getDescriptionAnnouncement(description),
-                !hasExplicitAnnouncement && "description" in nextOptions
-            ));
-
-            if (nextOptions.trigger !== undefined) {
-                setTriggerContent(nextOptions.trigger);
-            }
-
-            if (nextOptions.panel !== undefined) {
-                setPanelContent(nextOptions.panel);
-            }
-        },
-
-        destroy(): void {
-            triggerContent.dispose();
-            panelContent.dispose();
-            disclosure.destroy();
-        }
+        update,
+        destroy
     };
 
     return composed;

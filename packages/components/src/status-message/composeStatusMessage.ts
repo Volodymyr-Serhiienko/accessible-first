@@ -16,6 +16,7 @@ import {
     type ActionAnnouncer,
     type ActionAnnouncementPoliteness
 } from "../foundation";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by StatusMessage slots.
@@ -154,6 +155,9 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
     let announcementPoliteness: ActionAnnouncementPoliteness = options.announcementPoliteness ?? "polite";
     let providedAnnouncer: ActionAnnouncer | null = options.announcer ?? null;
     let ownedAnnouncer: ActionAnnouncer | null = null;
+    let destroyed = false;
+    let revision = 0;
+    let announcementRevision = 0;
 
     const iconSlot = createContentSlot(icon, toCompositionChildren(iconContent));
     const contentSlot = createContentSlot(content, initialChildren);
@@ -163,7 +167,7 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
     function getAnnouncer(): ActionAnnouncer {
         if (providedAnnouncer) return providedAnnouncer;
 
-        ownedAnnouncer ??= createActionAnnouncer();
+        ownedAnnouncer ??= createActionAnnouncer({ container: element.ownerDocument.body ?? element.ownerDocument.documentElement });
 
         return ownedAnnouncer;
     }
@@ -191,9 +195,12 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
         announcement: StatusMessageAnnouncement | null | undefined,
         politeness: ActionAnnouncementPoliteness | undefined = announcementPoliteness
     ): void {
+        if (destroyed) return;
+        const current = revision;
+        const delivery = ++announcementRevision;
         const message = getAnnouncementMessage(announcement);
 
-        if (!message) return;
+        if (!message || destroyed || current !== revision || delivery !== announcementRevision) return;
 
         getAnnouncer().announce(message, {
             politeness
@@ -201,6 +208,7 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "status-message");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -214,41 +222,71 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
         element.hidden = hidden;
     }
 
-    function setContentValue(nextContent: StatusMessageCompositionContent | null): void {
-        const normalized = normalizeSlotContent(nextContent);
-
-        hasContent = hasCompositionContent(normalized);
-        contentSlot.set(toCompositionChildren(normalized));
-    }
-
     function setIcon(nextContent: StatusMessageCompositionContent | null): void {
-        iconContent = normalizeSlotContent(nextContent);
-        hasIcon = hasCompositionContent(iconContent);
-        iconSlot.set(toCompositionChildren(iconContent));
-        sync();
+        update({ icon: nextContent });
     }
 
     function setContent(
         nextContent: StatusMessageCompositionContent | null,
         setOptions: StatusMessageSetOptions = {}
     ): void {
-        setContentValue(nextContent);
-        hidden = setOptions.hidden !== undefined ? setOptions.hidden : !hasContent;
-        sync();
-
-        if ("announcement" in setOptions) {
-            announceWith(setOptions.announcement, setOptions.announcementPoliteness);
-        }
+        update({ ...setOptions, children: toCompositionChildren(normalizeSlotContent(nextContent)) });
     }
 
     function setText(text: string | null, setOptions: StatusMessageSetOptions = {}): void {
         setContent(text, setOptions);
     }
 
-    sync();
+    function update(nextOptions: StatusMessageUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.iconOptions !== undefined) applyCompositionElementOptions(icon, nextOptions.iconOptions);
+        if (nextOptions.contentOptions !== undefined) applyCompositionElementOptions(content, nextOptions.contentOptions);
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
+        if (nextOptions.announcementPoliteness !== undefined) announcementPoliteness = nextOptions.announcementPoliteness;
+        if ("announcer" in nextOptions) providedAnnouncer = nextOptions.announcer ?? null;
+        if ("hidden" in nextOptions) hidden = nextOptions.hidden ?? false;
+        runCleanups([
+            () => {
+                if (destroyed || current !== revision || !("icon" in nextOptions)) return;
+                iconContent = normalizeSlotContent(nextOptions.icon);
+                hasIcon = hasCompositionContent(iconContent);
+                iconSlot.set(toCompositionChildren(iconContent));
+            },
+            () => {
+                if (destroyed || current !== revision) return;
+                if (nextOptions.children === undefined && !("text" in nextOptions)) return;
+                const children = getInitialContent(nextOptions);
+                hasContent = hasCompositionContent(children);
+                if (!("hidden" in nextOptions)) hidden = !hasContent;
+                contentSlot.set(children);
+            },
+            sync,
+            () => {
+                if (!destroyed && current === revision && "announcement" in nextOptions) {
+                    announceWith(nextOptions.announcement, nextOptions.announcementPoliteness);
+                }
+            }
+        ]);
+    }
 
-    if ("announcement" in options) {
-        announceWith(options.announcement);
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        const announcer = ownedAnnouncer;
+        ownedAnnouncer = null;
+        runCleanups([iconSlot.dispose, contentSlot.dispose, () => announcer?.destroy()]);
+    }
+
+    try {
+        sync();
+        if ("announcement" in options) announceWith(options.announcement);
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
     }
 
     return {
@@ -265,75 +303,18 @@ export function StatusMessage(options: StatusMessageOptions = {}): ComposedStatu
         setIcon,
 
         show(): void {
-            hidden = false;
-            sync();
+            update({ hidden: false });
         },
 
         hide(): void {
-            hidden = true;
-            sync();
+            update({ hidden: true });
         },
 
         announce(message?: string | null, politeness?: ActionAnnouncementPoliteness): void {
             announceWith(message ?? true, politeness);
         },
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.iconOptions !== undefined) {
-                applyCompositionElementOptions(icon, nextOptions.iconOptions);
-            }
-
-            if (nextOptions.contentOptions !== undefined) {
-                applyCompositionElementOptions(content, nextOptions.contentOptions);
-            }
-
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
-            if (nextOptions.announcementPoliteness !== undefined) {
-                announcementPoliteness = nextOptions.announcementPoliteness;
-            }
-
-            if ("announcer" in nextOptions) {
-                providedAnnouncer = nextOptions.announcer ?? null;
-            }
-
-            if ("icon" in nextOptions) {
-                iconContent = normalizeSlotContent(nextOptions.icon);
-                hasIcon = hasCompositionContent(iconContent);
-                iconSlot.set(toCompositionChildren(iconContent));
-            }
-
-            let contentWasUpdated = false;
-
-            if (nextOptions.children !== undefined) {
-                setContentValue(nextOptions.children);
-                contentWasUpdated = true;
-            } else if ("text" in nextOptions) {
-                setContentValue(nextOptions.text ?? null);
-                contentWasUpdated = true;
-            }
-
-            if ("hidden" in nextOptions) {
-                hidden = nextOptions.hidden ?? false;
-            } else if (contentWasUpdated) {
-                hidden = !hasContent;
-            }
-
-            sync();
-
-            if ("announcement" in nextOptions) {
-                announceWith(nextOptions.announcement, nextOptions.announcementPoliteness);
-            }
-        },
-
-        destroy(): void {
-            iconSlot.dispose();
-            contentSlot.dispose();
-            ownedAnnouncer?.destroy();
-            ownedAnnouncer = null;
-        }
+        update,
+        destroy
     };
 }

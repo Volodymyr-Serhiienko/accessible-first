@@ -54,6 +54,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:styles": "vite --config tests/browser/vite.config.mjs",
     "check": "npm run typecheck && npm run test && npm run playground:build && npm run example:routed:build && npm run example:static:build && npm run example:audio:build"
   },
   "devDependencies": {

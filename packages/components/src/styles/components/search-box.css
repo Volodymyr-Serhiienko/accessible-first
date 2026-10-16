@@ -20,6 +20,7 @@
     display: grid;
     gap: 0.125rem;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 [data-af-search-box-result-label] {

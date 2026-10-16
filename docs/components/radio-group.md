@@ -143,6 +143,14 @@ On touch screen readers, labels may also be discoverable as large tap targets. T
 
 `defaultValue` is creation-time only. Use `setValue()` or `update({ value })` to change the current selection.
 
+Enhancement inherits authored fieldset disabled and radio required state unless
+explicitly overridden. Getters follow native selection; `refresh()` and replacing
+`radios` release removed inputs' borrowed state immediately and take a fresh
+snapshot if they return. Change events use the owning document's input realm.
+Enhancement `update()` is inert after destroy. See
+[native field state](./foundation.md#native-field-state) for reset defaults and
+silent marker synchronization.
+
 ```ts
 const group = RadioGroup({
     label: "Theme",
@@ -189,6 +197,9 @@ RadioGroup({
     items: [...]
 });
 ```
+
+Labels follow the surrounding text direction; the selected dot remains centered
+in its indicator in both LTR and RTL, including enlarged text.
 
 ## Manual Checks
 

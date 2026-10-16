@@ -286,6 +286,9 @@ export function SearchBox<TItem extends SearchBoxItem>(
 ): ComposedSearchBox<TItem> {
     let composed!: ComposedSearchBox<TItem>;
     let itemStates = options.items.map(createItemState);
+    let statesById = new Map<string, SearchBoxItemState<TItem>>();
+    let destroyed = false;
+    let revision = 0;
     let filterItem = options.filterItem ?? null;
     let searchLocale = options.searchLocale ?? null;
     let searchMode = options.searchMode ?? "all-words";
@@ -298,16 +301,21 @@ export function SearchBox<TItem extends SearchBoxItem>(
     let onSelect = options.onSelect ?? null;
 
     function getItem(value: string | null | undefined): TItem | null {
-        if (!value) return null;
-
-        return itemStates.find((state) => state.item.id === value)?.item ?? null;
+        return getItemState(value)?.item ?? null;
     }
 
     function getItemState(value: string | null | undefined): SearchBoxItemState<TItem> | null {
-        if (!value) return null;
-
-        return itemStates.find((state) => state.item.id === value) ?? null;
+        if (value === null || value === undefined) return null;
+        return statesById.get(value) ?? null;
     }
+
+    function indexItems(): void {
+        statesById = new Map();
+        for (const state of itemStates) {
+            if (!statesById.has(state.item.id)) statesById.set(state.item.id, state);
+        }
+    }
+    indexItems();
 
     function getSearchMatchOptions(): LocaleSearchMatchOptions {
         return {
@@ -319,6 +327,7 @@ export function SearchBox<TItem extends SearchBoxItem>(
     }
 
     function filterComboboxOption(context: { inputValue: string; option: HTMLElement }): boolean {
+        if (destroyed) return false;
         const state = getItemState(context.option.getAttribute("data-af-search-box-result-id"));
 
         if (!state) return true;
@@ -334,6 +343,8 @@ export function SearchBox<TItem extends SearchBoxItem>(
     }
 
     const handleValueChange: NonNullable<ComboboxCompositionOptions["onValueChange"]> = (detail): void => {
+        if (destroyed) return;
+        const current = ++revision;
         const selectedItem = getItem(detail.value);
 
         onQueryChange?.(
@@ -347,7 +358,7 @@ export function SearchBox<TItem extends SearchBoxItem>(
             composed
         );
 
-        if (detail.reason === "selection" && selectedItem) {
+        if (!destroyed && current === revision && detail.reason === "selection" && selectedItem) {
             onSelect?.(
                 {
                     item: selectedItem,
@@ -361,8 +372,12 @@ export function SearchBox<TItem extends SearchBoxItem>(
     };
 
     function setItems(items: TItem[]): void {
+        if (destroyed) return;
+        revision += 1;
         itemStates = items.map(createItemState);
+        indexItems();
         combobox.setItems(itemStates.map(toComboboxItem));
+        if (destroyed) return;
         combobox.element.setAttribute("data-af-search-box", "");
     }
 
@@ -457,12 +472,15 @@ export function SearchBox<TItem extends SearchBoxItem>(
         },
 
         setSelectedValue(value): boolean {
+            if (destroyed) return false;
             return combobox.setSelectedValue(value);
         },
 
         setItems,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            revision += 1;
             if ("filterItem" in nextOptions) {
                 filterItem = nextOptions.filterItem ?? null;
             }
@@ -513,16 +531,20 @@ export function SearchBox<TItem extends SearchBoxItem>(
                         ? state
                         : createItemState(applyItemUpdate(state.item, itemUpdate));
                 });
+                indexItems();
 
                 comboboxOptions.items = itemStates.map(toComboboxItemUpdate);
             }
 
-            combobox.update(comboboxOptions);
             combobox.element.setAttribute("data-af-search-box", "");
             syncSearchBoxSizing();
+            combobox.update(comboboxOptions);
         },
 
         destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
             combobox.destroy();
         }
     };

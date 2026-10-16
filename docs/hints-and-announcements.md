@@ -16,7 +16,9 @@ Use it to answer: what should the user know before activating this?
 
 Examples: "Saves the current draft without publishing.", "Opens advanced filters.".
 
-`tooltip` is a short visual helper attached to pointer hover or keyboard focus.
+`tooltip` is a short visual helper shown on pointer hover by default, with its
+programmatic description available on focus. Visual focus reveal is an explicit
+`showOnFocus`/`hintShowOnFocus` opt-in; touch focus must not depend on a popup.
 
 Use it only for optional, short, non-interactive helper text. Tooltip must not be the only place where important information exists because touch devices do not have reliable hover.
 

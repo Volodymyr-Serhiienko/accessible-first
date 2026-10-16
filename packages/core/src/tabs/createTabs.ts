@@ -9,11 +9,11 @@ import { addEventListener, type Cleanup } from "../events";
 import { isEnterKey, isSpaceKey } from "../keyboard";
 import {
     createRovingFocus,
-    isRovingFocusItemDisabled,
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
 import { createAttributeSnapshot } from "../dom";
+import { canFocusCollectionItem, isCollectionItemUnavailable } from "../roving-focus/collectionAvailability";
 
 import type { Tabs, TabsOptions, TabsTab } from "./types";
 
@@ -39,6 +39,7 @@ export function createTabs(
     const activationMode = options.activationMode ?? "automatic";
 
     const attributes = createAttributeSnapshot();
+    let ownedElements = new Set<HTMLElement>();
 
     let currentTab: HTMLElement | null = null;
     let destroyed = false;
@@ -52,12 +53,8 @@ export function createTabs(
         return options.getPanel(tab);
     }
 
-    function isTabDisabled(tab: HTMLElement): boolean {
-        return options.isTabDisabled?.(tab) ?? isRovingFocusItemDisabled(tab);
-    }
-
     function isTabAvailable(tab: HTMLElement): boolean {
-        return getTabs().includes(tab) && !isTabDisabled(tab) && getPanel(tab) !== null;
+        return getTabs().includes(tab) && !isCollectionItemUnavailable(tablist, tab, options.isTabDisabled) && getPanel(tab) !== null;
     }
 
     function getInitialTab(): HTMLElement | null {
@@ -90,6 +87,14 @@ export function createTabs(
     }
 
     function syncState(): void {
+        const tabs = getTabs();
+        const nextElements = new Set<HTMLElement>(tabs);
+        for (const tab of tabs) {
+            const panel = getPanel(tab);
+            if (panel) nextElements.add(panel);
+        }
+        for (const element of ownedElements) if (!nextElements.has(element)) attributes.restoreElement(element);
+        ownedElements = nextElements;
         attributes.remember(tablist, "role");
         attributes.remember(tablist, "aria-orientation");
 
@@ -100,7 +105,7 @@ export function createTabs(
             orientation === "vertical" ? "vertical" : null
         );
 
-        for (const tab of getTabs()) {
+        for (const tab of tabs) {
             const panel = getPanel(tab);
             const selected = tab === currentTab && panel !== null;
 
@@ -129,7 +134,8 @@ export function createTabs(
         tab: HTMLElement | null,
         setCurrentOptions: { focus?: boolean } = {}
     ): boolean {
-        if (destroyed || !tab || !isTabAvailable(tab)) {
+        if (destroyed || !tab || !isTabAvailable(tab)
+            || (setCurrentOptions.focus && !canFocusCollectionItem(tab))) {
             return false;
         }
 
@@ -177,10 +183,12 @@ export function createTabs(
             return;
         }
 
-        setCurrentTab(getTabFromEventTarget(event.target));
+        const tab = getTabs().find((tab) => tab === event.target);
+        if (tab) setCurrentTab(tab);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
+        if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
         if (activationMode !== "manual") {
             return;
         }
@@ -189,7 +197,7 @@ export function createTabs(
             return;
         }
 
-        const tab = getTabFromEventTarget(event.target);
+        const tab = getTabs().find((tab) => tab === event.target);
 
         if (!tab) {
             return;
@@ -204,7 +212,7 @@ export function createTabs(
             getItems: getTabs,
             orientation,
             currentItem: () => currentTab,
-            isItemDisabled: isTabDisabled
+            isItemDisabled: (tab) => !isTabAvailable(tab)
         };
 
         if (options.loop !== undefined) {
@@ -249,6 +257,10 @@ export function createTabs(
             }
 
             syncState();
+            const focusedTab = rovingFocus.getCurrentItem();
+            if (currentTab && (!focusedTab || !isTabAvailable(focusedTab))) {
+                rovingFocus.setCurrentItem(currentTab);
+            }
             rovingFocus.refresh();
         },
 
@@ -265,6 +277,7 @@ export function createTabs(
 
             rovingFocus.deactivate();
             attributes.restore();
+            ownedElements.clear();
         }
     };
 }

@@ -1,7 +1,9 @@
 [data-af-composition="info-card"] {
     box-sizing: border-box;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
@@ -36,6 +38,7 @@
 [data-af-info-card-content] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
 }
 

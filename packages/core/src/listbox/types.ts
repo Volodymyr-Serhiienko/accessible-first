@@ -34,6 +34,7 @@ export interface ListboxOptions {
     typeaheadTimeout?: number;
     getOptionText?: (option: HTMLElement) => string;
     defaultSelectedOptions?: ListboxSelectedOptions;
+    /** Logical disabled state; hiding an option does not erase its selection. */
     isOptionDisabled?: (option: HTMLElement) => boolean;
     onSelectionChange?: (selectedOptions: HTMLElement[]) => void;
 }

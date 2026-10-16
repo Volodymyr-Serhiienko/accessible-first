@@ -1,3 +1,4 @@
+import { runCleanups, type Cleanup } from "../../../core/src/events";
 import {
     AppHeader,
     type AppHeaderLocale,
@@ -324,6 +325,15 @@ function getAfterOutletContent<
     ];
 }
 
+const failedChromeCleanups = new WeakMap<object, Cleanup>();
+
+/** @internal Retires generated controls if a renderer hook fails before shell ownership. */
+export function disposeFailedAppRouteChrome(chrome: object): void {
+    const cleanup = failedChromeCleanups.get(chrome);
+    failedChromeCleanups.delete(chrome);
+    cleanup?.();
+}
+
 /**
  * Creates a route-aware AppHeader, navigation, breadcrumbs, and route-control bindings for app shells.
  */
@@ -333,23 +343,36 @@ export function createAppRouteChrome<
     TKey extends string = AccessibleFirstMessageKey
 >(options: AppRouteChromeOptions<TRoute, TLocale, TKey>): AppRouteChrome<TRoute, TLocale> {
     const routeChrome = createRouteChrome(getRouteChromeOptions(options));
-    const appHeader = createAppRouteHeader<TLocale, TKey>(routeChrome.headerControls, options.header);
-    const navigationReturnLink = createNavigationReturnLink(routeChrome, options.navigationReturnLink);
-    const beforeOutlet = getBeforeOutletContent(options, routeChrome.breadcrumbs);
-    const afterOutlet = getAfterOutletContent(options, navigationReturnLink);
-    const appRouteChrome: AppRouteChrome<TRoute, TLocale> = {
-        routeChrome,
-        appHeader,
-        navigation: routeChrome.navigation,
-        beforeOutlet,
-        navigationControl: routeChrome.navigationControl,
-        currentRouteControls: routeChrome.currentRouteControls
-    };
+    let appHeader: ComposedAppHeader<TLocale> | null = null;
+    let navigationReturnLink: ComposedResponsiveNavigationFocusLink | null = null;
+    const cleanup = (): void => runCleanups([
+        () => navigationReturnLink?.destroy(), () => appHeader?.destroy(),
+        () => routeChrome.commands?.destroy(), () => routeChrome.search?.destroy(),
+        () => routeChrome.breadcrumbs?.destroy(), () => routeChrome.navigation?.destroy()
+    ]);
+    try {
+        appHeader = createAppRouteHeader<TLocale, TKey>(routeChrome.headerControls, options.header);
+        navigationReturnLink = createNavigationReturnLink(routeChrome, options.navigationReturnLink);
+        const beforeOutlet = getBeforeOutletContent(options, routeChrome.breadcrumbs);
+        const afterOutlet = getAfterOutletContent(options, navigationReturnLink);
+        const appRouteChrome: AppRouteChrome<TRoute, TLocale> = {
+            routeChrome,
+            appHeader,
+            navigation: routeChrome.navigation,
+            beforeOutlet,
+            navigationControl: routeChrome.navigationControl,
+            currentRouteControls: routeChrome.currentRouteControls
+        };
 
-    if (appHeader || options.header === false) appRouteChrome.header = appHeader;
-    if (options.shell !== undefined) appRouteChrome.shell = options.shell;
-    if (afterOutlet !== undefined) appRouteChrome.afterOutlet = afterOutlet;
-    if ("footer" in options) appRouteChrome.footer = options.footer ?? null;
+        if (appHeader || options.header === false) appRouteChrome.header = appHeader;
+        if (options.shell !== undefined) appRouteChrome.shell = options.shell;
+        if (afterOutlet !== undefined) appRouteChrome.afterOutlet = afterOutlet;
+        if ("footer" in options) appRouteChrome.footer = options.footer ?? null;
 
-    return appRouteChrome;
+        failedChromeCleanups.set(appRouteChrome, cleanup);
+        return appRouteChrome;
+    } catch (error) {
+        try { cleanup(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

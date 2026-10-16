@@ -6,6 +6,7 @@ import { playgroundAppIdentity } from "./appIdentity";
 import { getPlaygroundDiagnosticsOptions } from "./diagnostics";
 import {
     playgroundLocale,
+    t,
     type PlaygroundLocale,
     type PlaygroundMessageKey
 } from "./localization";
@@ -35,9 +36,10 @@ export function createPlaygroundApp(): PlaygroundApp {
         routeMetadata: playgroundRouteOptions,
         routeText: playgroundRouteText,
         shell: getPlaygroundShellOptions(),
-        routeChrome: () => getPlaygroundRouteChromeOptions({
-            afterOutlet: notifications
-        }),
+        routeChrome: () => {
+            notifications.update({ label: t("app.notifications.label") });
+            return getPlaygroundRouteChromeOptions({ afterOutlet: notifications });
+        },
         diagnostics: getPlaygroundDiagnosticsOptions()
     });
 }

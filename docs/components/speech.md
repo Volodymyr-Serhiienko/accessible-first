@@ -2,7 +2,7 @@
 
 `SpeechControls`, `SpeechToggleButton`, and `SpeechButton` provide accessible composition controls
 for an application-supplied `SpeechEngine`. They do not own product copy,
-language settings, provider selection, or playback policy.
+language settings, provider selection, or the shared engine's global policy.
 
 The same controls accept browser synthesis, recorded audio, or an explicit
 text/spelling engine router. See [Core speech](../core/speech.md) for creation,
@@ -57,11 +57,27 @@ text in the framework.
 
 ## Behavior
 
+All three controllers expose `isDestroyed()` and ignore actions after destruction.
+One internal playback owner retires stale events and releases terminal subscriptions
+before application feedback, including immediate completion from `subscribe()`.
+New playback requested by cleanup, feedback or an engine callback wins over old work.
+Cleanup attempts all owned resources after a failure; the first exception propagates.
+Unexpected provider exceptions also report the configured failure feedback, then
+rethrow. Providers must clean up a failed `subscribe()` that never returned a disposer;
+the control can reject its late events, but cannot release an undisclosed resource.
+
+Controls never call the shared `engine.stop()`. The group/toggle stop their own
+active playback on replacement or destruction. Compact `SpeechButton` only releases
+its subscription, preserving existing fire-and-forget behavior; its containing
+screen/task remains responsible for cancellation. Do not separately destroy owned
+buttons/status parts.
+
 ### SpeechControls
 
 - Uses an `ActionsBar` with an accessible group name.
 - Starts with pause and stop unavailable until a request is playing.
 - Changes the pause action to resume while playback is paused.
+- Keeps pause unavailable when the engine does not support it; stop remains usable.
 - Shows a `StatusMessage` only for configured pause, stop, unavailable, or
   failed states; those event messages are announced once through the shared
   document channel.
@@ -69,6 +85,8 @@ text in the framework.
   compact on wide screens and fill available width after wrapping.
 - `setRequest()` stops active playback before changing the request.
 - `destroy()` stops active playback and releases child component resources.
+- If completion/stop disables the currently focused pause/stop action, focus moves
+  to the available start button. External focus is not moved.
 
 ### SpeechButton
 
@@ -86,6 +104,8 @@ text in the framework.
   fails.
 - Delegates unavailable and failed playback to optional application callbacks;
   it intentionally does not create a status message of its own.
+- A nonpausable engine retains the start action; pressing again restarts playback
+  rather than offering a pause action that cannot work.
 
 ## Options
 

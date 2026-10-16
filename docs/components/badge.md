@@ -104,6 +104,15 @@ status.update({
 
 Use `setIcon(null)` to hide the icon slot.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle): both slots
+are attempted after cleanup failure, and newer updates supersede obsolete work.
+Destruction is terminal/idempotent; late setters/update are inert while existing
+DOM/getters remain inspectable. Style-only updates retain current children.
+
+Icons and replacement-label content are passive. Do not put focusable controls
+inside an icon or a visible abbreviation hidden by `accessibleLabel`; use a real
+Button or Link instead of an interactive badge.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="badge"]`, `[data-af-badge-icon]`, `[data-af-badge-content]`, `[data-af-badge-accessible-label]`, `[data-af-variant]`, `[data-af-size]`, and `[data-af-icon-position]`.

@@ -26,6 +26,7 @@ export interface TabsOptions {
     activationMode?: TabsActivationMode;
     loop?: boolean;
     defaultTab?: TabsTab;
+    /** Logical disabled state; rendered navigation also requires an available tab and panel. */
     isTabDisabled?: (tab: HTMLElement) => boolean;
     onTabChange?: (tab: HTMLElement, panel: HTMLElement) => void;
 }

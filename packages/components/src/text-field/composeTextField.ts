@@ -12,7 +12,8 @@ import {
     type ElementAttributes
 } from "../composition";
 import { createTextField as createTextFieldComponent } from "./createTextField";
-import { addEventListener } from "../../../core/src/events";
+import { addEventListener, runCleanups } from "../../../core/src/events";
+import { observeNativeFormReset } from "../foundation/observeNativeFormReset";
 import {
     accessibleFirstEnglishMessages,
     getLocaleText,
@@ -187,6 +188,7 @@ export interface ComposedTextField
     readonly errorMessage: HTMLElement;
     readonly controlWrapper: HTMLElement;
     readonly validationIcon: HTMLElement;
+    /** Obsolete/destroyed checks return an inactive, invalid result without late effects. */
     validate(options?: TextFieldCompositionValidateOptions): TextFieldCompositionValidationDetail;
     getValidationState(): TextFieldCompositionValidationState;
     clearValidation(): void;
@@ -207,11 +209,11 @@ function hasDefaultEmailPattern(control: TextFieldElement): control is HTMLInput
         && control.getAttribute("pattern") === textFieldEmailPattern;
 }
 
-function isResetControl(target: EventTarget | null): target is HTMLElement {
-    if (!(target instanceof HTMLElement)) return false;
-
+function isResetControl(target: EventTarget | null): target is HTMLButtonElement | HTMLInputElement {
+    if (!target) return false;
+    const element = target as HTMLElement;
     return (
-        (target.localName === "button" || target.localName === "input")
+        (element.localName === "button" || element.localName === "input")
         && (target as HTMLButtonElement | HTMLInputElement).type === "reset"
     );
 }
@@ -219,12 +221,13 @@ function isResetControl(target: EventTarget | null): target is HTMLElement {
 function shouldSkipBlurValidation(event: FocusEvent, control: TextFieldElement): boolean {
     const nextTarget = event.relatedTarget;
 
-    if (nextTarget instanceof HTMLElement && nextTarget.hasAttribute("data-af-password-visibility")
-        && nextTarget.parentElement === control.parentElement) return true;
+    const nextElement = nextTarget as HTMLElement | null;
+    if (nextElement?.localName && nextElement.hasAttribute("data-af-password-visibility")
+        && nextElement.parentElement === control.parentElement) return true;
 
     if (!isResetControl(nextTarget)) return false;
 
-    return control.form?.contains(nextTarget) ?? false;
+    return control.form !== null && nextTarget.form === control.form;
 }
 
 function getControlAttributes(options: TextFieldCompositionOptions): ElementAttributes {
@@ -329,6 +332,8 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     controlWrapper.append(control, validationIcon);
     element.append(label, controlWrapper, description, errorMessage);
 
+    let destroyed = false;
+    let validationRevision = 0;
     let composed!: ComposedTextField;
     let onValueInput = options.onValueInput ?? null;
     let onValueChange = options.onValueChange ?? null;
@@ -422,7 +427,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     function announceInvalidValidation(detail: TextFieldCompositionValidationDetail): void {
         if (!announceValidation || detail.state !== "invalid" || !detail.message.trim()) return;
 
-        validationAnnouncer ??= createValidationAnnouncer();
+        validationAnnouncer ??= createValidationAnnouncer({ container: element });
         validationAnnouncer.announceError({
             control,
             message: detail.message
@@ -430,6 +435,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     }
 
     function syncFormFieldReferences(): void {
+        if (destroyed) return;
         syncControlId();
         syncRows();
         syncDescriptionVisibility();
@@ -442,16 +448,19 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
     }
 
     function setDescription(content: TextFieldCompositionContent | null): void {
+        if (destroyed) return;
         descriptionSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setErrorMessage(content: TextFieldCompositionContent | null): void {
+        if (destroyed) return;
         errorSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setLabelContent(content: TextFieldCompositionContent): void {
+        if (destroyed) return;
         labelSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
@@ -460,7 +469,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         unsubscribeLocale?.();
         unsubscribeLocale = null;
 
-        if (!locale?.subscribe) return;
+        if (destroyed || !locale?.subscribe) return;
 
         unsubscribeLocale = locale.subscribe(() => {
             if (validationState === "invalid") {
@@ -478,8 +487,16 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         )
     );
 
+    control.defaultValue = control.value;
+
     syncFormFieldReferences();
     syncLocaleSubscription();
+
+    function inactiveValidation(validateOptions: TextFieldCompositionValidateOptions): TextFieldCompositionValidationDetail {
+        return { value: control.value, valid: false, state: "idle", message: "",
+            validity: control.validity, trigger: validateOptions.trigger ?? "programmatic",
+            event: validateOptions.event ?? null };
+    }
 
     composed = {
         ...textField,
@@ -492,14 +509,25 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         validationIcon,
 
         validate(validateOptions = {}): TextFieldCompositionValidationDetail {
+            if (destroyed) return inactiveValidation(validateOptions);
+            if (!control.willValidate) {
+                composed.clearValidation();
+                return { ...inactiveValidation(validateOptions), valid: true };
+            }
+
+            const revision = ++validationRevision;
+            const value = control.value;
+            const obsolete = () => destroyed || validationRevision !== revision || control.value !== value;
             const trigger = validateOptions.trigger ?? "programmatic";
             const event = validateOptions.event ?? null;
-            const customMessage = validator?.(control.value, control, composed) ?? "";
+            const customMessage = validator?.(value, control, composed) ?? "";
+            if (obsolete()) return inactiveValidation(validateOptions);
 
             control.setCustomValidity(customMessage);
 
             const optionalEmpty = !control.required && control.value.trim() === "" && !validator;
             const valid = optionalEmpty || control.checkValidity();
+            if (obsolete() || !control.willValidate || valid !== control.validity.valid) return inactiveValidation(validateOptions);
             const state: TextFieldCompositionValidationState = optionalEmpty
                 ? "idle"
                 : valid ? "valid" : "invalid";
@@ -517,6 +545,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
                 textField.setInvalid(false);
                 setErrorMessage(null);
             }
+            if (obsolete()) return inactiveValidation(validateOptions);
 
             const detail: TextFieldCompositionValidationDetail = {
                 value: control.value,
@@ -533,6 +562,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
             }
 
             onValidationChange?.(detail, composed);
+            if (obsolete()) return inactiveValidation(validateOptions);
             syncFormFieldReferences();
 
             return detail;
@@ -543,6 +573,9 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         },
 
         clearValidation(): void {
+            if (destroyed) return;
+            validationRevision += 1;
+            validationAnnouncer?.clear();
             validationState = "idle";
             control.setCustomValidity("");
             setValidationVisualState("idle");
@@ -556,12 +589,16 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         setErrorMessage,
 
         setInvalid(nextInvalid): void {
+            if (destroyed) return;
+            validationRevision += 1;
             invalid = nextInvalid;
             textField.setInvalid(nextInvalid);
             syncFormFieldReferences();
         },
 
         update(nextOptions): void {
+            if (destroyed) return;
+            validationRevision += 1;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.controlOptions !== undefined) {
@@ -589,6 +626,7 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
             if (nextOptions.label !== undefined) setLabelContent(nextOptions.label);
             if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
             if ("errorMessage" in nextOptions) setErrorMessage(nextOptions.errorMessage ?? null);
+            if (destroyed) return;
             if (nextOptions.rows !== undefined) rows = nextOptions.rows;
 
             if ("onValueInput" in nextOptions) {
@@ -625,23 +663,51 @@ export function TextField(options: TextFieldCompositionOptions): ComposedTextFie
         },
 
         destroy(): void {
-            labelSlot.dispose();
-            descriptionSlot.dispose();
-            errorSlot.dispose();
-            formField.destroy();
-            textField.destroy();
-            unsubscribeLocale?.();
-
-            for (const cleanup of validationCleanups) {
-                cleanup();
-            }
-
-            validationAnnouncer?.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            validationRevision += 1;
+            const announcer = validationAnnouncer;
             validationAnnouncer = null;
+            const unsubscribe = unsubscribeLocale;
+            unsubscribeLocale = null;
+            runCleanups([labelSlot.dispose, descriptionSlot.dispose, errorSlot.dispose,
+                () => formField.destroy(), () => textField.destroy(),
+                () => control.setCustomValidity(""), () => unsubscribe?.(),
+                ...validationCleanups, () => announcer?.destroy()]);
+        },
+
+        isDestroyed(): boolean {
+            return destroyed;
+        },
+
+        setValue(value): void {
+            if (destroyed) return;
+            validationRevision += 1;
+            textField.setValue(value);
+        },
+
+        setDisabled(disabled): void {
+            if (destroyed) return;
+            validationRevision += 1;
+            textField.setDisabled(disabled);
+        },
+
+        setRequired(required): void {
+            if (destroyed) return;
+            validationRevision += 1;
+            textField.setRequired(required);
+            syncRequiredMarker();
+        },
+
+        setReadOnly(readOnly): void {
+            if (destroyed) return;
+            validationRevision += 1;
+            textField.setReadOnly(readOnly);
         }
     };
 
     const validationCleanups = [
+        observeNativeFormReset(control, () => [control], () => composed.clearValidation()),
         addEventListener<FocusEvent>(control, "blur", (event) => {
             if (validateOnBlur && !shouldSkipBlurValidation(event, control)) {
                 composed.validate({ trigger: "blur", event });

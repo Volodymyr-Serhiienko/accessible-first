@@ -92,22 +92,20 @@ function getAppDocumentSharedUrl(
 function stringifyAppMetadataUrl(value: DocumentMetadataUrlValue | null | undefined): string | null {
     if (value === null || value === undefined) return null;
 
-    return value instanceof URL ? value.toString() : value;
+    return String(value);
 }
 
 function isOpenGraphImageOptions(
     image: DocumentMetadataOpenGraphImage | null | undefined
 ): image is DocumentMetadataOpenGraphImageOptions {
-    return Boolean(image && typeof image === "object" && !(image instanceof URL) && "url" in image);
+    return Boolean(image && typeof image === "object" && "url" in image);
 }
 
 function getAppDocumentImageUrl(
     image: DocumentMetadataOpenGraphImage | null | undefined
 ): DocumentMetadataUrlValue | null {
     if (!image) return null;
-    if (typeof image === "string" || image instanceof URL) return image;
-
-    return image.url;
+    return isOpenGraphImageOptions(image) ? image.url : image;
 }
 
 function getAppDocumentImageAlt(options: AppDocumentMetadataOptions): string | null {
@@ -208,11 +206,7 @@ function createSoftwareApplicationStructuredData(
     if (resolvedUrl !== null) data.url = stringifyAppMetadataUrl(resolvedUrl);
     if (imageUrl !== null) data.image = stringifyAppMetadataUrl(imageUrl);
 
-    if (softwareApplication.additionalData) {
-        Object.assign(data, softwareApplication.additionalData);
-    }
-
-    return data;
+    return softwareApplication.additionalData ? { ...data, ...softwareApplication.additionalData } : data;
 }
 
 function createAppStructuredData(

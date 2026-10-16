@@ -1,4 +1,5 @@
-import { addAriaReferenceId, getAriaReferencedText } from "../../../core/src/aria";
+import { getAriaReferencedText } from "../../../core/src/aria";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
 import { getOwnerWindow, restoreAttribute } from "../../../core/src/dom";
 import { addEventListener, type Cleanup } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
@@ -14,9 +15,10 @@ import {
 export interface TooltipOptions {
     text?: string | null;
     id?: string;
+    /** Expose tooltip text through aria-describedby. Defaults to true. */
     describe?: boolean;
     announceOnHover?: boolean;
-    /** Show the visual tooltip on keyboard focus. Description remains independent. */
+    /** Show the visual tooltip on keyboard focus. Defaults to false; description is independent. */
     showOnFocus?: boolean;
 }
 
@@ -107,12 +109,12 @@ export function createTooltip(
     const ownerDocument = element.ownerDocument;
     const originalTooltip = element.getAttribute("data-af-tooltip");
     const originalDismissed = element.getAttribute("data-af-tooltip-dismissed");
-    const originalDescribedBy = element.getAttribute("aria-describedby");
+    const descriptionOwner = createAriaReferenceOwner(element, "aria-describedby");
 
     let text = normalizeText(options.text);
-    let describe = options.describe ?? false;
+    let describe = options.describe ?? true;
     let announceOnHover = options.announceOnHover ?? false;
-    let showOnFocus = options.showOnFocus ?? true;
+    let showOnFocus = options.showOnFocus ?? false;
     let tooltipId = options.id ?? "";
     let descriptionContent: HTMLElement | null = null;
     let visualContent: HTMLElement | null = null;
@@ -338,16 +340,13 @@ export function createTooltip(
             const content = ensureDescriptionContent();
 
             content.textContent = text;
-            element.setAttribute(
-                "aria-describedby",
-                addAriaReferenceId(originalDescribedBy, content.id)
-            );
+            descriptionOwner.set([content.id]);
 
             return;
         }
 
         removeDescriptionContent();
-        restoreAttribute(element, "aria-describedby", originalDescribedBy);
+        descriptionOwner.set([]);
     }
 
     function disposeListeners(): void {
@@ -428,6 +427,7 @@ export function createTooltip(
     function handleDocumentKeyDown(event: KeyboardEvent): void {
         if (
             event.defaultPrevented
+            || dismissed
             || !isEscapeKey(event)
             || !text
             || !isActive()
@@ -512,7 +512,7 @@ export function createTooltip(
 
             restoreAttribute(element, "data-af-tooltip", originalTooltip);
             restoreAttribute(element, "data-af-tooltip-dismissed", originalDismissed);
-            restoreAttribute(element, "aria-describedby", originalDescribedBy);
+            descriptionOwner.destroy();
         }
     };
 }

@@ -44,6 +44,30 @@ const spell = { ...text, mode: "spell" as const, spellWhitespaceText: "space" };
 describe("createSpeechEngineRouter", () => {
     afterEach(() => { vi.useRealTimers(); });
 
+    it.each(["idle", "completed"] as const)("settles on %s even if provider unsubscribe throws", terminal => {
+        const audio = provider();
+        const browser = provider();
+        const speak = audio.engine.speak;
+        audio.engine.speak = request => {
+            const current = speak(request);
+            return { ...current, subscribe(listener) {
+                current.subscribe(listener);
+                return () => { throw new Error("provider unsubscribe failed"); };
+            } };
+        };
+        const playback = createSpeechEngineRouter({ text: audio.engine, spell: browser.engine })
+            .speak({ segments: [text, spell] });
+        expect(() => {
+            if (terminal === "idle") playback.stop();
+            else audio.playbacks[0]!.emit({ status: "completed" });
+        }).not.toThrow();
+        expect(playback.getState()).toEqual(terminal === "idle" ? { status: "idle" }
+            : { status: "error", error: "speech-engine-routing-failed" });
+        expect(audio.playbacks[0]!.playback.stop).toHaveBeenCalledOnce();
+        audio.playbacks[0]!.emit({ status: "completed" });
+        expect(browser.speak).not.toHaveBeenCalled();
+    });
+
     it("inserts silence only at explicit boundaries, without a trailing delay", () => {
         vi.useFakeTimers();
         const audio = provider();

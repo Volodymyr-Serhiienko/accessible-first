@@ -96,6 +96,10 @@ Item options:
 
 ## Update Notes
 
+See [native field state](./foundation.md#native-field-state) for composed reset
+defaults. Enhancement preserves the exact original selected options on destroy,
+including duplicate values and an empty selection. Its late `update()` is inert.
+
 `placeholder` and `defaultValue` are creation-time options.
 
 `visibleRows` can be updated later:

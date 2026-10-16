@@ -118,6 +118,12 @@ group.setChildren([
 ]);
 ```
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle). Combined
+updates continue after cleanup errors unless newer work supersedes them, then
+synchronize field semantics once. Destruction attempts all four slots and native
+form-field semantics, is idempotent, and makes late content/state setters/update
+inert. Existing DOM and state getters remain inspectable.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="field-group"]`, `[data-af-field-group-legend]`, `[data-af-field-group-description]`, `[data-af-field-group-error]`, `[data-af-field-group-body]`, `[data-af-required]`, `[data-af-invalid]`, `[data-af-orientation]`, `[data-af-variant]`, `[data-af-size]`, and `[data-af-state]`.
@@ -144,4 +150,5 @@ Use `descriptionMode: "content"` when the description is helpful visible context
 - Child controls keep their own labels, descriptions, validation, and keyboard behavior.
 - Disabled group prevents interaction with child form controls.
 - Horizontal layout wraps on small screens.
+- Long legends, descriptions, errors and body text stay within the fieldset.
 - Text contrast is readable in light and dark themes.

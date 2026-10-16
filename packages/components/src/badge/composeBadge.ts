@@ -12,6 +12,7 @@ import {
     type CompositionChild,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by Badge text and icon slots.
@@ -122,6 +123,8 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
     let size: BadgeSize = options.size ?? "md";
     let iconPosition: BadgeIconPosition = options.iconPosition ?? "start";
     let accessibleLabel = normalizeAccessibleLabel(options.accessibleLabel);
+    let destroyed = false;
+    let revision = 0;
 
     const iconSlot = createContentSlot(icon, toCompositionChildren(iconContent));
     const contentSlot = createContentSlot(content, initialChildren);
@@ -129,6 +132,7 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
     element.append(icon, content, accessibleLabelElement);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "badge");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -154,20 +158,48 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
     }
 
     function setText(text: string): void {
-        contentSlot.set([text]);
-        sync();
+        update({ text });
     }
 
     function setContent(nextContent: BadgeCompositionContent | null): void {
-        contentSlot.set(toCompositionChildren(normalizeSlotContent(nextContent)));
-        sync();
+        update({ children: toCompositionChildren(normalizeSlotContent(nextContent)) });
     }
 
     function setIcon(nextContent: BadgeCompositionContent | null): void {
-        iconContent = normalizeSlotContent(nextContent);
-        hasIcon = hasCompositionContent(iconContent);
-        iconSlot.set(toCompositionChildren(iconContent));
-        sync();
+        update({ icon: nextContent });
+    }
+
+    function update(nextOptions: BadgeUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.iconOptions !== undefined) applyCompositionElementOptions(icon, nextOptions.iconOptions);
+        if (nextOptions.contentOptions !== undefined) applyCompositionElementOptions(content, nextOptions.contentOptions);
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
+        if ("accessibleLabel" in nextOptions) accessibleLabel = normalizeAccessibleLabel(nextOptions.accessibleLabel);
+        runCleanups([
+            () => {
+                if (destroyed || current !== revision || !("icon" in nextOptions)) return;
+                iconContent = normalizeSlotContent(nextOptions.icon);
+                hasIcon = hasCompositionContent(iconContent);
+                iconSlot.set(toCompositionChildren(iconContent));
+            },
+            () => {
+                if (destroyed || current !== revision) return;
+                if (nextOptions.children !== undefined) contentSlot.set(nextOptions.children);
+                else if ("text" in nextOptions) contentSlot.set(nextOptions.text == null ? [] : [nextOptions.text]);
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([iconSlot.dispose, contentSlot.dispose]);
     }
 
     sync();
@@ -186,43 +218,7 @@ export function Badge(options: BadgeOptions = {}): ComposedBadge {
         setContent,
         setIcon,
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.iconOptions !== undefined) {
-                applyCompositionElementOptions(icon, nextOptions.iconOptions);
-            }
-
-            if (nextOptions.contentOptions !== undefined) {
-                applyCompositionElementOptions(content, nextOptions.contentOptions);
-            }
-
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if (nextOptions.iconPosition !== undefined) iconPosition = nextOptions.iconPosition;
-
-            if ("accessibleLabel" in nextOptions) {
-                accessibleLabel = normalizeAccessibleLabel(nextOptions.accessibleLabel);
-            }
-
-            if ("icon" in nextOptions) {
-                iconContent = normalizeSlotContent(nextOptions.icon);
-                hasIcon = hasCompositionContent(iconContent);
-                iconSlot.set(toCompositionChildren(iconContent));
-            }
-
-            if (nextOptions.children !== undefined) {
-                contentSlot.set(nextOptions.children);
-            } else if ("text" in nextOptions) {
-                contentSlot.set(nextOptions.text === null ? [] : [nextOptions.text]);
-            }
-
-            sync();
-        },
-
-        destroy(): void {
-            iconSlot.dispose();
-            contentSlot.dispose();
-        }
+        update,
+        destroy
     };
 }

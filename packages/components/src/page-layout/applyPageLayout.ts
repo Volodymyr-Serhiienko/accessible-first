@@ -1,4 +1,6 @@
 import { createAttributeSnapshot } from "../../../core/src/dom";
+import { captureInlineStyles } from "../../../core/src/dom/captureInlineStyles";
+import { runCleanups } from "../../../core/src/events";
 import type { Page } from "../page";
 
 /**
@@ -60,58 +62,11 @@ interface ResolvedPageLayoutChromeOptions {
     zIndex: string | null;
 }
 
-interface StyleSnapshotValue {
-    value: string;
-    priority: string;
-}
-
-function createStyleSnapshot() {
-    const values = new Map<HTMLElement, Map<string, StyleSnapshotValue>>();
-
-    function remember(element: HTMLElement, property: string): void {
-        let elementValues = values.get(element);
-
-        if (!elementValues) {
-            elementValues = new Map();
-            values.set(element, elementValues);
-        }
-
-        if (!elementValues.has(property)) {
-            elementValues.set(property, {
-                value: element.style.getPropertyValue(property),
-                priority: element.style.getPropertyPriority(property)
-            });
-        }
-    }
-
-    function restore(): void {
-        for (const [element, elementValues] of values) {
-            for (const [property, snapshot] of elementValues) {
-                if (snapshot.value) {
-                    element.style.setProperty(property, snapshot.value, snapshot.priority);
-                } else {
-                    element.style.removeProperty(property);
-                }
-            }
-        }
-
-        values.clear();
-    }
-
-    return {
-        remember,
-        restore
-    };
-}
-
 function setStyleProperty(
-    snapshot: ReturnType<typeof createStyleSnapshot>,
     element: HTMLElement,
     property: string,
     value: string | null
 ): void {
-    snapshot.remember(element, property);
-
     if (value === null) {
         element.style.removeProperty(property);
         return;
@@ -176,14 +131,24 @@ export function applyPageLayout(
     options: PageLayoutOptions = {}
 ): PageLayoutController {
     const attributes = createAttributeSnapshot();
-    const styles = createStyleSnapshot();
+    const restoreStyles = captureInlineStyles(page.element, [
+        "--af-page-layout-max-width", "--af-page-layout-gutter", "--af-page-main-gap",
+        "--af-page-main-padding-block", "--af-page-chrome-top-offset", "--af-page-chrome-z-index",
+        "--af-page-header-block-size", "--af-page-navigation-block-size", "--af-page-before-outlet-block-size",
+        "--af-page-navigation-offset-block-size", "--af-page-before-outlet-offset-block-size",
+        "--af-page-scroll-margin-block-size", "--af-page-fixed-chrome-block-size"
+    ]);
     const ownerWindow = page.element.ownerDocument.defaultView ?? window;
 
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
     let removeScrollListener: (() => void) | null = null;
     let removeRevealFocusListener: (() => void) | null = null;
+    let removeResizeListener: (() => void) | null = null;
     let scrollFrameId: number | null = null;
+    let revealRevision = 0;
+    const observed = new Set<HTMLElement>();
+    const placeholders = new Map<HTMLElement, HTMLElement>();
     let lastScrollY = ownerWindow.scrollY;
     let chromeVisible = true;
     let mode: PageLayoutMode = options.mode ?? "app";
@@ -244,7 +209,7 @@ export function applyPageLayout(
     }
 
     function setChromeVisible(nextVisible: boolean): void {
-        if (chromeVisible === nextVisible) return;
+        if (destroyed || chromeVisible === nextVisible) return;
 
         chromeVisible = nextVisible;
         syncChromeVisibility();
@@ -271,35 +236,60 @@ export function applyPageLayout(
             + (chrome.navigation === "fixed" ? navigationSize : 0)
             + (chrome.beforeOutlet === "fixed" ? beforeOutletSize : 0);
 
-        setStyleProperty(styles, page.element, "--af-page-header-block-size", formatPixels(headerSize));
-        setStyleProperty(styles, page.element, "--af-page-navigation-block-size", formatPixels(navigationSize));
-        setStyleProperty(styles, page.element, "--af-page-before-outlet-block-size", formatPixels(beforeOutletSize));
-        setStyleProperty(styles, page.element, "--af-page-navigation-offset-block-size", formatPixels(navigationOffset));
-        setStyleProperty(styles, page.element, "--af-page-before-outlet-offset-block-size", formatPixels(beforeOutletOffset));
-        setStyleProperty(styles, page.element, "--af-page-scroll-margin-block-size", formatPixels(scrollMargin));
-        setStyleProperty(styles, page.element, "--af-page-fixed-chrome-block-size", formatPixels(fixedChromeSize));
+        setStyleProperty(page.element, "--af-page-header-block-size", formatPixels(headerSize));
+        setStyleProperty(page.element, "--af-page-navigation-block-size", formatPixels(navigationSize));
+        setStyleProperty(page.element, "--af-page-before-outlet-block-size", formatPixels(beforeOutletSize));
+        setStyleProperty(page.element, "--af-page-navigation-offset-block-size", formatPixels(navigationOffset));
+        setStyleProperty(page.element, "--af-page-before-outlet-offset-block-size", formatPixels(beforeOutletOffset));
+        setStyleProperty(page.element, "--af-page-scroll-margin-block-size", formatPixels(scrollMargin));
+        setStyleProperty(page.element, "--af-page-fixed-chrome-block-size", formatPixels(fixedChromeSize));
+        syncFixedPlaceholders();
     }
 
-    function observeChromeElement(element: HTMLElement | null): void {
-        if (!element || !resizeObserver) return;
-
-        resizeObserver.observe(element);
+    function syncFixedPlaceholders(): void {
+        // Reserve fixed regions beside their original flow position, including mixed stacks.
+        const fixed = new Map<HTMLElement, string>();
+        for (const [element, position, name] of [
+            [getHeaderElement(), chrome.header, "header"],
+            [getNavigationElement(), chrome.navigation, "navigation"],
+            [getBeforeOutletElement(), chrome.beforeOutlet, "before-outlet"]
+        ] as const) {
+            if (element && position === "fixed" && !element.hidden) fixed.set(element, name);
+        }
+        for (const [element, placeholder] of placeholders) {
+            if (fixed.has(element)) continue;
+            placeholder.remove(); placeholders.delete(element);
+        }
+        for (const [element, name] of fixed) {
+            let placeholder = placeholders.get(element);
+            if (!placeholder) {
+                placeholder = page.element.ownerDocument.createElement("div");
+                placeholder.setAttribute("data-af-page-chrome-placeholder", name);
+                placeholder.setAttribute("aria-hidden", "true");
+                placeholders.set(element, placeholder);
+            }
+            if (element.nextSibling !== placeholder) element.after(placeholder);
+        }
     }
 
     function refreshChromeObservers(): void {
         if (destroyed) return;
 
-        resizeObserver?.disconnect();
-        resizeObserver = null;
-
-        if (ownerWindow.ResizeObserver) {
+        if (!resizeObserver && ownerWindow.ResizeObserver) {
             resizeObserver = new ownerWindow.ResizeObserver(() => {
                 syncChromeMetrics();
             });
 
-            observeChromeElement(getHeaderElement());
-            observeChromeElement(getNavigationElement());
-            observeChromeElement(getBeforeOutletElement());
+        }
+        const next = new Set([getHeaderElement(), getNavigationElement(), getBeforeOutletElement()]
+            .filter((element): element is HTMLElement => element !== null));
+        for (const element of observed) {
+            if (next.has(element)) continue;
+            resizeObserver?.unobserve(element); observed.delete(element);
+        }
+        for (const element of next) {
+            if (observed.has(element)) continue;
+            resizeObserver?.observe(element); observed.add(element);
         }
 
         syncChromeMetrics();
@@ -308,15 +298,28 @@ export function applyPageLayout(
     function setupMutationObserver(): void {
         if (!ownerWindow.MutationObserver) return;
 
-        mutationObserver = new ownerWindow.MutationObserver(() => {
+        mutationObserver = new ownerWindow.MutationObserver(records => {
+            if (destroyed) return;
+            const regions = [getHeaderElement(), getNavigationElement(), getBeforeOutletElement()];
+            const relevant = records.some(record => {
+                const target = record.target;
+                if (target === page.element) return true;
+                if (regions.some(region => region && (region.contains(target) || target.contains(region)))) return true;
+                return [...record.addedNodes, ...record.removedNodes].some(node =>
+                    node instanceof ownerWindow.Element && (node.matches("[data-af-page-header], [data-af-page-navigation], [data-af-app-shell-before-outlet]")
+                        || node.querySelector("[data-af-page-header], [data-af-page-navigation], [data-af-app-shell-before-outlet]")));
+            });
+            if (!relevant) return;
+            if (hasActiveRevealChrome()) setChromeVisible(true);
             refreshChromeObservers();
         });
 
         mutationObserver.observe(page.element, {
             childList: true,
             subtree: true,
+            characterData: true,
             attributes: true,
-            attributeFilter: ["hidden"]
+            attributeFilter: ["hidden", "aria-expanded"]
         });
     }
 
@@ -347,15 +350,16 @@ export function applyPageLayout(
     }
 
     function setupRevealScroll(): void {
-        removeScrollListener?.();
-        removeRevealFocusListener?.();
+        const previousScroll = removeScrollListener;
+        const previousFocus = removeRevealFocusListener;
+        const previousFrame = scrollFrameId;
         removeScrollListener = null;
         removeRevealFocusListener = null;
-
-        if (scrollFrameId !== null) {
-            ownerWindow.cancelAnimationFrame(scrollFrameId);
-            scrollFrameId = null;
-        }
+        scrollFrameId = null;
+        const current = ++revealRevision;
+        runCleanups([() => previousScroll?.(), () => previousFocus?.(), () => {
+            if (previousFrame !== null) ownerWindow.cancelAnimationFrame(previousFrame);
+        }]);
 
         if (!hasRevealChrome(chrome)) {
             lastScrollY = Math.max(0, ownerWindow.scrollY);
@@ -369,24 +373,25 @@ export function applyPageLayout(
         syncChromeVisibility();
 
         const onScroll = (): void => {
-            if (scrollFrameId !== null) return;
+            if (destroyed || current !== revealRevision || scrollFrameId !== null) return;
 
-            scrollFrameId = ownerWindow.requestAnimationFrame(handleRevealScroll);
+            scrollFrameId = ownerWindow.requestAnimationFrame(() => {
+                if (!destroyed && current === revealRevision) handleRevealScroll();
+            });
         };
 
         const onFocusIn = (event: FocusEvent): void => {
-            if (!isRevealChromeTarget(event.target)) return;
+            if (destroyed || current !== revealRevision || !isRevealChromeTarget(event.target)) return;
 
             lastScrollY = Math.max(0, ownerWindow.scrollY);
             setChromeVisible(true);
         };
 
         ownerWindow.addEventListener("scroll", onScroll, { passive: true });
-        page.element.addEventListener("focusin", onFocusIn);
-
         removeScrollListener = () => {
             ownerWindow.removeEventListener("scroll", onScroll);
         };
+        page.element.addEventListener("focusin", onFocusIn);
         removeRevealFocusListener = () => {
             page.element.removeEventListener("focusin", onFocusIn);
         };
@@ -401,25 +406,21 @@ export function applyPageLayout(
         page.element.setAttribute("data-af-page-before-outlet-mode", chrome.beforeOutlet);
         syncChromeVisibility();
 
-        setStyleProperty(styles, page.element, "--af-page-layout-max-width", maxWidth);
-        setStyleProperty(styles, page.element, "--af-page-layout-gutter", gutter);
-        setStyleProperty(styles, page.element, "--af-page-main-gap", mainGap);
-        setStyleProperty(styles, page.element, "--af-page-main-padding-block", mainPaddingBlock);
-        setStyleProperty(styles, page.element, "--af-page-chrome-top-offset", chrome.topOffset);
-        setStyleProperty(styles, page.element, "--af-page-chrome-z-index", chrome.zIndex);
+        setStyleProperty(page.element, "--af-page-layout-max-width", maxWidth);
+        setStyleProperty(page.element, "--af-page-layout-gutter", gutter);
+        setStyleProperty(page.element, "--af-page-main-gap", mainGap);
+        setStyleProperty(page.element, "--af-page-main-padding-block", mainPaddingBlock);
+        setStyleProperty(page.element, "--af-page-chrome-top-offset", chrome.topOffset);
+        setStyleProperty(page.element, "--af-page-chrome-z-index", chrome.zIndex);
         syncChromeMetrics();
     }
 
-    sync();
-    refreshChromeObservers();
-    setupMutationObserver();
-    setupRevealScroll();
-
-    return {
+    const controller: PageLayoutController = {
         page,
         element: page.element,
 
         update(nextOptions) {
+            if (destroyed) return;
             if (nextOptions.mode !== undefined) mode = nextOptions.mode;
             if (nextOptions.contained !== undefined) contained = nextOptions.contained;
             if (nextOptions.borders !== undefined) borders = nextOptions.borders;
@@ -440,22 +441,38 @@ export function applyPageLayout(
             if (destroyed) return;
 
             destroyed = true;
-
-            if (scrollFrameId !== null) {
-                ownerWindow.cancelAnimationFrame(scrollFrameId);
-                scrollFrameId = null;
-            }
-
-            removeScrollListener?.();
-            removeRevealFocusListener?.();
-            resizeObserver?.disconnect();
-            mutationObserver?.disconnect();
-            attributes.restore();
-            styles.restore();
+            revealRevision += 1;
+            const frame = scrollFrameId;
+            scrollFrameId = null;
+            const removeScroll = removeScrollListener;
+            const removeFocus = removeRevealFocusListener;
+            const removeResize = removeResizeListener;
+            removeScrollListener = null; removeRevealFocusListener = null;
+            removeResizeListener = null;
+            runCleanups([
+                () => { if (frame !== null) ownerWindow.cancelAnimationFrame(frame); },
+                () => removeScroll?.(), () => removeFocus?.(), () => removeResize?.(),
+                () => resizeObserver?.disconnect(), () => mutationObserver?.disconnect(),
+                () => { for (const placeholder of placeholders.values()) placeholder.remove(); placeholders.clear(); observed.clear(); },
+                attributes.restore, restoreStyles
+            ]);
         },
 
         isDestroyed() {
             return destroyed;
         }
     };
+
+    try {
+        sync();
+        refreshChromeObservers();
+        setupMutationObserver();
+        setupRevealScroll();
+        ownerWindow.addEventListener("resize", refreshChromeObservers);
+        removeResizeListener = () => ownerWindow.removeEventListener("resize", refreshChromeObservers);
+        return controller;
+    } catch (error) {
+        try { controller.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

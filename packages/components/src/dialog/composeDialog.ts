@@ -1,3 +1,4 @@
+import { runCleanups } from "../../../core/src/events";
 import {
     Button,
     type ButtonCompositionOptions,
@@ -416,6 +417,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     const bodySlot = createContentSlot(body, options.children ?? []);
 
     let composed!: ComposedDialog;
+    let destroyed = false;
     let onOpenChange = options.onOpenChange ?? null;
 
     const handleOpenChange = (open: boolean): void => {
@@ -443,10 +445,12 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     );
 
     function setTitle(nextTitle: string): void {
+        if (destroyed) return;
         title.textContent = nextTitle;
     }
 
     function setDescription(nextDescription: string | null): void {
+        if (destroyed) return;
         const text = nextDescription?.trim() ?? "";
 
         description.textContent = text;
@@ -454,14 +458,17 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
     }
 
     function setContent(children: CompositionChild[]): void {
+        if (destroyed) return;
         bodySlot.set(children);
     }
 
     function setActions(actions: DialogCompositionContent | null): void {
+        if (destroyed) return;
         actionsBar.setSecondary(actions);
     }
 
     function syncLocalizedText(): void {
+        if (destroyed) return;
         closeButton.setText(getCloseText(closeText, locale));
     }
 
@@ -498,6 +505,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         setActions,
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(dialogElement, nextOptions);
 
             if ("onOpenChange" in nextOptions) {
@@ -519,6 +527,7 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
             if ("actions" in nextOptions) {
                 setActions(nextOptions.actions ?? null);
             }
+            if (destroyed) return;
 
             if ("closeText" in nextOptions) {
                 closeText = nextOptions.closeText;
@@ -557,12 +566,18 @@ export function Dialog(options: DialogCompositionOptions): ComposedDialog {
         },
 
         destroy(): void {
-            unsubscribeLocale?.();
-            dialog.destroy();
-            bodySlot.dispose();
-            actionsBar.destroy();
-            triggerButton.destroy();
-            closeButton.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            const unsubscribe = unsubscribeLocale;
+            unsubscribeLocale = null;
+            runCleanups([
+                () => unsubscribe?.(),
+                () => dialog.destroy(),
+                () => bodySlot.dispose(),
+                () => actionsBar.destroy(),
+                () => triggerButton.destroy(),
+                () => closeButton.destroy()
+            ]);
         }
     };
 

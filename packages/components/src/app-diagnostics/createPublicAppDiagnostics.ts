@@ -263,11 +263,11 @@ function createPublicAppDiagnosticSources<
     TKey extends string,
     TRoute extends AppRouteDescriptor
 >(
-    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute>
+    options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute>,
+    identity: AppIdentity | null
 ): readonly AppDiagnosticsSourceOptions[] {
     const sources: AppDiagnosticsSourceOptions[] = [];
     const locale = resolvePublicAppDiagnosticsValue(options.locale);
-    const identity = resolvePublicAppDiagnosticsValue(options.identity);
     const manifest = resolvePublicAppManifest(
         options.manifest,
         identity,
@@ -340,19 +340,19 @@ export function createPublicAppDiagnosticsRunner<
     options: PublicAppDiagnosticsRunnerOptions<TLocale, TKey, TRoute> = {}
 ): AppDiagnosticsRunner {
     const runnerOptions: AppDiagnosticsRunnerOptions = {
-        sources: () => createPublicAppDiagnosticSources(options)
+        sources: () => {
+            // Routes and the generated manifest must inspect the same identity snapshot.
+            const identity = resolvePublicAppDiagnosticsValue(options.identity);
+            const routes = resolvePublicAppRouteReport(options.routes, options.routeOptions, identity);
+            const sources: AppDiagnosticsSourceOptions[] = [];
+            if (routes) sources.push({ id: "routes", label: "Routes", report: routes });
+            sources.push(...createPublicAppDiagnosticSources(options, identity));
+            return sources;
+        }
     };
 
     if (options.page !== undefined) {
         runnerOptions.page = () => resolvePublicAppPageReport(options.page, options.pageOptions);
-    }
-
-    if (options.routes !== undefined) {
-        runnerOptions.routes = () => resolvePublicAppRouteReport(
-            options.routes,
-            options.routeOptions,
-            resolvePublicAppDiagnosticsValue(options.identity)
-        );
     }
 
     if (options.log !== undefined) runnerOptions.log = options.log;

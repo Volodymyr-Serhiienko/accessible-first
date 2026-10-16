@@ -115,9 +115,17 @@ Use `descriptionMode: "aria"` only when the screen root itself should carry the 
 - `update(options)` - updates mutable options.
 - `destroy()` - disposes slots and actions.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle): combined
+updates finish remaining cleanup after a child error, while newer updates win
+over obsolete work. After `destroy()`, setters/update are inert and `focus()`
+returns `false`; repeated destruction does not rerun cleanup.
+
 ## Accessibility
 
 `Screen` renders a native `section` and connects it to its title with `aria-labelledby`.
+It owns only its title/description IDREF contributions: authored and other owners'
+references survive updates and teardown. Switching description mode releases only
+the screen's own `aria-describedby` reference.
 
 Screen does not use live regions or forced announcements. Route changes, command-palette actions, and PageOutlet transitions should decide when screen changes are spoken.
 
@@ -132,6 +140,10 @@ Use focus targets intentionally. A route change usually focuses the title. A com
 ## Actions Placement
 
 The default action placement is in the screen header, next to the title and description. This matches common app screens where page-level actions such as Create, Save, Export, or Start are visible before the main content.
+
+Desktop header actions use at most half the header width; narrow screens stack
+them below the heading. Both primary and independently added secondary ActionsBar
+content keep the action area visible. Long unbroken text wraps within its area.
 
 Future screen templates may add alternative placements such as footer actions after repeated real application use proves the need.
 

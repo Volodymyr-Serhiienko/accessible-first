@@ -158,7 +158,7 @@ export function createLink(
     }
 
     function navigateNonNative(event: Event): void {
-        if (anchor || event.defaultPrevented || !href) {
+        if (lifecycle.isDestroyed() || anchor || event.defaultPrevented || !href) {
             return;
         }
 
@@ -271,6 +271,8 @@ export function createLink(
         setCurrent,
 
         update(nextOptions: LinkUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
             if ("href" in nextOptions) {
                 setHref(nextOptions.href ?? null);
             }

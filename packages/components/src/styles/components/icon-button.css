@@ -1,8 +1,10 @@
 [data-af-component="icon-button"] {
+    box-sizing: border-box;
     inline-size: var(--af-target-size);
     block-size: var(--af-target-size);
     min-inline-size: var(--af-target-size);
     min-block-size: var(--af-target-size);
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;

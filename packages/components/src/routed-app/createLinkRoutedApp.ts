@@ -1,3 +1,5 @@
+import { runCleanups } from "../../../core/src/events";
+import { discardPreparedContent } from "../composition/preparedContent";
 import {
     AppShell,
     type AppShellOptions,
@@ -27,6 +29,7 @@ import {
 } from "../localization";
 import {
     applyRoutedAppChromeSlots,
+    getRoutedAppChromeContent,
     getRoutedAppLocaleRefreshOptions,
     setupRoutedAppPageHideCleanup,
     type RoutedAppChromeSlots,
@@ -196,10 +199,22 @@ export function createLinkRoutedApp<
     let removePageHideListener: (() => void) | null = null;
     let navigationControl: LinkRoutedAppNavigationControl | null = null;
     let currentRouteControls: readonly LinkRoutedAppCurrentRouteControl<TRoute>[] = [];
-    let currentRoute = "current" in options
-        ? getRouteFromCurrent(routes, options.current)
-        : getRouteFromLocation(routes, options);
+    let currentRoute: TRoute | null;
+    try {
+        currentRoute = "current" in options
+            ? getRouteFromCurrent(routes, options.current)
+            : getRouteFromLocation(routes, options);
+    } catch (error) {
+        try { shell.destroy(); }
+        finally { throw error; }
+    }
     let destroyed = false;
+    let revision = 0;
+    let chromeAttempt: object | null = null;
+
+    function isCurrent(current: number): boolean {
+        return !destroyed && current === revision;
+    }
 
     function getContext(): LinkRoutedAppContext<TRoute> {
         return {
@@ -224,40 +239,56 @@ export function createLinkRoutedApp<
         currentRouteControls = [];
     }
 
-    function syncRouteControls(): void {
+    function syncRouteControls(current: number): void {
+        if (!isCurrent(current)) return;
+        const route = currentRoute;
         const currentId = currentRoute?.id ?? null;
 
         navigationControl?.setCurrent(currentId);
         currentRouteControls.forEach((control) => {
-            control.setCurrent(currentRoute);
+            if (isCurrent(current)) control.setCurrent(route);
         });
     }
 
-    function bindChromeRouteControls(chrome: LinkRoutedAppChrome<TRoute>): void {
+    function bindChromeRouteControls(chrome: LinkRoutedAppChrome<TRoute>, current: number): void {
         navigationControl = "navigationControl" in chrome
             ? chrome.navigationControl ?? null
             : null;
         currentRouteControls = chrome.currentRouteControls ?? [];
-        syncRouteControls();
+        syncRouteControls(current);
+    }
+
+    function runRefreshChrome(current: number): void {
+        const attempt = {};
+        chromeAttempt = attempt;
+        const chrome = options.renderChrome?.(getContext()) ?? null;
+
+        if (!chrome) {
+            if (isCurrent(current)) clearRouteControls();
+            return;
+        }
+        const candidates = getRoutedAppChromeContent(chrome);
+        runCleanups([
+            () => {
+                if (!isCurrent(current)) return;
+                clearRouteControls();
+                applyRoutedAppChromeSlots(shell, chrome);
+                if (!destroyed && chromeAttempt === attempt) bindChromeRouteControls(chrome, revision);
+            },
+            () => discardPreparedContent(shell, candidates)
+        ]);
     }
 
     function refreshChrome(): void {
         if (destroyed) return;
-
-        clearRouteControls();
-
-        const chrome = options.renderChrome?.(getContext()) ?? null;
-
-        if (!chrome) return;
-
-        applyRoutedAppChromeSlots(shell, chrome);
-        bindChromeRouteControls(chrome);
+        runRefreshChrome(++revision);
     }
 
-    function refreshMetadata(): void {
+    function refreshMetadata(current: number): void {
         if (destroyed || !currentRoute || options.routeMetadata === false) return;
 
         const metadata = createAppRouteDocumentMetadata(currentRoute, options.routeMetadata ?? {});
+        if (!isCurrent(current)) return;
         const context = getContext();
 
         if (options.updateDocumentMetadata) {
@@ -270,17 +301,19 @@ export function createLinkRoutedApp<
 
     function refresh(refreshOptions: LinkRoutedAppRefreshOptions<TRoute> = {}): void {
         if (destroyed) return;
-
-        currentRoute = resolveCurrentRoute(refreshOptions);
+        const current = ++revision;
+        const route = resolveCurrentRoute(refreshOptions);
+        if (!isCurrent(current)) return;
+        currentRoute = route;
 
         if (refreshOptions.chrome ?? true) {
-            refreshChrome();
+            runRefreshChrome(current);
         } else {
-            syncRouteControls();
+            syncRouteControls(current);
         }
 
-        if (refreshOptions.metadata ?? true) {
-            refreshMetadata();
+        if (isCurrent(current) && (refreshOptions.metadata ?? true)) {
+            refreshMetadata(current);
         }
     }
 
@@ -334,19 +367,15 @@ export function createLinkRoutedApp<
             if (destroyed) return;
 
             destroyed = true;
-            removePageHideListener?.();
+            revision += 1;
+            const removePageHide = removePageHideListener;
+            const refreshController = localeRefresh;
+            const tree = mountedTree;
             removePageHideListener = null;
-            localeRefresh?.destroy();
             localeRefresh = null;
-            clearRouteControls();
-
-            if (mountedTree) {
-                mountedTree.unmount();
-                mountedTree = null;
-                return;
-            }
-
-            shell.destroy();
+            mountedTree = null;
+            runCleanups([() => removePageHide?.(), () => refreshController?.destroy(),
+                clearRouteControls, () => tree ? tree.unmount() : shell.destroy()]);
         },
 
         isDestroyed(): boolean {
@@ -354,15 +383,21 @@ export function createLinkRoutedApp<
         }
     };
 
-    setupLocaleRefresh();
-    setupPageHideCleanup();
-    refresh({
-        chrome: true,
-        metadata: true
-    });
+    try {
+        setupLocaleRefresh();
+        setupPageHideCleanup();
+        refresh({
+            chrome: true,
+            metadata: true,
+            ...("current" in options ? { current: options.current ?? null } : {})
+        });
 
-    if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
-        app.mount(options.mount, options.mountOptions ?? {});
+        if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
+            app.mount(options.mount, options.mountOptions ?? {});
+        }
+    } catch (error) {
+        try { app.destroy(); }
+        finally { throw error; }
     }
 
     return app;

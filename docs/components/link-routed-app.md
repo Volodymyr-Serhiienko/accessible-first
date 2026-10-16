@@ -115,6 +115,13 @@ Use `createLinkAppRouteChrome(...)` directly when you already have the current r
 
 ## Localization
 
+Nested refresh/destroy invalidates older route matching, chrome/control sync and
+metadata work. Returned slot candidates transfer to the runtime; unused/overridden
+content is cleaned without destroying already transferred controllers again.
+Direct slot fields override `chrome.shell` fields in one shell update. Initial
+location-matching failure releases the shell. This is not transactional rollback;
+app callbacks own side effects already performed and resources never returned.
+
 When `locale` is provided, LinkRoutedApp creates a `LocaleRefresh` subscription. On locale change it re-runs `renderChrome(...)` and reapplies route metadata. It does not reload the page and does not re-render page-specific content.
 
 If a page contains application copy created during composition, the page can either recreate that content through its own locale refresh or rely on a full native page load after locale change.
@@ -129,6 +136,12 @@ If a page contains application copy created during composition, the page can eit
 - `isDestroyed()` - returns whether the runtime has been destroyed.
 
 ## Relationship To Other Layers
+
+Default page-hide cleanup retains the runtime across back/forward-cache hides.
+A real exit or explicit `destroy()` removes all owned subscriptions and the
+mounted shell, even when one cleanup fails. Applications with additional services
+can opt out with `destroyOnPageHide: false` and own complete teardown through
+[addPageHideCleanup](../core/events.md#addpagehidecleanup).
 
 Use `HashRoutedApp` for small SPAs that render screens into `PageOutlet`. Use LinkRoutedApp for native links, static pages, server-rendered pages, and MPA pages that still want shared route metadata and app chrome conventions.
 

@@ -1,5 +1,6 @@
 import { createFormField, type FormFieldInvalidState } from "../../../core/src/form-field";
 import { createId } from "../../../core/src/id";
+import { runCleanups } from "../../../core/src/events";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -324,6 +325,7 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
 
     element.append(legend, description, errorMessage, itemsElement);
 
+    let destroyed = false;
     let composed!: ComposedRadioGroup;
     let composedItems: ComposedRadioGroupItem[] = [];
     let onValueChange = options.onValueChange ?? null;
@@ -332,6 +334,7 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
     const groupFormField = createFormField(element);
 
     function syncItemReferences(node: RadioGroupItemNode): void {
+        if (destroyed) return;
         if (!node.input.id) {
             node.input.id = createId("af-radio");
         }
@@ -345,6 +348,7 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
     }
 
     function syncGroupReferences(): void {
+        if (destroyed) return;
         description.hidden = !hasVisibleContent(description);
         errorMessage.hidden = !hasVisibleContent(errorMessage);
 
@@ -366,16 +370,19 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
     }
 
     function setLabelContent(content: RadioGroupCompositionContent): void {
+        if (destroyed) return;
         legendSlot.set(toCompositionChildren(content));
         syncGroupReferences();
     }
 
     function setDescription(content: RadioGroupCompositionContent | null): void {
+        if (destroyed) return;
         descriptionSlot.set(toCompositionChildren(content));
         syncGroupReferences();
     }
 
     function setErrorMessage(content: RadioGroupCompositionContent | null): void {
+        if (destroyed) return;
         errorSlot.set(toCompositionChildren(content));
         syncGroupReferences();
     }
@@ -409,6 +416,8 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
 
     const radioGroup = createRadioGroupComponent(element, initialRadioGroupOptions);
 
+    for (const node of itemNodes) node.input.defaultChecked = node.input.checked;
+
     composedItems = itemNodes.map((node): ComposedRadioGroupItem => ({
         value: node.value,
         element: node.element,
@@ -421,16 +430,19 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
         },
 
         setLabelContent(content): void {
+            if (destroyed) return;
             node.labelSlot.set(toCompositionChildren(content));
             syncItemReferences(node);
         },
 
         setDescription(content): void {
+            if (destroyed) return;
             node.descriptionSlot.set(toCompositionChildren(content));
             syncItemReferences(node);
         },
 
         setDisabled(disabled): void {
+            if (destroyed) return;
             node.disabled = disabled;
             syncItemReferences(node);
             radioGroup.refresh();
@@ -464,12 +476,14 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
         setErrorMessage,
 
         setInvalid(nextInvalid): void {
+            if (destroyed) return;
             invalid = nextInvalid;
             radioGroup.setInvalid(nextInvalid);
             syncGroupReferences();
         },
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.labelOptions !== undefined) {
@@ -509,6 +523,7 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
 
             if (nextOptions.items !== undefined) {
                 nextOptions.items.forEach((nextItem, index) => {
+                    if (destroyed) return;
                     const node = itemNodes[index];
                     const item = composedItems[index];
 
@@ -569,22 +584,15 @@ export function RadioGroup(options: RadioGroupCompositionOptions): ComposedRadio
         },
 
         destroy(): void {
-            legendSlot.dispose();
-            descriptionSlot.dispose();
-            errorSlot.dispose();
-
-            for (const node of itemNodes) {
-                node.labelSlot.dispose();
-                node.descriptionSlot.dispose();
-                node.formField.destroy();
-            }
-
-            groupFormField.destroy();
-            radioGroup.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([legendSlot.dispose, descriptionSlot.dispose, errorSlot.dispose,
+                ...itemNodes.flatMap(node => [node.labelSlot.dispose, node.descriptionSlot.dispose, () => node.formField.destroy()]),
+                () => groupFormField.destroy(), () => radioGroup.destroy()]);
         },
 
         isDestroyed(): boolean {
-            return radioGroup.isDestroyed();
+            return destroyed;
         }
     };
 

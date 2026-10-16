@@ -124,7 +124,9 @@ SearchBox({
 });
 ```
 
-Use `filterItem` for application-specific ranking or server-driven filtering. Custom filters receive both `query` and `normalizedQuery`.
+Use `filterItem` for application-specific matching. Custom filters receive both
+`query` and `normalizedQuery`; they do not rank or fetch results. Load remote data
+in the application, cancel obsolete requests there, then call `setItems()`.
 
 ## Update Notes
 
@@ -140,6 +142,16 @@ search.setItems(nextItems);
 ```
 
 Use `update({ items })` only for partial item updates matched by index.
+
+Supply unique, stable item ids. Search metadata is indexed by id; partial updates
+refresh that index. `onQueryChange` runs before selection; destroying or updating
+the search there cancels the older `onSelect` callback. Selection does not blur
+an editable destination focused by the application. Full result replacement does
+not choose a new application focus destination.
+
+`destroy()` is terminal and idempotent. The exposed `combobox` and result handles
+are borrowed parts, not independent owners; destroy the SearchBox itself. Late
+updates and retired result setters cannot revive listeners or DOM state.
 
 ## Manual Checks
 

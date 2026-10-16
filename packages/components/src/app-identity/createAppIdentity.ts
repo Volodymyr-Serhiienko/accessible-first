@@ -1,7 +1,5 @@
 import {
     createAppRouteDocumentMetadata,
-    getAppRouteCanonical,
-    getAppRouteDocumentDescription,
     getAppRouteDocumentTitle,
     type AppRouteDescriptor,
     type AppRouteDiagnosticsOptions,
@@ -293,7 +291,7 @@ function assignDefinedRouteDiagnosticsOption<
 function stringifyAppIdentityRouteUrl(value: DocumentMetadataUrlValue | null | undefined): string | null {
     if (value === null || value === undefined) return null;
 
-    return value instanceof URL ? value.toString() : value;
+    return String(value);
 }
 
 function getIdentityRouteWebSiteName<TRoute extends AppRouteDescriptor>(
@@ -316,13 +314,12 @@ function getIdentityRouteWebSiteUrl<TRoute extends AppRouteDescriptor>(
 
 function createAppIdentityRouteWebPageStructuredData<TRoute extends AppRouteDescriptor>(
     identity: AppIdentity,
-    route: TRoute,
-    identityOptions: AppIdentityRouteDocumentMetadataOptions<TRoute>,
-    routeOptions: AppRouteDocumentMetadataOptions<TRoute>
+    metadata: Readonly<DocumentMetadataUpdateOptions>,
+    identityOptions: AppIdentityRouteDocumentMetadataOptions<TRoute>
 ): DocumentMetadataStructuredData {
-    const title = getAppRouteDocumentTitle(route, routeOptions);
-    const description = routeOptions.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
-    const canonical = getAppRouteCanonical(route, routeOptions);
+    const title = metadata.title ?? null;
+    const description = metadata.description ?? null;
+    const canonical = metadata.canonical ?? null;
     const webSiteName = getIdentityRouteWebSiteName(identity, identityOptions);
     const webSiteUrl = stringifyAppIdentityRouteUrl(getIdentityRouteWebSiteUrl(identity, identityOptions));
     const data: { [key: string]: DocumentMetadataStructuredDataValue } = {
@@ -375,12 +372,12 @@ export function createAppIdentityRouteDocumentMetadataOptions<
         : identity.url;
 
     if (webPageStructuredData !== false && appRouteOptions.getStructuredData === undefined) {
-        routeOptions.getStructuredData = (route) => createAppIdentityRouteWebPageStructuredData(
-            identity,
-            route,
-            options,
-            routeOptions
-        );
+        routeOptions.getStructuredData = (route, metadata) => {
+            if (metadata) return createAppIdentityRouteWebPageStructuredData(identity, metadata, options);
+            const { getStructuredData: _getStructuredData, ...fallbackOptions } = routeOptions;
+            return createAppIdentityRouteWebPageStructuredData(identity,
+                createAppRouteDocumentMetadata(route, fallbackOptions), options);
+        };
     }
 
     return routeOptions;

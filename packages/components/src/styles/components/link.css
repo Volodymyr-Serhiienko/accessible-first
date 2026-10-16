@@ -1,4 +1,7 @@
 [data-af-component="link"] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
     color: var(--af-color-link);
     border-radius: var(--af-radius-sm);
     font-family: var(--af-font-family);

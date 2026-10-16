@@ -38,6 +38,11 @@ listbox.destroy();
 * Supports optional typeahead navigation
 * Preserves and restores original attributes on destroy
 
+Runtime availability and live RTL arrows follow [Roving Focus](roving-focus.md).
+Hidden options are skipped for navigation, not erased from selection. `refresh()`
+releases removed options' attributes without moving focus. After `destroy()`,
+selection setters/clear operations do not mutate state or emit callbacks.
+
 ## Principles
 
 * No framework dependency

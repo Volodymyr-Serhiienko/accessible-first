@@ -1,4 +1,3 @@
-import { getAriaReferencedText } from "../../../core/src/aria";
 import type {
     PageDiagnosticsCategory,
     PageDiagnosticsDocumentMetadataOptions,
@@ -32,7 +31,8 @@ function shouldInspectCategory(
 }
 
 function findDocumentMeta(ownerDocument: Document, name: string): HTMLMetaElement | null {
-    return ownerDocument.querySelector<HTMLMetaElement>(`meta[name='${name}']`);
+    return Array.from(ownerDocument.head.querySelectorAll<HTMLMetaElement>("meta[name]"))
+        .find(element => element.getAttribute("name")?.toLowerCase() === name) ?? null;
 }
 
 function getLinksByRel(ownerDocument: Document, rel: string): HTMLLinkElement[] {
@@ -59,7 +59,7 @@ function isStructuredDataObject(value: unknown): value is Record<string, unknown
 }
 
 function hasStructuredDataKeyword(value: unknown, keyword: string): boolean {
-    if (isStructuredDataObject(value)) return keyword in value;
+    if (isStructuredDataObject(value)) return keyword in value || hasStructuredDataKeyword(value["@graph"], keyword);
 
     return Array.isArray(value)
         && value.some((item) => isStructuredDataObject(item) && keyword in item);
@@ -88,7 +88,7 @@ function inspectDocument(
 
     if (!viewport) {
         issues.push(createIssue("warning", "document", "document.viewport.missing", "Document has no viewport meta tag."));
-    } else if (!viewport.content.includes("width=device-width")) {
+    } else if (!viewport.content.split(/[,;]/).some(part => /^\s*width\s*=\s*device-width\s*$/i.test(part))) {
         issues.push(createIssue("warning", "document", "document.viewport.width", "Viewport meta tag should include width=device-width."));
     }
 
@@ -127,25 +127,21 @@ function inspectDocument(
         issues.push(createIssue("warning", "document", "document.manifest.href.missing", "Manifest link has no href."));
     }
 
-    const hasOpenGraph = Boolean(
-        findDocumentPropertyMeta(ownerDocument, "og:title")
-        || findDocumentPropertyMeta(ownerDocument, "og:type")
-        || findDocumentPropertyMeta(ownerDocument, "og:url")
-        || findDocumentPropertyMeta(ownerDocument, "og:image")
-    );
+    const hasOpenGraph = ["og:title", "og:type", "og:url", "og:image"]
+        .some(property => Boolean(findDocumentPropertyMeta(ownerDocument, property)?.content.trim()));
 
     if (options.requireOpenGraph && !hasOpenGraph) {
         issues.push(createIssue("warning", "document", "document.opengraph.missing", "Public pages should provide Open Graph preview metadata."));
     }
 
-    if (hasOpenGraph && !findDocumentPropertyMeta(ownerDocument, "og:image:alt")?.content.trim()) {
+    if (findDocumentPropertyMeta(ownerDocument, "og:image")?.content.trim() && !findDocumentPropertyMeta(ownerDocument, "og:image:alt")?.content.trim()) {
         issues.push(createIssue("info", "document", "document.opengraph.image-alt.missing", "Open Graph image should provide og:image:alt."));
     }
 
     const hasTwitter = Boolean(
-        findDocumentMeta(ownerDocument, "twitter:card")
-        || findDocumentMeta(ownerDocument, "twitter:title")
-        || findDocumentMeta(ownerDocument, "twitter:image")
+        findDocumentMeta(ownerDocument, "twitter:card")?.content.trim()
+        || findDocumentMeta(ownerDocument, "twitter:title")?.content.trim()
+        || findDocumentMeta(ownerDocument, "twitter:image")?.content.trim()
     );
 
     if (options.requireTwitter && !hasTwitter) {
@@ -184,7 +180,7 @@ function inspectDocument(
         try {
             const parsed = JSON.parse(text) as unknown;
 
-            if (!isStructuredDataObject(parsed) && !Array.isArray(parsed)) {
+            if (!isStructuredDataObject(parsed) && (!Array.isArray(parsed) || !parsed.length || !parsed.every(isStructuredDataObject))) {
                 issues.push(createIssue(
                     "warning",
                     "document",
@@ -243,22 +239,60 @@ function getControlLabelText(element: HTMLElement): string {
         .trim();
 }
 
-function hasAccessibleName(element: HTMLElement): boolean {
-    return Boolean(
-        element.getAttribute("aria-label")?.trim()
-        || getAriaReferencedText(element, "aria-labelledby")
-        || getControlLabelText(element)
-        || element.textContent?.trim()
-        || element.getAttribute("title")?.trim()
-    );
+function hasAccessibleName(element: HTMLElement, resolveId: (id: string) => HTMLElement | null, contentAllowed = true): boolean {
+    const referenced = (element.getAttribute("aria-labelledby") ?? "").split(/\s+/)
+        .some(id => Boolean(resolveId(id)?.textContent?.trim()));
+    if (element.getAttribute("aria-label")?.trim() || referenced || getControlLabelText(element) || element.getAttribute("title")?.trim()) return true;
+    if (!contentAllowed) return false;
+    if (element.localName === "input") {
+        const input = element as HTMLInputElement;
+        if (input.type === "submit" || input.type === "reset") return true;
+        if (input.type === "button") return Boolean(input.value.trim());
+        if (input.type === "image") return Boolean(input.alt.trim());
+        return false;
+    }
+    if (element.localName === "select" || element.localName === "textarea") return false;
+    return Boolean(getNameFromContent(element).trim());
+}
+
+function getNameFromContent(element: Element): string {
+    if (element.localName === "img") return element.getAttribute("alt") ?? "";
+    return Array.from(element.childNodes).map(node => {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
+        if (node.nodeType !== Node.ELEMENT_NODE) return "";
+        const child = node as HTMLElement;
+        return isHiddenFromDiagnostics(child) ? "" : getNameFromContent(child);
+    }).join(" ");
 }
 
 function isHiddenFromDiagnostics(element: HTMLElement): boolean {
-    return Boolean(
-        element.hidden
-        || element.closest("[hidden]")
-        || element.closest("[aria-hidden='true']")
-    );
+    if (element.localName === "input" && (element as HTMLInputElement).type === "hidden") return true;
+    const view = element.ownerDocument.defaultView;
+    const visibility = view?.getComputedStyle(element).visibility;
+    if (visibility === "hidden" || visibility === "collapse") return true;
+    for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
+        if (ancestor.hasAttribute("hidden") || ancestor.hasAttribute("inert") || ancestor.getAttribute("aria-hidden")?.toLowerCase() === "true") return true;
+        const style = view?.getComputedStyle(ancestor);
+        if (style?.display === "none" || style?.contentVisibility === "hidden") return true;
+        if (ancestor.localName === "details" && !ancestor.hasAttribute("open")) {
+            const summary = Array.from(ancestor.children).find(child => child.localName === "summary");
+            if (!summary?.contains(element)) return true;
+        }
+    }
+    return false;
+}
+
+function collect(root: HTMLElement, selector: string): HTMLElement[] {
+    return [...(root.matches(selector) ? [root] : []), ...root.querySelectorAll<HTMLElement>(selector)];
+}
+
+function isLandmark(element: HTMLElement, tag: string, role: string): boolean {
+    if (isHiddenFromDiagnostics(element)) return false;
+    const explicitRole = element.getAttribute("role")?.trim().toLowerCase();
+    if (explicitRole) return explicitRole === role;
+    if (element.localName !== tag) return false;
+    if (tag !== "header" && tag !== "footer") return true;
+    return !element.parentElement?.closest("article, aside, main, nav, section, [role='article'], [role='complementary'], [role='main'], [role='navigation'], [role='region']");
 }
 
 function getComponentWarningMessage(code: string): string {
@@ -320,56 +354,72 @@ export function inspectPage(
         inspectDocument(ownerDocument, issues, options.documentMetadata);
     }
 
-    const headers = root.querySelectorAll("header");
-    const mains = root.querySelectorAll("main");
-    const navs = root.querySelectorAll("nav");
-    const footers = root.querySelectorAll("footer");
-    const h1s = root.querySelectorAll("h1");
+    const ids = new Map<string, HTMLElement>();
+    if (["aria", "control", "landmark"].some(category => shouldInspectCategory(options, category as PageDiagnosticsCategory))) {
+        for (const element of collect(root, "[id]")) {
+            if (ids.has(element.id) && shouldInspectCategory(options, "aria")) {
+                issues.push(createIssue("error", "aria", "id.duplicate", `Duplicate id found: ${element.id}`, element));
+            } else if (!ids.has(element.id)) ids.set(element.id, element);
+        }
+    }
+    const tree = root.getRootNode();
+    const resolveId = (id: string): HTMLElement | null => ids.get(id)
+        ?? ((tree.nodeType === Node.DOCUMENT_NODE || tree.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
+            ? (tree as Document).getElementById(id) : root.ownerDocument.getElementById(id));
     const landmarkOptions = options.landmarks ?? {};
     const headingOptions = options.headings ?? {};
 
-    if ((landmarkOptions.requireHeader ?? true) && headers.length === 0) {
-        issues.push(createIssue("warning", "landmark", "page.header.missing", "Page has no header landmark."));
-    }
-
-    if (mains.length === 0) {
-        issues.push(createIssue("error", "landmark", "page.main.missing", "Page has no main landmark."));
-    }
-
-    if (mains.length > 1) {
-        issues.push(createIssue("error", "landmark", "page.main.multiple", "Page has more than one main landmark."));
-    }
-
-    if ((landmarkOptions.requireNavigation ?? true) && navs.length === 0) {
-        issues.push(createIssue("warning", "landmark", "page.navigation.missing", "Page has no navigation landmark."));
-    }
-
-    if ((landmarkOptions.requireFooter ?? true) && footers.length === 0) {
-        issues.push(createIssue("info", "landmark", "page.footer.missing", "Page has no footer landmark."));
-    }
-
-    if ((headingOptions.requireH1 ?? true) && h1s.length === 0) {
-        issues.push(createIssue("warning", "heading", "page.h1.missing", "Page has no h1."));
-    }
-
-    if (!(headingOptions.allowMultipleH1 ?? false) && h1s.length > 1) {
-        issues.push(createIssue("warning", "heading", "page.h1.multiple", "Page has more than one h1."));
-    }
-
-    navs.forEach((nav) => {
-        if (!hasAccessibleName(nav as HTMLElement)) {
-            issues.push(createIssue(
-                "warning",
-                "landmark",
-                "navigation.name.missing",
-                "Navigation landmark has no accessible name.",
-                nav as HTMLElement
-            ));
+    if (shouldInspectCategory(options, "landmark")) {
+        const headers = collect(root, "header, [role='banner']").filter(element => isLandmark(element, "header", "banner"));
+        const mains = collect(root, "main, [role='main']").filter(element => isLandmark(element, "main", "main"));
+        const navs = collect(root, "nav, [role='navigation']").filter(element => isLandmark(element, "nav", "navigation"));
+        const footers = collect(root, "footer, [role='contentinfo']").filter(element => isLandmark(element, "footer", "contentinfo"));
+        if ((landmarkOptions.requireHeader ?? true) && headers.length === 0) {
+            issues.push(createIssue("warning", "landmark", "page.header.missing", "Page has no header landmark."));
         }
-    });
 
-    root.querySelectorAll<HTMLElement>("section").forEach((section) => {
-        if (!section.querySelector("h1, h2, h3, h4, h5, h6")) {
+        if (mains.length === 0) {
+            issues.push(createIssue("error", "landmark", "page.main.missing", "Page has no main landmark."));
+        }
+
+        if (mains.length > 1) {
+            issues.push(createIssue("error", "landmark", "page.main.multiple", "Page has more than one main landmark."));
+        }
+
+        if ((landmarkOptions.requireNavigation ?? true) && navs.length === 0) {
+            issues.push(createIssue("warning", "landmark", "page.navigation.missing", "Page has no navigation landmark."));
+        }
+
+        if ((landmarkOptions.requireFooter ?? true) && footers.length === 0) {
+            issues.push(createIssue("info", "landmark", "page.footer.missing", "Page has no footer landmark."));
+        }
+
+        navs.forEach((nav) => {
+            if (!hasAccessibleName(nav, resolveId, false)) {
+                issues.push(createIssue(
+                    "warning",
+                    "landmark",
+                    "navigation.name.missing",
+                    "Navigation landmark has no accessible name.",
+                    nav as HTMLElement
+                ));
+            }
+        });
+    }
+
+    if (shouldInspectCategory(options, "heading")) {
+        const h1s = collect(root, "h1").filter(element => !isHiddenFromDiagnostics(element));
+        if ((headingOptions.requireH1 ?? true) && h1s.length === 0) {
+            issues.push(createIssue("warning", "heading", "page.h1.missing", "Page has no h1."));
+        }
+        if (!(headingOptions.allowMultipleH1 ?? false) && h1s.length > 1) {
+            issues.push(createIssue("warning", "heading", "page.h1.multiple", "Page has more than one h1."));
+        }
+    }
+
+    if (shouldInspectCategory(options, "section")) collect(root, "section").forEach((section) => {
+        if (isHiddenFromDiagnostics(section)) return;
+        if (!collect(section, "h1, h2, h3, h4, h5, h6").some(heading => !isHiddenFromDiagnostics(heading))) {
             issues.push(createIssue(
                 "warning",
                 "section",
@@ -380,27 +430,10 @@ export function inspectPage(
         }
     });
 
-    const ids = new Map<string, HTMLElement>();
-
-    root.querySelectorAll<HTMLElement>("[id]").forEach((element) => {
-        if (ids.has(element.id)) {
-            issues.push(createIssue(
-                "error",
-                "aria",
-                "id.duplicate",
-                `Duplicate id found: ${element.id}`,
-                element
-            ));
-            return;
-        }
-
-        ids.set(element.id, element);
-    });
-
-    root
-        .querySelectorAll<HTMLElement>("[aria-controls], [aria-labelledby], [aria-describedby]")
+    const referenceAttributes = ["aria-controls", "aria-labelledby", "aria-describedby", "aria-owns", "aria-details", "aria-errormessage", "aria-activedescendant", "aria-flowto"];
+    if (shouldInspectCategory(options, "aria")) collect(root, referenceAttributes.map(name => `[${name}]`).join(","))
         .forEach((element) => {
-            for (const attribute of ["aria-controls", "aria-labelledby", "aria-describedby"]) {
+            for (const attribute of referenceAttributes) {
                 const value = element.getAttribute(attribute);
 
                 if (!value) {
@@ -408,7 +441,7 @@ export function inspectPage(
                 }
 
                 for (const id of value.split(/\s+/).filter(Boolean)) {
-                    if (!element.ownerDocument.getElementById(id)) {
+                    if (!resolveId(id)) {
                         issues.push(createIssue(
                             "error",
                             "aria",
@@ -421,14 +454,13 @@ export function inspectPage(
             }
         });
 
-    root
-        .querySelectorAll<HTMLElement>("button, [role='button'], a[href], [role='link'], input, select, textarea")
+    if (shouldInspectCategory(options, "control")) collect(root, "button, [role='button'], a[href], [role='link'], input, select, textarea")
         .forEach((element) => {
             if (isHiddenFromDiagnostics(element)) {
                 return;
             }
 
-            if (!hasAccessibleName(element)) {
+            if (!hasAccessibleName(element, resolveId)) {
                 issues.push(createIssue(
                     "error",
                     "control",
@@ -439,7 +471,7 @@ export function inspectPage(
             }
         });
     
-    root.querySelectorAll<HTMLElement>("[data-af-warning]").forEach((element) => {
+    if (shouldInspectCategory(options, "component")) collect(root, "[data-af-warning]").forEach((element) => {
         if (isHiddenFromDiagnostics(element)) {
             return;
         }

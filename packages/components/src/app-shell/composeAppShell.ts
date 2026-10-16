@@ -10,6 +10,9 @@ import {
     type CompositionContent
 } from "../composition";
 import type { DocumentMetadataUpdateOptions } from "../document-metadata";
+import { runCleanups } from "../../../core/src/events";
+import { getDestroyer } from "../composition/append";
+import { createPreparedContentOwner, type PreparedContentOwner } from "../composition/preparedContent";
 import {
     createPage,
     type Page,
@@ -127,7 +130,7 @@ function getPageOptions(options: AppShellOptions): PageOptions {
     if (options.skipLink !== undefined) pageOptions.skipLink = options.skipLink;
     if (options.skipLinkTargetId !== undefined) pageOptions.skipLinkTargetId = options.skipLinkTargetId;
     if (options.navigationLabel !== undefined) pageOptions.navigationLabel = options.navigationLabel;
-    if (options.locale !== undefined) pageOptions.locale = options.locale;
+    if ("locale" in options) pageOptions.locale = options.locale ?? null;
     if (options.theme !== undefined) pageOptions.theme = options.theme;
     if (options.metadata !== undefined) pageOptions.metadata = options.metadata;
 
@@ -141,7 +144,7 @@ function getPageUpdateOptions(options: AppShellUpdateOptions): PageUpdateOptions
     if (options.skipLink !== undefined) pageOptions.skipLink = options.skipLink;
     if (options.skipLinkTargetId !== undefined) pageOptions.skipLinkTargetId = options.skipLinkTargetId;
     if (options.navigationLabel !== undefined) pageOptions.navigationLabel = options.navigationLabel;
-    if (options.locale !== undefined) pageOptions.locale = options.locale;
+    if ("locale" in options) pageOptions.locale = options.locale ?? null;
     if (options.metadata !== undefined) pageOptions.metadata = options.metadata;
 
     return pageOptions;
@@ -169,271 +172,329 @@ function getOutletOptions(options: AppShellOptions): PageOutletOptions {
  * Creates a semantic application shell with stable page regions and a PageOutlet.
  */
 export function AppShell(options: AppShellOptions = {}): ComposedAppShell {
-    const page = createPage(getPageOptions(options));
-    const outlet = PageOutlet(getOutletOptions(options));
+    const initialChildren = [
+        ...toCompositionChildren(options.header),
+        ...toCompositionChildren(options.navigation),
+        ...toCompositionChildren(options.beforeOutlet),
+        ...toCompositionChildren(options.content),
+        ...toCompositionChildren(options.afterOutlet),
+        ...toCompositionChildren(options.footer)
+    ];
+    const pending = new Set(initialChildren);
+    let preparedOwner: PreparedContentOwner | null = null;
+    const constructionCleanups: Array<() => void> = [() => {
+        const abandoned = [...pending];
+        pending.clear();
+        runCleanups(abandoned.reverse().map(child => () => getDestroyer(child)?.()));
+    }];
 
-    const beforeOutletElement = createElement("div", {
-        attributes: {
-            "data-af-app-shell-before-outlet": ""
-        }
-    });
-
-    const afterOutletElement = createElement("div", {
-        attributes: {
-            "data-af-app-shell-after-outlet": ""
-        }
-    });
-
-    let composed!: ComposedAppShell;
-    let layoutController: PageLayoutController | null = null;
-    let headerContent: AppShellSlotContent = normalizeSlotContent(options.header);
-    let navigationContent: AppShellSlotContent = normalizeSlotContent(options.navigation);
-    let beforeOutletContent: AppShellSlotContent = normalizeSlotContent(options.beforeOutlet);
-    let afterOutletContent: AppShellSlotContent = normalizeSlotContent(options.afterOutlet);
-    let footerContent: AppShellSlotContent = normalizeSlotContent(options.footer);
-    let destroyed = false;
-
-    const beforeOutletSlot = createContentSlot(
-        beforeOutletElement,
-        toCompositionChildren(beforeOutletContent)
-    );
-
-    const afterOutletSlot = createContentSlot(
-        afterOutletElement,
-        toCompositionChildren(afterOutletContent)
-    );
-
-    function syncRootAttributes(): void {
-        page.element.setAttribute("data-af-composition", "app-shell");
-        page.element.setAttribute("data-af-app-shell", "");
+    function accept(children: CompositionChild[]): CompositionChild[] {
+        for (const child of children) pending.delete(child);
+        preparedOwner?.accept(children);
+        return children;
     }
 
-    function syncPageRegion(
-        selector: string,
-        content: AppShellSlotContent,
-        setRegionContent: (children: CompositionChild[]) => void
-    ): void {
-        const hasContent = hasCompositionContent(content);
-        const existingRegion = page.element.querySelector<HTMLElement>(selector);
+    try {
+        const page = createPage(getPageOptions(options));
+        constructionCleanups.push(page.destroy);
+        const outletOptions = getOutletOptions(options);
+        if (outletOptions.children) accept(outletOptions.children);
+        const outlet = PageOutlet(outletOptions);
+        constructionCleanups.push(outlet.destroy);
 
-        if (hasContent) {
-            setRegionContent(toCompositionChildren(content));
-            page.element.querySelector<HTMLElement>(selector)!.hidden = false;
-            return;
-        }
-
-        if (existingRegion) {
-            setRegionContent([]);
-            existingRegion.hidden = true;
-        }
-    }
-
-    function syncHeader(): void {
-        syncPageRegion("[data-af-page-header]", headerContent, (children) => {
-            page.header(...children);
+        const beforeOutletElement = createElement("div", {
+            attributes: {
+                "data-af-app-shell-before-outlet": ""
+            }
         });
-    }
 
-    function syncNavigation(): void {
-        syncPageRegion("[data-af-page-navigation]", navigationContent, (children) => {
-            page.navigation(...children);
+        const afterOutletElement = createElement("div", {
+            attributes: {
+                "data-af-app-shell-after-outlet": ""
+            }
         });
-    }
 
-    function syncFooter(): void {
-        syncPageRegion("[data-af-page-footer]", footerContent, (children) => {
-            page.footer(...children);
-        });
-    }
+        let composed!: ComposedAppShell;
+        let layoutController: PageLayoutController | null = null;
+        let headerContent: AppShellSlotContent = normalizeSlotContent(options.header);
+        let navigationContent: AppShellSlotContent = normalizeSlotContent(options.navigation);
+        let beforeOutletContent: AppShellSlotContent = normalizeSlotContent(options.beforeOutlet);
+        let afterOutletContent: AppShellSlotContent = normalizeSlotContent(options.afterOutlet);
+        let footerContent: AppShellSlotContent = normalizeSlotContent(options.footer);
+        let destroyed = false;
+        let revision = 0;
 
-    function syncOutletSlots(): void {
-        beforeOutletElement.hidden = !hasCompositionContent(beforeOutletContent);
-        afterOutletElement.hidden = !hasCompositionContent(afterOutletContent);
-    }
+        const beforeOutletSlot = createContentSlot(
+            beforeOutletElement,
+            accept(toCompositionChildren(beforeOutletContent))
+        );
+        constructionCleanups.push(beforeOutletSlot.dispose);
 
-    function syncLayout(nextLayout: PageLayoutOptions | false | undefined): void {
-        if (nextLayout === false) {
-            layoutController?.destroy();
+        const afterOutletSlot = createContentSlot(
+            afterOutletElement,
+            accept(toCompositionChildren(afterOutletContent))
+        );
+        constructionCleanups.push(afterOutletSlot.dispose);
+        constructionCleanups.push(() => {
+            const layout = layoutController;
             layoutController = null;
-            return;
+            layout?.destroy();
+        });
+
+        function syncRootAttributes(): void {
+            page.element.setAttribute("data-af-composition", "app-shell");
+            page.element.setAttribute("data-af-app-shell", "");
         }
 
-        if (layoutController) {
-            layoutController.update(nextLayout ?? {});
-            return;
-        }
-
-        layoutController = applyPageLayout(page, nextLayout ?? {});
-    }
-
-    applyCompositionElementOptions(page.element, options);
-    syncRootAttributes();
-
-    page.main.replaceChildren(
-        beforeOutletElement,
-        outlet.element,
-        afterOutletElement
-    );
-
-    syncHeader();
-    syncNavigation();
-    syncFooter();
-    syncOutletSlots();
-    syncLayout(options.layout);
-
-    if (options.inspect !== undefined && options.inspect !== false) {
-        page.inspect(options.inspect === true ? {} : options.inspect);
-    }
-
-    composed = {
-        get element(): HTMLElement {
-            return page.element;
-        },
-
-        page,
-        outlet,
-
-        get layout(): PageLayoutController | null {
-            return layoutController;
-        },
-
-        setHeader(content): ComposedAppShell {
-            if (destroyed) return composed;
-
-            headerContent = normalizeSlotContent(content);
-            syncHeader();
-
-            return composed;
-        },
-
-        setNavigation(content): ComposedAppShell {
-            if (destroyed) return composed;
-
-            navigationContent = normalizeSlotContent(content);
-            syncNavigation();
-
-            return composed;
-        },
-
-        setBeforeOutlet(content): ComposedAppShell {
-            if (destroyed) return composed;
-
-            beforeOutletContent = normalizeSlotContent(content);
-            beforeOutletSlot.set(toCompositionChildren(beforeOutletContent));
-            syncOutletSlots();
-
-            return composed;
-        },
-
-        setAfterOutlet(content): ComposedAppShell {
-            if (destroyed) return composed;
-
-            afterOutletContent = normalizeSlotContent(content);
-            afterOutletSlot.set(toCompositionChildren(afterOutletContent));
-            syncOutletSlots();
-
-            return composed;
-        },
-
-        setFooter(content): ComposedAppShell {
-            if (destroyed) return composed;
-
-            footerContent = normalizeSlotContent(content);
-            syncFooter();
-
-            return composed;
-        },
-
-        render(content, renderOptions = {}): ComposedAppShell {
-            if (destroyed) return composed;
-
-            outlet.render(content, renderOptions);
-
-            return composed;
-        },
-
-        focus(target): boolean {
-            if (destroyed) return false;
-
-            return outlet.focus(target);
-        },
-
-        updateMetadata(metadataOptions): ComposedAppShell {
-            if (destroyed) return composed;
-
-            page.updateMetadata(metadataOptions);
-
-            return composed;
-        },
-
-        inspect(inspectOptions = {}): PageDiagnosticsReport {
-            return page.inspect(inspectOptions);
-        },
-
-        update(nextOptions): void {
+        function syncPageRegion(
+            selector: string,
+            content: AppShellSlotContent,
+            setRegionContent: (children: CompositionChild[]) => void
+        ): void {
             if (destroyed) return;
+            const current = revision;
+            const hasContent = hasCompositionContent(content);
+            const existingRegion = page.element.querySelector<HTMLElement>(selector);
 
-            applyCompositionElementOptions(page.element, nextOptions);
-            syncRootAttributes();
-
-            const pageUpdateOptions = getPageUpdateOptions(nextOptions);
-
-            if (hasPageUpdateOptions(pageUpdateOptions)) {
-                page.update(pageUpdateOptions);
+            if (hasContent) {
+                runCleanups([
+                    () => setRegionContent(accept(toCompositionChildren(content))),
+                    () => {
+                        if (!destroyed && current === revision) {
+                            page.element.querySelector<HTMLElement>(selector)!.hidden = false;
+                        }
+                    }
+                ]);
+                return;
             }
 
-            if ("header" in nextOptions) {
-                headerContent = normalizeSlotContent(nextOptions.header ?? null);
-                syncHeader();
+            if (existingRegion) {
+                runCleanups([
+                    () => setRegionContent([]),
+                    () => {
+                        if (!destroyed && current === revision) existingRegion.hidden = true;
+                    }
+                ]);
             }
-
-            if ("navigation" in nextOptions) {
-                navigationContent = normalizeSlotContent(nextOptions.navigation ?? null);
-                syncNavigation();
-            }
-
-            if ("beforeOutlet" in nextOptions) {
-                beforeOutletContent = normalizeSlotContent(nextOptions.beforeOutlet ?? null);
-                beforeOutletSlot.set(toCompositionChildren(beforeOutletContent));
-                syncOutletSlots();
-            }
-
-            if ("afterOutlet" in nextOptions) {
-                afterOutletContent = normalizeSlotContent(nextOptions.afterOutlet ?? null);
-                afterOutletSlot.set(toCompositionChildren(afterOutletContent));
-                syncOutletSlots();
-            }
-
-            if ("footer" in nextOptions) {
-                footerContent = normalizeSlotContent(nextOptions.footer ?? null);
-                syncFooter();
-            }
-
-            if (nextOptions.outletOptions !== undefined) {
-                outlet.update(nextOptions.outletOptions);
-            }
-
-            if ("layout" in nextOptions) {
-                syncLayout(nextOptions.layout);
-            }
-        },
-
-        destroy(): void {
-            if (destroyed) return;
-
-            destroyed = true;
-
-            layoutController?.destroy();
-            outlet.destroy();
-            beforeOutletSlot.dispose();
-            afterOutletSlot.dispose();
-            page.destroy();
-        },
-
-        isDestroyed(): boolean {
-            return destroyed;
         }
-    };
 
-    return composed;
+        function syncHeader(): void {
+            syncPageRegion("[data-af-page-header]", headerContent, (children) => {
+                page.header(...children);
+            });
+        }
+
+        function syncNavigation(): void {
+            syncPageRegion("[data-af-page-navigation]", navigationContent, (children) => {
+                page.navigation(...children);
+            });
+        }
+
+        function syncFooter(): void {
+            syncPageRegion("[data-af-page-footer]", footerContent, (children) => {
+                page.footer(...children);
+            });
+        }
+
+        function syncOutletSlots(): void {
+            if (destroyed) return;
+            beforeOutletElement.hidden = !hasCompositionContent(beforeOutletContent);
+            afterOutletElement.hidden = !hasCompositionContent(afterOutletContent);
+        }
+
+        function syncLayout(nextLayout: PageLayoutOptions | false | undefined): void {
+            if (destroyed) return;
+            const current = revision;
+            if (nextLayout === false) {
+                const previous = layoutController;
+                layoutController = null;
+                previous?.destroy();
+                return;
+            }
+
+            if (layoutController) {
+                layoutController.update(nextLayout ?? {});
+                return;
+            }
+
+            const candidate = applyPageLayout(page, nextLayout ?? {});
+            if (destroyed || current !== revision) candidate.destroy();
+            else layoutController = candidate;
+        }
+
+        applyCompositionElementOptions(page.element, options);
+        syncRootAttributes();
+
+        page.main.replaceChildren(
+            beforeOutletElement,
+            outlet.element,
+            afterOutletElement
+        );
+
+        syncHeader();
+        syncNavigation();
+        syncFooter();
+        syncOutletSlots();
+        syncLayout(options.layout);
+
+        if (options.inspect !== undefined && options.inspect !== false) {
+            page.inspect(options.inspect === true ? {} : options.inspect);
+        }
+
+        composed = {
+            get element(): HTMLElement {
+                return page.element;
+            },
+
+            page,
+            outlet,
+
+            get layout(): PageLayoutController | null {
+                return layoutController;
+            },
+
+            setHeader(content): ComposedAppShell {
+                if (destroyed) return composed;
+                composed.update({ header: content });
+
+                return composed;
+            },
+
+            setNavigation(content): ComposedAppShell {
+                if (destroyed) return composed;
+
+                composed.update({ navigation: content });
+
+                return composed;
+            },
+
+            setBeforeOutlet(content): ComposedAppShell {
+                if (destroyed) return composed;
+
+                composed.update({ beforeOutlet: content });
+
+                return composed;
+            },
+
+            setAfterOutlet(content): ComposedAppShell {
+                if (destroyed) return composed;
+
+                composed.update({ afterOutlet: content });
+
+                return composed;
+            },
+
+            setFooter(content): ComposedAppShell {
+                if (destroyed) return composed;
+
+                composed.update({ footer: content });
+
+                return composed;
+            },
+
+            render(content, renderOptions = {}): ComposedAppShell {
+                if (destroyed) return composed;
+
+                outlet.render(content, renderOptions);
+
+                return composed;
+            },
+
+            focus(target): boolean {
+                if (destroyed) return false;
+
+                return outlet.focus(target);
+            },
+
+            updateMetadata(metadataOptions): ComposedAppShell {
+                if (destroyed) return composed;
+                revision += 1;
+                page.updateMetadata(metadataOptions);
+
+                return composed;
+            },
+
+            inspect(inspectOptions = {}): PageDiagnosticsReport {
+                return page.inspect(inspectOptions);
+            },
+
+            update(nextOptions): void {
+                if (destroyed) return;
+                const current = ++revision;
+                const isCurrent = (): boolean => !destroyed && current === revision;
+                nextOptions = { ...nextOptions };
+                const candidates = [
+                    ...toCompositionChildren(nextOptions.header), ...toCompositionChildren(nextOptions.navigation),
+                    ...toCompositionChildren(nextOptions.beforeOutlet), ...toCompositionChildren(nextOptions.afterOutlet),
+                    ...toCompositionChildren(nextOptions.footer)
+                ];
+                runCleanups([
+                    () => {
+                        if (!isCurrent()) return;
+                        applyCompositionElementOptions(page.element, nextOptions);
+                        syncRootAttributes();
+                        const pageUpdateOptions = getPageUpdateOptions(nextOptions);
+                        if (hasPageUpdateOptions(pageUpdateOptions)) page.update(pageUpdateOptions);
+                    },
+                    () => {
+                        if (!isCurrent() || !("header" in nextOptions)) return;
+                        headerContent = normalizeSlotContent(nextOptions.header ?? null);
+                        syncHeader();
+                    },
+                    () => {
+                        if (!isCurrent() || !("navigation" in nextOptions)) return;
+                        navigationContent = normalizeSlotContent(nextOptions.navigation ?? null);
+                        syncNavigation();
+                    },
+                    () => {
+                        if (!isCurrent() || !("beforeOutlet" in nextOptions)) return;
+                        beforeOutletContent = normalizeSlotContent(nextOptions.beforeOutlet ?? null);
+                        runCleanups([
+                            () => beforeOutletSlot.set(accept(toCompositionChildren(beforeOutletContent))),
+                            syncOutletSlots
+                        ]);
+                    },
+                    () => {
+                        if (!isCurrent() || !("afterOutlet" in nextOptions)) return;
+                        afterOutletContent = normalizeSlotContent(nextOptions.afterOutlet ?? null);
+                        runCleanups([
+                            () => afterOutletSlot.set(accept(toCompositionChildren(afterOutletContent))),
+                            syncOutletSlots
+                        ]);
+                    },
+                    () => {
+                        if (!isCurrent() || !("footer" in nextOptions)) return;
+                        footerContent = normalizeSlotContent(nextOptions.footer ?? null);
+                        syncFooter();
+                    },
+                    () => {
+                        if (isCurrent() && nextOptions.outletOptions !== undefined) outlet.update(nextOptions.outletOptions);
+                    },
+                    () => {
+                        if (isCurrent() && "layout" in nextOptions) syncLayout(nextOptions.layout);
+                    },
+                    () => preparedOwner?.discard(candidates)
+                ]);
+            },
+
+            destroy(): void {
+                if (destroyed) return;
+
+                destroyed = true;
+                revision += 1;
+                runCleanups([...constructionCleanups].reverse());
+            },
+
+            isDestroyed(): boolean {
+                return destroyed;
+            }
+        };
+
+        preparedOwner = createPreparedContentOwner(composed, [outlet]);
+        preparedOwner.accept(initialChildren);
+        return composed;
+    } catch (error) {
+        try { runCleanups([...constructionCleanups].reverse()); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

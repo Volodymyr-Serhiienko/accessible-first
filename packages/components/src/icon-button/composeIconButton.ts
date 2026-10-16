@@ -8,6 +8,7 @@ import {
 } from "../composition";
 import { createIconButton } from "./createIconButton";
 import { restoreAttribute } from "../../../core/src/dom";
+import { runCleanups } from "../../../core/src/events";
 import {
     createControlHint,
     createSelectedState,
@@ -41,6 +42,8 @@ export interface IconButtonCompositionOptions
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
+    /** Display the tooltip on focus as well as hover. Defaults to false. */
+    hintShowOnFocus?: boolean;
     selected?: boolean;
     onPress?: IconButtonCompositionOnPress | null;
 }
@@ -102,6 +105,7 @@ function getInitialControlHintOptions(
     }
 
     hintOptions.hintAnnounceOnHover = options.hintAnnounceOnHover ?? true;
+    if (options.hintShowOnFocus !== undefined) hintOptions.hintShowOnFocus = options.hintShowOnFocus;
 
     return hintOptions;
 }
@@ -172,9 +176,12 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
     const selectedState = createSelectedState(element, getSelectedStateOptions(options));
 
     let composed!: ComposedIconButton;
+    let destroyed = false;
+    let revision = 0;
     let onPress = options.onPress ?? null;
 
     const handlePress = (event: Event): void => {
+        if (destroyed) return;
         onPress?.(event, composed);
     };
 
@@ -200,19 +207,27 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
 
     if ("title" in options) {
         applyTitle(options.title ?? null);
+        iconButton.update({});
     }
 
     function setTitle(title: string | null): void {
+        if (destroyed) return;
+        revision += 1;
         applyTitle(title);
+        iconButton.update({});
     }
 
     function setHint(nextHint: string | null): void {
+        if (destroyed) return;
+        revision += 1;
         hintFollowsLabel = false;
         controlHint.setHint(nextHint);
         controlHint.refresh();
     }
 
     function setLabel(label: string | null): void {
+        if (destroyed) return;
+        revision += 1;
         iconButton.setLabel(label);
 
         if (hintFollowsLabel) {
@@ -242,6 +257,7 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         if (nextOptions.hintAnnounceOnHover !== undefined) {
             hintOptions.hintAnnounceOnHover = nextOptions.hintAnnounceOnHover;
         }
+        if (nextOptions.hintShowOnFocus !== undefined) hintOptions.hintShowOnFocus = nextOptions.hintShowOnFocus;
 
         controlHint.update(hintOptions);
         controlHint.refresh();
@@ -253,11 +269,14 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
         setTitle,
         setHint,
         setLabel,
+        isDestroyed: () => destroyed || iconButton.isDestroyed(),
         setSelected: selectedState.setSelected,
         isSelected: selectedState.isSelected,
         toggleSelected: selectedState.toggleSelected,
 
         update(nextOptions: IconButtonCompositionUpdateOptions): void {
+            if (destroyed) return;
+            const current = ++revision;
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onPress" in nextOptions) {
@@ -265,30 +284,37 @@ export function IconButton(options: IconButtonCompositionOptions = {}): Composed
             }
 
             iconButton.update(getIconButtonOptions(nextOptions));
-
-            if (nextOptions.children !== undefined) {
-                content.set(nextOptions.children);
-            } else if (nextOptions.icon !== undefined) {
-                content.set([nextOptions.icon]);
-            }
+            if (destroyed || current !== revision) return;
 
             if (nextOptions.selected !== undefined) {
                 selectedState.setSelected(nextOptions.selected);
             }
 
             if ("title" in nextOptions) {
-                setTitle(nextOptions.title ?? null);
+                applyTitle(nextOptions.title ?? null);
             }
 
-            updateControlHint(nextOptions);
+            runCleanups([
+                () => {
+                    if (nextOptions.children !== undefined) content.set(nextOptions.children);
+                    else if (nextOptions.icon !== undefined) content.set([nextOptions.icon]);
+                },
+                () => {
+                    if (destroyed || current !== revision) return;
+                    iconButton.update({});
+                    if (destroyed || current !== revision) return;
+                    updateControlHint(nextOptions);
+                }
+            ]);
         },
 
         destroy(): void {
-            content.dispose();
-            iconButton.destroy();
-            restoreAttribute(element, "title", originalTitle);
-            controlHint.destroy();
-            selectedState.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            runCleanups([content.dispose, iconButton.destroy,
+                () => restoreAttribute(element, "title", originalTitle),
+                controlHint.destroy, selectedState.destroy]);
         }
     };
 

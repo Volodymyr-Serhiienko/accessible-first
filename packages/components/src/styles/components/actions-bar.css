@@ -1,5 +1,7 @@
 [data-af-composition="actions-bar"] {
+    box-sizing: border-box;
     min-inline-size: 0;
+    max-inline-size: 100%;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -25,6 +27,7 @@
 [data-af-actions-bar-secondary],
 [data-af-actions-bar-primary] {
     min-inline-size: 0;
+    max-inline-size: 100%;
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
@@ -74,11 +77,6 @@
 
     [data-af-composition="actions-bar"][data-af-align="between"] {
         justify-content: space-between;
-    }
-
-    [data-af-actions-bar-secondary],
-    [data-af-actions-bar-primary] {
-        max-inline-size: 100%;
     }
 
     [data-af-actions-bar-primary] {

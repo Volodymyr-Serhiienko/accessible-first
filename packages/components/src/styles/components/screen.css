@@ -1,7 +1,9 @@
 [data-af-composition="screen"] {
     box-sizing: border-box;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-screen-gap, var(--af-space-5));
     color: var(--af-color-fg);
 }
@@ -13,7 +15,7 @@
 [data-af-screen-header] {
     min-inline-size: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) fit-content(50%);
     align-items: start;
     gap: var(--af-space-4);
 }
@@ -21,6 +23,7 @@
 [data-af-screen-heading-group] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-screen-heading-gap, var(--af-space-2));
 }
 
@@ -66,6 +69,7 @@
 [data-af-screen-body] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-screen-body-gap, var(--af-space-4));
 }
 

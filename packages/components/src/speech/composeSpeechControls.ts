@@ -1,6 +1,7 @@
 import {
     ActionsBar,
-    type ActionsBarAlign
+    type ActionsBarAlign,
+    type ComposedActionsBar
 } from "../actions-bar";
 import {
     Button,
@@ -15,9 +16,11 @@ import {
     StatusMessage,
     type ComposedStatusMessage
 } from "../status-message";
+import { runCleanups } from "../../../core/src/events";
+import { isFocusable } from "../../../core/src/focus";
+import { createSpeechPlaybackOwner } from "./createSpeechPlaybackOwner";
 import type {
     SpeechEngine,
-    SpeechPlayback,
     SpeechPlaybackState,
     SpeechRequest
 } from "../../../core/src/speech";
@@ -64,6 +67,7 @@ export interface ComposedSpeechControls extends ComposedNode<HTMLElement> {
     stop(): void;
     setRequest(request: SpeechRequest): void;
     destroy(): void;
+    isDestroyed(): boolean;
 }
 
 function isActive(state: SpeechPlaybackState): boolean {
@@ -82,18 +86,24 @@ function getText(value: string | null | undefined): string | null {
  */
 export function SpeechControls(options: SpeechControlsOptions): ComposedSpeechControls {
     let request = options.request;
-    let playback: SpeechPlayback | null = null;
-    let unsubscribe: (() => void) | null = null;
-
-    const statusMessage = StatusMessage({ hidden: true });
+    let destroyed = false;
+    let playback!: ReturnType<typeof createSpeechPlaybackOwner>;
+    let statusMessage!: ComposedStatusMessage;
+    let startButton!: ComposedButton;
+    let pauseButton!: ComposedButton;
+    let stopButton!: ComposedButton;
+    let actions!: ComposedActionsBar;
+    let stack!: ComposedNode;
 
     function showStatus(
         variant: "info" | "danger",
-        text: string | null | undefined
+        text: string | null | undefined,
+        isCurrent: () => boolean
     ): void {
+        if (destroyed) return;
         const message = getText(text);
 
-        if (!message) return;
+        if (!message || !isCurrent()) return;
 
         statusMessage.update({
             variant,
@@ -104,152 +114,158 @@ export function SpeechControls(options: SpeechControlsOptions): ComposedSpeechCo
         });
     }
 
-    function clearPlayback(stop = false): void {
-        unsubscribe?.();
-        unsubscribe = null;
-
-        if (stop) {
-            playback?.stop();
-        }
-
-        playback = null;
-    }
-
-    function syncPlayback(state: SpeechPlaybackState): void {
+    function syncPlayback(state: SpeechPlaybackState, isCurrent: () => boolean): void {
+        if (destroyed) return;
+        const canPause = options.engine.getCapabilities().pause;
+        if (destroyed || !isCurrent()) return;
+        const focused = pauseButton.element.ownerDocument.activeElement;
+        const losingFocus = !isActive(state) && (focused === pauseButton.element || focused === stopButton.element)
+            || !canPause && focused === pauseButton.element;
         pauseButton.update({
             text: state.status === "paused"
                 ? options.resumeText
                 : options.pauseText,
-            disabled: !isActive(state)
+            disabled: !isActive(state) || !canPause
         });
+        if (destroyed || !isCurrent()) return;
 
         stopButton.update({
             disabled: !isActive(state)
         });
+        if (destroyed || !isCurrent()) return;
+
+        const active = startButton.element.ownerDocument.activeElement;
+        if (losingFocus && (active === focused || active === startButton.element.ownerDocument.body) && isFocusable(startButton.element)) {
+            startButton.element.focus({ preventScroll: true });
+        }
 
         if (state.status === "unavailable") {
-            showStatus("danger", options.unavailableText);
+            showStatus("danger", options.unavailableText, isCurrent);
         }
 
         if (state.status === "error") {
-            showStatus("danger", options.failedText);
+            showStatus("danger", options.failedText, isCurrent);
         }
+        if (state.status !== "unavailable" && state.status !== "error" && state.status !== "paused") statusMessage.hide();
     }
 
-    const startButton = Button({
-        text: options.startText,
-        onPress: () => {
-            play();
-        }
-    });
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        runCleanups([
+            () => playback?.destroy(),
+            () => stack ? stack.destroy?.() : runCleanups([
+                () => actions ? actions.destroy() : runCleanups([
+                    () => startButton?.destroy(), () => pauseButton?.destroy(), () => stopButton?.destroy()
+                ]),
+                () => statusMessage?.destroy()
+            ])
+        ]);
+    }
 
-    const pauseButton = Button({
-        text: options.pauseText,
-        reserveText: [options.pauseText, options.resumeText],
-        disabled: true,
-        onPress: () => {
-            const state = playback?.getState();
-
-            if (!playback || !state) return;
-
-            if (state.status === "paused") {
-                resume();
-                return;
+    try {
+        statusMessage = StatusMessage({ hidden: true });
+        startButton = Button({
+            text: options.startText,
+            onPress: () => {
+                play();
             }
+        });
 
-            pause();
+        pauseButton = Button({
+            text: options.pauseText,
+            reserveText: [options.pauseText, options.resumeText],
+            disabled: true,
+            onPress: () => {
+                const state = playback.getState();
+
+                if (state.status === "paused") {
+                    resume();
+                    return;
+                }
+
+                pause();
+            }
+        });
+
+        stopButton = Button({
+            text: options.stopText,
+            disabled: true,
+            onPress: () => {
+                stop();
+            }
+        });
+
+        actions = ActionsBar({
+            label: options.label,
+            align: options.align ?? "start",
+            fillOnWrap: options.fillOnWrap ?? true,
+            primary: [startButton, pauseButton, stopButton]
+        });
+
+        const stackOptions: BaseCompositionOptions = {
+            attributes: {
+                ...options.attributes,
+                "data-af-composition": "speech-controls"
+            }
+        };
+
+        if (options.id !== undefined) stackOptions.id = options.id;
+        if (options.className !== undefined) stackOptions.className = options.className;
+
+        stack = Stack(
+            stackOptions,
+            actions,
+            statusMessage
+        );
+
+        playback = createSpeechPlaybackOwner(options.engine, syncPlayback);
+
+        function play(): void {
+            if (destroyed) return;
+            statusMessage.hide();
+            playback.play(request);
         }
-    });
 
-    const stopButton = Button({
-        text: options.stopText,
-        disabled: true,
-        onPress: () => {
-            stop();
+        function pause(): void {
+            if (destroyed) return;
+            const revision = playback.getRevision();
+            if (playback.pause()) showStatus("info", options.pausedText, () => !destroyed && revision === playback.getRevision());
         }
-    });
 
-    const actions = ActionsBar({
-        label: options.label,
-        align: options.align ?? "start",
-        fillOnWrap: options.fillOnWrap ?? true,
-        primary: [startButton, pauseButton, stopButton]
-    });
-
-    const stackOptions: BaseCompositionOptions = {
-        attributes: {
-            ...options.attributes,
-            "data-af-composition": "speech-controls"
+        function resume(): void {
+            if (!destroyed) playback.resume();
         }
-    };
 
-    if (options.id !== undefined) stackOptions.id = options.id;
-    if (options.className !== undefined) stackOptions.className = options.className;
+        function stop(): void {
+            if (destroyed || !playback.stop()) return;
+            const revision = playback.getRevision();
+            showStatus("info", options.stoppedText, () => !destroyed && revision === playback.getRevision());
+        }
 
-    const stack = Stack(
-        stackOptions,
-        actions,
-        statusMessage
-    );
+        function setRequest(nextRequest: SpeechRequest): void {
+            if (destroyed) return;
+            request = nextRequest;
+            statusMessage.hide();
+            playback.reset();
+        }
 
-    function play(): void {
-        clearPlayback(true);
-        statusMessage.hide();
-
-        playback = options.engine.speak(request);
-        unsubscribe = playback.subscribe(syncPlayback);
+        return {
+            element: stack.element,
+            startButton,
+            pauseButton,
+            stopButton,
+            statusMessage,
+            play,
+            pause,
+            resume,
+            stop,
+            setRequest,
+            destroy,
+            isDestroyed: () => destroyed
+        };
+    } catch (error) {
+        try { destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
     }
-
-    function pause(): void {
-        if (!playback || playback.getState().status !== "speaking") {
-            return;
-        }
-
-        playback.pause();
-        showStatus("info", options.pausedText);
-    }
-
-    function resume(): void {
-        if (!playback || playback.getState().status !== "paused") {
-            return;
-        }
-
-        statusMessage.hide();
-        playback.resume();
-    }
-
-    function stop(): void {
-        if (!playback || !isActive(playback.getState())) {
-            return;
-        }
-
-        playback.stop();
-        showStatus("info", options.stoppedText);
-    }
-
-    function setRequest(nextRequest: SpeechRequest): void {
-        request = nextRequest;
-        clearPlayback(true);
-        statusMessage.hide();
-        syncPlayback({ status: "idle" });
-    }
-
-    return {
-        element: stack.element,
-        startButton,
-        pauseButton,
-        stopButton,
-        statusMessage,
-        play,
-        pause,
-        resume,
-        stop,
-        setRequest,
-
-        destroy(): void {
-            clearPlayback(true);
-            actions.destroy();
-            statusMessage.destroy();
-        }
-    };
 }

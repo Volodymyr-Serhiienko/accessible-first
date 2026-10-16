@@ -1,3 +1,5 @@
+import { runCleanups } from "../../../core/src/events";
+
 /**
  * Responsive viewport value suitable for most web applications.
  */
@@ -147,82 +149,44 @@ export interface DocumentMetadataController {
     destroy(): void;
 }
 
-interface MetaSnapshot {
-    element: HTMLMetaElement | null;
-    content: string | null;
+interface HeadSnapshot<T extends HTMLElement> {
+    element: T | null;
+    attributes: Array<[string, string | null]>;
+    managed: Set<T>;
 }
 
-interface LinkSnapshot {
-    element: HTMLLinkElement | null;
-    attributes: Array<[string, string]>;
+type MetaSnapshot = HeadSnapshot<HTMLMetaElement>;
+type LinkSnapshot = HeadSnapshot<HTMLLinkElement>;
+
+function captureHeadElement<T extends HTMLElement>(element: T | null, attributes: string[]): HeadSnapshot<T> {
+    return { element, attributes: attributes.map(name => [name, element?.getAttribute(name) ?? null]), managed: new Set() };
+}
+
+function setAttribute(element: HTMLElement, name: string, value: string | null): void {
+    if (element.getAttribute(name) === value) return;
+    if (value === null) element.removeAttribute(name);
+    else element.setAttribute(name, value);
+}
+
+function restoreHeadElement<T extends HTMLElement>(ownerDocument: Document, snapshot: HeadSnapshot<T>): void {
+    const managed = [...snapshot.managed]; snapshot.managed.clear();
+    runCleanups([
+        ...managed.filter(element => element !== snapshot.element).map(element => () => element.remove()),
+        () => {
+            if (snapshot.element && snapshot.element.parentNode !== ownerDocument.head) ownerDocument.head.append(snapshot.element);
+        },
+        ...snapshot.attributes.map(([name, value]) => () => { if (snapshot.element) setAttribute(snapshot.element, name, value); })
+    ]);
 }
 
 function findMeta(ownerDocument: Document, name: string): HTMLMetaElement | null {
     return Array.from(ownerDocument.head.querySelectorAll<HTMLMetaElement>("meta[name]"))
-        .find((meta) => meta.getAttribute("name") === name) ?? null;
-}
-
-function restoreMeta(ownerDocument: Document, name: string, snapshot: MetaSnapshot): void {
-    const current = findMeta(ownerDocument, name);
-
-    if (!snapshot.element) {
-        current?.remove();
-        return;
-    }
-
-    if (!current) {
-        ownerDocument.head.append(snapshot.element);
-    }
-
-    if (snapshot.content === null) {
-        snapshot.element.removeAttribute("content");
-    } else {
-        snapshot.element.setAttribute("content", snapshot.content);
-    }
+        .find((meta) => meta.getAttribute("name")?.toLowerCase() === name) ?? null;
 }
 
 function findLink(ownerDocument: Document, rel: string): HTMLLinkElement | null {
     return Array.from(ownerDocument.head.querySelectorAll<HTMLLinkElement>("link[rel]"))
-        .find((link) => (link.getAttribute("rel") ?? "").split(/\s+/).includes(rel)) ?? null;
-}
-
-function getLinkAttributes(element: HTMLLinkElement | null): Array<[string, string]> {
-    if (!element) return [];
-
-    return Array.from(element.attributes)
-        .map((attribute) => [attribute.name, attribute.value]);
-}
-
-function restoreLinkAttributes(
-    element: HTMLLinkElement,
-    attributes: Array<[string, string]>
-): void {
-    for (const attribute of Array.from(element.attributes)) {
-        element.removeAttribute(attribute.name);
-    }
-
-    for (const [name, value] of attributes) {
-        element.setAttribute(name, value);
-    }
-}
-
-function restoreLink(ownerDocument: Document, rel: string, snapshot: LinkSnapshot): void {
-    const current = findLink(ownerDocument, rel);
-
-    if (!snapshot.element) {
-        current?.remove();
-        return;
-    }
-
-    if (current && current !== snapshot.element) {
-        current.remove();
-    }
-
-    if (!snapshot.element.parentElement) {
-        ownerDocument.head.append(snapshot.element);
-    }
-
-    restoreLinkAttributes(snapshot.element, snapshot.attributes);
+        .find((link) => (link.getAttribute("rel") ?? "").toLowerCase().split(/\s+/).includes(rel)) ?? null;
 }
 
 function stringifyMetadataUrl(value: string | URL): string {
@@ -259,39 +223,32 @@ function findPropertyMeta(ownerDocument: Document, property: string): HTMLMetaEl
         .find((meta) => meta.getAttribute("property") === property) ?? null;
 }
 
-function restorePropertyMeta(
-    ownerDocument: Document,
-    property: string,
-    snapshot: MetaSnapshot
-): void {
-    const current = findPropertyMeta(ownerDocument, property);
-
-    if (!snapshot.element) {
-        current?.remove();
-        return;
-    }
-
-    if (current && current !== snapshot.element) {
-        current.remove();
-    }
-
-    if (!snapshot.element.parentElement) {
-        ownerDocument.head.append(snapshot.element);
-    }
-
-    if (snapshot.content === null) {
-        snapshot.element.removeAttribute("content");
-    } else {
-        snapshot.element.setAttribute("content", snapshot.content);
-    }
-}
-
 function toMetadataContent(
     value: string | number | boolean | URL | null | undefined
 ): string | null {
     if (value === null || value === undefined) return null;
 
-    return value instanceof URL ? value.toString() : String(value);
+    return String(value);
+}
+
+function prepareOpenGraph(openGraph: DocumentMetadataOpenGraphOptions | null): Map<string, string | null> {
+    const values = new Map<string, string | null>(OPEN_GRAPH_PROPERTIES.map(name => [name, null]));
+    if (!openGraph) return values;
+    for (const [name, value] of [
+        ["og:title", openGraph.title], ["og:type", openGraph.type], ["og:url", openGraph.url],
+        ["og:description", openGraph.description], ["og:site_name", openGraph.siteName], ["og:locale", openGraph.locale]
+    ] as const) values.set(name, toMetadataContent(value));
+    const image = openGraph.image;
+    if (!image) return values;
+    if (typeof image === "string" || !("url" in image)) {
+        values.set("og:image", stringifyMetadataUrl(image));
+        return values;
+    }
+    for (const [name, value] of [
+        ["og:image", image.url], ["og:image:secure_url", image.secureUrl], ["og:image:type", image.type],
+        ["og:image:width", image.width], ["og:image:height", image.height], ["og:image:alt", image.alt]
+    ] as const) values.set(name, toMetadataContent(value));
+    return values;
 }
 
 function createIcon(ownerDocument: Document, icon: DocumentMetadataIconOptions): HTMLLinkElement {
@@ -316,8 +273,10 @@ export function createDocumentMetadata(
     options: DocumentMetadataOptions = {}
 ): DocumentMetadataController {
     const ownerDocument = options.document ?? document;
-    const originalTitle = ownerDocument.title;
-    const originalLang = ownerDocument.documentElement.getAttribute("lang");
+    let originalTitle: string | undefined;
+    let originalLang: string | null | undefined;
+    let destroyed = false;
+    let revision = 0;
     const metaSnapshots = new Map<string, MetaSnapshot>();
     const linkSnapshots = new Map<string, LinkSnapshot>();
     const propertyMetaSnapshots = new Map<string, MetaSnapshot>();
@@ -330,10 +289,7 @@ export function createDocumentMetadata(
         if (existing) return existing;
 
         const element = findMeta(ownerDocument, name);
-        const snapshot: MetaSnapshot = {
-            element,
-            content: element?.getAttribute("content") ?? null
-        };
+        const snapshot = captureHeadElement(element, ["content"]);
 
         metaSnapshots.set(name, snapshot);
 
@@ -346,10 +302,7 @@ export function createDocumentMetadata(
         if (existing) return existing;
 
         const element = findLink(ownerDocument, rel);
-        const snapshot: LinkSnapshot = {
-            element,
-            attributes: getLinkAttributes(element)
-        };
+        const snapshot = captureHeadElement(element, ["href", "crossorigin"]);
 
         linkSnapshots.set(rel, snapshot);
 
@@ -362,10 +315,7 @@ export function createDocumentMetadata(
         if (existing) return existing;
 
         const element = findPropertyMeta(ownerDocument, property);
-        const snapshot: MetaSnapshot = {
-            element,
-            content: element?.getAttribute("content") ?? null
-        };
+        const snapshot = captureHeadElement(element, ["content"]);
 
         propertyMetaSnapshots.set(property, snapshot);
 
@@ -380,21 +330,18 @@ export function createDocumentMetadata(
         const snapshot = rememberLink(rel);
 
         if (href === null) {
-            restoreLink(ownerDocument, rel, snapshot);
+            restoreHeadElement(ownerDocument, snapshot);
             return;
         }
 
-        const link = findLink(ownerDocument, rel) ?? ownerDocument.createElement("link");
-
-        link.setAttribute("rel", rel);
-        link.setAttribute("href", href);
+        const existing = findLink(ownerDocument, rel);
+        const link = existing ?? ownerDocument.createElement("link");
+        snapshot.managed.add(link);
+        if (!existing) link.setAttribute("rel", rel);
+        setAttribute(link, "href", href);
 
         for (const [name, value] of Object.entries(attributes)) {
-            if (value === null || value === undefined) {
-                link.removeAttribute(name);
-            } else {
-                link.setAttribute(name, value);
-            }
+            setAttribute(link, name, value ?? null);
         }
 
         if (!link.parentElement) {
@@ -402,38 +349,18 @@ export function createDocumentMetadata(
         }
     }
 
-    function setCanonical(canonical: string | URL | null): void {
-        setLink("canonical", canonical === null ? null : stringifyMetadataUrl(canonical));
-    }
-
-    function setManifest(manifest: DocumentMetadataManifest | null): void {
-        if (manifest === null) {
-            setLink("manifest", null);
-            return;
-        }
-
-        if (typeof manifest === "string") {
-            setLink("manifest", manifest);
-            return;
-        }
-
-        setLink("manifest", manifest.href, {
-            crossorigin: manifest.crossOrigin
-        });
-    }
-
     function setMeta(name: string, content: string | null): void {
         const snapshot = rememberMeta(name);
 
         if (content === null) {
-            restoreMeta(ownerDocument, name, snapshot);
+            restoreHeadElement(ownerDocument, snapshot);
             return;
         }
 
         const meta = findMeta(ownerDocument, name) ?? ownerDocument.createElement("meta");
-
-        meta.setAttribute("name", name);
-        meta.setAttribute("content", content);
+        snapshot.managed.add(meta);
+        if (!meta.hasAttribute("name")) meta.setAttribute("name", name);
+        setAttribute(meta, "content", content);
 
         if (!meta.parentElement) {
             ownerDocument.head.append(meta);
@@ -444,156 +371,119 @@ export function createDocumentMetadata(
         const snapshot = rememberPropertyMeta(property);
 
         if (content === null) {
-            restorePropertyMeta(ownerDocument, property, snapshot);
+            restoreHeadElement(ownerDocument, snapshot);
             return;
         }
 
         const meta = findPropertyMeta(ownerDocument, property) ?? ownerDocument.createElement("meta");
-
-        meta.setAttribute("property", property);
-        meta.setAttribute("content", content);
+        snapshot.managed.add(meta);
+        setAttribute(meta, "property", property);
+        setAttribute(meta, "content", content);
 
         if (!meta.parentElement) {
             ownerDocument.head.append(meta);
         }
     }
 
-    function setOpenGraph(openGraph: DocumentMetadataOpenGraphOptions | null): void {
-        for (const property of OPEN_GRAPH_PROPERTIES) {
-            setPropertyMeta(property, null);
-        }
-
-        if (!openGraph) return;
-
-        setPropertyMeta("og:title", openGraph.title ?? null);
-        setPropertyMeta("og:type", openGraph.type ?? null);
-        setPropertyMeta("og:url", toMetadataContent(openGraph.url));
-        setPropertyMeta("og:description", openGraph.description ?? null);
-        setPropertyMeta("og:site_name", openGraph.siteName ?? null);
-        setPropertyMeta("og:locale", openGraph.locale ?? null);
-
-        const image = openGraph.image ?? null;
-
-        if (!image) return;
-
-        if (typeof image === "string" || image instanceof URL) {
-            setPropertyMeta("og:image", stringifyMetadataUrl(image));
-            return;
-        }
-
-        setPropertyMeta("og:image", stringifyMetadataUrl(image.url));
-        setPropertyMeta("og:image:secure_url", toMetadataContent(image.secureUrl));
-        setPropertyMeta("og:image:type", image.type ?? null);
-        setPropertyMeta("og:image:width", toMetadataContent(image.width));
-        setPropertyMeta("og:image:height", toMetadataContent(image.height));
-        setPropertyMeta("og:image:alt", image.alt ?? null);
+    function setIcons(icons: HTMLLinkElement[]): void {
+        if (managedIcons.length === icons.length && managedIcons.every((icon, index) => icon.parentNode === ownerDocument.head && icon.isEqualNode(icons[index]!))) return;
+        const previous = managedIcons.splice(0);
+        managedIcons.push(...icons);
+        runCleanups([...previous.map(icon => () => icon.remove()), () => ownerDocument.head.append(...icons)]);
     }
 
-    function setTwitter(twitter: DocumentMetadataTwitterOptions | null): void {
-        for (const name of TWITTER_META_NAMES) {
-            setMeta(name, null);
+    function setStructuredData(text: string | null): void {
+        if (text !== null && managedStructuredDataScripts.length === 1
+            && managedStructuredDataScripts[0]!.parentNode === ownerDocument.head
+            && managedStructuredDataScripts[0]!.textContent === text) return;
+        const previous = managedStructuredDataScripts.splice(0);
+        const script = text === null ? null : ownerDocument.createElement("script");
+        if (script) {
+            script.type = "application/ld+json";
+            script.setAttribute("data-af-document-structured-data", "");
+            script.textContent = text;
+            managedStructuredDataScripts.push(script);
         }
-
-        if (!twitter) return;
-
-        setMeta("twitter:card", twitter.card ?? null);
-        setMeta("twitter:site", twitter.site ?? null);
-        setMeta("twitter:creator", twitter.creator ?? null);
-        setMeta("twitter:title", twitter.title ?? null);
-        setMeta("twitter:description", twitter.description ?? null);
-        setMeta("twitter:image", toMetadataContent(twitter.image));
-        setMeta("twitter:image:alt", twitter.imageAlt ?? null);
-    }
-
-    function setIcons(icons: DocumentMetadataIconOptions[] | null): void {
-        for (const icon of managedIcons.splice(0)) {
-            icon.remove();
-        }
-
-        if (!icons) return;
-
-        for (const icon of icons) {
-            const link = createIcon(ownerDocument, icon);
-            managedIcons.push(link);
-            ownerDocument.head.append(link);
-        }
-    }
-
-    function setStructuredData(structuredData: DocumentMetadataStructuredData | null): void {
-        for (const script of managedStructuredDataScripts.splice(0)) {
-            script.remove();
-        }
-
-        if (structuredData === null) return;
-
-        const script = ownerDocument.createElement("script");
-
-        script.type = "application/ld+json";
-        script.setAttribute("data-af-document-structured-data", "");
-        script.textContent = JSON.stringify(structuredData);
-
-        managedStructuredDataScripts.push(script);
-        ownerDocument.head.append(script);
+        runCleanups([...previous.map(element => () => element.remove()), () => { if (script) ownerDocument.head.append(script); }]);
     }
 
     function update(nextOptions: DocumentMetadataUpdateOptions): void {
-        if ("title" in nextOptions && nextOptions.title !== undefined) {
-            ownerDocument.title = nextOptions.title ?? originalTitle;
+        if (destroyed) return;
+        const current = ++revision;
+        const changes: Array<() => void> = [];
+        // Resolve getters, URL values and JSON before changing the current document.
+        const title = nextOptions.title;
+        if (title !== undefined) changes.push(() => {
+            originalTitle ??= ownerDocument.title;
+            const value = title ?? originalTitle;
+            if (ownerDocument.title !== value) ownerDocument.title = value;
+        });
+        const lang = nextOptions.lang;
+        if (lang !== undefined) changes.push(() => {
+            if (originalLang === undefined) originalLang = ownerDocument.documentElement.getAttribute("lang");
+            setAttribute(ownerDocument.documentElement, "lang", lang ?? originalLang);
+        });
+        for (const [key, name] of [["description", "description"], ["viewport", "viewport"], ["themeColor", "theme-color"], ["robots", "robots"]] as const) {
+            if (!(key in nextOptions)) continue;
+            const value = nextOptions[key] ?? null;
+            changes.push(() => setMeta(name, value));
         }
-
-        if ("lang" in nextOptions && nextOptions.lang !== undefined) {
-            if (nextOptions.lang === null) {
-                if (originalLang === null) {
-                    ownerDocument.documentElement.removeAttribute("lang");
-                } else {
-                    ownerDocument.documentElement.setAttribute("lang", originalLang);
-                }
-            } else {
-                ownerDocument.documentElement.setAttribute("lang", nextOptions.lang);
-            }
+        if ("icons" in nextOptions) {
+            const icons = (nextOptions.icons ?? []).map(icon => createIcon(ownerDocument, icon));
+            changes.push(() => setIcons(icons));
         }
-
-        if ("description" in nextOptions) setMeta("description", nextOptions.description ?? null);
-        if ("viewport" in nextOptions) setMeta("viewport", nextOptions.viewport ?? null);
-        if ("themeColor" in nextOptions) setMeta("theme-color", nextOptions.themeColor ?? null);
-        if ("icons" in nextOptions) setIcons(nextOptions.icons ?? null);
-        if ("canonical" in nextOptions) setCanonical(nextOptions.canonical ?? null);
-        if ("robots" in nextOptions) setMeta("robots", nextOptions.robots ?? null);
-        if ("manifest" in nextOptions) setManifest(nextOptions.manifest ?? null);
-        if ("openGraph" in nextOptions) setOpenGraph(nextOptions.openGraph ?? null);
-        if ("twitter" in nextOptions) setTwitter(nextOptions.twitter ?? null);
-        if ("structuredData" in nextOptions) setStructuredData(nextOptions.structuredData ?? null);
+        if ("canonical" in nextOptions) {
+            const value = toMetadataContent(nextOptions.canonical);
+            changes.push(() => setLink("canonical", value));
+        }
+        if ("manifest" in nextOptions) {
+            const manifest = nextOptions.manifest;
+            const href = typeof manifest === "string" ? manifest : manifest?.href ?? null;
+            const crossOrigin = typeof manifest === "object" ? manifest?.crossOrigin ?? null : null;
+            changes.push(() => setLink("manifest", href, { crossorigin: crossOrigin }));
+        }
+        if ("openGraph" in nextOptions) {
+            const values = prepareOpenGraph(nextOptions.openGraph ?? null);
+            for (const [name, value] of values) changes.push(() => setPropertyMeta(name, value));
+        }
+        if ("twitter" in nextOptions) {
+            const twitter = nextOptions.twitter;
+            const values = [twitter?.card, twitter?.site, twitter?.creator, twitter?.title, twitter?.description, twitter?.image, twitter?.imageAlt];
+            TWITTER_META_NAMES.forEach((name, index) => {
+                const value = toMetadataContent(values[index]);
+                changes.push(() => setMeta(name, value));
+            });
+        }
+        if ("structuredData" in nextOptions) {
+            const data = nextOptions.structuredData;
+            const text = data == null ? null : JSON.stringify(data);
+            if (text === undefined) throw new TypeError("Structured data must serialize to JSON.");
+            const safeText = text?.replace(/</g, "\\u003c") ?? null;
+            changes.push(() => setStructuredData(safeText));
+        }
+        runCleanups(changes.map(change => () => { if (!destroyed && current === revision) change(); }));
     }
 
-    update(options);
-
-    return {
+    const controller: DocumentMetadataController = {
         document: ownerDocument,
         update,
 
         destroy(): void {
-            ownerDocument.title = originalTitle;
-
-            if (originalLang === null) {
-                ownerDocument.documentElement.removeAttribute("lang");
-            } else {
-                ownerDocument.documentElement.setAttribute("lang", originalLang);
-            }
-
-            for (const [name, snapshot] of metaSnapshots) {
-                restoreMeta(ownerDocument, name, snapshot);
-            }
-
-            for (const [rel, snapshot] of linkSnapshots) {
-                restoreLink(ownerDocument, rel, snapshot);
-            }
-
-            for (const [property, snapshot] of propertyMetaSnapshots) {
-                restorePropertyMeta(ownerDocument, property, snapshot);
-            }
-
-            setIcons(null);
-            setStructuredData(null);
+            if (destroyed) return;
+            destroyed = true; revision += 1;
+            const snapshots = [...metaSnapshots.values(), ...linkSnapshots.values(), ...propertyMetaSnapshots.values()];
+            metaSnapshots.clear(); linkSnapshots.clear(); propertyMetaSnapshots.clear();
+            runCleanups([
+                () => { if (originalTitle !== undefined) ownerDocument.title = originalTitle; },
+                () => { if (originalLang !== undefined) setAttribute(ownerDocument.documentElement, "lang", originalLang); },
+                ...snapshots.map(snapshot => () => restoreHeadElement(ownerDocument, snapshot as HeadSnapshot<HTMLElement>)),
+                () => setIcons([]), () => setStructuredData(null)
+            ]);
         }
     };
+    try { update(options); return controller; }
+    catch (error) {
+        try { controller.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

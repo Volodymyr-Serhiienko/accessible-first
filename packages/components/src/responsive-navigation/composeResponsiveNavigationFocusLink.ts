@@ -72,12 +72,14 @@ export function ResponsiveNavigationFocusLink(
         ...getFocusRouteLinkOptions(options),
         focusTarget: getFocusTarget(navigation)
     });
+    const updateLink = link.update.bind(link);
 
     return Object.assign(link, {
         update(nextOptions: ResponsiveNavigationFocusLinkUpdateOptions): void {
+            if (link.isDestroyed()) return;
             if ("navigation" in nextOptions) navigation = nextOptions.navigation;
 
-            link.update({
+            updateLink({
                 ...getFocusRouteLinkOptions(nextOptions),
                 focusTarget: getFocusTarget(navigation)
             });

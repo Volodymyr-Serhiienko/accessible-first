@@ -1,5 +1,5 @@
-import { addAriaReferenceId, removeAriaReferenceId } from "../../../core/src/aria";
-import { restoreAttribute } from "../../../core/src/dom";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
+import { runCleanups } from "../../../core/src/events";
 import { createId } from "../../../core/src/id";
 import { createTooltip, type Tooltip } from "../tooltip/createTooltip";
 
@@ -16,7 +16,7 @@ export interface ControlHintOptions {
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
-    /** Whether focus also displays the visual tooltip; does not affect its description. */
+    /** Whether focus also displays the visual tooltip. Defaults to false; description is independent. */
     hintShowOnFocus?: boolean;
 }
 
@@ -66,13 +66,13 @@ export function createControlHint(
     options: ControlHintOptions = {}
 ): ControlHint {
     const ownerDocument = element.ownerDocument;
-    const originalDescribedBy = element.getAttribute("aria-describedby");
+    const descriptionOwner = createAriaReferenceOwner(element, "aria-describedby");
 
     let hint = normalizeText(options.hint);
     let hintId = options.hintId ?? "";
     let hintDisplay: ControlHintDisplay = options.hintDisplay ?? "description";
     let hintAnnounceOnHover = options.hintAnnounceOnHover ?? false;
-    let hintShowOnFocus = options.hintShowOnFocus ?? true;
+    let hintShowOnFocus = options.hintShowOnFocus ?? false;
     let descriptionElement: HTMLElement | null = null;
     let destroyed = false;
 
@@ -104,7 +104,10 @@ export function createControlHint(
     }
 
     function ensureDescriptionElement(): HTMLElement {
-        if (descriptionElement) return descriptionElement;
+        if (descriptionElement) {
+            descriptionElement.id = getHintId();
+            return descriptionElement;
+        }
 
         descriptionElement = ownerDocument.createElement("span");
         descriptionElement.id = getHintId();
@@ -129,29 +132,12 @@ export function createControlHint(
     function syncDescription(): void {
         if (shouldUseDescription() && hint) {
             const description = ensureDescriptionElement();
-            const current = removeAriaReferenceId(
-                element.getAttribute("aria-describedby"),
-                description.id
-            );
-
             description.textContent = hint;
-            element.setAttribute("aria-describedby", addAriaReferenceId(current, description.id));
+            descriptionOwner.set([description.id]);
             return;
         }
 
-        if (descriptionElement) {
-            const current = removeAriaReferenceId(
-                element.getAttribute("aria-describedby"),
-                descriptionElement.id
-            );
-
-            if (current) {
-                element.setAttribute("aria-describedby", current);
-            } else {
-                restoreAttribute(element, "aria-describedby", originalDescribedBy);
-            }
-        }
-
+        descriptionOwner.set([]);
         removeDescriptionElement();
     }
 
@@ -211,9 +197,7 @@ export function createControlHint(
             if (destroyed) return;
 
             destroyed = true;
-            tooltip.destroy();
-            removeDescriptionElement();
-            restoreAttribute(element, "aria-describedby", originalDescribedBy);
+            runCleanups([() => tooltip.destroy(), descriptionOwner.destroy, removeDescriptionElement]);
         }
     };
 }

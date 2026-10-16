@@ -1,3 +1,4 @@
+import { runCleanups } from "../events";
 import type {
     SpeechPlayback,
     SpeechPlaybackState
@@ -12,34 +13,40 @@ function afterSpeechState(
 ): () => void {
     let unsubscribe: (() => void) | null = null;
     let completed = false;
-    let completedBeforeSubscription = false;
+    let subscribing = true;
+    let pendingCompletion = false;
+
+    const finish = (): void => {
+        const previous = unsubscribe;
+        unsubscribe = null;
+        runCleanups([() => previous?.(), onComplete]);
+    };
 
     const complete = (): void => {
         if (completed) return;
 
         completed = true;
-        if (unsubscribe) {
-            unsubscribe();
-            unsubscribe = null;
-        } else {
-            completedBeforeSubscription = true;
-        }
-        onComplete();
+        if (subscribing) pendingCompletion = true;
+        else finish();
     };
 
-    unsubscribe = playback.subscribe((state) => {
-        if (matches(state)) complete();
-    });
-
-    if (completedBeforeSubscription) {
-        unsubscribe();
-        unsubscribe = null;
+    try {
+        unsubscribe = playback.subscribe((state) => {
+            if (matches(state)) complete();
+        });
+    } catch (error) {
+        completed = true;
+        throw error;
     }
+    subscribing = false;
+
+    if (pendingCompletion) finish();
 
     return () => {
         completed = true;
-        unsubscribe?.();
+        const previous = unsubscribe;
         unsubscribe = null;
+        previous?.();
     };
 }
 

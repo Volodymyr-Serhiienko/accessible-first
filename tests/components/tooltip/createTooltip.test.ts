@@ -10,6 +10,7 @@ import {
     createTooltip,
     Tooltip
 } from "../../../packages/components/src/tooltip";
+import { createPopover } from "../../../packages/components/src/popover";
 
 const announcementDelay = 50;
 
@@ -43,6 +44,28 @@ function createRect(
 }
 
 describe("createTooltip", () => {
+    it.each(["enhancement", "composition"] as const)("%s defaults to a focus description and a hover-only visual layer", kind => {
+        const trigger = createTrigger();
+        const tooltip = kind === "enhancement" ? createTooltip(trigger, { text: "Draft help" })
+            : Tooltip({ trigger, text: "Draft help" });
+        if ("element" in tooltip) document.body.append(tooltip.element);
+        try {
+            trigger.focus();
+            const describedBy = trigger.getAttribute("aria-describedby")!;
+            expect(document.getElementById(describedBy)?.textContent).toBe("Draft help");
+            expect(document.querySelector("[data-af-tooltip-visible]")).toBeNull();
+            const touch = new Event("pointerenter");
+            Object.defineProperty(touch, "pointerType", { value: "touch" });
+            trigger.dispatchEvent(touch);
+            expect(document.querySelector("[data-af-tooltip-visible]")).toBeNull();
+            trigger.dispatchEvent(new Event("pointerenter"));
+            expect(document.querySelector("[data-af-tooltip-visible]")).not.toBeNull();
+            trigger.dispatchEvent(new Event("pointerleave"));
+            expect(document.querySelector("[data-af-tooltip-visible]")).toBeNull();
+            expect(document.getElementById(describedBy)?.textContent).toBe("Draft help");
+        } finally { tooltip.destroy(); }
+    });
+
     it("keeps visual text in its own scroller without replacing the pointer bridge on updates", () => {
         const trigger = createTrigger();
         const tooltip = createTooltip(trigger, {
@@ -134,7 +157,7 @@ describe("createTooltip", () => {
     it("dismisses an active tooltip with Escape without moving focus", () => {
         const trigger = createTrigger();
         const tooltip = createTooltip(trigger, {
-            text: "Saves the current draft."
+            text: "Saves the current draft.", showOnFocus: true
         });
 
         trigger.focus();
@@ -153,6 +176,52 @@ describe("createTooltip", () => {
         expect(document.activeElement).toBe(trigger);
 
         tooltip.destroy();
+    });
+
+    it("does not consume later Escape keys after dismissal until a new hover or focus session", () => {
+        const trigger = createTrigger();
+        const tooltip = createTooltip(trigger, { text: "Hint", showOnFocus: true });
+        const escape = () => {
+            const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+            trigger.dispatchEvent(event);
+            return event.defaultPrevented;
+        };
+        try {
+            trigger.focus();
+            expect(escape()).toBe(true);
+            expect(escape()).toBe(false);
+            expect(document.activeElement).toBe(trigger);
+            trigger.blur();
+            trigger.focus();
+            expect(escape()).toBe(true);
+        } finally {
+            tooltip.destroy();
+        }
+    });
+
+    it("lets a popover handle the next Escape after its trigger tooltip has been dismissed", () => {
+        const trigger = createTrigger();
+        const tooltip = createTooltip(trigger, { text: "Open tools" });
+        const panel = document.createElement("div");
+        const action = document.createElement("button");
+        action.textContent = "Panel action";
+        panel.append(action);
+        document.body.append(panel);
+        const popover = createPopover(panel, { trigger, closeOnAnchorHidden: false, autoUpdate: false });
+        try {
+            trigger.dispatchEvent(new Event("pointerenter"));
+            trigger.click();
+            action.focus();
+            action.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+            expect(popover.isOpen()).toBe(true);
+            expect(trigger.getAttribute("data-af-tooltip-dismissed")).toBe("true");
+            action.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+            expect(popover.isOpen()).toBe(false);
+            expect(document.activeElement).toBe(trigger);
+        } finally {
+            popover.destroy();
+            tooltip.destroy();
+        }
     });
 
     it("shifts a visual tooltip left after pointer entry to keep its right edge inside the viewport", () => {
@@ -264,7 +333,7 @@ describe("createTooltip", () => {
         vi.spyOn(trigger, "getBoundingClientRect")
             .mockReturnValue(createRect(20, 40, 100, 132));
 
-        trigger.dispatchEvent(new Event("focusin", { bubbles: true }));
+        trigger.dispatchEvent(new Event("pointerenter"));
         vi.advanceTimersByTime(20);
 
         expect(visual!.style.getPropertyValue("--af-tooltip-left"))
@@ -301,7 +370,7 @@ describe("createTooltip", () => {
         vi.spyOn(trigger, "getBoundingClientRect")
             .mockReturnValue(createRect(20, 40, 4, 36));
 
-        trigger.dispatchEvent(new Event("focusin", { bubbles: true }));
+        trigger.dispatchEvent(new Event("pointerenter"));
         vi.advanceTimersByTime(20);
 
         expect(visual!.style.getPropertyValue("--af-tooltip-left"))

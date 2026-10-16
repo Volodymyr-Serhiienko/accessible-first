@@ -6,6 +6,7 @@ import type {
     AppIdentity,
     AppIdentityRouteDocumentMetadataOptions
 } from "../app-identity";
+import { runCleanups } from "../../../core/src/events";
 import {
     createAppRouteDocumentMetadata,
     getAppRouteDocumentTitle,
@@ -28,6 +29,7 @@ import type {
     HashRouterNavigateOptions,
     HashRouterRoute
 } from "../routing";
+import { setupRoutedAppPageHideCleanup } from "../routed-app/routedAppInternals";
 import {
     createPublicRoutedAppDiagnostics,
     type PublicRoutedAppDiagnosticsOptions
@@ -212,16 +214,19 @@ export function createPublicHashRoutedApp<
         initialScrollReset,
         routeMetadata: _routeMetadata,
         start,
+        destroyOnPageHide,
         ...hashRoutedAppOptions
     } = options;
     let diagnostics: AppDiagnosticsRunner | null = null;
     let initialScrollResetController: InitialScrollResetController | null = null;
     let started = false;
+    let removePageHideListener: (() => void) | null = null;
 
     const router = createRouterOptions(options, () => diagnostics);
     const routedAppOptions: HashRoutedAppOptions<TRoute, TLocale> = {
         ...hashRoutedAppOptions,
-        start: false
+        start: false,
+        destroyOnPageHide: false
     };
 
     if (router !== undefined) routedAppOptions.router = router;
@@ -251,9 +256,15 @@ export function createPublicHashRoutedApp<
             if (started || routedApp.isDestroyed()) return;
 
             started = true;
-            routedApp.start(startOptions);
-            initialScrollResetController?.cancel();
-            initialScrollResetController = resetStartupScroll(initialScrollReset);
+            try {
+                routedApp.start(startOptions);
+                if (routedApp.isDestroyed()) return;
+                initialScrollResetController?.cancel();
+                initialScrollResetController = resetStartupScroll(initialScrollReset);
+            } catch (error) {
+                try { publicApp.destroy(); }
+                finally { throw error; }
+            }
         },
 
         refreshChrome(): void {
@@ -265,17 +276,19 @@ export function createPublicHashRoutedApp<
         },
 
         inspectDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.inspect() ?? null;
+            return routedApp.isDestroyed() ? null : diagnostics?.inspect() ?? null;
         },
 
         logDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.log() ?? null;
+            return routedApp.isDestroyed() ? null : diagnostics?.log() ?? null;
         },
 
         destroy(): void {
-            initialScrollResetController?.cancel();
+            const reset = initialScrollResetController;
+            const removePageHide = removePageHideListener;
             initialScrollResetController = null;
-            routedApp.destroy();
+            removePageHideListener = null;
+            runCleanups([() => removePageHide?.(), () => reset?.cancel(), () => routedApp.destroy()]);
         },
 
         isDestroyed(): boolean {
@@ -283,8 +296,12 @@ export function createPublicHashRoutedApp<
         }
     };
 
-    if (start !== false) {
-        publicApp.start(options.startOptions ?? {});
+    try {
+        removePageHideListener = setupRoutedAppPageHideCleanup(routedApp.shell, () => publicApp.destroy(), destroyOnPageHide);
+        if (start !== false) publicApp.start(options.startOptions ?? {});
+    } catch (error) {
+        try { publicApp.destroy(); }
+        finally { throw error; }
     }
 
     return publicApp;

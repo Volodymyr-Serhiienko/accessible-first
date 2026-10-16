@@ -154,6 +154,26 @@ accordion.update({
 });
 ```
 
+Item registration, values and heading levels are creation-time only. Content and
+resolved announcement options are prepared before state changes, so an update
+that opens an item announces its new content. Independent style updates retain
+item DOM and focused controls. Description/panel-label IDREF contributions preserve
+external references across ID/mode/landmark changes and teardown.
+
+Keyboard shortcuts skip hidden, inert and natively disabled triggers once mounted;
+handled, modified and IME-composition keys remain with their owner. A required last
+open item (`multiple: false`, `collapsible: false`) stays in Tab order with
+`aria-disabled="true"` and does not close/reopen when clicked. Use item/parent
+open methods for state changes, rather than bypassing the accordion through its
+underlying disclosure controller.
+
+Cleanup attempts every item's slots and behavior after an error, then rethrows
+the first failure. Partial construction releases already prepared items.
+Destruction is terminal/idempotent; late parent/item setters are inert. A newer
+update or destruction from child cleanup cancels remaining obsolete work; callbacks
+that open another item cannot emit an old, now-false open result. Parent open/close
+methods may be passed as unbound callbacks.
+
 ## Styling
 
 Useful hooks include `[data-af-component="accordion"]`, `[data-af-accordion-item]`, `[data-af-disclosure-description]`, `[data-af-disclosure-body]`, `[data-af-open]`, and `[data-af-disabled]`.
@@ -175,3 +195,4 @@ Accordion({
 - Touch targets are comfortable on mobile.
 - Opening an item announces useful context without repeating long panel content.
 - Item descriptions are not announced before opening unless `descriptionMode: "aria"` is intentionally used.
+- Long trigger and panel content wraps within narrow containers.

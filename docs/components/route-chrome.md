@@ -227,6 +227,13 @@ Public app templates can use `routeChrome: true` when the app wants the standard
 
 ## SPA And MPA Use
 
+Factories release already-created generated siblings if later construction fails.
+The hash/link renderer also releases generated chrome if `onCreate` throws before
+shell mounting. Custom before/after-outlet and footer content not yet transferred
+to the shell remains caller-owned. Header content follows AppHeader ownership.
+Successful construction does not introduce another aggregate destroy owner: the
+shell owns mounted slots, and standalone callers dispose the controls they use.
+
 For hash-routed SPAs built with `HashRoutedApp`, prefer `createHashAppRouteChromeRenderer(...)`. Use `createHashAppRouteChrome(...)` when app code already owns the render callback. Use `createAppRouteChrome(...)` with a custom `onRouteActivate` only when the app needs non-standard activation behavior.
 
 For native-link and MPA pages built with `LinkRoutedApp`, prefer `createLinkAppRouteChromeRenderer(...)`. It keeps regular navigation links real while making route search and command palette controls useful without a client-side router.

@@ -113,6 +113,17 @@ Use `createHashAppRouteChromeRenderer(...)` for the common hash-SPA chrome path.
 
 Stable regions such as a footer or toast viewport can live in the initial `shell` options when they do not need to be recreated on every locale refresh.
 
+Nested refresh/destroy invalidates older chrome work and its later route phase.
+Returned slot candidates transfer to the runtime; unused or overridden content is
+cleaned, while already transferred controllers are not destroyed again. Direct slot
+fields override `chrome.shell` fields in one shell update. Current-route bindings
+belong to the accepted chrome, remain live across route-only refreshes, and stop
+after replacement/destroy, including reentry from `setCurrent`.
+This does not undo app callback side effects or make refresh a transaction.
+These recipe guards cover chrome and whether a later route phase is entered;
+they are not a cancellation guarantee inside arbitrary low-level `HashRouter`
+render/history/notification callbacks once the router has taken control.
+
 ## Localization
 
 When `locale` is provided, HashRoutedApp creates a `LocaleRefresh` subscription. On locale change it refreshes chrome and quietly re-renders the current route with:
@@ -152,6 +163,12 @@ Route changes should still use router or PageOutlet scroll/focus options. `reset
 - `isDestroyed()` - returns whether the runtime has been destroyed.
 
 ## Relationship To Other Layers
+
+Default page-hide cleanup retains the runtime across back/forward-cache hides.
+On a real exit or explicit `destroy()`, all route/locale subscriptions, router
+listeners and the mounted shell are cleaned up, even if one callback fails.
+When the app owns additional services, use `destroyOnPageHide: false` and
+[addPageHideCleanup](../core/events.md#addpagehidecleanup) for complete app teardown.
 
 Use `AppShell` directly for static pages or apps with custom routing. Use `HashRouter` directly when an app needs lower-level control. Use HashRoutedApp when the app follows the common Accessible First SPA recipe.
 

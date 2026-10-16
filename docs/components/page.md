@@ -47,11 +47,22 @@ mount(page, "#app");
 `header`, `nav`, and `footer` regions only when their methods are used. The
 skip link is enabled by default and targets the main landmark unless configured
 otherwise.
+The owned main has `tabindex="-1"`: native skip-link activation can focus it,
+but it is not an extra stop in normal Tab order. A custom skip-link target must
+be made focusable by the application.
 
 `Page` owns its created DOM and restores document state that it changes when
 `destroy()` runs. That includes managed metadata and theme state. Do not create
 multiple simultaneous Page controllers for the same browser document unless an
 application explicitly owns the resulting document-level interactions.
+
+Region replacement retains composed children reused by object identity; removed
+children are disposed once. Appending main content does not detach existing
+controls or steal their focus. Destruction is terminal: late mutations, metadata
+updates and focus requests are ignored. All owned cleanup is attempted even if
+one child or locale disposer throws; failed construction also restores owned
+document state. System-theme observation supports legacy media listeners and
+falls back to light when `matchMedia` is absent.
 
 ## Main Methods
 

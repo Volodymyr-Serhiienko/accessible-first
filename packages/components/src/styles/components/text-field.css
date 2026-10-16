@@ -1,4 +1,6 @@
 [data-af-composition="text-field"] {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     inline-size: min(100%, var(--af-text-field-width, 24rem));
     display: grid;
     gap: var(--af-space-2);
@@ -12,6 +14,7 @@
 }
 
 [data-af-component="text-field"] {
+    min-inline-size: 0;
     box-sizing: border-box;
     inline-size: 100%;
     min-block-size: var(--af-target-size);
@@ -49,7 +52,7 @@ textarea[data-af-component="text-field"] {
     cursor: not-allowed;
 }
 
-[data-af-component="text-field"][readonly] {
+[data-af-component="text-field"][readonly]:not(:disabled):not([data-af-state="disabled"]) {
     background: var(--af-color-surface-hover);
 }
 
@@ -90,6 +93,7 @@ textarea[data-af-component="text-field"] {
 }
 
 [data-af-text-field-control-wrap] {
+    min-inline-size: 0;
     position: relative;
     display: grid;
 }
@@ -108,15 +112,16 @@ textarea[data-af-component="text-field"] {
     transform: translateY(-50%);
 }
 
+/* Validation ticks are glyphs, not directional layout. */
 [data-af-text-field-validation-icon][data-af-validation-state="valid"]::before {
     content: "";
     position: absolute;
-    inset-inline-start: 0.2rem;
-    inset-block-start: 0.05rem;
+    left: 0.2rem;
+    top: 0.05rem;
     inline-size: 0.38rem;
     block-size: 0.72rem;
-    border-inline-end: 2px solid var(--af-color-success);
-    border-block-end: 2px solid var(--af-color-success);
+    border-right: 2px solid var(--af-color-success);
+    border-bottom: 2px solid var(--af-color-success);
     transform: rotate(45deg);
 }
 

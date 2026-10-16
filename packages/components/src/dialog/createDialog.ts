@@ -160,7 +160,7 @@ export function createDialog(
         if (!locale?.subscribe) return;
 
         unsubscribeLocale = locale.subscribe(() => {
-            syncAccessibleName();
+            if (!lifecycle.isDestroyed()) syncAccessibleName();
         });
     }
 
@@ -173,6 +173,7 @@ export function createDialog(
     }
 
     function syncOpenAttributes(): void {
+        if (lifecycle.isDestroyed()) return;
         const open = behavior.isOpen();
 
         element.setAttribute("data-af-open", String(open));
@@ -374,6 +375,7 @@ export function createDialog(
         },
 
         update(nextOptions: DialogUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }

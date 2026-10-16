@@ -106,8 +106,9 @@
     content: "";
     inline-size: 0.55rem;
     block-size: 0.55rem;
-    border-block-start: 2px solid currentColor;
-    border-inline-start: 2px solid currentColor;
+    /* Direction is applied by the rotations below, not by mirroring the edges. */
+    border-top: 2px solid currentColor;
+    border-left: 2px solid currentColor;
 }
 
 [data-af-overflow-scroller-button="previous"]::before {
@@ -116,4 +117,12 @@
 
 [data-af-overflow-scroller-button="next"]::before {
     transform: rotate(135deg);
+}
+
+[data-af-overflow-scroller-direction="rtl"] > [data-af-overflow-scroller-button="previous"]::before {
+    transform: rotate(135deg);
+}
+
+[data-af-overflow-scroller-direction="rtl"] > [data-af-overflow-scroller-button="next"]::before {
+    transform: rotate(-45deg);
 }

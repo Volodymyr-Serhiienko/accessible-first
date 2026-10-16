@@ -1,12 +1,12 @@
 import { ActionsBar, type ActionsBarOptions } from "../actions-bar";
-import { setAriaDescribedBy, setAriaLabelledBy } from "../../../core/src/aria";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
+import { runCleanups } from "../../../core/src/events";
 import { ensureId } from "../../../core/src/id";
 import {
     applyCompositionElementOptions,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
-    hasCompositionContent,
     hasVisibleContent,
     toCompositionChildren,
     type BaseCompositionOptions,
@@ -150,7 +150,10 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     const descriptionSlot = createContentSlot(description, toCompositionChildren(options.description));
     const bodySlot = createContentSlot(body, toCompositionChildren(options.children));
 
-    let hasActions = hasCompositionContent(options.actions);
+    let destroyed = false;
+    let revision = 0;
+    const titleReference = createAriaReferenceOwner(element, "aria-labelledby");
+    const descriptionReference = createAriaReferenceOwner(element, "aria-describedby");
     let variant: FormSectionVariant = options.variant ?? "default";
     let size: FormSectionSize = options.size ?? "md";
     let descriptionMode: FormSectionDescriptionMode = options.descriptionMode ?? "content";
@@ -159,41 +162,67 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
     element.append(header, body, actionsBar.element);
 
     function sync(): void {
+        if (destroyed) return;
         ensureId(heading, "af-form-section-title");
 
         description.hidden = !hasVisibleContent(description);
-        actionsBar.element.hidden = !hasActions;
+        actionsBar.element.hidden = actionsBar.primarySlot.hidden && actionsBar.secondarySlot.hidden;
         actionsBar.element.setAttribute("data-af-form-section-actions", "");
 
         element.setAttribute("data-af-composition", "form-section");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
 
-        setAriaLabelledBy(element, heading);
-        setAriaDescribedBy(
-            element,
-            descriptionMode === "aria" && !description.hidden ? description : null
-        );
+        titleReference.set([heading.id]);
+        if (descriptionMode === "aria" && !description.hidden) ensureId(description, "af-form-section-description");
+        descriptionReference.set(descriptionMode === "aria" && !description.hidden ? [description.id] : []);
     }
 
     function setTitleContent(content: FormSectionCompositionContent): void {
-        titleSlot.set(toCompositionChildren(content));
-        sync();
+        update({ title: content });
     }
 
     function setDescription(content: FormSectionCompositionContent | null): void {
-        descriptionSlot.set(toCompositionChildren(content));
-        sync();
+        update({ description: content });
     }
 
     function setChildren(content: FormSectionCompositionContent | null): void {
-        bodySlot.set(toCompositionChildren(content));
+        update({ children: content });
     }
 
     function setActions(content: FormSectionCompositionContent | null): void {
-        hasActions = hasCompositionContent(content);
-        actionsBar.setPrimary(content);
-        sync();
+        update({ actions: content });
+    }
+
+    function update(nextOptions: FormSectionUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.headingOptions !== undefined) applyCompositionElementOptions(heading, nextOptions.headingOptions);
+        if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
+        if (nextOptions.actionsOptions !== undefined) actionsBar.update(getActionsBarBaseOptions(nextOptions.actionsOptions));
+        heading.setAttribute("data-af-form-section-heading", "");
+        description.setAttribute("data-af-form-section-description", "");
+        body.setAttribute("data-af-form-section-body", "");
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
+        runCleanups([
+            () => { if (!destroyed && current === revision && "title" in nextOptions) titleSlot.set(toCompositionChildren(nextOptions.title)); },
+            () => { if (!destroyed && current === revision && "description" in nextOptions) descriptionSlot.set(toCompositionChildren(nextOptions.description)); },
+            () => { if (!destroyed && current === revision && "children" in nextOptions) bodySlot.set(toCompositionChildren(nextOptions.children)); },
+            () => { if (!destroyed && current === revision && "actions" in nextOptions) actionsBar.setPrimary(nextOptions.actions ?? null); },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([titleSlot.dispose, descriptionSlot.dispose, bodySlot.dispose, actionsBar.destroy,
+            titleReference.destroy, descriptionReference.destroy]);
     }
 
     sync();
@@ -210,47 +239,7 @@ export function FormSection(options: FormSectionOptions): ComposedFormSection {
         setChildren,
         setActions,
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.headingOptions !== undefined) {
-                applyCompositionElementOptions(heading, nextOptions.headingOptions);
-                heading.setAttribute("data-af-form-section-heading", "");
-            }
-
-            if (nextOptions.descriptionOptions !== undefined) {
-                applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-                description.setAttribute("data-af-form-section-description", "");
-            }
-
-            if (nextOptions.bodyOptions !== undefined) {
-                applyCompositionElementOptions(body, nextOptions.bodyOptions);
-                body.setAttribute("data-af-form-section-body", "");
-            }
-
-            if (nextOptions.actionsOptions !== undefined) {
-                actionsBar.update(getActionsBarBaseOptions(nextOptions.actionsOptions));
-            }
-
-            if (nextOptions.title !== undefined) setTitleContent(nextOptions.title);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("children" in nextOptions) setChildren(nextOptions.children ?? null);
-            if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
-
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if (nextOptions.descriptionMode !== undefined) {
-                descriptionMode = nextOptions.descriptionMode;
-            }
-
-            sync();
-        },
-
-        destroy(): void {
-            titleSlot.dispose();
-            descriptionSlot.dispose();
-            bodySlot.dispose();
-            actionsBar.destroy();
-        }
+        update,
+        destroy
     };
 }

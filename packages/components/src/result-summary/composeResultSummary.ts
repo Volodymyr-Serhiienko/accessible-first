@@ -15,6 +15,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { runCleanups } from "../../../core/src/events";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 
 /**
  * Content accepted by ResultSummary custom formatters.
@@ -122,13 +124,15 @@ function normalizeSlotContent(
 function normalizeCount(value: number | null | undefined): number | null {
     if (value === null || value === undefined || !Number.isFinite(value)) return null;
 
-    return Math.max(0, Math.round(value));
+    const normalized = Math.max(0, Math.round(value));
+    return Number.isSafeInteger(normalized) ? normalized : null;
 }
 
 function normalizePositiveInteger(value: number | null | undefined): number | null {
     if (value === null || value === undefined || !Number.isFinite(value)) return null;
 
-    return Math.max(1, Math.round(value));
+    const normalized = Math.max(1, Math.round(value));
+    return Number.isSafeInteger(normalized) ? normalized : null;
 }
 
 function normalizeRangeEnd(
@@ -140,17 +144,19 @@ function normalizeRangeEnd(
 
     const normalized = Math.max(start, value);
 
-    return total !== null && total > 0
+    const result = total !== null && total > 0
         ? Math.min(normalized, total)
         : normalized;
+    return Number.isSafeInteger(result) ? result : null;
 }
 
 function normalizeRangeStart(value: number | null, total: number | null): number | null {
     if (value === null) return null;
 
-    return total !== null && total > 0
+    const result = total !== null && total > 0
         ? Math.min(value, total)
         : value;
+    return Number.isSafeInteger(result) ? result : null;
 }
 
 function getDerivedRangeStart(
@@ -278,7 +284,9 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
     let locale: ResultSummaryLocalization | null = options.locale ?? null;
     let variant: ResultSummaryVariant = options.variant ?? "default";
     let size: ResultSummarySize = options.size ?? "md";
-    let unsubscribeLocale: (() => void) | null = null;
+    const localeSubscription = createLocaleSubscription(sync);
+    let destroyed = false;
+    let revision = 0;
 
     function getState(): ResultSummaryState {
         const inputExists = hasAnyResultInput(total, count, explicitStart, explicitEnd, page, pageSize);
@@ -321,29 +329,39 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
         }
 
         element.setAttribute("aria-live", live);
-        setElementAttributeValue(element, "aria-atomic", atomic ? "true" : null);
+        setElementAttributeValue(element, "aria-atomic", String(atomic));
     }
 
-    function sync(): void {
-        const state = getState();
-        const renderedContent = getRenderedContent(state);
-
+    function sync(renderContent = true): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "result-summary");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
         content.setAttribute("data-af-result-summary-content", "");
 
         syncLiveRegion();
-        contentSlot.set(toCompositionChildren(renderedContent));
-        element.hidden = !hasCompositionContent(renderedContent);
+        if (!renderContent) return;
+        const current = ++revision;
+        let renderedContent: ResultSummarySlotContent = null;
+        let prepared = false;
+        runCleanups([
+            () => contentSlot.setFrom(() => {
+                renderedContent = getRenderedContent(getState());
+                prepared = true;
+                return toCompositionChildren(renderedContent);
+            }),
+            () => { if (prepared && !destroyed && current === revision) element.hidden = !hasCompositionContent(renderedContent); }
+        ]);
     }
 
     function setTotal(nextTotal: number | null): void {
+        if (destroyed) return;
         total = normalizeCount(nextTotal);
         sync();
     }
 
     function setCount(nextCount: number | null): void {
+        if (destroyed) return;
         count = normalizeCount(nextCount);
         sync();
     }
@@ -353,6 +371,7 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
         end: number | null,
         nextTotal?: number | null
     ): void {
+        if (destroyed) return;
         explicitStart = normalizePositiveInteger(start);
         explicitEnd = normalizePositiveInteger(end);
 
@@ -363,20 +382,20 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
         sync();
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            sync();
-        });
+    element.append(content);
+    try {
+        localeSubscription.replace(locale);
+        sync();
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
     }
 
-    syncLocaleSubscription();
-    element.append(content);
-    sync();
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([localeSubscription.destroy, contentSlot.dispose]);
+    }
 
     return {
         element,
@@ -387,6 +406,9 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
         setRange,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const renderContent = ["total", "count", "start", "end", "page", "pageSize", "format", "locale"]
+                .some(key => key in nextOptions);
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.contentOptions !== undefined) {
@@ -406,16 +428,14 @@ export function ResultSummary(options: ResultSummaryOptions = {}): ComposedResul
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
 
-            sync();
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                () => sync(renderContent)
+            ]);
         },
 
-        destroy(): void {
-            unsubscribeLocale?.();
-            unsubscribeLocale = null;
-            contentSlot.dispose();
-        }
+        destroy
     };
 }

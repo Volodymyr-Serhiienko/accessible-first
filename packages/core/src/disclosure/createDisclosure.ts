@@ -4,9 +4,10 @@ import {
     setAriaExpanded,
     setRole
 } from "../aria";
-import { addEventListener, type Cleanup } from "../events";
+import { addEventListener, runCleanups, type Cleanup } from "../events";
 import { isEnterKey, isSpaceKey } from "../keyboard";
 import { restoreAttribute } from "../dom";
+import { focusElement } from "../focus";
 
 import type { Disclosure, DisclosureOptions } from "./types";
 
@@ -38,11 +39,12 @@ export function createDisclosure(
     const originalTabIndex = trigger.getAttribute("tabindex");
     const originalType = nativeButton?.getAttribute("type") ?? null;
     const originalButtonDisabled = nativeButton?.disabled ?? false;
-    const originalPanelHidden = panel.hidden;
+    const originalPanelHidden = panel.getAttribute("hidden");
 
     let open = options.defaultOpen ?? !panel.hidden;
-    let disabled = options.disabled ?? false;
+    let disabled = options.disabled ?? (originalButtonDisabled || originalAriaDisabled === "true");
     let destroyed = false;
+    let revision = 0;
 
     function syncState(): void {
         setAriaExpanded(trigger, open);
@@ -61,11 +63,15 @@ export function createDisclosure(
         }
 
         open = nextOpen;
+        const current = ++revision;
+        const focused = panel.ownerDocument.activeElement;
         syncState();
-        options.onOpenChange?.(open);
+        if (!open && focused && panel.contains(focused)) focusElement(trigger);
+        if (!destroyed && current === revision) options.onOpenChange?.(open);
     }
 
     function handleClick(event: MouseEvent): void {
+        if (destroyed || event.defaultPrevented) return;
         if (disabled) {
             event.preventDefault();
             event.stopPropagation();
@@ -76,7 +82,8 @@ export function createDisclosure(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (disabled) {
+        if (destroyed || disabled || event.target !== trigger || event.defaultPrevented || event.isComposing || event.keyCode === 229
+            || event.altKey || event.ctrlKey || event.metaKey) {
             return;
         }
 
@@ -92,7 +99,8 @@ export function createDisclosure(
     }
 
     function handleKeyUp(event: KeyboardEvent): void {
-        if (disabled) {
+        if (destroyed || disabled || event.target !== trigger || event.defaultPrevented || event.isComposing || event.keyCode === 229
+            || event.altKey || event.ctrlKey || event.metaKey) {
             return;
         }
 
@@ -171,22 +179,21 @@ export function createDisclosure(
 
             destroyed = true;
 
-            for (const cleanup of cleanups) {
-                cleanup();
-            }
+            revision += 1;
+            runCleanups([...cleanups, () => {
+                restoreAttribute(trigger, "aria-controls", originalAriaControls);
+                restoreAttribute(trigger, "aria-disabled", originalAriaDisabled);
+                restoreAttribute(trigger, "aria-expanded", originalAriaExpanded);
+                restoreAttribute(trigger, "role", originalRole);
+                restoreAttribute(trigger, "tabindex", originalTabIndex);
 
-            restoreAttribute(trigger, "aria-controls", originalAriaControls);
-            restoreAttribute(trigger, "aria-disabled", originalAriaDisabled);
-            restoreAttribute(trigger, "aria-expanded", originalAriaExpanded);
-            restoreAttribute(trigger, "role", originalRole);
-            restoreAttribute(trigger, "tabindex", originalTabIndex);
+                if (nativeButton) {
+                    restoreAttribute(nativeButton, "type", originalType);
+                    nativeButton.disabled = originalButtonDisabled;
+                }
 
-            if (nativeButton) {
-                restoreAttribute(nativeButton, "type", originalType);
-                nativeButton.disabled = originalButtonDisabled;
-            }
-
-            panel.hidden = originalPanelHidden;
+                restoreAttribute(panel, "hidden", originalPanelHidden);
+            }]);
         }
     };
 }

@@ -1,10 +1,12 @@
 [data-af-composition="form-section"] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     padding-block: var(--af-space-4);
     border-block-start: 1px solid var(--af-color-border);
     color: var(--af-color-fg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-composition="form-section"][data-af-variant="plain"] {
@@ -13,7 +15,9 @@
 }
 
 [data-af-form-section-header] {
+    min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
 }
 
@@ -34,6 +38,7 @@
 
 [data-af-form-section-body] {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     min-inline-size: 0;
 }

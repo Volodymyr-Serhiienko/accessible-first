@@ -3,10 +3,12 @@
     min-inline-size: 0;
     max-inline-size: 100%;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
     background: var(--af-color-bg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-component="disclosure"][data-af-variant="plain"] {
@@ -44,8 +46,9 @@
     inline-size: 0.55rem;
     block-size: 0.55rem;
     flex: 0 0 auto;
-    border-inline-end: 2px solid currentColor;
-    border-block-end: 2px solid currentColor;
+    /* The down/up glyph must not mirror with inline direction. */
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
 }
 
@@ -67,7 +70,7 @@
 [data-af-disclosure-panel] {
     padding: 0 var(--af-space-4) var(--af-space-4);
     color: var(--af-color-fg);
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 [data-af-disclosure-panel][hidden] {
@@ -82,6 +85,7 @@
 [data-af-component="disclosure"] [data-af-disclosure-body] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 

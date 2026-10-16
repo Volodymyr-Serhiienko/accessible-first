@@ -40,6 +40,10 @@ page.header(
 - Moves brand to its own row on narrower containers, while content and actions continue sharing a row when possible.
 - Keeps content and actions beside each other as long as there is room, then falls back to full-width content and actions on very narrow containers.
 - Hides empty slots automatically.
+- Retains controls reused by identity. Combined slot updates finish remaining work
+  after a cleanup failure, but a newer update or destruction cancels older slot work.
+- Destruction is terminal and attempts every owned cleanup before rethrowing the
+  first error; late setters/update do nothing.
 
 ## Options
 

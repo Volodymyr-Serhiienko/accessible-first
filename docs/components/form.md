@@ -86,8 +86,8 @@ Form({
 - Uses `noValidate` by default to avoid inaccessible browser validation bubbles while keeping the native constraint validation API available.
 - Validates registered fields on submit by default.
 - Prevents default submit by default.
-- Moves focus to the first invalid field by default.
-- Runs native reset effects before calling an optional reset callback.
+- Tries invalid controls in registration order until one accepts focus; unavailable fields remain invalid.
+- Runs native reset effects before calling an optional reset callback; canceled resets leave validation and focus unchanged.
 - Uses `announceValidation: "auto"` by default, so invalid submit does not duplicate the focused field speech.
 - Announces a custom validation summary when `validationSummaryMessage` is provided, or detailed validation feedback when focus is not moved.
 - Uses `ActionsBar` for form-level actions.
@@ -130,7 +130,12 @@ Form({
 
 Registered fields are validated with `announce: false`, so invalid submit does not produce both field-level live messages and field focus speech. With the default `announceValidation: "auto"`, the form stays silent when it also moves focus to the first invalid field. The focused field then provides the detailed label, state, description, and error context.
 
-Use `validationSummaryMessage` when an application needs a short localized submit result such as "Check the highlighted fields." In `"auto"` mode that short summary may be announced before focus moves, while detailed errors still belong to the fields themselves.
+The automatic policy uses the actual focus result, not the requested option. If
+no invalid control accepts focus, or the chosen control already has focus, the
+form announces aggregate errors instead of relying on a nonexistent focus change.
+Announcements use the form's owning document.
+
+Use `validationSummaryMessage` when an application needs a short localized submit result such as "Check the highlighted fields." In `"auto"` mode this summary can accompany successful focus movement, while detailed errors still belong to the fields themselves. Screen readers determine speech order; the form does not delay focus to guess reading time.
 
 Use `announceValidation: true` only when the workflow deliberately needs aggregate speech even though focus may move. Use `announceValidation: false` when a page-level `StatusMessage`, toast, or custom announcer owns the submit result.
 
@@ -168,6 +173,13 @@ form.validate();
 
 `method`, `action`, `target`, `autocomplete`, validation behavior, callbacks, fields, children, actions, variant, and size can be updated.
 
+`destroy()` is idempotent, cancels deferred reset work and finishes owned cleanup
+even if a child throws (the first failure is rethrown). Mutators and submit/reset
+become no-ops; `getFields()` returns an empty list. Late `validate()` returns
+`valid: false`, `state: "idle"` and empty result lists without callbacks or speech.
+Destroying the form inside validation or submit stops the remaining callback chain
+and prevents native submission. Do not retain destroyed forms as live workflow state.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="form"]`, `[data-af-form-body]`, `[data-af-form-actions]`, `[data-af-validation-state]`, `[data-af-variant]`, `[data-af-size]`, and the shared ActionsBar hooks.
@@ -177,7 +189,12 @@ Useful hooks include `[data-af-composition="form"]`, `[data-af-form-body]`, `[da
 - Submit button triggers validation.
 - Invalid submit does not duplicate field errors through both form and field live regions.
 - Focus moves to the first invalid field.
+- A hidden/disabled first invalid control does not prevent focus reaching the next one; when focus cannot move, aggregate feedback remains available.
 - Field error messages remain visible and connected to controls.
 - Valid submit calls the valid callback.
 - Reset clears validation state, restores focus according to `focusFirstOnReset`, and invokes `onReset` once after those effects finish.
+- Canceling reset, including in a later listener, leaves values, validation and focus intact.
 - Layout remains readable on small screens.
+
+Repeatable real-CSS checks: run `npm run test:styles` and open `/forms.html`.
+The fixture complements unit tests; it does not prove real screen-reader speech.

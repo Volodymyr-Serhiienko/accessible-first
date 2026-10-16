@@ -1,4 +1,5 @@
-import { getOwnerDocument, getOwnerWindow } from "../dom";
+import { getOwnerDocument, getOwnerWindow, isHTMLElement } from "../dom";
+import { captureInlineStyles } from "../dom/captureInlineStyles";
 import { addEventListener, type Cleanup } from "../events";
 import type {
     PopoverPosition,
@@ -188,10 +189,7 @@ export function createPopoverPosition(
     const shift = options.shift ?? true;
     const autoUpdate = options.autoUpdate ?? true;
 
-    const originalPosition = popover.style.position;
-    const originalLeft = popover.style.left;
-    const originalTop = popover.style.top;
-    const originalMinWidth = popover.style.minWidth;
+    const restoreStyles = captureInlineStyles(popover, ["position", "left", "top", "min-width"]);
 
     let state: PopoverPositionState | null = null;
     let destroyed = false;
@@ -207,6 +205,7 @@ export function createPopoverPosition(
             };
         }
 
+        popover.style.position = strategy;
         const anchorRect = anchor.getBoundingClientRect();
 
         if (options.matchAnchorWidth) {
@@ -214,8 +213,9 @@ export function createPopoverPosition(
         }
 
         const popoverRect = popover.getBoundingClientRect();
-        const viewportWidth = ownerWindow.innerWidth;
-        const viewportHeight = ownerWindow.innerHeight;
+        const root = ownerDocument.documentElement;
+        const viewportWidth = root?.clientWidth || ownerWindow.innerWidth;
+        const viewportHeight = root?.clientHeight || ownerWindow.innerHeight;
 
         const resolvedSide = resolveSide(
             anchorRect,
@@ -228,11 +228,15 @@ export function createPopoverPosition(
             flip
         );
 
+        const rtl = ownerWindow.getComputedStyle(anchor).direction === "rtl";
+        const physicalAlignment = rtl && (resolvedSide === "top" || resolvedSide === "bottom")
+            ? alignment === "start" ? "end" : alignment === "end" ? "start" : alignment
+            : alignment;
         let { x, y } = getPosition(
             anchorRect,
             popoverRect,
             resolvedSide,
-            alignment,
+            physicalAlignment,
             offset,
             crossAxisOffset
         );
@@ -250,12 +254,22 @@ export function createPopoverPosition(
             );
         }
 
-        const scrollX = strategy === "absolute" ? ownerWindow.scrollX : 0;
-        const scrollY = strategy === "absolute" ? ownerWindow.scrollY : 0;
-
-        popover.style.position = strategy;
-        popover.style.left = `${x + scrollX}px`;
-        popover.style.top = `${y + scrollY}px`;
+        let localX = x;
+        let localY = y;
+        if (strategy === "absolute") {
+            const parent = popover.offsetParent;
+            const staticBody = parent === ownerDocument.body && ownerWindow.getComputedStyle(parent).position === "static";
+            if (isHTMLElement(parent) && !staticBody) {
+                const parentRect = parent.getBoundingClientRect();
+                localX += parent.scrollLeft - parentRect.left - parent.clientLeft;
+                localY += parent.scrollTop - parentRect.top - parent.clientTop;
+            } else {
+                localX += ownerWindow.scrollX;
+                localY += ownerWindow.scrollY;
+            }
+        }
+        popover.style.left = `${localX}px`;
+        popover.style.top = `${localY}px`;
 
         state = {
             side: resolvedSide,
@@ -320,10 +334,7 @@ export function createPopoverPosition(
                 cleanup();
             }
 
-            popover.style.position = originalPosition;
-            popover.style.left = originalLeft;
-            popover.style.top = originalTop;
-            popover.style.minWidth = originalMinWidth;
+            restoreStyles();
         }
     };
 }

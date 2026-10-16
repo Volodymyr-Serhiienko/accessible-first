@@ -1,5 +1,5 @@
 import type { BaseCompositionOptions } from "../composition";
-import type { LocaleCode } from "../localization";
+import type { LocaleCode, LocaleSetOptions } from "../localization";
 
 /** A locale option shared by the standard language picker controls. */
 export interface LanguagePickerItem<TLocale extends LocaleCode = LocaleCode> {
@@ -39,6 +39,7 @@ function getDisplayNamesConstructor(): DisplayNamesConstructor | null {
     return intl.DisplayNames ?? null;
 }
 
+/** Resolves a language display name, falling back when Intl data is unavailable. */
 export function getLocaleDisplayName(locale: string, displayLocale: string): string {
     const DisplayNames = getDisplayNamesConstructor();
 
@@ -75,40 +76,49 @@ function getAutomaticItemLabel<TLocale extends LocaleCode>(
     options: LanguagePickerItemSource<TLocale>,
     locale: TLocale,
     currentLocale: TLocale
-): string {
+): { label: string; lang: string } {
     const resolvedLabel = options.getItemLabel?.(locale, currentLocale)?.trim();
 
-    if (resolvedLabel) return resolvedLabel;
+    if (resolvedLabel) return { label: resolvedLabel, lang: currentLocale };
 
-    return getAutomaticLanguageName(
-        locale,
-        currentLocale,
-        options.nameFormat ?? "localized"
-    );
+    return {
+        label: getAutomaticLanguageName(locale, currentLocale, options.nameFormat ?? "localized"),
+        lang: options.nameFormat === "native" ? locale : currentLocale
+    };
 }
 
+/** Builds fixed-identity picker items with language metadata for automatic labels. */
 export function getLanguagePickerItems<TLocale extends LocaleCode>(
     options: LanguagePickerItemSource<TLocale>,
     currentLocale: TLocale,
     supportedLocales: readonly TLocale[]
 ): LanguagePickerItem<TLocale>[] {
-    if (options.items !== undefined) return [...options.items];
-
-    return supportedLocales.map((locale) => ({
-        locale,
-        label: getAutomaticItemLabel(options, locale, currentLocale),
+    if (options.items !== undefined) return options.items.map(item => item.label !== undefined ? item : {
+        ...item,
+        label: getLocaleDisplayName(item.locale, currentLocale),
         optionOptions: {
-            attributes: {
-                lang: currentLocale
-            }
+            ...item.optionOptions,
+            attributes: { lang: currentLocale, ...item.optionOptions?.attributes }
         }
-    }));
+    });
+
+    return supportedLocales.map((locale) => {
+        const name = getAutomaticItemLabel(options, locale, currentLocale);
+        return {
+            locale,
+            label: name.label,
+            optionOptions: {
+                attributes: { lang: name.lang }
+            }
+        };
+    });
 }
 
 function getTextLength(value: string | null | undefined): number {
     return [...(value?.trim() ?? "")].length;
 }
 
+/** Calculates the shared preferred width without overriding responsive CSS constraints. */
 export function getLanguagePickerWidth(
     width: string | null,
     autoWidth: boolean,
@@ -127,4 +137,17 @@ export function getLanguagePickerWidth(
     );
 
     return `calc(${longestTextLength}ch + 3.25rem)`;
+}
+
+/** Merges picker defaults with per-call overrides, including document direction. */
+export function getLanguagePickerSetOptions(
+    defaults: { persist?: LocaleSetOptions["persist"]; syncDocumentLanguage?: LocaleSetOptions["syncDocumentLanguage"] },
+    overrides: LocaleSetOptions
+): LocaleSetOptions {
+    const result: LocaleSetOptions = { ...overrides, source: overrides.source ?? "programmatic" };
+    if (result.persist === undefined && defaults.persist !== undefined) result.persist = defaults.persist;
+    if (result.syncDocumentLanguage === undefined && defaults.syncDocumentLanguage !== undefined) {
+        result.syncDocumentLanguage = defaults.syncDocumentLanguage;
+    }
+    return result;
 }

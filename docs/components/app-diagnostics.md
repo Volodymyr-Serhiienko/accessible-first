@@ -103,6 +103,10 @@ Use it directly only when building a new app runtime recipe. Application entry f
 - `log` - optional logging behavior. Pass `false` to disable default console logging, or pass a custom function.
 
 Lazy options are useful when the app shell, locale, metadata, or rendered route can change after startup.
+Each inspection resolves fresh values; the public runner resolves identity once
+and shares that snapshot between routes and the generated manifest. Resolver
+exceptions propagate to the caller instead of becoming a misleading healthy
+report. `inspect()` is silent; `log()` invokes the configured logger.
 
 ```ts
 const diagnostics = createAppDiagnosticsRunner({
@@ -132,7 +136,14 @@ The returned report contains:
 - `infoCount` - total info findings.
 - `issueCount` - total issues.
 
-A report is `blocked` when any source has errors, `needs-attention` when there are warnings but no errors, and `healthy` when there are no errors or warnings.
+A report is `blocked` when any source has errors or declares `blocked`, and
+`needs-attention` when a source has warnings or declares `needs-attention` without
+a blocking source. A declared healthy status never hides counted/listed errors.
+Status-only reports do not invent issue counts. Per-level counts use the larger
+of a valid nonnegative safe integer summary and the listed findings of that level;
+invalid summaries fall back to the list. `issueCount` is at least both the listed
+length (including unknown levels) and the normalized per-level total. Original
+reports are retained unchanged for inspection.
 
 ## Console Output
 
@@ -143,6 +154,27 @@ Use `diagnostics.log()` or `logAppDiagnostics(report)` for a compact grouped con
 AppDiagnostics does not change UI behavior. It helps teams catch accessibility, semantics, route, localization, and metadata problems while building.
 
 Diagnostics output is developer-facing console text. It should not be treated as user-facing application copy and does not need to participate in the first user-interface localization layer.
+
+### Page Inspection Boundary
+
+Page inspection includes the supplied root itself. Category filtering avoids
+unrequested subtree scans; document-only inspection does not walk page controls.
+Visible native/explicit landmarks and headings are counted, not hidden routes or
+article/section headers pretending to be a page banner. Navigation needs its own
+label; link text inside it is not a landmark name.
+
+Common native names include labels, explicit ARIA references, button values and
+image alt text. Field values/options and hidden icon text are not labels. Hidden
+inputs, inert/hidden/CSS-skipped subtrees and closed details content are excluded
+from visible-control checks. ID uniqueness and ARIA IDREF integrity remain
+structural checks, including hidden nodes; local detached/fragment references are
+resolved before the owner document. This does not traverse shadow-root contents.
+
+The name checks are deliberately not a complete Accessible Name computation or
+accessibility-tree audit. JSON-LD checks cover JSON shape/basic keywords (including
+`@graph`), not Schema.org validity or eligibility for search features. These reports
+do not prove contrast, AT speech order, remote resource availability or indexing.
+Use browser/AT acceptance and specialized evaluation alongside these diagnostics.
 
 For public applications, keep app diagnostics enabled in development and CI-like preview environments. In production, create the runner when useful for explicit health checks, but log only when a developer flag is enabled.
 

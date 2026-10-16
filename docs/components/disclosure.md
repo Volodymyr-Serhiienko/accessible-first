@@ -130,11 +130,33 @@ Disclosure({
 
 `disclosure.update()` accepts runtime content, state, visual, and announcement options such as `trigger`, `panel`, `description`, `open`, `disabled`, `variant`, `size`, `announcement`, and `onOpenChange`.
 
+Combined updates prepare content, descriptions, callbacks and announcement options
+before changing open state. Direct `setDescription()` also refreshes the default
+description announcement. Description IDREF ownership preserves external trigger
+references when the ID/mode changes or the component is destroyed.
+
+`onOpenChange` runs before optional open speech. If it closes/destroys the block,
+or a message resolver starts newer work, obsolete speech is discarded. Closing
+cancels this disclosure's queued opening message, not another component's feedback.
+
+Composition slots follow the [shared ownership contract](foundation.md#lifecycle):
+cleanup errors do not skip remaining slots, newer updates supersede older work,
+and destruction is terminal/idempotent. Both composition and enhancement ignore
+late setters/update; child cleanup cannot revive restored behavior attributes.
+
+Collapsing while focus is inside the panel attempts to return it to the trigger;
+outside focus is preserved. A removed/disabled trigger needs an application-owned
+fallback. Keep trigger content passive; put interactive controls inside the panel.
+
 `defaultOpen` is creation-time only. Use `open`, `setOpen()`, `open()`, `close()`, or `toggle()` to change state after creation.
 
 ## Styling
 
 Useful hooks include `[data-af-component="disclosure"]`, `[data-af-disclosure-trigger]`, `[data-af-disclosure-panel]`, and `[data-af-open]`.
+
+The root and panel body use shrinkable grid tracks for percentage-bounded children.
+The down/up chevron keeps its shape in both LTR and RTL; direction does not rotate
+the open/closed state sideways. Fixed-width children still need their own sizing.
 
 ```ts
 Disclosure({
@@ -155,3 +177,4 @@ Disclosure({
 - Panel visibility updates correctly.
 - Disabled disclosure cannot be toggled.
 - Focusable content inside an open panel is reachable in normal tab order.
+- Long trigger, description and body text wrap without page overflow.

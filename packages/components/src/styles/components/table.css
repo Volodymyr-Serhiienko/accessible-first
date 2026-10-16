@@ -2,8 +2,10 @@
     box-sizing: border-box;
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
     color: var(--af-color-fg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-table-description] {
@@ -89,6 +91,7 @@
 
 [data-af-table-sort] {
     display: inline-flex;
+    min-inline-size: 0;
     align-items: center;
     justify-content: flex-start;
     gap: var(--af-space-2);
@@ -102,6 +105,10 @@
     font: inherit;
     text-align: inherit;
     cursor: pointer;
+}
+
+[data-af-table-sort] > :first-child {
+    min-inline-size: 0;
 }
 
 [data-af-table-sort] > [data-af-composition="icon"] {

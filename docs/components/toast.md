@@ -64,10 +64,15 @@ const notifications = createToastViewport(element, {
 - Supports one optional action button as a limited convenience feature.
 - Interactive toast actions are not recommended for flows that must be fully accessible to blind keyboard or screen reader users.
 - Pauses auto-dismiss on mouse hover when `pauseOnHover` is enabled.
-- Can limit the number of visible toasts.
+- Always pauses auto-dismiss while keyboard focus is inside, even when hover pausing is disabled. Leaving focus/hover restarts the configured duration.
+- Keeps focus on the corresponding action/close control during updates; if that control disappears, uses the remaining toast control or the prior entry control.
+- On explicit dismissal, returns focus to the entry control only if focus was still inside the toast. Action callbacks that moved focus elsewhere retain ownership; teardown does not restore old workflow focus.
+- Limits visible toasts without evicting the focused notification. An unfocused candidate (possibly the newest toast) is closed first; a focused toast may temporarily exceed a zero limit until focus leaves.
 - Keeps padding/borders inside its mobile width and wraps long message tokens.
 - Clears a closed toast's live-region text without erasing newer notifications or other components' feedback.
 - Restores original viewport attributes on `destroy()`.
+- Cancels superseded queued announcements; only the latest queued revision speaks with its captured priority.
+- Finishes cleanup even if a close callback throws, then rethrows the first failure. Updates after destruction are ignored; `show()` after destruction throws.
 
 ## Options
 
@@ -129,6 +134,12 @@ Useful CSS custom properties:
 - `--af-z-toast` - toast viewport stacking level.
 - `--af-toast-width` - maximum viewport width.
 
+The notification viewport is height-bounded and scrolls when long messages or
+enlarged text exceed the available space. Long action/close labels wrap inside
+their toast without reducing the touch target. This preserves reachable content
+once the user is in the viewport; it does not remove the keyboard-route limitation
+described above. Keep equivalent required actions near the primary workflow.
+
 ## Manual Checks
 
 - Toast appears visually without moving focus.
@@ -137,6 +148,11 @@ Useful CSS custom properties:
 - Action buttons are avoided for required workflows.
 - If an action button is used anyway, the same action exists elsewhere in the page or in a dialog.
 - Persistent toasts remain until dismissed.
-- Timed toasts give enough time to read and pause on hover.
+- Timed toasts give enough time to read and pause on hover and keyboard focus; pointer leave does not override focused pause.
+- Updating or dismissing a focused toast preserves meaningful focus; limit eviction does not remove the focused message.
 - Toasts fit on small mobile screens.
 - Application-specific labels are localized instead of relying on framework fallback text.
+
+Repeatable real-CSS form/feedback checks are in `/forms.html` after
+`npm run test:styles`. The interaction-route limitation above still applies;
+focus safety does not make toast actions suitable for required workflows.

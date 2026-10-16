@@ -1,4 +1,4 @@
-import { append } from "./append";
+import { createContentSlot } from "./contentSlot";
 import { toCompositionChildren } from "./content";
 import { createElement } from "./createElement";
 import { getCompositionElementOptions } from "./options";
@@ -182,10 +182,11 @@ function createComposedElement<KTagName extends keyof HTMLElementTagNameMap>(
 ): ComposedNode {
     const element = createElement(
         tagName,
-        getCompositionElementOptions(options, attributes, children)
+        getCompositionElementOptions(options, attributes)
     );
 
-    return { element };
+    const slot = createContentSlot(element, children);
+    return { element, destroy: () => slot.dispose() };
 }
 
 function applyGap(
@@ -220,9 +221,7 @@ export function Section(options: SectionOptions): ComposedNode {
     const titleId = options.titleId ?? `${sectionId}-title`;
     const headingTag = `h${options.headingLevel ?? 2}` as keyof HTMLElementTagNameMap;
 
-    const heading = createElement(headingTag, { id: titleId });
-
-    append(heading, ...toCompositionChildren(options.title));
+    const heading = createComposedElement(headingTag, { id: titleId }, {}, toCompositionChildren(options.title));
 
     const baseOptions: BaseCompositionOptions = {
         id: sectionId
@@ -244,13 +243,13 @@ export function Section(options: SectionOptions): ComposedNode {
         }
     ));
 
-    append(section, heading, ...(options.children ?? []));
+    const slot = createContentSlot(section, [heading, ...(options.children ?? [])]);
 
     if (options.gap !== undefined) {
         section.style.setProperty("--af-section-gap", options.gap);
     }
 
-    return { element: section };
+    return { element: section, destroy: () => slot.dispose() };
 }
 
 /**

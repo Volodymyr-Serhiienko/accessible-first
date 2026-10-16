@@ -1,5 +1,7 @@
+/** Captured attributes owned by an enhancement controller. */
 export interface AttributeSnapshot {
     remember(element: Element, name: string): void;
+    restoreElement(element: Element): void;
     restore(): void;
     clear(): void;
 }
@@ -45,18 +47,20 @@ export function createAttributeSnapshot(): AttributeSnapshot {
         values.clear();
     }
 
-    function restore(): void {
-        for (const [element, attributes] of values) {
-            for (const [name, value] of attributes) {
-                restoreAttribute(element, name, value);
-            }
-        }
+    function restoreElement(element: Element): void {
+        const attributes = values.get(element);
+        if (!attributes) return;
+        for (const [name, value] of attributes) restoreAttribute(element, name, value);
+        values.delete(element);
+    }
 
-        clear();
+    function restore(): void {
+        for (const element of values.keys()) restoreElement(element);
     }
 
     return {
         remember,
+        restoreElement,
         restore,
         clear
     };

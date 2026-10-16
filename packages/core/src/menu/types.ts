@@ -22,6 +22,7 @@ export interface MenuOptions {
     typeahead?: boolean;
     typeaheadTimeout?: number;
     getItemText?: (item: HTMLElement) => string;
+    /** Logical disabled state, independent of temporary hiding/filtering. */
     isItemDisabled?: (item: HTMLElement) => boolean;
     closeOnSelect?: boolean;
     onSelect?: (item: HTMLElement, event: Event) => void;

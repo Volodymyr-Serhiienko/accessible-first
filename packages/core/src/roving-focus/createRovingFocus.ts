@@ -7,6 +7,7 @@ import {
 } from "../collection";
 import { addEventListener, type Cleanup } from "../events";
 import { focusElement } from "../focus";
+import { getOwnerWindow, isHTMLElement, restoreAttribute } from "../dom";
 import {
     isArrowDownKey,
     isArrowLeftKey,
@@ -15,7 +16,7 @@ import {
     isEndKey,
     isHomeKey
 } from "../keyboard";
-import { isRovingFocusItemDisabled } from "./isRovingFocusItemDisabled";
+import { canFocusCollectionItem, isCollectionItemUnavailable } from "./collectionAvailability";
 import type { RovingFocus, RovingFocusOptions } from "./types";
 import { scrollIntoViewIfNeeded } from "../scroll";
 
@@ -43,14 +44,14 @@ export function createRovingFocus(
 
     let active = false;
     let currentItem: HTMLElement | null = null;
-    let cleanupKeyDown: Cleanup | null = null;
+    let cleanups: Cleanup[] = [];
 
     function getItems(): HTMLElement[] {
         return options.getItems();
     }
 
     function isItemDisabled(item: HTMLElement): boolean {
-        return options.isItemDisabled?.(item) ?? isRovingFocusItemDisabled(item);
+        return isCollectionItemUnavailable(container, item, options.isItemDisabled);
     }
 
     function getNavigationOptions(): CollectionNavigationOptions<HTMLElement> {
@@ -78,18 +79,14 @@ export function createRovingFocus(
 
     function restoreTabIndexes(): void {
         for (const [item, value] of originalTabIndexes) {
-            if (value === null) {
-                item.removeAttribute("tabindex");
-            } else {
-                item.setAttribute("tabindex", value);
-            }
+            restoreAttribute(item, "tabindex", value);
         }
 
         originalTabIndexes.clear();
     }
 
     function focusItem(item: HTMLElement | null): boolean {
-        if (!item || !focusElement(item)) {
+        if (!item || !canFocusCollectionItem(item) || !focusElement(item)) {
             return false;
         }
 
@@ -100,6 +97,13 @@ export function createRovingFocus(
 
     function syncTabIndexes(): void {
         const items = getItems();
+        const itemSet = new Set(items);
+        for (const [item, value] of originalTabIndexes) {
+            if (!itemSet.has(item)) {
+                restoreAttribute(item, "tabindex", value);
+                originalTabIndexes.delete(item);
+            }
+        }
         const availableCurrent =
             currentItem && items.includes(currentItem) && !isItemDisabled(currentItem)
                 ? currentItem
@@ -116,7 +120,11 @@ export function createRovingFocus(
         item: HTMLElement | null,
         focus = true
     ): boolean {
-        if (!item || isItemDisabled(item)) {
+        if (!item || !getItems().includes(item) || isItemDisabled(item)) {
+            return false;
+        }
+
+        if (focus && !canFocusCollectionItem(item)) {
             return false;
         }
 
@@ -130,8 +138,17 @@ export function createRovingFocus(
         return focusItem(item);
     }
 
+    function handleFocusIn(event: FocusEvent): void {
+        if (active && isHTMLElement(event.target) && getItems().includes(event.target)) {
+            moveToItem(event.target, false);
+        }
+    }
+
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!active) {
+        if (!active || event.defaultPrevented || event.isComposing
+            || event.ctrlKey || event.altKey || event.metaKey
+            || !isHTMLElement(event.target) || !getItems().includes(event.target)
+            || isItemDisabled(event.target)) {
             return;
         }
 
@@ -170,7 +187,8 @@ export function createRovingFocus(
             isArrowRightKey(event)
         ) {
             event.preventDefault();
-            moveNext();
+            if (getOwnerWindow(container).getComputedStyle(container).direction === "rtl") movePrevious();
+            else moveNext();
             return;
         }
 
@@ -179,7 +197,8 @@ export function createRovingFocus(
             isArrowLeftKey(event)
         ) {
             event.preventDefault();
-            movePrevious();
+            if (getOwnerWindow(container).getComputedStyle(container).direction === "rtl") moveNext();
+            else movePrevious();
         }
     }
 
@@ -224,11 +243,10 @@ export function createRovingFocus(
             currentItem = resolveItem(options.currentItem);
             syncTabIndexes();
 
-            cleanupKeyDown = addEventListener<KeyboardEvent>(
-                container,
-                "keydown",
-                handleKeyDown
-            );
+            cleanups = [
+                addEventListener<KeyboardEvent>(container, "keydown", handleKeyDown),
+                addEventListener<FocusEvent>(container, "focusin", handleFocusIn)
+            ];
 
             active = true;
 
@@ -242,8 +260,7 @@ export function createRovingFocus(
                 return;
             }
 
-            cleanupKeyDown?.();
-            cleanupKeyDown = null;
+            for (const cleanup of cleanups.splice(0)) cleanup();
 
             active = false;
             currentItem = null;

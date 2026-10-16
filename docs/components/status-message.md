@@ -79,7 +79,8 @@ status.update({
 
 ## Options
 
-- `text` - Visible status text or rich content.
+- `text` - Visible plain text. Use `children` for rich composition content.
+- `children` - Rich content alternative to `text`.
 - `icon` - Optional decorative icon or media content.
 - `iconPosition` - `"start"` or `"end"`. Defaults to `"start"`.
 - `variant` - `"neutral"`, `"info"`, `"success"`, `"warning"`, or `"danger"`. Defaults to `"neutral"`.
@@ -111,6 +112,19 @@ status.hide();
 
 Use `announcement: true` on the update that represents the completed action. Do not leave important workflow instructions only in a status message if the next required action is elsewhere on the page.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle): all cleanup
+is attempted after a child failure, and newer updates supersede remaining obsolete
+slot work. Destruction is terminal/idempotent; late setters, visibility changes and
+announcements are inert. Getters/DOM remain inspectable.
+
+An announcement resolver that starts a newer update, explicit announcement or
+destruction cannot deliver its obsolete return value. `announcement` is one-shot,
+not remembered for later updates. Explicit `announce()` can speak even when the
+visible message is hidden; the application owns that decision. The lazy owned
+channel uses the element's current document when first created and is released
+even after a slot cleanup failure. An injected announcer remains caller-owned.
+As with other document-bound controllers, later adoption does not rebind it.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="status-message"]`, `[data-af-status-message-icon]`, `[data-af-status-message-content]`, `[data-af-variant]`, `[data-af-size]`, and `[data-af-icon-position]`.
@@ -133,3 +147,4 @@ The default styles provide readable light and dark theme colors for every varian
 - The message does not duplicate speech from focused fields, section descriptions, or toasts.
 - The message remains readable in light and dark themes.
 - The message fits on small screens.
+- Decorative icon content is passive, not a focusable control.

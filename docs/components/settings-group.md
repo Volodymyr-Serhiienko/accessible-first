@@ -38,6 +38,15 @@ SettingsGroup({
 - Reuses the existing form-section foundation instead of duplicating accessibility logic.
 - Reuses the existing actions layout through FormSection and ActionsBar.
 
+Lifecycle, slot ownership and external ARIA-reference preservation follow
+[FormSection](form-section.md#update-notes). Cleanup errors do not skip other
+owned slots, newer updates win, and late setters/update after destruction are
+inert. The wrapper keeps its settings hooks even when nested cleanup fails.
+Use the parent SettingsGroup to update/destroy the composition; `formSection`
+is a borrowed implementation part, not a second independently owned component.
+
+Long headings, descriptions and body text wrap inside narrow containers.
+
 ## Options
 
 - `title` - required group title.

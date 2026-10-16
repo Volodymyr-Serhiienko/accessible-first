@@ -2,12 +2,14 @@
     box-sizing: border-box;
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
     padding: var(--af-space-4);
     color: var(--af-color-fg);
     background: var(--af-color-bg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-composition="settings-group"][data-af-variant="plain"] {
@@ -18,7 +20,9 @@
 }
 
 [data-af-settings-group-header] {
+    min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
 }
 
@@ -37,6 +41,7 @@
 
 [data-af-settings-group-body] {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     min-inline-size: 0;
 }

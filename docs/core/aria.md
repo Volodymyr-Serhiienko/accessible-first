@@ -6,6 +6,13 @@ The ARIA module provides small helpers for applying accessible roles, states, pr
 
 It does not decide component behavior. It only gives higher-level modules a consistent way to write ARIA attributes.
 
+`setAriaReferences()` and relationship setters replace a complete attribute value;
+they are not ownership controllers. FormField, ControlHint and Tooltip use a shared
+internal owner when several behaviors contribute IDs to one control. Its release
+preserves current external tokens and other owners, including overlapping IDs.
+Use the higher-level components for that lifecycle rather than pairing whole-value
+setters with stale attribute snapshots.
+
 ## Public API
 
 ### setRole()

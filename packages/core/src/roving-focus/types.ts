@@ -12,6 +12,7 @@ export interface RovingFocusOptions {
     loop?: boolean;
     currentItem?: HTMLElement | (() => HTMLElement | null) | null;
     focusOnActivate?: boolean;
+    /** Logical disabled state; native availability is checked separately when rendered/focused. */
     isItemDisabled?: (item: HTMLElement) => boolean;
 }
 

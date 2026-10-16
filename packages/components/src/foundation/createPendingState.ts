@@ -36,6 +36,7 @@ export function createPendingState(element: HTMLElement, options: PendingStateOp
     let timer: number | null = null;
     let announced = false;
     let destroyed = false;
+    let revision = 0;
     let announcer: ActionAnnouncer | null = null;
 
     function clear(): void {
@@ -57,10 +58,12 @@ export function createPendingState(element: HTMLElement, options: PendingStateOp
     function schedule(): void {
         if (!message || announced || timer !== null) return;
         const wait = Number.isFinite(delay) ? Math.max(0, delay) : 500;
+        const current = revision;
         timer = owner.setTimeout(() => {
             timer = null;
             if (destroyed || !pending || !message) return;
             const text = typeof message === "function" ? message() : message;
+            if (destroyed || !pending || current !== revision) return;
             if (!text.trim()) return;
             announced = true;
             announcer ??= createActionAnnouncer({ container: element.ownerDocument.body });
@@ -71,6 +74,7 @@ export function createPendingState(element: HTMLElement, options: PendingStateOp
     function setPending(next: boolean): void {
         if (destroyed || pending === next) return;
         pending = next;
+        revision += 1;
         clear();
         announced = false;
         sync();
@@ -100,6 +104,7 @@ export function createPendingState(element: HTMLElement, options: PendingStateOp
         destroy(): void {
             if (destroyed) return;
             destroyed = true;
+            revision += 1;
             clear();
             announcer?.destroy();
             restoreAttribute(element, "aria-busy", originalBusy);

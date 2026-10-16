@@ -103,6 +103,25 @@ shell.update({
 ```
 
 This is the preferred bridge for locale changes, metadata refreshes, and shell-level labels. Dynamic screen content still belongs in `shell.render(...)` or a router such as `HashRouter`.
+
+Chrome updates retain identical composed children, including their values and
+focus. Empty optional regions are hidden and fresh replacement content reveals
+them again. Passing `locale: undefined` clears the previous provider. If child
+cleanup starts a newer update or destroys the shell, obsolete remaining work is
+skipped. Cleanup errors do not prevent independent slots or visibility from
+being updated; the first error is rethrown. This is not transactional rollback.
+An accepted `update()` call also owns supplied slot candidates that are skipped by
+a newer update. Those unaccepted candidates are cleaned without touching content
+already transferred to the shell/outlet, even if that earlier content has since
+been replaced. Calls after destruction remain ignored and do not accept new content.
+
+The shell owns its page, outlet, layout and slot controllers. Calling `AppShell`
+transfers all supplied slot/content children to it, including regions not yet
+materialized. Failed construction releases both completed and pending children;
+destruction attempts every cleanup and is terminal. A pending repeated reference
+is disposed once. Never share one controller between separate slot owners.
+Do not destroy underlying parts independently or reuse destroyed children.
+
 ## Accessibility
 
 AppShell keeps native landmarks stable while changing only the outlet content. This helps keyboard and screen reader users stay oriented during application navigation.

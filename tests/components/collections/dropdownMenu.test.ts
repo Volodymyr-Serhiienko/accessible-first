@@ -14,6 +14,9 @@ function createDropdown(onSelect = vi.fn()) {
         ], onSelect
     });
     document.body.append(dropdown.element);
+    for (const element of [dropdown.menu.element, ...dropdown.menu.items.map(item => item.item)]) {
+        vi.spyOn(element, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+    }
     vi.spyOn(dropdown.trigger, "getBoundingClientRect").mockReturnValue({ x: 10, y: 10, top: 10, left: 10, right: 110, bottom: 54, width: 100, height: 44, toJSON() {} });
     vi.spyOn(dropdown.trigger, "getClientRects").mockReturnValue([dropdown.trigger.getBoundingClientRect()] as unknown as DOMRectList);
     return dropdown;
@@ -25,6 +28,58 @@ function key(element: HTMLElement, value: string) {
 }
 
 describe("DropdownMenu", () => {
+    it.each(["handled", "isComposing", "ctrlKey", "altKey", "metaKey"])("leaves %s arrow input to its owner", (flag) => {
+        const dropdown = createDropdown();
+        try {
+            const event = new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true,
+                ...(flag === "handled" ? {} : { [flag]: true }) });
+            if (flag === "handled") event.preventDefault();
+            dropdown.trigger.dispatchEvent(event);
+            expect(dropdown.isOpen()).toBe(false);
+        } finally { dropdown.destroy(); }
+    });
+    it.each(["handled", "isComposing", "ctrlKey", "altKey", "metaKey"])("does not close for %s Tab", (flag) => {
+        const dropdown = createDropdown();
+        try {
+            dropdown.open();
+            const event = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true,
+                ...(flag === "handled" ? {} : { [flag]: true }) });
+            if (flag === "handled") event.preventDefault();
+            dropdown.menu.items[0]!.item.dispatchEvent(event);
+            expect(dropdown.isOpen()).toBe(true);
+        } finally { dropdown.destroy(); }
+    });
+    it("opens at an available item when the committed item is temporarily hidden", () => {
+        const dropdown = createDropdown();
+        try {
+            dropdown.menu.getItem("en")!.item.hidden = true;
+            dropdown.open();
+            expect(document.activeElement).toBe(dropdown.menu.getItem("de")!.item);
+            expect(dropdown.getValue()).toBe("en");
+        } finally { dropdown.destroy(); }
+    });
+    it("keeps an empty opened menu keyboard reachable and returns focus on Escape", () => {
+        const dropdown = createDropdown();
+        try {
+            for (const item of dropdown.menu.items) item.item.hidden = true;
+            dropdown.trigger.focus(); dropdown.open();
+            expect(document.activeElement).toBe(dropdown.menu.element);
+            expect(dropdown.menu.element.tabIndex).toBe(-1);
+            key(dropdown.menu.element, "Escape");
+            expect(document.activeElement).toBe(dropdown.trigger);
+            expect(dropdown.menu.element.hasAttribute("tabindex")).toBe(false);
+        } finally { dropdown.destroy(); }
+    });
+    it("ignores context, item and disabled updates after destruction", () => {
+        const dropdown = createDropdown();
+        const menu = dropdown.menu;
+        dropdown.destroy();
+        const original = dropdown.element.outerHTML;
+        dropdown.setValue("de"); dropdown.setItems([{ value: "nb", label: "Norwegian" }]); dropdown.setDisabled(true);
+        expect(dropdown.getValue()).toBe("en");
+        expect(dropdown.menu).toBe(menu);
+        expect(dropdown.element.outerHTML).toBe(original);
+    });
     it("does not open on focus or commit arrow navigation, and restores focus before activation", () => {
         const onSelect = vi.fn(() => expect(document.activeElement).toBe(dropdown.trigger));
         const dropdown = createDropdown(onSelect);

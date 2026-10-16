@@ -20,11 +20,14 @@ import {
 } from "../localization";
 import {
     getLanguagePickerItems,
+    getLanguagePickerSetOptions,
     getLanguagePickerWidth,
     type LanguagePickerItem,
     type LanguagePickerItemLabelResolver,
     type LanguagePickerNameFormat
 } from "../language-select/languageOptions";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 
 /** Localized message keys used by LanguageCombobox fallback text. */
 export type LanguageComboboxMessageKey = "languageSelect.label";
@@ -150,28 +153,15 @@ export function LanguageCombobox<
 >(options: LanguageComboboxOptions<TLocale, TKey>): ComposedLanguageCombobox<TLocale> {
     let composed!: ComposedLanguageCombobox<TLocale>;
     let currentOptions = options;
-    let persist = options.persist;
-    let syncDocumentLanguage = options.syncDocumentLanguage;
-    let width = options.width ?? null;
-    let autoWidth = options.autoWidth ?? true;
-    let onLocaleChange = options.onLocaleChange ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    let destroyed = false;
+    let revision = 0;
+    let changeRevision = 0;
+    let renderedLocale = options.locale.getLocale();
+    let renderedItems = getLanguagePickerItems(options, renderedLocale, options.locale.supportedLocales);
+    const initialLabel = getLabel(options);
 
-    function getItems(): LanguageComboboxItem<TLocale>[] {
-        return getLanguagePickerItems(
-            currentOptions,
-            currentOptions.locale.getLocale(),
-            currentOptions.locale.supportedLocales
-        );
-    }
-
-    function syncSizing(items: readonly LanguageComboboxItem<TLocale>[]): void {
-        const nextWidth = getLanguagePickerWidth(
-            width,
-            autoWidth,
-            items,
-            getLabel(currentOptions)
-        );
+    function syncSizing(items: readonly LanguageComboboxItem<TLocale>[], label: string | null): void {
+        const nextWidth = getLanguagePickerWidth(currentOptions.width ?? null, currentOptions.autoWidth ?? true, items, label);
 
         if (nextWidth === null) {
             combobox.element.style.removeProperty("--af-language-combobox-width");
@@ -181,44 +171,39 @@ export function LanguageCombobox<
         combobox.element.style.setProperty("--af-language-combobox-width", nextWidth);
     }
 
-    function syncComboboxFromLocale(): void {
-        const items = getItems();
-
-        combobox.setItems(getComboboxItems(items));
-        combobox.update({ label: getLabel(currentOptions) });
-        combobox.setSelectedValue(currentOptions.locale.getLocale());
-        syncSizing(items);
+    function syncFromLocale(nextOptions: LanguageComboboxUpdateOptions<TLocale, TKey>, refreshItems = false): void {
+        if (destroyed) return;
+        const current = ++revision;
+        const locale = currentOptions.locale.getLocale();
+        const replaceLabels = refreshItems || locale !== renderedLocale || "nameFormat" in nextOptions || "getItemLabel" in nextOptions;
+        const items = replaceLabels ? getLanguagePickerItems(currentOptions, locale, currentOptions.locale.supportedLocales) : renderedItems;
+        const label = getLabel(currentOptions);
+        if (destroyed || current !== revision) return;
+        const updateOptions: ComboboxCompositionUpdateOptions = { ...getUpdateOptions(nextOptions), label };
+        if (replaceLabels) updateOptions.items = getComboboxItems(items);
+        if (refreshItems || locale !== renderedLocale) updateOptions.value = locale;
+        renderedItems = items;
+        renderedLocale = locale;
+        combobox.update(updateOptions);
+        if (!destroyed && current === revision) syncSizing(items, label);
     }
 
     function setLocale(locale: string, setOptions: LocaleSetOptions = {}): TLocale {
-        const nextSetOptions: LocaleSetOptions = {
-            source: setOptions.source ?? "programmatic"
-        };
-
-        if (setOptions.persist !== undefined) {
-            nextSetOptions.persist = setOptions.persist;
-        } else if (persist !== undefined) {
-            nextSetOptions.persist = persist;
-        }
-
-        if (setOptions.syncDocumentLanguage !== undefined) {
-            nextSetOptions.syncDocumentLanguage = setOptions.syncDocumentLanguage;
-        } else if (syncDocumentLanguage !== undefined) {
-            nextSetOptions.syncDocumentLanguage = syncDocumentLanguage;
-        }
-
-        return currentOptions.locale.setLocale(locale, nextSetOptions);
+        if (destroyed) return currentOptions.locale.getLocale();
+        const current = ++changeRevision;
+        const nextLocale = currentOptions.locale.setLocale(locale, getLanguagePickerSetOptions(currentOptions, setOptions));
+        if (!destroyed && current === changeRevision) combobox.setSelectedValue(nextLocale);
+        return nextLocale;
     }
 
-    const initialItems = getItems();
     const comboboxOptions: ComboboxCompositionOptions = {
         attributes: {
             ...options.attributes,
             "data-af-language-combobox": ""
         },
-        label: getLabel(options),
-        items: getComboboxItems(initialItems),
-        value: options.locale.getLocale(),
+        label: initialLabel,
+        items: getComboboxItems(renderedItems),
+        value: renderedLocale,
         autocomplete: "none",
         filterOption: null,
         openOnFocus: false,
@@ -233,7 +218,7 @@ export function LanguageCombobox<
         },
         onValueChange: (detail) => {
             if (
-                detail.reason !== "selection"
+                destroyed || detail.reason !== "selection"
                 || detail.value === null
                 || detail.event === null
             ) {
@@ -241,11 +226,11 @@ export function LanguageCombobox<
             }
 
             const previousLocale = currentOptions.locale.getLocale();
-            const nextLocale = setLocale(detail.value, { source: "programmatic" });
-
-            if (nextLocale === previousLocale) return;
-
-            onLocaleChange?.(
+            const expectedLocale = currentOptions.locale.resolve(detail.value);
+            const current = changeRevision + 1;
+            const nextLocale = setLocale(detail.value);
+            if (destroyed || current !== changeRevision || nextLocale !== expectedLocale || nextLocale === previousLocale) return;
+            currentOptions.onLocaleChange?.(
                 {
                     locale: nextLocale,
                     previousLocale,
@@ -266,22 +251,8 @@ export function LanguageCombobox<
 
     const combobox = Combobox(comboboxOptions);
 
-    function handleControlClick(): void {
-        combobox.open();
-    }
-
-    combobox.input.addEventListener("click", handleControlClick);
-
-    syncSizing(initialItems);
-
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = currentOptions.locale.subscribe(() => {
-            syncComboboxFromLocale();
-        });
-    }
-
-    syncLocaleSubscription();
+    syncSizing(renderedItems, initialLabel);
+    const localeSubscription = createLocaleSubscription(() => syncFromLocale({}, true));
 
     composed = {
         element: combobox.element,
@@ -291,34 +262,31 @@ export function LanguageCombobox<
         setLocale,
 
         update(nextOptions): void {
+            if (destroyed) return;
             currentOptions = {
                 ...currentOptions,
                 ...nextOptions
             };
 
-            if ("persist" in nextOptions) persist = nextOptions.persist;
-            if ("syncDocumentLanguage" in nextOptions) {
-                syncDocumentLanguage = nextOptions.syncDocumentLanguage;
-            }
-            if ("width" in nextOptions) width = nextOptions.width ?? null;
-            if (nextOptions.autoWidth !== undefined) autoWidth = nextOptions.autoWidth;
-            if ("onLocaleChange" in nextOptions) {
-                onLocaleChange = nextOptions.onLocaleChange ?? null;
-            }
-
-            combobox.update(getUpdateOptions(nextOptions));
-            syncComboboxFromLocale();
+            syncFromLocale(nextOptions);
         },
 
         destroy(): void {
-            unsubscribeLocale?.();
-            unsubscribeLocale = null;
-            combobox.input.removeEventListener("click", handleControlClick);
-            combobox.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            changeRevision += 1;
+            runCleanups([localeSubscription.destroy, combobox.destroy]);
         },
 
-        isDestroyed: () => combobox.isDestroyed()
+        isDestroyed: () => destroyed || combobox.isDestroyed()
     };
+
+    try { localeSubscription.replace(options.locale); }
+    catch (error) {
+        try { composed.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 
     return composed;
 }

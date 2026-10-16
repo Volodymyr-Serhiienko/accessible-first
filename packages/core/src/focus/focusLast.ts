@@ -8,7 +8,7 @@ import { getFocusableElements } from "./getFocusableElements";
  * @returns True if focus was successfully shifted to the last focusable element, otherwise false.
  */
 export function focusLast(container: HTMLElement): boolean {
-    const elements = getFocusableElements(container);
+    const elements = getFocusableElements(container, true);
 
     return focusElement(
         elements[elements.length - 1] ?? null

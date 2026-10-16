@@ -122,6 +122,16 @@ section.setActions(Button({ text: "Save profile", variant: "primary" }));
 
 `headingLevel` is creation-time only. Create a new section if the document outline changes.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle). Combined
+updates attempt remaining slots and synchronize visibility after a cleanup failure;
+newer updates/destruction cancel obsolete work. Destruction attempts every slot,
+the actions bar and ARIA contributions, is idempotent, and makes late setters/update
+inert. Existing DOM remains inspectable.
+
+The section owns only its heading/description IDREF contributions, preserving
+external labels/descriptions when IDs or description mode change and during teardown.
+Layout/style-only updates retain child controls and focus.
+
 ## Description Speech
 
 Use the default `descriptionMode: "content"` for most form sections. The section title still labels the section, while the description remains visible and readable in normal document navigation without being repeated as users move through fields.
@@ -182,3 +192,4 @@ FormSection({
 - Fields and field groups inside the body keep their own labels, descriptions, errors, and validation behavior.
 - When wrapped in `Form`, submit validates registered fields and focuses the first invalid field.
 - Layout remains readable on small screens.
+- Long unbroken headings, descriptions and body text wrap without page overflow.

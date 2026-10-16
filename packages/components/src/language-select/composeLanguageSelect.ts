@@ -4,7 +4,6 @@ import {
     getLocaleText,
     type LocaleCode,
     type LocaleController,
-    type LocaleMessageParams,
     type LocaleSetOptions
 } from "../localization";
 import {
@@ -20,12 +19,15 @@ import type {
 } from "../composition";
 import {
     getLanguagePickerItems,
+    getLanguagePickerSetOptions,
     getLanguagePickerWidth,
     getLocaleDisplayName,
     type LanguagePickerItem,
     type LanguagePickerItemLabelResolver,
     type LanguagePickerNameFormat
 } from "./languageOptions";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Localized message keys used by LanguageSelect fallback text.
@@ -103,7 +105,7 @@ export interface LanguageSelectOptions<
 export interface LanguageSelectUpdateOptions<
     TLocale extends LocaleCode = LocaleCode,
     TKey extends string = AccessibleFirstMessageKey
-> extends Partial<Omit<LanguageSelectOptions<TLocale, TKey>, "locale" | "items">> {}
+> extends Partial<Omit<LanguageSelectOptions<TLocale, TKey>, "locale" | "items" | "placeholder">> {}
 
 /**
  * Language select created by the composition API.
@@ -141,7 +143,7 @@ function getSelectLabel<TLocale extends LocaleCode>(
     options: LanguageSelectOptions<TLocale> | LanguageSelectUpdateOptions<TLocale>,
     locale: LanguageSelectOptions<TLocale>["locale"]
 ): string | null {
-    if ("label" in options) return options.label ?? null;
+    if (options.label !== undefined) return options.label;
 
     return getLocaleText(
         locale,
@@ -179,15 +181,9 @@ function getSelectOptions<TLocale extends LocaleCode>(
 }
 
 function getSelectUpdateOptions<TLocale extends LocaleCode>(
-    options: LanguageSelectOptions<TLocale>,
-    nextOptions: LanguageSelectUpdateOptions<TLocale>,
-    items: readonly LanguageSelectItem<TLocale>[]
+    nextOptions: LanguageSelectUpdateOptions<TLocale>
 ): SelectCompositionUpdateOptions {
-    const updateOptions: SelectCompositionUpdateOptions = {
-        value: options.locale.getLocale(),
-        label: getSelectLabel(nextOptions, options.locale),
-        items: toSelectItems(items, options.locale.getLocale())
-    };
+    const updateOptions: SelectCompositionUpdateOptions = {};
 
     if (nextOptions.id !== undefined) updateOptions.id = nextOptions.id;
     if (nextOptions.className !== undefined) updateOptions.className = nextOptions.className;
@@ -213,84 +209,29 @@ export function LanguageSelect<
 >(options: LanguageSelectOptions<TLocale, TKey>): ComposedLanguageSelect<TLocale> {
     let composed!: ComposedLanguageSelect<TLocale>;
     let currentOptions: LanguageSelectOptions<TLocale> = options;
-    let persist = options.persist;
-    let syncDocumentLanguage = options.syncDocumentLanguage;
-    let width = options.width ?? null;
-    let autoWidth = options.autoWidth ?? true;
-    let onLocaleChange = options.onLocaleChange ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
-
-    const initialItems = getLanguagePickerItems(
-        currentOptions,
-        currentOptions.locale.getLocale(),
-        currentOptions.locale.supportedLocales
-    );
-    const initialSelectItems = toSelectItems(initialItems, currentOptions.locale.getLocale());
-
-    function syncLanguageSelectSizing(
-        selectItems: readonly SelectCompositionItem[],
-        label: string | null
-    ): void {
-        const nextWidth = getLanguagePickerWidth(width, autoWidth, selectItems, label);
-
-        if (nextWidth === null) {
-            select.element.style.removeProperty("--af-language-select-width");
-            return;
-        }
-
-        select.element.style.setProperty("--af-language-select-width", nextWidth);
-    }
-
-    function syncSelectFromLocale(): void {
-        const items = getLanguagePickerItems(
-            currentOptions,
-            currentOptions.locale.getLocale(),
-            currentOptions.locale.supportedLocales
-        );
-        const label = getSelectLabel(currentOptions, currentOptions.locale);
-        const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
-
-        select.update({
-            value: currentOptions.locale.getLocale(),
-            label,
-            items: selectItems
-        });
-        syncLanguageSelectSizing(selectItems, label);
-    }
+    let destroyed = false;
+    let revision = 0;
+    let changeRevision = 0;
+    let renderedLocale = options.locale.getLocale();
+    let renderedItems = getLanguagePickerItems(options, renderedLocale, options.locale.supportedLocales);
+    const initialLabel = getSelectLabel(options, options.locale);
 
     function setLocale(locale: string, setOptions: LocaleSetOptions = {}): TLocale {
-        const nextSetOptions: LocaleSetOptions = {
-            source: setOptions.source ?? "programmatic"
-        };
-
-        if (setOptions.persist !== undefined) {
-            nextSetOptions.persist = setOptions.persist;
-        } else if (persist !== undefined) {
-            nextSetOptions.persist = persist;
-        }
-
-        if (setOptions.syncDocumentLanguage !== undefined) {
-            nextSetOptions.syncDocumentLanguage = setOptions.syncDocumentLanguage;
-        } else if (syncDocumentLanguage !== undefined) {
-            nextSetOptions.syncDocumentLanguage = syncDocumentLanguage;
-        }
-
-        const nextLocale = currentOptions.locale.setLocale(locale, nextSetOptions);
-
-        select.setValue(nextLocale);
-
+        if (destroyed) return currentOptions.locale.getLocale();
+        const current = ++changeRevision;
+        const nextLocale = currentOptions.locale.setLocale(locale, getLanguagePickerSetOptions(currentOptions, setOptions));
+        if (!destroyed && current === changeRevision) select.setValue(nextLocale);
         return nextLocale;
     }
 
     const handleValueChange = (detail: SelectCompositionChangeDetail): void => {
+        if (destroyed) return;
         const previousLocale = currentOptions.locale.getLocale();
-        const nextLocale = setLocale(detail.value, {
-            source: "programmatic"
-        });
-
-        if (nextLocale === previousLocale) return;
-
-        onLocaleChange?.(
+        const expectedLocale = currentOptions.locale.resolve(detail.value);
+        const current = changeRevision + 1;
+        const nextLocale = setLocale(detail.value);
+        if (destroyed || current !== changeRevision || nextLocale !== expectedLocale || nextLocale === previousLocale) return;
+        currentOptions.onLocaleChange?.(
             {
                 locale: nextLocale,
                 previousLocale,
@@ -304,23 +245,39 @@ export function LanguageSelect<
 
     const select = Select(getSelectOptions(
         currentOptions,
-        initialSelectItems,
+        toSelectItems(renderedItems, renderedLocale),
         handleValueChange
     ));
 
     select.element.setAttribute("data-af-language-select", "");
-    syncLanguageSelectSizing(initialSelectItems, getSelectLabel(currentOptions, currentOptions.locale));
+    syncSizing(renderedItems, initialLabel);
+    const localeSubscription = createLocaleSubscription(() => syncFromLocale({}, true));
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        unsubscribeLocale = currentOptions.locale.subscribe(() => {
-            syncSelectFromLocale();
-        });
+    function syncSizing(items: readonly LanguageSelectItem<TLocale>[], label: string | null): void {
+        const width = getLanguagePickerWidth(currentOptions.width ?? null, currentOptions.autoWidth ?? true, items, label);
+        if (width === null) select.element.style.removeProperty("--af-language-select-width");
+        else select.element.style.setProperty("--af-language-select-width", width);
     }
 
-    syncLocaleSubscription();
+    function syncFromLocale(nextOptions: LanguageSelectUpdateOptions<TLocale>, refreshItems = false): void {
+        if (destroyed) return;
+        const current = ++revision;
+        const locale = currentOptions.locale.getLocale();
+        const replaceLabels = refreshItems || locale !== renderedLocale || "nameFormat" in nextOptions || "getItemLabel" in nextOptions;
+        const items = replaceLabels ? getLanguagePickerItems(currentOptions, locale, currentOptions.locale.supportedLocales) : renderedItems;
+        const label = getSelectLabel(currentOptions, currentOptions.locale);
+        if (destroyed || current !== revision) return;
+        const updateOptions = { ...getSelectUpdateOptions(nextOptions), label };
+        if (replaceLabels) updateOptions.items = toSelectItems(items, locale);
+        if (refreshItems || locale !== renderedLocale) updateOptions.value = locale;
+        renderedItems = items;
+        renderedLocale = locale;
+        select.update(updateOptions);
+        if (!destroyed && current === revision) {
+            select.element.setAttribute("data-af-language-select", "");
+            syncSizing(items, label);
+        }
+    }
 
     composed = {
         element: select.element,
@@ -330,44 +287,33 @@ export function LanguageSelect<
         setLocale,
 
         update(nextOptions): void {
+            if (destroyed) return;
             currentOptions = {
                 ...currentOptions,
                 ...nextOptions
             };
 
-            if ("persist" in nextOptions) persist = nextOptions.persist;
-            if ("syncDocumentLanguage" in nextOptions) {
-                syncDocumentLanguage = nextOptions.syncDocumentLanguage;
-            }
-            if ("onLocaleChange" in nextOptions) {
-                onLocaleChange = nextOptions.onLocaleChange ?? null;
-            }
-            if ("width" in nextOptions) width = nextOptions.width ?? null;
-            if ("autoWidth" in nextOptions) autoWidth = nextOptions.autoWidth ?? true;
-
-            const items = getLanguagePickerItems(
-                currentOptions,
-                currentOptions.locale.getLocale(),
-                currentOptions.locale.supportedLocales
-            );
-            const selectItems = toSelectItems(items, currentOptions.locale.getLocale());
-            const label = getSelectLabel(currentOptions, currentOptions.locale);
-
-            select.update(getSelectUpdateOptions(currentOptions, nextOptions, items));
-            select.element.setAttribute("data-af-language-select", "");
-            syncLanguageSelectSizing(selectItems, label);
+            syncFromLocale(nextOptions);
         },
 
         destroy(): void {
-            unsubscribeLocale?.();
-            unsubscribeLocale = null;
-            select.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            changeRevision += 1;
+            runCleanups([localeSubscription.destroy, select.destroy]);
         },
 
         isDestroyed(): boolean {
-            return select.isDestroyed();
+            return destroyed || select.isDestroyed();
         }
     };
+
+    try { localeSubscription.replace(options.locale); }
+    catch (error) {
+        try { composed.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 
     return composed;
 }

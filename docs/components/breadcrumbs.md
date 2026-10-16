@@ -82,6 +82,7 @@ Breadcrumbs({
 - `items` - Required list of breadcrumb items.
 - `label` - Accessible navigation label. Defaults to `"Breadcrumb"` when omitted. Set `null` only when another naming mechanism is supplied.
 - `labelledBy` - Optional id of visible text that labels the breadcrumb navigation. Prefer this when a nearby heading already names the path.
+- `locale` - Shared provider for the framework-owned fallback navigation label.
 - `separator` - Visible separator string between items. Defaults to `"/"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
@@ -120,6 +121,16 @@ breadcrumbs.update({
 Updating `separator` changes existing separators in place. It does not rebuild the item list, so existing item DOM nodes and links remain stable.
 
 Updating `items` or calling `setItems()` replaces the breadcrumb item list.
+
+Replacement owns each composed label independently. Removed item handles become
+inert, and a newer replacement/destroy requested during rendering or cleanup wins.
+Partially built labels are released. Cleanup attempts every label and locale
+subscription even if one fails, then rethrows the first error. Destruction is
+idempotent; late setters, updates and old locale notifications have no effect.
+Full item replacement does not select a new focus destination; the route/application
+owns that workflow. Separator-only changes keep existing links and focus.
+
+Long labels wrap inside the available width, including an unbroken word.
 
 ## Styling
 

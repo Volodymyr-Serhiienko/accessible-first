@@ -95,6 +95,19 @@ RouteCommandPalette({
 
 The same metadata can feed RouteSearchBox and RouteCommandPalette, keeping visible search and command search consistent.
 
+## Updates And Ownership
+
+`setRoutes()` replaces route results. Chrome-only updates retain their identity,
+selection and input focus. Locale notifications refresh route text without
+resubscribing the underlying palette. Resolvers should normally be pure; a newer
+update started inside a resolver wins over older computed results.
+
+The low-level `onSelect` runs before `onRouteSelect`. Destroying or updating the
+wrapper there cancels the older route callback. Destroy the wrapper, not its
+borrowed SearchBox/Dialog parts; cleanup completes after unsubscribe errors and
+late setters or locale notifications are inert. Full replacement does not choose
+an application focus destination.
+
 ## Accessibility
 
 RouteCommandPalette inherits modal, search, and keyboard behavior from CommandPalette.

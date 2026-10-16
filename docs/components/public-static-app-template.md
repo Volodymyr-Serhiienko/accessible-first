@@ -89,6 +89,41 @@ export function getShellOptions(): PublicStaticAppTemplateShellOptions {
 
 When `locale` is provided, locale changes refresh the resolver-backed shell values and content without a full page reload.
 
+Shell refresh re-reads the identity and metadata resolvers once and derives fresh
+identity metadata. Explicit `shell.title` wins over the identity title;
+`shell.metadata.title` wins over both. `shell.metadata: false` disables generated
+metadata. Updates are partial: use explicit null metadata fields to clear old
+managed values; removing a field/identity does not clear every previously written
+field automatically. `refresh({ content: false })` retains the existing view.
+
+`localeRefresh: false` disables that subscription. Synchronous scheduling with
+`immediate: true` is supported: the runtime controller exists before the first refresh.
+
+Refreshes are synchronous, but a nested refresh/destroy invalidates remaining older
+work. Unaccepted factory results are released; already transferred trees, including
+current outlet content, are never destroyed a second time. A later factory failure
+cleans newly prepared slots without removing retained slots. This is not rollback:
+regions already committed before the failure stay committed. Callbacks own side
+effects they have already performed and resources they never return.
+
+## Lifecycle
+
+During initial preparation, the template owns content returned by slot/content
+factories. If a later factory throws, earlier results are destroyed once in reverse
+order and the original error is rethrown even if cleanup fails. Static supplied
+nodes remain caller-owned until `AppShell` is called. A factory must release any
+resources it allocates but never returns; do not return another live owner's tree.
+
+Default cleanup preserves an app hidden into the back/forward cache and disposes
+it on a real document exit. Explicit `destroy()` removes its listener and all
+owned resources; remaining cleanup and DOM removal still run if one callback fails.
+Failures during locale-refresh setup, mounting or initial diagnostic logging
+release resources already accepted by the template and rethrow the startup error.
+After destruction, app-level diagnostic methods return `null` without evaluating
+sources. A caller holding the raw diagnostics runner owns any explicit use of it.
+For extra app services, own complete teardown using
+[addPageHideCleanup](../core/events.md#addpagehidecleanup) and `destroyOnPageHide: false`.
+
 ## Diagnostics
 
 Diagnostics include page checks when `page` is not `false`, identity/manifest checks when identity is available, and locale checks when a locale controller is provided.

@@ -73,9 +73,6 @@ DescriptionList({
 - `layout` - `"stacked"` or `"inline"`. Defaults to `"stacked"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - `"md"`.
-- `itemOptions` - Common DOM options for the item wrapper.
-- `termOptions` - Common DOM options for a term.
-- `detailsOptions` - Common DOM options for details.
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
 Item options:
@@ -105,9 +102,27 @@ summary.update({
 });
 ```
 
+Layout/style-only updates retain item DOM, controllers and focus. `setItems`
+replaces the full list, not a keyed reconciliation; the application chooses a
+new focus destination when it removes the active control. Each composed child
+belongs to one owner; do not move an already owned instance into a new item.
+
+Replacement uses [managed content ownership](foundation.md#lifecycle). Failed
+candidate preparation disposes prepared slots without replacing the current list.
+Newer replacements/destruction from child cleanup win; cleanup attempts every
+item and both its slots before rethrowing the first error. Removed item setters
+are inert. Parent destruction is terminal/idempotent, clears the item handles and
+markup, and makes late parent/item setters inert; retained handles can still be
+read for inspection.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="description-list"]`, `[data-af-description-list-item]`, `[data-af-description-list-term]`, `[data-af-description-list-details]`, `[data-af-layout]`, `[data-af-variant]`, and `[data-af-size]`.
+
+Both inline columns can shrink and wrap; the term column has no fixed minimum that
+could push details out of a narrow embedded panel. The default viewport breakpoint
+stacks inline items below `38rem`. Choose `layout: "stacked"` explicitly when a
+narrow desktop sidebar also needs one-column reading order.
 
 ```ts
 DescriptionList({
@@ -122,5 +137,6 @@ DescriptionList({
 - Term and details order is logical.
 - No duplicate description or live-region announcement is produced.
 - Inline layout wraps cleanly on small screens.
+- Unbroken terms/details wrap without overflowing the list.
 - Links or other interactive content inside details remain reachable and named.
 - Text contrast is readable in light and dark themes.

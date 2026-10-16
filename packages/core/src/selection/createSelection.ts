@@ -33,9 +33,7 @@ export function createSelection<TItem>(
         const availableItems = items.filter(isItemAvailable);
 
         if (mode === "single") {
-            const first = availableItems[0];
-
-            return first ? [first] : [];
+            return availableItems.slice(0, 1);
         }
 
         const selectedSet = new Set(availableItems);

@@ -1,4 +1,6 @@
 import { getOwnerDocument, getOwnerWindow } from "../dom";
+import { captureInlineStyles } from "../dom/captureInlineStyles";
+import { runCleanups, type Cleanup } from "../events";
 
 /**
  * Controller returned by createScrollLock().
@@ -17,14 +19,7 @@ interface ScrollLockState {
     count: number;
     scrollX: number;
     scrollY: number;
-    bodyOverflow: string;
-    bodyPaddingRight: string;
-    bodyPosition: string;
-    bodyTop: string;
-    bodyLeft: string;
-    bodyRight: string;
-    bodyWidth: string;
-    documentOverflow: string;
+    restoreStyles: Cleanup;
 }
 
 const locks = new WeakMap<Document, ScrollLockState>();
@@ -47,28 +42,24 @@ function lockDocument(ownerDocument: Document): void {
     const ownerWindow = getOwnerWindow(documentElement);
     const computedBody = ownerWindow.getComputedStyle(body);
     const scrollbarWidth = Math.max(0, ownerWindow.innerWidth - documentElement.clientWidth);
+    const restoreBody = captureInlineStyles(body, ["overflow", "padding-right", "position", "top", "left", "right", "width", "box-sizing"]);
+    const restoreRoot = captureInlineStyles(documentElement, ["overflow"]);
 
     const state: ScrollLockState = {
         count: 1,
         scrollX: ownerWindow.scrollX,
         scrollY: ownerWindow.scrollY,
-        bodyOverflow: body.style.overflow,
-        bodyPaddingRight: body.style.paddingRight,
-        bodyPosition: body.style.position,
-        bodyTop: body.style.top,
-        bodyLeft: body.style.left,
-        bodyRight: body.style.right,
-        bodyWidth: body.style.width,
-        documentOverflow: documentElement.style.overflow
+        restoreStyles: () => runCleanups([restoreBody, restoreRoot])
     };
 
     documentElement.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.position = "fixed";
-    body.style.top = `-${state.scrollY}px`;
-    body.style.left = `-${state.scrollX}px`;
+    body.style.top = `${-state.scrollY}px`;
+    body.style.left = `${-state.scrollX}px`;
     body.style.right = "0";
     body.style.width = "100%";
+    body.style.boxSizing = "border-box";
 
     if (scrollbarWidth > 0) {
         body.style.paddingRight = `${getNumber(computedBody.paddingRight) + scrollbarWidth}px`;
@@ -86,20 +77,11 @@ function unlockDocument(ownerDocument: Document): void {
 
     if (state.count > 0) return;
 
-    const body = ownerDocument.body;
     const documentElement = ownerDocument.documentElement;
     const ownerWindow = getOwnerWindow(documentElement);
 
-    documentElement.style.overflow = state.documentOverflow;
-    body.style.overflow = state.bodyOverflow;
-    body.style.paddingRight = state.bodyPaddingRight;
-    body.style.position = state.bodyPosition;
-    body.style.top = state.bodyTop;
-    body.style.left = state.bodyLeft;
-    body.style.right = state.bodyRight;
-    body.style.width = state.bodyWidth;
-
     locks.delete(ownerDocument);
+    state.restoreStyles();
     ownerWindow.scrollTo(state.scrollX, state.scrollY);
 }
 
@@ -112,28 +94,32 @@ function unlockDocument(ownerDocument: Document): void {
 export function createScrollLock(element: HTMLElement): ScrollLock {
     const ownerDocument = getOwnerDocument(element);
     let active = false;
+    let destroyed = false;
+
+    function deactivate(): void {
+        if (!active) return;
+        active = false;
+        unlockDocument(ownerDocument);
+    }
 
     return {
         activate(): void {
-            if (active) return;
+            if (active || destroyed) return;
 
             active = true;
             lockDocument(ownerDocument);
         },
 
-        deactivate(): void {
-            if (!active) return;
-
-            active = false;
-            unlockDocument(ownerDocument);
-        },
+        deactivate,
 
         isActive(): boolean {
             return active;
         },
 
         destroy(): void {
-            this.deactivate();
+            if (destroyed) return;
+            destroyed = true;
+            deactivate();
         }
     };
 }

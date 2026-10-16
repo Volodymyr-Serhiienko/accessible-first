@@ -5,6 +5,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 
 /** Account action presentation. Both variants retain native button semantics. */
 export type AccountControlDisplay = "button" | "icon";
@@ -65,8 +67,6 @@ const PROFILE_PATHS = [
 export function AccountControl(options: AccountControlOptions = {}): ComposedAccountControl {
     let current = { ...options };
     let disposed = false;
-    let unsubscribeSource: (() => void) | null = null;
-    let unsubscribeLocale: (() => void) | null = null;
     let composed!: ComposedAccountControl;
 
     function getState(): AccountControlState {
@@ -126,12 +126,9 @@ export function AccountControl(options: AccountControlOptions = {}): ComposedAcc
     const button = Button(getButtonOptions());
     const sync = (): void => { if (!disposed) button.update(getButtonOptions()); };
 
-    function subscribe(): void {
-        unsubscribeSource?.();
-        unsubscribeLocale?.();
-        unsubscribeSource = current.source?.subscribe(sync) ?? null;
-        unsubscribeLocale = current.locale?.subscribe?.(sync) ?? null;
-    }
+    // State and locale providers share the same callback-subscription contract.
+    const sourceSubscription = createLocaleSubscription(sync);
+    const localeSubscription = createLocaleSubscription(sync);
 
     composed = {
         element: button.element,
@@ -140,18 +137,20 @@ export function AccountControl(options: AccountControlOptions = {}): ComposedAcc
         update(nextOptions): void {
             if (disposed) return;
             current = { ...current, ...nextOptions };
-            if ("source" in nextOptions || "locale" in nextOptions) subscribe();
-            sync();
+            runCleanups([
+                () => { if ("source" in nextOptions) sourceSubscription.replace(current.source); },
+                () => { if ("locale" in nextOptions && !disposed) localeSubscription.replace(current.locale); },
+                sync
+            ]);
         },
         destroy(): void {
             if (disposed) return;
             disposed = true;
-            unsubscribeSource?.();
-            unsubscribeLocale?.();
-            button.destroy();
+            runCleanups([sourceSubscription.destroy, localeSubscription.destroy, button.destroy]);
         }
     };
-    subscribe();
+    sourceSubscription.replace(current.source);
+    if (!disposed) localeSubscription.replace(current.locale);
     sync();
     return composed;
 }

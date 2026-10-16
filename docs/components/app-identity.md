@@ -72,6 +72,10 @@ Real apps often repeat identity values in several places:
 - `backgroundColor` defaults to `themeColor`;
 - missing optional values normalize to `null` or an empty readonly array.
 
+Identity, icon/SoftwareApplication records and copied categories are shallowly
+frozen. Caller-owned URL/image/additional-data objects are not deeply cloned or
+frozen; treat nested values as immutable after declaration.
+
 `createAppIdentityDocumentMetadata()` maps identity values to `createAppDocumentMetadata()`:
 
 - `name`, `description`, `lang`, `url`, `themeColor`, `manifestHref`, SVG icon, preview image, image alt text, social descriptions, and SoftwareApplication defaults;
@@ -108,6 +112,12 @@ const metadata = createAppIdentityRouteDocumentMetadata(appIdentity, route, {
 Use `createAppIdentityRouteDocumentMetadataOptions(identity, options)` when route metadata should share identity defaults but route code will call `createAppRouteDocumentMetadata()` itself.
 
 Use `createAppIdentityRouteDiagnosticsOptions(identity, options)` when public route diagnostics should inspect the same metadata defaults. This keeps app title, base URL, route descriptions, canonical URLs, and generated `WebPage` JSON-LD aligned without duplicating resolver code.
+
+Generated WebPage data uses the final resolved route title, description and
+canonical, including explicit clears. It does not invoke those fallbacks twice.
+Custom route JSON-LD still wins. Returned URL fields are strings even for URLs
+created in a different realm. These are consistency helpers, not Schema.org or
+search-result eligibility validation.
 
 Additional route metadata options:
 

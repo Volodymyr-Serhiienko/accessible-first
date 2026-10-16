@@ -3,6 +3,8 @@ import {
     type AppShellUpdateOptions,
     type ComposedAppShell
 } from "../app-shell";
+import { addPageHideCleanup } from "../../../core/src/events";
+import { toCompositionChildren, type CompositionChild } from "../composition";
 import {
     type LocaleCode,
     type LocaleRefreshHandler,
@@ -22,6 +24,15 @@ export interface RoutedAppChromeSlots {
     footer?: AppShellCompositionContent | null;
 }
 
+const chromeSlots = ["header", "navigation", "beforeOutlet", "afterOutlet", "footer"] as const;
+
+/** Collects returned slot candidates, including content overridden by direct slots. */
+export function getRoutedAppChromeContent(chrome: RoutedAppChromeSlots): CompositionChild[] {
+    return chromeSlots.flatMap(slot => [
+        ...toCompositionChildren(chrome.shell?.[slot]), ...toCompositionChildren(chrome[slot])
+    ]);
+}
+
 /**
  * Shared locale refresh options accepted by routed app runtime recipes.
  */
@@ -36,12 +47,11 @@ export function applyRoutedAppChromeSlots(
     shell: ComposedAppShell,
     chrome: RoutedAppChromeSlots
 ): void {
-    if (chrome.shell !== undefined) shell.update(chrome.shell);
-    if ("header" in chrome) shell.setHeader(chrome.header ?? null);
-    if ("navigation" in chrome) shell.setNavigation(chrome.navigation ?? null);
-    if ("beforeOutlet" in chrome) shell.setBeforeOutlet(chrome.beforeOutlet ?? null);
-    if ("afterOutlet" in chrome) shell.setAfterOutlet(chrome.afterOutlet ?? null);
-    if ("footer" in chrome) shell.setFooter(chrome.footer ?? null);
+    const update: AppShellUpdateOptions = { ...(chrome.shell ?? {}) };
+    for (const slot of chromeSlots) {
+        if (slot in chrome) update[slot] = chrome[slot] ?? null;
+    }
+    if (Object.keys(update).length > 0) shell.update(update);
 }
 
 /**
@@ -78,15 +88,5 @@ export function setupRoutedAppPageHideCleanup(
     if (destroyOnPageHide === false || typeof window === "undefined") return null;
 
     const ownerWindow = shell.element.ownerDocument.defaultView ?? window;
-    const handlePageHide = (event: PageTransitionEvent): void => {
-        if (event.persisted) return;
-
-        destroy();
-    };
-
-    ownerWindow.addEventListener("pagehide", handlePageHide, { once: true });
-
-    return () => {
-        ownerWindow.removeEventListener("pagehide", handlePageHide);
-    };
+    return addPageHideCleanup(ownerWindow, destroy);
 }

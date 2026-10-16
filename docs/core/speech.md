@@ -50,6 +50,13 @@ also run after a stop, an unavailable engine, or a playback error. Both return
 a cleanup function, so a screen can cancel its pending follow-up when it is
 destroyed.
 
+Both helpers release the subscription before the follow-up, even when completion
+was delivered synchronously during `subscribe()`. Cleanup failure does not skip the
+one committed follow-up. Cancellation becomes terminal before invoking its disposer,
+so repeated cancellation and retained provider callbacks cannot run it later.
+If a provider throws before returning a subscription disposer, it remains responsible
+for releasing any hidden resources; late callbacks are ignored by these helpers.
+
 Cancel the previous follow-up before replacing playback, and cancel all owned
 follow-ups before stopping speech during screen teardown. A stopped request is
 settled, so `afterSpeechSettles()` can run immediately on `stop()`. Before moving
@@ -269,6 +276,10 @@ failures as errors. Provider exception messages are not exposed as user text.
 The router preserves child errors and uses `speech-engine-routing-failed` for
 an unexpected provider exception. Neither engine announces status or moves focus.
 
+Provider detachment clears router ownership before invoking unsubscribe. A failing
+unsubscribe cannot prevent stop or let a late callback start the next group;
+cancellation stays idle, while a failed normal completion settles as a routing error.
+
 For mobile, resolve a ready manifest synchronously where possible: the engine
 calls `play()` before `speak()` returns when the source is synchronous. If lookup
 awaits network/cache work, a browser can require another user gesture. Reusing
@@ -310,6 +321,10 @@ stopping it. Normal completion invokes `onComplete`; unavailable/failed synthesi
 invokes `onFallback`, then `onComplete` if the task is still current. A stopped
 request invokes neither. `cancel()` is reusable; `destroy()` prevents further speech.
 Engine capability/speak failures use the same fallback.
+
+Cancellation stops owned playback even if subscription cleanup fails, then rethrows
+the first cleanup failure. Disposal remains final. New speech started reentrantly
+while stopping an old request takes precedence over the interrupted replacement.
 
 Use this for interactive views where speech is optional but the next UI action
 must still work. Keep fallback text and focus policy in the application. Check that

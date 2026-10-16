@@ -1,4 +1,5 @@
 import { createTaskScope } from "../task";
+import { runCleanups } from "../events";
 import { afterSpeechSettles } from "./afterSpeechPlayback";
 import type { SpeechEngine, SpeechPlayback, SpeechRequest } from "./types";
 
@@ -25,23 +26,32 @@ export function createSpeechTask(engine: SpeechEngine): SpeechTask {
     const scope = createTaskScope();
     let playback: SpeechPlayback | null = null;
     let disposed = false;
+    let revision = 0;
     function cancel(): void {
-        scope.cancel();
+        revision += 1;
         const previous = playback;
         playback = null;
-        previous?.stop();
+        runCleanups([() => scope.cancel(), () => previous?.stop()]);
     }
     return {
         speak(request, callbacks = {}): void {
             if (disposed) return;
+            const attempt = revision + 1;
             cancel();
+            if (disposed || revision !== attempt) return;
             const task = scope.begin();
+            if (!task.isCurrent()) return;
             function fallback(): void {
+                if (!task.isCurrent()) return;
                 callbacks.onFallback?.();
                 if (task.isCurrent()) callbacks.onComplete?.();
             }
             try {
-                if (engine.getCapabilities().available) playback = engine.speak(request);
+                if (engine.getCapabilities().available && task.isCurrent()) {
+                    const current = engine.speak(request);
+                    if (!task.isCurrent()) { current.stop(); return; }
+                    playback = current;
+                }
             }
             catch { fallback(); return; }
             if (!playback) { fallback(); return; }
@@ -54,6 +64,9 @@ export function createSpeechTask(engine: SpeechEngine): SpeechTask {
             }));
         },
         cancel,
-        destroy(): void { disposed = true; cancel(); scope.destroy(); }
+        destroy(): void {
+            disposed = true;
+            runCleanups([cancel, () => scope.destroy()]);
+        }
     };
 }

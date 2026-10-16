@@ -34,6 +34,17 @@ disclosure.destroy();
 * Routes Enter and Space activation for non-native triggers through the normal click path
 * Preserves and restores original attributes on destroy
 
+Without an explicit disabled option, authored native disabled/ARIA-disabled state
+is retained. Teardown restores the exact authored `hidden` token (including
+`until-found`) and ignores subsequent setters. Fallback keyboard activation belongs
+only to the trigger itself: nested, already handled, modified and composing keys
+are not consumed.
+
+Closing with focus inside the panel attempts to focus its trigger before the
+change callback; external focus is not moved. If focus handlers destroy the
+controller or change state again, the obsolete callback is suppressed. Applications
+must select a fallback when the trigger is removed or cannot receive focus.
+
 ## Principles
 
 * Prefer native button elements as triggers

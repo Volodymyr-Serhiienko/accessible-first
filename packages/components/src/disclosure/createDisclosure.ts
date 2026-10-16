@@ -9,6 +9,7 @@ import {
     type LiveRegionPoliteness
 } from "../../../core/src/live-region";
 import { restoreAttribute } from "../../../core/src/dom";
+import { runCleanups } from "../../../core/src/events";
 import { createComponentLifecycle } from "../foundation";
 
 import type {
@@ -122,8 +123,10 @@ export function createDisclosure(
 
     let announcement = options.announcement;
     let announcer: DocumentAnnouncementChannel | null = null;
+    let revision = 0;
 
     function syncOpenAttributes(): void {
+        if (lifecycle.isDestroyed()) return;
         const open = behavior.isOpen() ? "true" : "false";
 
         element.setAttribute("data-af-open", open);
@@ -136,6 +139,7 @@ export function createDisclosure(
     }
 
     function announceOpenPanel(open: boolean): void {
+        const current = revision;
         if (!open || announcement === undefined || !isAnnouncementEnabled(announcement)) {
             return;
         }
@@ -150,7 +154,7 @@ export function createDisclosure(
 
         const message = resolveAnnouncementMessage(announcement, context);
 
-        if (!message) {
+        if (!message || lifecycle.isDestroyed() || current !== revision || !behavior.isOpen()) {
             return;
         }
 
@@ -165,9 +169,11 @@ export function createDisclosure(
 
     const behaviorOptions: CoreDisclosureOptions = {
         onOpenChange(open) {
+            const current = ++revision;
             syncOpenAttributes();
-            announceOpenPanel(open);
+            if (!open) announcer?.clear();
             onOpenChange?.(open);
+            if (!lifecycle.isDestroyed() && current === revision && behavior.isOpen() === open) announceOpenPanel(open);
         }
     };
 
@@ -189,9 +195,9 @@ export function createDisclosure(
     behavior = createDisclosureBehavior(trigger, panel, behaviorOptions);
 
     lifecycle.addCleanup(() => {
-        behavior.destroy();
-        announcer?.destroy();
+        const channel = announcer;
         announcer = null;
+        runCleanups([behavior.destroy, () => channel?.destroy()]);
     });
 
     lifecycle.addCleanup(() => {
@@ -254,13 +260,8 @@ export function createDisclosure(
         },
 
         update(nextOptions: DisclosureUpdateOptions): void {
-            if (nextOptions.open !== undefined) {
-                setOpen(nextOptions.open);
-            }
-
-            if (nextOptions.disabled !== undefined) {
-                setDisabled(nextOptions.disabled);
-            }
+            if (lifecycle.isDestroyed()) return;
+            revision += 1;
 
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
@@ -277,6 +278,8 @@ export function createDisclosure(
             if (nextOptions.announcement !== undefined) {
                 announcement = nextOptions.announcement;
             }
+            if (nextOptions.disabled !== undefined) setDisabled(nextOptions.disabled);
+            if (nextOptions.open !== undefined) setOpen(nextOptions.open);
         },
 
         destroy(): void {

@@ -89,7 +89,7 @@ function getImageAttributes(options: ImageOptions): ElementAttributes {
         "data-af-image-variant": options.variant ?? "plain",
         src: options.src,
         alt: getImageAlt(options),
-        "aria-hidden": options.decorative === true ? true : null
+        "aria-hidden": options.decorative === true ? "true" : null
     };
 
     if (options.width !== undefined) attributes.width = options.width;

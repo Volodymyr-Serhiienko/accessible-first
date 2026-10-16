@@ -1,6 +1,7 @@
 # Combobox
 
-Combobox provides an editable input with a filtered listbox popup.
+Combobox provides an editable input with a filtered listbox popup, or a read-only
+choice control when native `input.readOnly` is enabled.
 
 ## When To Use
 
@@ -75,6 +76,9 @@ Keyboard behavior:
 - `Alt+ArrowDown` opens the popup.
 - `Alt+ArrowUp` closes the popup.
 
+IME composition, already-prevented keyboard events and repeated `Enter` do not
+commit a selection. Read-only input ignores text input and adds click/Space toggling.
+
 ## Options
 
 Root options:
@@ -97,6 +101,8 @@ Root options:
 - `announceOnHover` - Announces option labels on mouse hover. Defaults to `true`.
 - `autocomplete` - `"list"` or `"none"`.
 - `disabled` - Disables the input and closes the popup.
+- `pending` - Guards user activation/editing while keeping input focus and busy semantics; closes the popup.
+- `pendingMessage`, `pendingDelay` - Shared waiting announcement options; the default message is silent.
 - `open` - Open state applied through creation or update.
 - `defaultOpen` - Opens initially. Creation-time option.
 - `openOnFocus` - Opens when input receives focus. Defaults to `true`; set to `false` for quieter fields.
@@ -122,6 +128,32 @@ Item options:
 - `optionOptions` - Common DOM options for the option element.
 - `announceOnHover` - Per-option hover announcement override.
 - `hoverAnnouncement` - Custom hover announcement text for one option.
+
+## Read-Only Choice And Pending
+
+```ts
+const filter = Combobox({
+    label: "Role",
+    inputOptions: { attributes: { readonly: true } },
+    autocomplete: "none",
+    filterOption: null,
+    openOnFocus: false,
+    openOnInput: false,
+    items: [{ value: "all", label: "All" }, { value: "editor", label: "Editor" }]
+});
+filter.setPending(true);
+filter.setPending(false);
+```
+
+Core owns click/Space toggling, arrow navigation and selection; do not add duplicate
+pointer handlers. Application callbacks decide whether pointer selection immediately
+applies a server filter or only Enter submits it. Locale selection may apply immediately.
+
+Pending also supports `update({ pending })` and `isPending()`. Tab/Escape, text navigation
+and copying remain available; busy focus alone does not open the popup. It neither
+disables nor renames the input. Keep request/programmatic guards in the application.
+If a parent already announces the request wait, use `pendingMessage: false` to avoid
+duplicate feedback. See [pending contract](foundation.md#shared-helpers).
 
 ## Not Found State
 
@@ -183,7 +215,21 @@ combobox.update({
 });
 ```
 
+Full replacement retires old option handles and owned labels; setters on retired
+handles do nothing. Cleanup completes after a label failure, including sibling
+metadata/filter refresh during partial updates. Reentrant newer replacement wins.
+`destroy()` is terminal and frees all option content and behavior, even when one
+child cleanup throws. Do not share the same owned composed label between owners.
+Custom filters are synchronous; newer replacement/destroy during filtering cancels
+the obsolete filter pass. Selection preserves focus moved by an application callback.
+
 ## Styling
+
+The root/input can shrink within a narrow grid; long labels and options reflow.
+Hover never replaces a selected option's contrasting background. Free-width
+popups respect the configured maximum and their containing viewport, including
+when `matchAnchorWidth` is false. CSS limits size; the positioning helper handles
+collision placement. Native input values remain single-line and scroll internally.
 
 Useful hooks include `[data-af-composition="combobox"]`, `[data-af-component="combobox"]`, `[data-af-combobox-label]`, `[data-af-combobox-input]`, `[data-af-combobox-listbox]`, `[data-af-combobox-option]`, `[data-af-combobox-not-found]`, `[aria-selected]`, `[aria-disabled]`, `[data-af-variant]`, and `[data-af-state]`.
 
@@ -215,5 +261,6 @@ Combobox({
 - Focus remains on the input while navigating options.
 - Focus indicator is visible.
 - Popup stays within the viewport on small screens.
+- Long option labels wrap without horizontal scrolling, including language pickers.
 - Touch and mobile screen reader behavior is understandable.
 

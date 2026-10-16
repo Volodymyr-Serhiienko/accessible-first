@@ -1,5 +1,6 @@
 import { createFormField, type FormFieldInvalidState } from "../../../core/src/form-field";
 import { createId } from "../../../core/src/id";
+import { runCleanups } from "../../../core/src/events";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -152,6 +153,7 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
     label.append(indicator, labelText);
     element.append(input, label, description, errorMessage);
 
+    let destroyed = false;
     let composed!: ComposedCheckbox;
     let onCheckedChange = options.onCheckedChange ?? null;
     let invalid: FormFieldInvalidState = options.invalid ?? false;
@@ -175,6 +177,7 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
     }
 
     function syncFormFieldReferences(): void {
+        if (destroyed) return;
         syncInputId();
         syncDescriptionVisibility();
         syncErrorVisibility();
@@ -185,16 +188,19 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
     }
 
     function setDescription(content: CheckboxCompositionContent | null): void {
+        if (destroyed) return;
         descriptionSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setErrorMessage(content: CheckboxCompositionContent | null): void {
+        if (destroyed) return;
         errorSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setLabelContent(content: CheckboxCompositionContent): void {
+        if (destroyed) return;
         labelSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
@@ -205,6 +211,8 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
             onCheckedChange?.(detail, composed);
         })
     );
+
+    input.defaultChecked = input.checked;
 
     syncFormFieldReferences();
 
@@ -220,12 +228,14 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
         setErrorMessage,
 
         setInvalid(nextInvalid): void {
+            if (destroyed) return;
             invalid = nextInvalid;
             checkbox.setInvalid(nextInvalid);
             syncFormFieldReferences();
         },
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.inputOptions !== undefined) {
@@ -279,11 +289,14 @@ export function Checkbox(options: CheckboxCompositionOptions): ComposedCheckbox 
         },
 
         destroy(): void {
-            labelSlot.dispose();
-            descriptionSlot.dispose();
-            errorSlot.dispose();
-            formField.destroy();
-            checkbox.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([labelSlot.dispose, descriptionSlot.dispose, errorSlot.dispose,
+                () => formField.destroy(), () => checkbox.destroy()]);
+        },
+
+        isDestroyed(): boolean {
+            return destroyed;
         }
     };
 

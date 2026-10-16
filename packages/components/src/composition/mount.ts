@@ -59,8 +59,8 @@ export function mount(
             }
 
             unmounted = true;
-            destroy?.();
-            node.parentNode?.removeChild(node);
+            try { destroy?.(); }
+            finally { node.parentNode?.removeChild(node); }
         }
     };
 }

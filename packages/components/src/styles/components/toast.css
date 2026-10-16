@@ -5,6 +5,10 @@
     grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
     inline-size: min(calc(100vw - 2rem), var(--af-toast-width, 26rem));
+    max-block-size: calc(100vh - 2rem);
+    max-block-size: calc(100dvh - 2rem);
+    overflow: auto;
+    overscroll-behavior: contain;
     pointer-events: none;
 }
 
@@ -86,6 +90,8 @@
 
 [data-af-toast-action],
 [data-af-toast-close] {
+    box-sizing: border-box;
+    max-inline-size: 100%;
     min-block-size: var(--af-target-size);
     min-inline-size: var(--af-target-size);
     border: 1px solid var(--af-color-border);
@@ -95,6 +101,8 @@
     background: var(--af-color-bg);
     font: inherit;
     font-weight: 600;
+    white-space: normal;
+    overflow-wrap: anywhere;
     cursor: pointer;
 }
 

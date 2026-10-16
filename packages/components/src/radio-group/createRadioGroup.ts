@@ -1,8 +1,9 @@
-import { createAttributeSnapshot } from "../../../core/src/dom";
+import { createAttributeSnapshot, restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import type { FormFieldInvalidState } from "../../../core/src/form-field";
 import { createId } from "../../../core/src/id";
 import { createComponentLifecycle } from "../foundation";
+import { observeNativeFormReset } from "../foundation/observeNativeFormReset";
 import type {
     RadioGroup,
     RadioGroupChangeDetail,
@@ -77,7 +78,8 @@ function getChangeDetail(
 }
 
 function isRadioEventTarget(target: EventTarget | null): target is HTMLInputElement {
-    return target instanceof HTMLInputElement && target.type === "radio";
+    return (target as Element | null)?.localName === "input"
+        && (target as HTMLInputElement).type === "radio";
 }
 
 /**
@@ -100,8 +102,8 @@ export function createRadioGroup(
     let radioSource = options.radios;
     let radios = getRadioInputs(element, radioSource);
     let value = getInitialValue(options, radios);
-    let disabled = options.disabled ?? false;
-    let required = options.required ?? false;
+    let disabled = options.disabled ?? originalFieldSetDisabled;
+    let required = options.required ?? radios.some(radio => radio.required);
     let invalid: FormFieldInvalidState = options.invalid ?? false;
     let name = options.name ?? getCommonName(radios) ?? createId("af-radio-group");
     let orientation: RadioGroupOrientation = options.orientation ?? "vertical";
@@ -128,6 +130,26 @@ export function createRadioGroup(
 
     function getOwnDisabled(radio: HTMLInputElement): boolean {
         return isRadioDisabled?.(radio) ?? radioSnapshots.get(radio)?.disabled ?? radio.disabled;
+    }
+
+    function releaseRadio(radio: HTMLInputElement, snapshot: RadioSnapshot): void {
+        restoreAttribute(radio, "type", snapshot.type);
+        restoreAttribute(radio, "name", snapshot.name);
+        radio.checked = snapshot.checked;
+        radio.disabled = snapshot.disabled;
+        radio.required = snapshot.required;
+        restoreAttribute(radio, "aria-invalid", snapshot.ariaInvalid);
+        restoreAttribute(radio, "data-af-radio-input", snapshot.dataInput);
+        restoreAttribute(radio, "data-af-checked", snapshot.dataChecked);
+        radioSnapshots.delete(radio);
+    }
+
+    function replaceRadios(nextRadios: HTMLInputElement[]): void {
+        const retained = new Set(nextRadios);
+        for (const [radio, snapshot] of radioSnapshots) {
+            if (!retained.has(radio)) releaseRadio(radio, snapshot);
+        }
+        radios = nextRadios;
     }
 
     function syncRootAttributes(): void {
@@ -190,7 +212,8 @@ export function createRadioGroup(
     function refresh(): void {
         if (lifecycle.isDestroyed()) return;
 
-        radios = getRadioInputs(element, radioSource);
+        value = getSelectedInput(radios)?.value ?? null;
+        replaceRadios(getRadioInputs(element, radioSource));
         sync();
     }
 
@@ -213,6 +236,10 @@ export function createRadioGroup(
     sync();
 
     lifecycle.addCleanup(addEventListener<Event>(element, "change", handleChange));
+    lifecycle.addCleanup(observeNativeFormReset(element, () => radios, () => {
+        value = getSelectedInput(radios)?.value ?? null;
+        for (const radio of radios) radio.setAttribute("data-af-checked", String(radio.checked));
+    }));
 
     lifecycle.addCleanup(() => {
         attributes.restore();
@@ -222,24 +249,7 @@ export function createRadioGroup(
         }
 
         for (const [radio, snapshot] of radioSnapshots) {
-            radio.checked = snapshot.checked;
-            radio.disabled = snapshot.disabled;
-            radio.required = snapshot.required;
-
-            if (snapshot.type === null) radio.removeAttribute("type");
-            else radio.setAttribute("type", snapshot.type);
-
-            if (snapshot.name === null) radio.removeAttribute("name");
-            else radio.setAttribute("name", snapshot.name);
-
-            if (snapshot.ariaInvalid === null) radio.removeAttribute("aria-invalid");
-            else radio.setAttribute("aria-invalid", snapshot.ariaInvalid);
-
-            if (snapshot.dataInput === null) radio.removeAttribute("data-af-radio-input");
-            else radio.setAttribute("data-af-radio-input", snapshot.dataInput);
-
-            if (snapshot.dataChecked === null) radio.removeAttribute("data-af-checked");
-            else radio.setAttribute("data-af-checked", snapshot.dataChecked);
+            releaseRadio(radio, snapshot);
         }
     });
 
@@ -252,7 +262,7 @@ export function createRadioGroup(
         },
 
         getValue(): RadioGroupValue {
-            return value;
+            return getSelectedInput(radios)?.value ?? null;
         },
 
         getSelectedInput(): HTMLInputElement | null {
@@ -264,6 +274,7 @@ export function createRadioGroup(
         setDisabled(nextDisabled): void {
             if (lifecycle.isDestroyed()) return;
 
+            value = getSelectedInput(radios)?.value ?? null;
             disabled = nextDisabled;
             sync();
         },
@@ -275,6 +286,7 @@ export function createRadioGroup(
         setRequired(nextRequired): void {
             if (lifecycle.isDestroyed()) return;
 
+            value = getSelectedInput(radios)?.value ?? null;
             required = nextRequired;
             syncRadios();
         },
@@ -286,6 +298,7 @@ export function createRadioGroup(
         setInvalid(nextInvalid): void {
             if (lifecycle.isDestroyed()) return;
 
+            value = getSelectedInput(radios)?.value ?? null;
             invalid = nextInvalid;
             sync();
         },
@@ -293,9 +306,12 @@ export function createRadioGroup(
         refresh,
 
         update(nextOptions: RadioGroupUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
+            value = getSelectedInput(radios)?.value ?? null;
             if (nextOptions.radios !== undefined) {
                 radioSource = nextOptions.radios;
-                radios = getRadioInputs(element, radioSource);
+                replaceRadios(getRadioInputs(element, radioSource));
             }
 
             if ("value" in nextOptions) {

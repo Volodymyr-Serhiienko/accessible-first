@@ -23,7 +23,7 @@ export interface TooltipCompositionOptions extends BaseCompositionOptions {
     text: string | null;
     describe?: boolean;
     announceOnHover?: boolean;
-    /** Whether keyboard focus displays the visual layer. Description remains available. */
+    /** Whether keyboard focus displays the visual layer. Defaults to false; description remains available. */
     showOnFocus?: boolean;
 }
 
@@ -65,7 +65,7 @@ export function Tooltip(options: TooltipCompositionOptions): ComposedTooltip {
     let text = options.text;
     let describe = options.describe ?? true;
     let announceOnHover = options.announceOnHover ?? false;
-    let showOnFocus = options.showOnFocus ?? true;
+    let showOnFocus = options.showOnFocus ?? false;
     let target = getTooltipTarget(element);
     let tooltip: TooltipInstance = createTooltip(target, {
         text,

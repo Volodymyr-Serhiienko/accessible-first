@@ -9,6 +9,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 import {
     SearchBox,
     type ComposedSearchBox,
@@ -135,7 +137,8 @@ export function RouteSearchBox<
     let label = options.label;
     let placeholder = options.placeholder;
     let notFoundText = options.notFoundText;
-    let unsubscribeLocale: (() => void) | null = null;
+    let destroyed = false;
+    let revision = 0;
     let onSelect = options.onSelect ?? null;
     let onRouteSelect = options.onRouteSelect ?? null;
 
@@ -155,8 +158,10 @@ export function RouteSearchBox<
     }
 
     const handleSelect: SearchBoxOnSelect<RouteSearchBoxItem<TRoute>> = (detail, searchBox): void => {
+        if (destroyed) return;
+        const current = revision;
         onSelect?.(detail, searchBox);
-
+        if (destroyed || current !== revision) return;
         onRouteSelect?.(
             {
                 ...detail,
@@ -198,72 +203,65 @@ export function RouteSearchBox<
     const updateSearchBox = searchBox.update.bind(searchBox);
     const destroySearchBox = searchBox.destroy.bind(searchBox);
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
+    const localeSubscription = createLocaleSubscription(() => update({}, true));
 
-        if (!locale?.subscribe) return;
+    function update(nextOptions: RouteSearchBoxUpdateOptions<TRoute>, refreshItems = false): void {
+        if (destroyed) return;
+        const current = ++revision;
+        const {
+            routes: nextRoutes,
+            searchItemsOptions: nextSearchItemsOptions,
+            onSelect: nextOnSelect,
+            onRouteSelect: nextOnRouteSelect
+        } = nextOptions;
 
-        unsubscribeLocale = locale.subscribe(() => {
-            setSearchBoxItems(getItems());
-            updateSearchBox(getSearchBoxTextOptions());
-        });
+        if (nextRoutes !== undefined) routes = nextRoutes;
+        if ("searchItemsOptions" in nextOptions) searchItemsOptions = nextSearchItemsOptions;
+        if ("locale" in nextOptions) {
+            locale = nextOptions.locale ?? null;
+        }
+        if ("label" in nextOptions) label = nextOptions.label;
+        if ("placeholder" in nextOptions) placeholder = nextOptions.placeholder;
+        if ("notFoundText" in nextOptions) notFoundText = nextOptions.notFoundText;
+        if ("onSelect" in nextOptions) onSelect = nextOnSelect ?? null;
+        if ("onRouteSelect" in nextOptions) onRouteSelect = nextOnRouteSelect ?? null;
+
+        const items = refreshItems || nextRoutes !== undefined || "searchItemsOptions" in nextOptions || "locale" in nextOptions
+            ? getItems() : null;
+        if (destroyed || current !== revision) return;
+        const updateOptions = {
+            ...getSearchBoxUpdateOptions(nextOptions),
+            ...getSearchBoxTextOptions()
+        };
+        if (destroyed || current !== revision) return;
+        runCleanups([
+            () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+            () => { if (!destroyed && current === revision && items) setSearchBoxItems(items); },
+            () => { if (!destroyed && current === revision) updateSearchBox(updateOptions); }
+        ]);
     }
 
-    setRouteSearchBoxAttribute(searchBox);
-    syncLocaleSubscription();
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([localeSubscription.destroy, destroySearchBox]);
+    }
 
     composed = Object.assign(searchBox, {
-        getRoutes(): readonly TRoute[] {
-            return routes;
-        },
-
-        getSelectedRoute(): TRoute | null {
-            return searchBox.getSelectedItem()?.data ?? null;
-        },
-
-        setRoutes(nextRoutes: readonly TRoute[]): void {
-            routes = nextRoutes;
-            setSearchBoxItems(getItems());
-            setRouteSearchBoxAttribute(searchBox);
-        },
-
-        update(nextOptions: RouteSearchBoxUpdateOptions<TRoute>): void {
-            const {
-                routes: nextRoutes,
-                searchItemsOptions: nextSearchItemsOptions,
-                onSelect: nextOnSelect,
-                onRouteSelect: nextOnRouteSelect
-            } = nextOptions;
-
-            if (nextRoutes !== undefined) routes = nextRoutes;
-            if ("searchItemsOptions" in nextOptions) searchItemsOptions = nextSearchItemsOptions;
-            if ("locale" in nextOptions) {
-                locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
-            }
-            if ("label" in nextOptions) label = nextOptions.label;
-            if ("placeholder" in nextOptions) placeholder = nextOptions.placeholder;
-            if ("notFoundText" in nextOptions) notFoundText = nextOptions.notFoundText;
-            if ("onSelect" in nextOptions) onSelect = nextOnSelect ?? null;
-            if ("onRouteSelect" in nextOptions) onRouteSelect = nextOnRouteSelect ?? null;
-
-            if (nextRoutes !== undefined || "searchItemsOptions" in nextOptions || "locale" in nextOptions) {
-                setSearchBoxItems(getItems());
-            }
-
-            updateSearchBox({
-                ...getSearchBoxUpdateOptions(nextOptions),
-                ...getSearchBoxTextOptions()
-            });
-            setRouteSearchBoxAttribute(searchBox);
-        },
-
-        destroy(): void {
-            unsubscribeLocale?.();
-            destroySearchBox();
-        }
+        getRoutes: () => routes,
+        getSelectedRoute: () => searchBox.getSelectedItem()?.data ?? null,
+        setRoutes: (nextRoutes: readonly TRoute[]) => update({ routes: nextRoutes }),
+        update,
+        destroy
     }) as ComposedRouteSearchBox<TRoute>;
+
+    setRouteSearchBoxAttribute(searchBox);
+    try { localeSubscription.replace(locale); }
+    catch (error) {
+        try { destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 
     return composed;
 }

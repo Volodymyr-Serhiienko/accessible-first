@@ -2,7 +2,7 @@
     box-sizing: border-box;
     min-inline-size: 0;
     display: grid;
-    grid-template-columns: minmax(12rem, var(--af-list-detail-list-width, 18rem)) minmax(0, 1fr);
+    grid-template-columns: minmax(0, min(50%, var(--af-list-detail-list-width, 18rem))) minmax(0, 1fr);
     align-items: start;
     gap: var(--af-list-detail-gap, var(--af-space-4));
     color: var(--af-color-fg);
@@ -16,6 +16,7 @@
 [data-af-list-detail-detail] {
     box-sizing: border-box;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
     padding: var(--af-list-detail-panel-padding, var(--af-space-4));
@@ -31,6 +32,7 @@
 
 [data-af-list-detail-detail] {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-4);
 }
 

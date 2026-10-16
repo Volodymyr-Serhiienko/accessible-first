@@ -9,6 +9,15 @@
     gap: var(--af-header-tools-inline-gap, var(--af-space-3));
 }
 
+[data-af-header-tools-inline] > [data-af-header-tools-controls] {
+    display: contents;
+}
+
+[data-af-header-tools-inline] > [data-af-header-tools-controls] > [data-af-component="button"] {
+    flex: 0 0 auto;
+    inline-size: max-content;
+}
+
 [data-af-header-tools-menu] {
     display: none;
     margin-inline-start: auto;
@@ -37,6 +46,7 @@
 }
 
 [data-af-header-tools-panel] {
+    position: fixed;
     --af-popover-max-width: var(--af-header-tools-panel-width, 22rem);
     --af-popover-mobile-width: var(--af-header-tools-panel-mobile-width, 20rem);
 }
@@ -56,6 +66,7 @@
 [data-af-header-tools-controls] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 
@@ -65,7 +76,7 @@
     max-inline-size: 100%;
 }
 
-[data-af-header-tools-controls] [data-af-search-box] {
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-search-box] {
     --af-search-box-width: 100% !important;
     --af-search-box-min-width: 0rem !important;
     --af-search-box-max-width: 100% !important;
@@ -76,23 +87,28 @@
     margin-inline-start: 0;
 }
 
-[data-af-header-tools-controls] [data-af-search-box] [data-af-component="combobox"] {
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-search-box] [data-af-component="combobox"] {
     inline-size: 100%;
     min-inline-size: 0;
     max-inline-size: 100%;
 }
 
-[data-af-header-tools-controls] [data-af-route-command-palette],
-[data-af-header-tools-controls] [data-af-language-select],
-[data-af-header-tools-controls] [data-af-language-combobox] {
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-route-command-palette],
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-language-select],
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-language-combobox] {
     inline-size: 100%;
 }
 
-[data-af-header-tools-controls] [data-af-route-command-palette] > [data-af-component="button"],
-[data-af-header-tools-controls] > [data-af-component="button"],
-[data-af-header-tools-controls] [data-af-language-select] select,
-[data-af-header-tools-controls] [data-af-language-combobox] [data-af-component="combobox"] {
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-route-command-palette] > [data-af-component="button"],
+[data-af-header-tools-panel] [data-af-header-tools-controls] > [data-af-component="button"],
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-language-select] select,
+[data-af-header-tools-panel] [data-af-header-tools-controls] [data-af-language-combobox] [data-af-component="combobox"] {
     inline-size: 100%;
+}
+
+[data-af-header-tools-title],
+[data-af-header-tools-description] {
+    overflow-wrap: anywhere;
 }
 
 [data-af-header-tools-footer] {

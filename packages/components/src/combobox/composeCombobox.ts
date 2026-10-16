@@ -16,6 +16,7 @@ import {
     type ElementAttributes
 } from "../composition";
 import { createHoverAnnouncement } from "../foundation";
+import { runCleanups } from "../../../core/src/events";
 import { createCombobox as createComboboxComponent } from "./createCombobox";
 import type {
     Combobox as ComboboxInstance,
@@ -192,6 +193,7 @@ export interface ComposedCombobox
 }
 
 interface ComboboxItemNode {
+    retired: boolean;
     value: string;
     option: HTMLElement;
     labelContent: ReturnType<typeof createContentSlot>;
@@ -199,6 +201,14 @@ interface ComboboxItemNode {
     announceOnHover: boolean | undefined;
     disabled: boolean;
     textValue: string | null;
+}
+
+function disposeItemNodes(nodes: ComboboxItemNode[]): void {
+    runCleanups(nodes.map(node => () => {
+        if (node.retired) return;
+        node.retired = true;
+        runCleanups([node.labelContent.dispose, node.hoverAnnouncement.destroy]);
+    }));
 }
 
 function getOptionalText(value: string | null | undefined): string {
@@ -251,35 +261,41 @@ function createItemNodes(
     rootAnnounceOnHover: boolean
 ): ComboboxItemNode[] {
     const usedValues = new Set<string>();
+    const created: ComboboxItemNode[] = [];
+    try {
+        return items.map((item, index): ComboboxItemNode => {
+            const value = getUniqueValue(item, index, usedValues);
+            const option = createElement("div", getCompositionElementOptions(
+                item.optionOptions,
+                { "data-af-combobox-option": "" }
+            ));
 
-    return items.map((item, index): ComboboxItemNode => {
-        const value = getUniqueValue(item, index, usedValues);
-        const option = createElement("div", getCompositionElementOptions(
-            item.optionOptions,
-            { "data-af-combobox-option": "" }
-        ));
+            if (!option.id) {
+                option.id = createId("af-combobox-option");
+            }
 
-        if (!option.id) {
-            option.id = createId("af-combobox-option");
-        }
+            const node: ComboboxItemNode = {
+                retired: false,
+                value,
+                option,
+                labelContent: createContentSlot(option, toCompositionChildren(item.label)),
+                hoverAnnouncement: createHoverAnnouncement(option, {
+                    message: item.hoverAnnouncement ?? undefined,
+                    enabled: item.announceOnHover ?? rootAnnounceOnHover
+                }),
+                announceOnHover: item.announceOnHover,
+                disabled: false,
+                textValue: item.textValue ?? null,
+            };
 
-        const node: ComboboxItemNode = {
-            value,
-            option,
-            labelContent: createContentSlot(option, toCompositionChildren(item.label)),
-            hoverAnnouncement: createHoverAnnouncement(option, {
-                message: item.hoverAnnouncement ?? undefined,
-                enabled: item.announceOnHover ?? rootAnnounceOnHover
-            }),
-            announceOnHover: item.announceOnHover,
-            disabled: false,
-            textValue: item.textValue ?? null,
-        };
-
-        syncItemDisabled(node, item.disabled ?? false);
-
-        return node;
-    });
+            syncItemDisabled(node, item.disabled ?? false);
+            created.push(node);
+            return node;
+        });
+    } catch (error) {
+        try { disposeItemNodes(created); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }
 
 function getOptionElementByValue(
@@ -291,25 +307,6 @@ function getOptionElementByValue(
     }
 
     return itemNodes.find((node) => node.value === value && !node.disabled)?.option ?? null;
-}
-
-function getComboboxOptionText(
-    option: HTMLElement,
-    itemNodes: ComboboxItemNode[]
-): string {
-    const node = itemNodes.find((candidate) => candidate.option === option);
-
-    return node?.textValue ?? getElementText(option, node?.value ?? "");
-}
-
-function isComboboxOptionDisabled(
-    option: HTMLElement,
-    itemNodes: ComboboxItemNode[]
-): boolean {
-    return (
-        itemNodes.find((node) => node.option === option)?.disabled
-        ?? option.getAttribute("aria-disabled") === "true"
-    );
 }
 
 function getInputAttributes(options: ComboboxCompositionOptions): ElementAttributes {
@@ -362,9 +359,7 @@ function getComboboxOptions(
     onActiveOptionChange: NonNullable<ComboboxInstanceOptions["onActiveOptionChange"]>
 ): ComboboxInstanceOptions {
     const comboboxOptions: ComboboxInstanceOptions = {
-        getOptions: () => itemNodes.map((node) => node.option),
-        getOptionText: (option) => getComboboxOptionText(option, itemNodes),
-        isOptionDisabled: (option) => isComboboxOptionDisabled(option, itemNodes),
+        ...getItemSourceUpdateOptions(itemNodes),
         onOpenChange,
         onValueChange,
         onActiveOptionChange
@@ -381,6 +376,9 @@ function getComboboxOptions(
     if (options.defaultInputValue !== undefined) comboboxOptions.defaultInputValue = options.defaultInputValue;
     if (options.autocomplete !== undefined) comboboxOptions.autocomplete = options.autocomplete;
     if (options.disabled !== undefined) comboboxOptions.disabled = options.disabled;
+    if (options.pending !== undefined) comboboxOptions.pending = options.pending;
+    if (options.pendingMessage !== undefined) comboboxOptions.pendingMessage = options.pendingMessage;
+    if (options.pendingDelay !== undefined) comboboxOptions.pendingDelay = options.pendingDelay;
     if (options.open !== undefined) comboboxOptions.open = options.open;
     if (options.defaultOpen !== undefined) comboboxOptions.defaultOpen = options.defaultOpen;
     if (options.openOnFocus !== undefined) comboboxOptions.openOnFocus = options.openOnFocus;
@@ -425,6 +423,9 @@ function getComboboxUpdateOptions(
     if (options.inputValue !== undefined) comboboxOptions.inputValue = options.inputValue;
     if (options.autocomplete !== undefined) comboboxOptions.autocomplete = options.autocomplete;
     if (options.disabled !== undefined) comboboxOptions.disabled = options.disabled;
+    if (options.pending !== undefined) comboboxOptions.pending = options.pending;
+    if (options.pendingMessage !== undefined) comboboxOptions.pendingMessage = options.pendingMessage;
+    if (options.pendingDelay !== undefined) comboboxOptions.pendingDelay = options.pendingDelay;
     if (options.open !== undefined) comboboxOptions.open = options.open;
     if (options.openOnFocus !== undefined) comboboxOptions.openOnFocus = options.openOnFocus;
     if (options.openOnInput !== undefined) comboboxOptions.openOnInput = options.openOnInput;
@@ -456,11 +457,15 @@ function getComboboxUpdateOptions(
 
 function getItemSourceUpdateOptions(
     nodes: ComboboxItemNode[]
-): ComboboxInstanceUpdateOptions {
+): Pick<ComboboxInstanceOptions, "getOptions" | "getOptionText" | "isOptionDisabled"> {
+    const byOption = new Map(nodes.map(node => [node.option, node]));
     return {
         getOptions: () => nodes.map((node) => node.option),
-        getOptionText: (option) => getComboboxOptionText(option, nodes),
-        isOptionDisabled: (option) => isComboboxOptionDisabled(option, nodes)
+        getOptionText: (option) => {
+            const node = byOption.get(option);
+            return node?.textValue ?? getElementText(option, node?.value ?? "");
+        },
+        isOptionDisabled: (option) => byOption.get(option)?.disabled ?? option.getAttribute("aria-disabled") === "true"
     };
 }
 
@@ -503,6 +508,8 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     element.append(input, listbox);
 
     let composed!: ComposedCombobox;
+    let destroyed = false;
+    let revision = 0;
     let labelElement: HTMLLabelElement | null = null;
     let onOpenChange = options.onOpenChange ?? null;
     let onValueChange = options.onValueChange ?? null;
@@ -518,10 +525,13 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
             option: node.option,
 
             setLabelContent(content): void {
+                if (destroyed || node.retired) return;
+                revision += 1;
                 node.labelContent.set(toCompositionChildren(content));
             },
 
             setDisabled(disabled): void {
+                if (destroyed || node.retired) return;
                 syncItemDisabled(node, disabled);
                 combobox.refresh();
             },
@@ -536,24 +546,28 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
         };
     }
 
-    function disposeItemNodes(nodes: ComboboxItemNode[]): void {
-        for (const node of nodes) {
-            node.labelContent.dispose();
-            node.hoverAnnouncement.destroy();
-        }
-    }
-
     const composedItems: ComposedComboboxItem[] = itemNodes.map(createComposedItem);
 
     function setItems(items: ComboboxCompositionItem[]): void {
-        disposeItemNodes(itemNodes);
-
-        itemNodes = createItemNodes(items, announceOnHover);
-        composedItems.splice(0, composedItems.length, ...itemNodes.map(createComposedItem));
-        listbox.replaceChildren(...itemNodes.map((node) => node.option), notFound);
-
-        combobox.update(getItemSourceUpdateOptions(itemNodes));
-        syncNotFoundState();
+        if (destroyed) return;
+        const current = ++revision;
+        const next = createItemNodes(items, announceOnHover);
+        if (destroyed || current !== revision) { disposeItemNodes(next); return; }
+        const previous = itemNodes;
+        itemNodes = [];
+        composedItems.splice(0);
+        runCleanups([
+            () => disposeItemNodes(previous),
+            () => {
+                if (destroyed || current !== revision) { disposeItemNodes(next); return; }
+                itemNodes = next;
+                composedItems.splice(0, composedItems.length, ...itemNodes.map(createComposedItem));
+                listbox.replaceChildren(...itemNodes.map(node => node.option), notFound);
+                if (destroyed || current !== revision) return;
+                combobox.update(getItemSourceUpdateOptions(itemNodes));
+                syncNotFoundState();
+            }
+        ]);
     }
 
     function ensureInputId(): string {
@@ -586,6 +600,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     }
 
     function setLabel(label: string | null): void {
+        if (destroyed) return;
         const text = label?.trim() ?? "";
 
         if (!text) {
@@ -618,6 +633,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     }
 
     function syncNotFoundState(options: { announce?: boolean } = {}): void {
+        if (destroyed) return;
         const visible = shouldShowNotFound();
 
         notFound.hidden = !visible;
@@ -639,6 +655,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     }
 
     function setNotFoundText(text: string | null): void {
+        if (destroyed) return;
         notFound.textContent = getOptionalText(text);
         combobox.update({ closeOnEmpty: !hasNotFoundText(text) });
         syncNotFoundState();
@@ -661,11 +678,13 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     }
 
     const handleOpenChange: NonNullable<ComboboxInstanceOptions["onOpenChange"]> = (detail): void => {
+        if (destroyed) return;
         syncNotFoundState();
         onOpenChange?.(detail, composed);
     };
 
     const handleValueChange: NonNullable<ComboboxInstanceOptions["onValueChange"]> = (detail): void => {
+        if (destroyed) return;
         const selectedItem = getItemByOption(detail.selectedOption);
 
         syncNotFoundState({ announce: detail.reason === "input" });
@@ -682,6 +701,7 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
     };
 
     const handleActiveOptionChange: NonNullable<ComboboxInstanceOptions["onActiveOptionChange"]> = (detail): void => {
+        if (destroyed) return;
         onActiveOptionChange?.(
             {
                 ...detail,
@@ -693,7 +713,8 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
 
     setLabel(options.label ?? null);
 
-    const combobox = createComboboxComponent(
+    let combobox: ComboboxInstance;
+    try { combobox = createComboboxComponent(
         input,
         listbox,
         getComboboxOptions(
@@ -703,7 +724,11 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
             handleValueChange,
             handleActiveOptionChange
         )
-    );
+    ); } catch (error) {
+        try { disposeItemNodes(itemNodes); } catch { /* Preserve the construction failure. */ }
+        setLabel(null);
+        throw error;
+    }
 
     composed = {
         ...combobox,
@@ -728,16 +753,20 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
         },
 
         setSelectedValue(value): boolean {
+            if (destroyed) return false;
             return combobox.setSelectedOption(getOptionElementByValue(value, itemNodes));
         },
 
         getActiveItem,
 
         setActiveValue(value, setOptions): boolean {
+            if (destroyed) return false;
             return combobox.setActiveOption(getOptionElementByValue(value, itemNodes), setOptions);
         },
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const current = ++revision;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.inputOptions !== undefined) {
@@ -796,8 +825,9 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
                 onActiveOptionChange = nextOptions.onActiveOptionChange ?? null;
             }
 
-            if (nextOptions.items !== undefined) {
-                nextOptions.items.forEach((nextItem, index) => {
+            runCleanups([
+                ...(nextOptions.items ?? []).map((nextItem, index) => () => {
+                    if (destroyed || current !== revision) return;
                     const node = itemNodes[index];
                     const item = composedItems[index];
 
@@ -807,40 +837,38 @@ export function Combobox(options: ComboboxCompositionOptions): ComposedCombobox 
                         applyOptionOptions(node.option, nextItem.optionOptions);
                     }
 
-                    if (nextItem.label !== undefined) {
-                        item.setLabelContent(nextItem.label);
-                    }
-
-                    if (nextItem.disabled !== undefined) {
-                        syncItemDisabled(node, nextItem.disabled);
-                    }
-
-                    if ("textValue" in nextItem) {
-                        node.textValue = nextItem.textValue ?? null;
-                    }
-
-                    if ("hoverAnnouncement" in nextItem) {
-                        node.hoverAnnouncement.setMessage(nextItem.hoverAnnouncement ?? undefined);
-                    }
-
-                    if (nextItem.announceOnHover !== undefined) {
-                        node.announceOnHover = nextItem.announceOnHover;
-                        node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
-                    }
-                });
-            }
-
-            combobox.update(getComboboxUpdateOptions(nextOptions, itemNodes));
-            syncNotFoundState();
+                    runCleanups([
+                        () => { if (nextItem.label !== undefined) node.labelContent.set(toCompositionChildren(nextItem.label)); },
+                        () => {
+                            if (destroyed || current !== revision) return;
+                            if (nextItem.disabled !== undefined) syncItemDisabled(node, nextItem.disabled);
+                            if ("textValue" in nextItem) node.textValue = nextItem.textValue ?? null;
+                            if ("hoverAnnouncement" in nextItem) node.hoverAnnouncement.setMessage(nextItem.hoverAnnouncement ?? undefined);
+                            if (nextItem.announceOnHover !== undefined) {
+                                node.announceOnHover = nextItem.announceOnHover;
+                                node.hoverAnnouncement.setEnabled(node.announceOnHover ?? announceOnHover);
+                            }
+                        }
+                    ]);
+                }),
+                () => {
+                    if (destroyed || current !== revision) return;
+                    combobox.update(getComboboxUpdateOptions(nextOptions, itemNodes));
+                    syncNotFoundState();
+                }
+            ]);
         },
 
         destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
             labelElement?.remove();
-            disposeItemNodes(itemNodes);
-            announcer?.destroy();
+            const channel = announcer;
             announcer = null;
-            combobox.destroy();
-        }
+            runCleanups([() => disposeItemNodes(itemNodes), () => channel?.destroy(), combobox.destroy]);
+        },
+        isDestroyed: () => destroyed || combobox.isDestroyed()
     };
 
     return composed;

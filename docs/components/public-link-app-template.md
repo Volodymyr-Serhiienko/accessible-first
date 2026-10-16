@@ -100,6 +100,14 @@ Shell options are normal `AppShell` options, with these additions:
 
 Use resolvers for localized shell text and outlet labels so the template can refresh them when the locale changes.
 
+During initial shell preparation, a later slot factory failure destroys earlier
+returned factory results once, in reverse order, without hiding the original error.
+Supplied static nodes remain caller-owned until `AppShell` is called. Each factory
+owns resources it allocates but never returns; do not return another live owner's tree.
+This initial preparation rule is not a transaction across later chrome/route updates.
+During chrome refresh, explicit `routeChrome.shell` fields suppress the corresponding
+template shell resolvers. Runtime cancellation/ownership follows [LinkRoutedApp](link-routed-app.md).
+
 ## When To Use Lower Layers
 
 Use `PublicAppTemplate` for the standard one-entry public app API. Use `PublicLinkAppTemplate` when the code or docs should be explicitly native-link or MPA-only.

@@ -1,9 +1,10 @@
-import { addEventListener } from "../../../core/src/events";
+import { addEventListener, runCleanups } from "../../../core/src/events";
 import { focusElement } from "../../../core/src/focus";
 import { isArrowDownKey, isArrowUpKey, isEndKey, isHomeKey } from "../../../core/src/keyboard";
 import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import { createComponentLifecycle } from "../foundation";
-import { restoreAttribute } from "../../../core/src/dom";
+import { isHTMLElement, restoreAttribute } from "../../../core/src/dom";
+import { isCollectionItemUnavailable } from "../../../core/src/roving-focus/collectionAvailability";
 
 import {
     createDisclosure,
@@ -44,6 +45,11 @@ function getUniqueValue(
     return value;
 }
 
+function getOwnDisabled(item: AccordionItemOptions): boolean {
+    return item.disabled ?? (item.trigger.matches(":disabled")
+        || item.trigger.getAttribute("aria-disabled") === "true");
+}
+
 function getInitialOpenStates(
     items: AccordionItemOptions[],
     multiple: boolean,
@@ -65,7 +71,7 @@ function getInitialOpenStates(
     }
 
     if (!multiple && !collapsible && !states.some(Boolean) && states.length > 0) {
-        const firstAvailableIndex = items.findIndex((item) => item.disabled !== true);
+        const firstAvailableIndex = items.findIndex((item) => !getOwnDisabled(item));
         states[firstAvailableIndex >= 0 ? firstAvailableIndex : 0] = true;
     }
 
@@ -108,11 +114,12 @@ export function createAccordion(
     let announcement = options.announcement;
     let suppressOpenChange = false;
     let loop = options.loop ?? true;
+    let revision = 0;
 
     const internalItems: InternalAccordionItem[] = [];
 
     function getItemByTrigger(target: EventTarget | null): InternalAccordionItem | null {
-        if (!(target instanceof HTMLElement)) {
+        if (!isHTMLElement(target)) {
             return null;
         }
 
@@ -120,7 +127,8 @@ export function createAccordion(
     }
 
     function getAvailableItems(): InternalAccordionItem[] {
-        return internalItems.filter((item) => !item.isDisabled());
+        return internalItems.filter((item) => !item.disclosure.isDestroyed()
+            && !isCollectionItemUnavailable(element, item.trigger, () => item.isDisabled()));
     }
 
     function focusItem(item: InternalAccordionItem | null): boolean {
@@ -157,6 +165,8 @@ export function createAccordion(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
+        if (lifecycle.isDestroyed() || event.defaultPrevented || event.isComposing || event.keyCode === 229
+            || event.altKey || event.ctrlKey || event.metaKey) return;
         const item = getItemByTrigger(event.target);
 
         if (!item || item.isDisabled()) {
@@ -189,6 +199,7 @@ export function createAccordion(
     }
 
     function syncRootAttributes(): void {
+        if (lifecycle.isDestroyed()) return;
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
         element.setAttribute("data-af-accordion-multiple", String(multiple));
@@ -196,6 +207,7 @@ export function createAccordion(
     }
 
     function syncItemAttributes(item: InternalAccordionItem): void {
+        if (lifecycle.isDestroyed() || item.disclosure.isDestroyed()) return;
         item.element.setAttribute("data-af-accordion-item", "");
         item.element.setAttribute("data-af-accordion-value", item.value);
         item.element.setAttribute("data-af-open", String(item.isOpen()));
@@ -204,6 +216,21 @@ export function createAccordion(
             item.element.setAttribute("data-af-disabled", "true");
         } else {
             item.element.removeAttribute("data-af-disabled");
+            if (item.isOpen() && !canCloseItem(item)) item.trigger.setAttribute("aria-disabled", "true");
+            else item.trigger.removeAttribute("aria-disabled");
+        }
+    }
+
+    function syncItems(): void {
+        if (!lifecycle.isDestroyed()) internalItems.forEach(syncItemAttributes);
+    }
+
+    function guardRequiredOpenClick(event: MouseEvent): void {
+        if (lifecycle.isDestroyed() || event.defaultPrevented) return;
+        const item = internalItems.find(item => event.composedPath().includes(item.trigger));
+        if (item?.isOpen() && !canCloseItem(item)) {
+            event.preventDefault();
+            event.stopPropagation();
         }
     }
 
@@ -228,9 +255,11 @@ export function createAccordion(
             return;
         }
 
+        const current = revision;
         for (const otherItem of internalItems) {
+            if (lifecycle.isDestroyed() || current !== revision || !item.isOpen()) return;
             if (otherItem !== item && otherItem.isOpen()) {
-                otherItem.setOpen(false);
+                otherItem.disclosure.setOpen(false);
             }
         }
     }
@@ -246,7 +275,9 @@ export function createAccordion(
     }
 
     function handleItemOpenChange(item: InternalAccordionItem, open: boolean): void {
-        syncItemAttributes(item);
+        if (lifecycle.isDestroyed()) return;
+        const current = revision;
+        syncItems();
 
         if (suppressOpenChange) {
             return;
@@ -254,26 +285,31 @@ export function createAccordion(
 
         if (!open && !canCloseItem(item)) {
             suppressOpenChange = true;
-            item.disclosure.setOpen(true);
-            suppressOpenChange = false;
-            syncItemAttributes(item);
+            try { item.disclosure.setOpen(true); }
+            finally { suppressOpenChange = false; }
+            syncItems();
             return;
         }
 
         if (open) {
             closeOtherItems(item);
         }
-
-        emitOpenChange(item);
+        if (!lifecycle.isDestroyed() && current === revision && item.isOpen() === open) {
+            syncItems();
+            emitOpenChange(item);
+        }
     }
 
     function setItemDisabled(item: InternalAccordionItem, nextDisabled: boolean): void {
+        if (lifecycle.isDestroyed() || item.disclosure.isDestroyed()) return;
+        revision += 1;
         item.ownDisabled = nextDisabled;
         item.disclosure.setDisabled(disabled || item.ownDisabled);
-        syncItemAttributes(item);
+        syncItems();
     }
 
     function syncDisabledState(): void {
+        if (lifecycle.isDestroyed()) return;
         lifecycle.setState(disabled ? "disabled" : "ready");
 
         for (const item of internalItems) {
@@ -283,14 +319,14 @@ export function createAccordion(
     }
 
     function ensureRequiredOpenItem(): void {
-        if (multiple || collapsible || getOpenItems().length > 0) {
+        if (lifecycle.isDestroyed() || multiple || collapsible || getOpenItems().length > 0) {
             return;
         }
 
         const firstAvailable = internalItems.find((item) => !item.isDisabled()) ?? internalItems[0];
 
         if (firstAvailable) {
-            firstAvailable.setOpen(true);
+            firstAvailable.disclosure.setOpen(true);
         }
     }
 
@@ -299,16 +335,18 @@ export function createAccordion(
             return;
         }
 
+        const current = revision;
         let firstOpenFound = false;
 
         for (const item of internalItems) {
+            if (lifecycle.isDestroyed() || current !== revision) return;
             if (item.isOpen() && !firstOpenFound) {
                 firstOpenFound = true;
                 continue;
             }
 
             if (item.isOpen()) {
-                item.setOpen(false);
+                item.disclosure.setOpen(false);
             }
         }
 
@@ -317,98 +355,6 @@ export function createAccordion(
 
     syncRootAttributes();
 
-    options.items.forEach((itemOptions, index) => {
-        const value = getUniqueValue(itemOptions, index, usedValues);
-        const ownDisabled = itemOptions.disabled ?? false;
-        const originalItemMarker = itemOptions.element.getAttribute("data-af-accordion-item");
-        const originalItemValue = itemOptions.element.getAttribute("data-af-accordion-value");
-        const originalItemOpen = itemOptions.element.getAttribute("data-af-open");
-        const originalItemDisabled = itemOptions.element.getAttribute("data-af-disabled");
-
-        let item!: InternalAccordionItem;
-
-        const ownAnnouncement = itemOptions.announcement;
-        const itemAnnouncement = ownAnnouncement ?? announcement;
-
-        const disclosureOptions: DisclosureOptions = {
-            trigger: itemOptions.trigger,
-            panel: itemOptions.panel,
-            defaultOpen: initialOpenStates[index] ?? false,
-            disabled: disabled || ownDisabled,
-            variant,
-            size,
-            onOpenChange(open) {
-                handleItemOpenChange(item, open);
-            }
-        };
-
-        if (itemAnnouncement !== undefined) {
-            disclosureOptions.announcement = itemAnnouncement;
-        }
-
-        const disclosure: Disclosure = createDisclosure(itemOptions.element, disclosureOptions);
-
-        item = {
-            value,
-            element: itemOptions.element,
-            trigger: itemOptions.trigger,
-            panel: itemOptions.panel,
-            disclosure,
-            ownDisabled,
-            ownAnnouncement,
-
-            open(): void {
-                item.setOpen(true);
-            },
-
-            close(): void {
-                item.setOpen(false);
-            },
-
-            toggle(): void {
-                item.setOpen(!item.isOpen());
-            },
-
-            setOpen(open): void {
-                if (!open && !canCloseItem(item)) {
-                    return;
-                }
-
-                disclosure.setOpen(open);
-            },
-
-            isOpen(): boolean {
-                return disclosure.isOpen();
-            },
-
-            setDisabled(nextDisabled): void {
-                setItemDisabled(item, nextDisabled);
-            },
-
-            isDisabled(): boolean {
-                return disclosure.isDisabled();
-            }
-        };
-
-        internalItems.push(item);
-        syncItemAttributes(item);
-
-        lifecycle.addCleanup(() => {
-            restoreAttribute(itemOptions.element, "data-af-accordion-item", originalItemMarker);
-            restoreAttribute(itemOptions.element, "data-af-accordion-value", originalItemValue);
-            restoreAttribute(itemOptions.element, "data-af-open", originalItemOpen);
-            restoreAttribute(itemOptions.element, "data-af-disabled", originalItemDisabled);
-        });
-
-        lifecycle.addCleanup(() => {
-            disclosure.destroy();
-        });
-    });
-
-    lifecycle.addCleanup(
-        addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
-    );
-
     lifecycle.addCleanup(() => {
         restoreAttribute(element, "data-af-variant", originalVariant);
         restoreAttribute(element, "data-af-size", originalSize);
@@ -416,18 +362,120 @@ export function createAccordion(
         restoreAttribute(element, "data-af-accordion-collapsible", originalCollapsible);
     });
 
+    try {
+        options.items.forEach((itemOptions, index) => {
+            const value = getUniqueValue(itemOptions, index, usedValues);
+            const ownDisabled = getOwnDisabled(itemOptions);
+            const originalItemMarker = itemOptions.element.getAttribute("data-af-accordion-item");
+            const originalItemValue = itemOptions.element.getAttribute("data-af-accordion-value");
+            const originalItemOpen = itemOptions.element.getAttribute("data-af-open");
+            const originalItemDisabled = itemOptions.element.getAttribute("data-af-disabled");
+
+            let item!: InternalAccordionItem;
+
+            const ownAnnouncement = itemOptions.announcement;
+            const itemAnnouncement = ownAnnouncement ?? announcement;
+
+            const disclosureOptions: DisclosureOptions = {
+                trigger: itemOptions.trigger,
+                panel: itemOptions.panel,
+                defaultOpen: initialOpenStates[index] ?? false,
+                disabled: disabled || ownDisabled,
+                variant,
+                size,
+                onOpenChange(open) {
+                    handleItemOpenChange(item, open);
+                }
+            };
+
+            if (itemAnnouncement !== undefined) {
+                disclosureOptions.announcement = itemAnnouncement;
+            }
+
+            const disclosure: Disclosure = createDisclosure(itemOptions.element, disclosureOptions);
+
+            item = {
+                value,
+                element: itemOptions.element,
+                trigger: itemOptions.trigger,
+                panel: itemOptions.panel,
+                disclosure,
+                ownDisabled,
+                ownAnnouncement,
+
+                open(): void {
+                    item.setOpen(true);
+                },
+
+                close(): void {
+                    item.setOpen(false);
+                },
+
+                toggle(): void {
+                    item.setOpen(!item.isOpen());
+                },
+
+                setOpen(open): void {
+                    if (lifecycle.isDestroyed() || disclosure.isDestroyed()) return;
+                    if (!open && !canCloseItem(item)) {
+                        return;
+                    }
+
+                    revision += 1;
+                    disclosure.setOpen(open);
+                },
+
+                isOpen(): boolean {
+                    return disclosure.isOpen();
+                },
+
+                setDisabled(nextDisabled): void {
+                    setItemDisabled(item, nextDisabled);
+                },
+
+                isDisabled(): boolean {
+                    return disclosure.isDisabled();
+                }
+            };
+
+            internalItems.push(item);
+            syncItemAttributes(item);
+
+            lifecycle.addCleanup(() => {
+                restoreAttribute(itemOptions.element, "data-af-accordion-item", originalItemMarker);
+                restoreAttribute(itemOptions.element, "data-af-accordion-value", originalItemValue);
+                restoreAttribute(itemOptions.element, "data-af-open", originalItemOpen);
+                restoreAttribute(itemOptions.element, "data-af-disabled", originalItemDisabled);
+            });
+
+            lifecycle.addCleanup(() => {
+                disclosure.destroy();
+            });
+        });
+    } catch (error) { runCleanups([() => { throw error; }, lifecycle.destroy]); }
+
+    lifecycle.addCleanup(
+        addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
+    );
+    lifecycle.addCleanup(addEventListener<MouseEvent>(element, "click", guardRequiredOpenClick, { capture: true }));
+
     ensureRequiredOpenItem();
+    syncItems();
+
+    function setItemOpen(value: string, open: boolean): void {
+        if (!lifecycle.isDestroyed()) getInternalItem(value)?.setOpen(open);
+    }
 
     return {
         element,
         items: internalItems,
 
         openItem(value): void {
-            this.setItemOpen(value, true);
+            setItemOpen(value, true);
         },
 
         closeItem(value): void {
-            this.setItemOpen(value, false);
+            setItemOpen(value, false);
         },
 
         toggleItem(value): void {
@@ -438,13 +486,7 @@ export function createAccordion(
             }
         },
 
-        setItemOpen(value, open): void {
-            const item = getInternalItem(value);
-
-            if (item) {
-                item.setOpen(open);
-            }
-        },
+        setItemOpen,
 
         getItem(value): AccordionItem | null {
             return getInternalItem(value);
@@ -460,6 +502,7 @@ export function createAccordion(
             }
 
             disabled = nextDisabled;
+            revision += 1;
             syncDisabledState();
         },
 
@@ -472,6 +515,8 @@ export function createAccordion(
         },
 
         update(nextOptions: AccordionUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+            revision += 1;
             if (nextOptions.multiple !== undefined) {
                 multiple = nextOptions.multiple;
             }
@@ -521,6 +566,7 @@ export function createAccordion(
 
             syncRootAttributes();
             normalizeSingleOpenState();
+            syncItems();
         },
 
         destroy(): void {

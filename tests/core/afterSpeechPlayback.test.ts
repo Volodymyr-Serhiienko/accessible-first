@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
     afterSpeechCompletes,
     afterSpeechSettles,
@@ -74,5 +74,43 @@ describe("speech playback follow-ups", () => {
         expect(unavailableCalls).toBe(1);
         expect(cancelledCalls).toBe(0);
         expect(unavailable.getListenerCount()).toBe(0);
+    });
+
+    it("releases a synchronous terminal subscription before a throwing follow-up", () => {
+        const source = createPlayback({ status: "completed" });
+        expect(() => afterSpeechSettles(source.playback, () => { throw new Error("follow-up"); })).toThrow("follow-up");
+        expect(source.getListenerCount()).toBe(0);
+    });
+
+    it("runs the follow-up once even if terminal unsubscription fails", () => {
+        const source = createPlayback({ status: "speaking" });
+        const subscribe = source.playback.subscribe;
+        const released = vi.fn();
+        source.playback.subscribe = listener => {
+            const unsubscribe = subscribe(listener);
+            return () => { released(); unsubscribe(); throw new Error("unsubscribe"); };
+        };
+        const followUp = vi.fn(); const cancel = afterSpeechCompletes(source.playback, followUp);
+        expect(() => source.emit({ status: "completed" })).toThrow("unsubscribe");
+        source.emit({ status: "completed" }); cancel();
+        expect(followUp).toHaveBeenCalledOnce(); expect(released).toHaveBeenCalledOnce(); expect(source.getListenerCount()).toBe(0);
+    });
+
+    it("makes cancellation terminal before a throwing unsubscribe", () => {
+        const source = createPlayback({ status: "speaking" });
+        const subscribe = source.playback.subscribe;
+        source.playback.subscribe = listener => { subscribe(listener); return () => { throw new Error("unsubscribe"); }; };
+        const followUp = vi.fn(); const cancel = afterSpeechSettles(source.playback, followUp);
+        expect(cancel).toThrow("unsubscribe"); expect(cancel).not.toThrow();
+        source.emit({ status: "completed" }); expect(followUp).not.toHaveBeenCalled();
+    });
+
+    it("ignores callbacks retained by a provider whose subscribe failed", () => {
+        const source = createPlayback({ status: "speaking" });
+        const subscribe = source.playback.subscribe;
+        source.playback.subscribe = listener => { subscribe(listener); throw new Error("subscribe"); };
+        const followUp = vi.fn();
+        expect(() => afterSpeechSettles(source.playback, followUp)).toThrow("subscribe");
+        source.emit({ status: "completed" }); expect(followUp).not.toHaveBeenCalled();
     });
 });

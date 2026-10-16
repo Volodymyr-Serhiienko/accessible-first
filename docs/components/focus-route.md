@@ -104,6 +104,13 @@ When focus moves to a non-interactive region, the target should be a stable prog
 - `resolveFocusRouteTarget(target)` - resolves an element or resolver function to an element or `null`.
 - `FocusRouteLink(options)` - creates a visible link that runs a focus route when activated.
 
+Supply a real `href` for link semantics/fallback. `update()` retains the underlying
+Link controller; a resolver that updates or destroys its link cancels the old
+focus action and callback. Primary targets resolve once, fallback only when the
+primary is missing. After destruction `focusTarget()` returns an empty result
+without moving focus. General `runFocusRoute()`/scheduled-route ownership remains
+the caller's responsibility.
+
 ## Manual Checks
 
 - Focus moves to the intended target after the workflow action.

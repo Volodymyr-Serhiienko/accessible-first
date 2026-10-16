@@ -192,6 +192,7 @@ export function createPopover(
     let pendingPositionUpdateFrame: number | null = null;
 
     let open = options.open ?? options.defaultOpen ?? false;
+    let openRevision = 0;
     let disabled = options.disabled ?? false;
     let restoreFocus = options.restoreFocus ?? true;
     let closeOnAnchorHidden = options.closeOnAnchorHidden ?? true;
@@ -291,6 +292,7 @@ export function createPopover(
     }
 
     function updatePosition(): PopoverPositionState | null {
+        if (lifecycle.isDestroyed()) return null;
         if (!open || !trigger) {
             return position?.getState() ?? null;
         }
@@ -347,7 +349,7 @@ export function createPopover(
 
         const message = resolveAnnouncementMessage(announcement, context);
 
-        if (!message) return;
+        if (!message || lifecycle.isDestroyed() || !open) return;
 
         announcer ??= createDocumentAnnouncementChannel({
             document: content.ownerDocument
@@ -392,6 +394,7 @@ export function createPopover(
 
     function syncOpenState(nextOpen: boolean, notify = true): void {
         if (lifecycle.isDestroyed()) return;
+        const currentRevision = ++openRevision;
 
         let resolvedOpen = disabled ? false : nextOpen;
 
@@ -408,6 +411,7 @@ export function createPopover(
         if (open) {
             layer.activate();
             updatePosition();
+            if (lifecycle.isDestroyed() || openRevision !== currentRevision) return;
             syncPositionAutoUpdate();
         } else {
             disposePositionAutoUpdate();
@@ -419,8 +423,10 @@ export function createPopover(
             }
         }
 
+        if (lifecycle.isDestroyed() || openRevision !== currentRevision) return;
         if (changed && notify) {
             announceOpenContent(open);
+            if (lifecycle.isDestroyed() || openRevision !== currentRevision) return;
             notifyOpenChange();
         }
     }
@@ -538,6 +544,11 @@ export function createPopover(
     lifecycle.addCleanup(() => layer.destroy());
     lifecycle.addCleanup(() => disposePositionAutoUpdate());
     lifecycle.addCleanup(() => triggerCleanup?.());
+    lifecycle.addCleanup(() => {
+        const channel = announcer;
+        announcer = null;
+        channel?.destroy();
+    });
 
     popover = {
         element: content,
@@ -588,6 +599,7 @@ export function createPopover(
         },
 
         update(nextOptions): void {
+            if (lifecycle.isDestroyed()) return;
             if ("onOpenChange" in nextOptions) {
                 onOpenChange = nextOptions.onOpenChange ?? null;
             }
@@ -692,8 +704,6 @@ export function createPopover(
 
         destroy(): void {
             lifecycle.destroy();
-            announcer?.destroy();
-            announcer = null;
         },
 
         isDestroyed(): boolean {

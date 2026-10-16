@@ -6,10 +6,12 @@
     gap: var(--af-space-2);
     min-inline-size: 0;
     color: var(--af-color-fg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-progress-header] {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
     gap: var(--af-space-3);
@@ -22,13 +24,17 @@
 }
 
 [data-af-progress-value] {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     color: var(--af-color-muted);
     font-size: 0.875rem;
     font-weight: 650;
 }
 
 [data-af-progress-control] {
+    box-sizing: border-box;
+    min-inline-size: 0;
     appearance: none;
     -webkit-appearance: none;
     inline-size: 100%;
@@ -79,6 +85,11 @@
         var(--af-progress-track);
     background-size: 200% 100%;
     animation: af-progress-indeterminate 1.3s linear infinite;
+}
+
+/* The native WebKit track must not cover the animated background underneath. */
+[data-af-composition="progress"][data-af-state="indeterminate"] [data-af-progress-control]::-webkit-progress-bar {
+    background: transparent;
 }
 
 [data-af-progress-description] {

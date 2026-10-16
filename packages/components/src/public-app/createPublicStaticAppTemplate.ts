@@ -1,3 +1,5 @@
+import { runCleanups } from "../../../core/src/events";
+import { discardPreparedContent } from "../composition/preparedContent";
 import {
     AppShell,
     type AppShellCompositionContent,
@@ -21,6 +23,7 @@ import {
 } from "../composition";
 import {
     createLocaleRefresh,
+    type LocaleRefreshController,
     type LocaleCode,
     type LocaleController
 } from "../localization";
@@ -160,9 +163,10 @@ function resolveTemplateIdentity<
 function getTemplateBaseOptions<
     TLocale extends LocaleCode,
     TKey extends string
->(options: PublicStaticAppTemplateOptions<TLocale, TKey>): PublicAppTemplateBaseOptions {
+>(options: PublicStaticAppTemplateOptions<TLocale, TKey>, isCurrent: () => boolean = () => true): PublicAppTemplateBaseOptions {
     const shell = resolvePublicAppTemplateValue(options.shell);
     const baseOptions: PublicAppTemplateBaseOptions = {};
+    if (!isCurrent()) return baseOptions;
 
     if (shell !== undefined) baseOptions.shell = shell;
     if ("identity" in options) baseOptions.identity = resolveTemplateIdentity(options);
@@ -182,11 +186,7 @@ function getTemplateShellOptions<
     TLocale extends LocaleCode,
     TKey extends string
 >(options: PublicStaticAppTemplateOptions<TLocale, TKey>) {
-    const shellOptions = getPublicAppTemplateShellOptions(getTemplateBaseOptions(options));
-
-    shellOptions.content = resolveTemplateContent(options);
-
-    return shellOptions;
+    return getPublicAppTemplateShellOptions(getTemplateBaseOptions(options), options.content ?? null);
 }
 
 function getTemplateRefreshRenderOptions<
@@ -275,15 +275,10 @@ export function createPublicStaticAppTemplate<
 
     let app!: PublicStaticAppTemplate<TLocale, TKey>;
     let mountedTree: MountedTree | null = null;
-    let localeRefresh = options.locale
-        ? createLocaleRefresh(getRoutedAppLocaleRefreshOptions(options.locale, options.localeRefresh, () => {
-            app.refresh({
-                diagnostics: shouldLogDiagnosticsOnRefresh(options)
-            });
-        })!)
-        : null;
+    let localeRefresh: LocaleRefreshController | null = null;
     let removePageHideListener: (() => void) | null = null;
     let destroyed = false;
+    let revision = 0;
 
     app = {
         shell,
@@ -312,53 +307,57 @@ export function createPublicStaticAppTemplate<
 
         refresh(refreshOptions = {}): void {
             if (destroyed) return;
+            const current = ++revision;
+            const isCurrent = (): boolean => !destroyed && current === revision;
 
             if (refreshOptions.shell ?? true) {
+                const baseOptions = getTemplateBaseOptions(options, isCurrent);
+                if (!isCurrent()) return;
                 const shellUpdateOptions = getPublicAppTemplateShellUpdateOptions(
-                    getTemplateBaseOptions(options)
+                    baseOptions, true, { owner: shell, isCurrent }
                 );
-
+                if (!isCurrent()) return;
                 if (hasPublicAppTemplateShellUpdateOptions(shellUpdateOptions)) {
                     shell.update(shellUpdateOptions);
                 }
             }
+            if (!isCurrent()) return;
 
             if (refreshOptions.content ?? true) {
-                shell.render(
-                    resolveTemplateContent(options),
-                    getTemplateRefreshRenderOptions(options, refreshOptions)
-                );
+                const content = resolveTemplateContent(options);
+                if (!isCurrent()) {
+                    if (typeof options.content === "function") discardPreparedContent(shell, content);
+                    return;
+                }
+                shell.render(content, getTemplateRefreshRenderOptions(options, refreshOptions));
             }
 
-            if (refreshOptions.diagnostics ?? shouldLogDiagnosticsOnRefresh(options)) {
+            if (isCurrent() && (refreshOptions.diagnostics ?? shouldLogDiagnosticsOnRefresh(options))) {
                 diagnostics?.log();
             }
         },
 
         inspectDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.inspect() ?? null;
+            return destroyed ? null : diagnostics?.inspect() ?? null;
         },
 
         logDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.log() ?? null;
+            return destroyed ? null : diagnostics?.log() ?? null;
         },
 
         destroy(): void {
             if (destroyed) return;
 
             destroyed = true;
-            removePageHideListener?.();
+            revision += 1;
+            const removePageHide = removePageHideListener;
+            const refreshController = localeRefresh;
+            const tree = mountedTree;
             removePageHideListener = null;
-            localeRefresh?.destroy();
             localeRefresh = null;
-
-            if (mountedTree) {
-                mountedTree.unmount();
-                mountedTree = null;
-                return;
-            }
-
-            shell.destroy();
+            mountedTree = null;
+            runCleanups([() => removePageHide?.(), () => refreshController?.destroy(),
+                () => tree ? tree.unmount() : shell.destroy()]);
         },
 
         isDestroyed(): boolean {
@@ -366,18 +365,28 @@ export function createPublicStaticAppTemplate<
         }
     };
 
-    removePageHideListener = setupRoutedAppPageHideCleanup(
-        shell,
-        () => app.destroy(),
-        options.destroyOnPageHide
-    );
+    try {
+        if (options.locale) {
+            const refreshOptions = getRoutedAppLocaleRefreshOptions(options.locale, options.localeRefresh, () => {
+                app.refresh({ diagnostics: shouldLogDiagnosticsOnRefresh(options) });
+            });
+            if (refreshOptions) localeRefresh = createLocaleRefresh(refreshOptions);
+        }
 
-    if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
-        app.mount(options.mount, options.mountOptions ?? {});
-    }
+        removePageHideListener = setupRoutedAppPageHideCleanup(
+            shell,
+            () => app.destroy(),
+            options.destroyOnPageHide
+        );
 
-    if (shouldLogDiagnosticsOnCreate(options)) {
-        diagnostics?.log();
+        if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
+            app.mount(options.mount, options.mountOptions ?? {});
+        }
+
+        if (shouldLogDiagnosticsOnCreate(options)) diagnostics?.log();
+    } catch (error) {
+        try { app.destroy(); }
+        finally { throw error; }
     }
 
     return app;

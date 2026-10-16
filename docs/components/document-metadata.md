@@ -219,6 +219,35 @@ The helper intentionally keeps structured data generic. Schema.org has many type
 - `update(options)` - updates metadata at runtime.
 - `destroy()` - restores the previous document title, language, managed meta tags, and managed icons.
 
+### Ownership And Updates
+
+Only fields actually updated are owned. Title and document language capture their
+baseline on first use, so a description-only controller does not reset another
+integration's title/language. Use one active owner per metadata field; this is not
+a stack of competing document controllers.
+
+Omitted fields stay unchanged. `null` restores that field's authored baseline or
+removes its generated tag; authored icons and JSON-LD are never replaced. Social
+groups are replacements: omitted group fields reset to baseline. Explicit
+`undefined` behaves like reset for tag fields, but leaves title/language unchanged.
+
+Borrowed tags retain their DOM identity and unrelated attributes. Only owned
+attributes are restored; generated nodes are removed even if moved elsewhere.
+Unrelated tags inserted by other integrations are not deleted. Native meta names
+and link relations are matched case-insensitively. String-form manifest updates
+clear a previous managed `crossorigin`; resetting/destroying restores its baseline.
+
+URL values, icon nodes and JSON are prepared before document writes. A preparation
+failure leaves the current metadata intact; a newer update/destruction during a
+serializer supersedes the old update. This is not rollback of failing native DOM
+writes. Unchanged icons, JSON-LD and tag attributes are retained. Same-origin iframe
+URL values work with the app recipe too. JSON-LD escapes raw `<` delimiters while
+preserving parsed values; this does not add an SSR/hydration contract.
+
+Destruction is terminal/idempotent. All owned teardown is attempted after an error,
+then the first failure is rethrown; partial construction also releases completed
+work. Late updates and repeated destruction cannot overwrite later document state.
+
 ## AppShell And Page
 
 `createPage()` accepts `metadata`. If `title` is provided and `metadata.title` is not set, the page title is reused as the metadata title.
@@ -242,6 +271,10 @@ shell.updateMetadata(metadata);
 ```
 
 `HashRouter` can call this automatically through `getDocumentMetadata` and `updateDocumentMetadata`.
+In public hash templates, an active route's document title takes precedence over
+the template's generated shell title during chrome refresh. The route is not
+rendered again and its metadata resolver is not called twice. An explicit
+`routeChrome.shell.title` or `.metadata.title` can still deliberately override it.
 
 ## Diagnostics
 

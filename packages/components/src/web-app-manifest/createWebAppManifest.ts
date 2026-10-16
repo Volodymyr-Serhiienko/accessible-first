@@ -257,7 +257,7 @@ function inspectStringMember(
 
     if (!value.trim()) {
         issues.push(createManifestIssue(
-            "warning",
+            requiredLevel ?? "warning",
             category,
             `manifest.${member}.empty`,
             `Manifest member "${member}" should not be empty.`,
@@ -285,6 +285,11 @@ export function inspectWebAppManifest(
     inspectStringMember(manifest, "display", "display", issues, options.requireDisplay ? "warning" : undefined);
     inspectStringMember(manifest, "theme_color", "color", issues, options.requireThemeColor ? "warning" : undefined);
     inspectStringMember(manifest, "background_color", "color", issues, options.requireBackgroundColor ? "warning" : undefined);
+    inspectStringMember(manifest, "lang", "identity", issues);
+    inspectStringMember(manifest, "dir", "identity", issues);
+    inspectStringMember(manifest, "id", "launch", issues);
+    inspectStringMember(manifest, "scope", "launch", issues);
+    inspectStringMember(manifest, "orientation", "display", issues);
 
     const icons = manifest.icons;
     let hasMaskableIcon = false;
@@ -306,24 +311,29 @@ export function inspectWebAppManifest(
                 return;
             }
 
-            if (typeof icon.src !== "string" || !icon.src.trim()) {
+            const hasSource = typeof icon.src === "string" && Boolean(icon.src.trim());
+            if (!hasSource) {
                 issues.push(createManifestIssue("error", "icon", "manifest.icon.src.missing", "Manifest icon must provide a non-empty src.", `${member}.src`));
             }
 
             if (icon.purpose !== undefined && icon.purpose !== null) {
                 if (typeof icon.purpose !== "string") {
                     issues.push(createManifestIssue("error", "icon", "manifest.icon.purpose.type", "Manifest icon purpose must be a string.", `${member}.purpose`));
-                } else if (icon.purpose.split(/\s+/).includes("maskable")) {
+                } else if (hasSource && icon.purpose.split(/\s+/).includes("maskable")) {
                     hasMaskableIcon = true;
                 }
             }
 
             if (icon.sizes === undefined) {
                 issues.push(createManifestIssue("info", "icon", "manifest.icon.sizes.missing", "Manifest icon has no sizes value.", `${member}.sizes`));
+            } else if (typeof icon.sizes !== "string" || !icon.sizes.trim()) {
+                issues.push(createManifestIssue("error", "icon", "manifest.icon.sizes.type", "Manifest icon sizes must be a non-empty string.", `${member}.sizes`));
             }
 
             if (icon.type === undefined) {
                 issues.push(createManifestIssue("info", "icon", "manifest.icon.type.missing", "Manifest icon has no type value.", `${member}.type`));
+            } else if (typeof icon.type !== "string" || !icon.type.trim()) {
+                issues.push(createManifestIssue("error", "icon", "manifest.icon.type.type", "Manifest icon type must be a non-empty string.", `${member}.type`));
             }
         });
     }
@@ -420,7 +430,8 @@ export function createWebAppManifest(options: WebAppManifestOptions): WebAppMani
 
     if (options.extras) {
         for (const [member, value] of Object.entries(options.extras)) {
-            manifest[member] = value;
+            // JSON member names, including __proto__, must remain ordinary own properties.
+            Object.defineProperty(manifest, member, { value, enumerable: true, configurable: true, writable: true });
         }
     }
 

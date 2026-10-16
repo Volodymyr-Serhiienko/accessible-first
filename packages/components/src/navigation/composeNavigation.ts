@@ -11,6 +11,7 @@ import {
 } from "../composition";
 import { Link, type ComposedLink, type LinkCompositionOptions } from "../link";
 import type { LinkCurrent, LinkTarget } from "../link";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by navigation item labels.
@@ -158,9 +159,9 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
 
     const composedItems: ComposedNavigationItem[] = [];
 
-    let itemDefinitions = options.items;
+    let itemDefinitions = [...options.items];
     let leadingContent = options.leadingContent ?? null;
-    let leadingSlot: ReturnType<typeof createContentSlot> | null = null;
+    const content = createContentSlot(element);
     let orientation: NavigationOrientation = options.orientation ?? "horizontal";
     let variant: NavigationVariant = options.variant ?? "default";
     let size: NavigationSize = options.size ?? "md";
@@ -168,6 +169,8 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     let currentOverrideActive = false;
     let currentMatch: string | null = null;
     let itemNodes: NavigationItemNode[] = [];
+    let destroyed = false;
+    let revision = 0;
     let composed!: ComposedNavigation;
 
     function getEffectiveCurrent(item: NavigationItem): NavigationCurrent {
@@ -183,6 +186,8 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     }
 
     function handleNavigate(event: Event, item: NavigationItem, index: number): void {
+        if (destroyed) return;
+        const current = revision;
         const detail: NavigationNavigateDetail = {
             item,
             index,
@@ -190,7 +195,7 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
         };
 
         item.onNavigate?.(detail, composed);
-        onNavigate?.(detail, composed);
+        if (!destroyed && current === revision) onNavigate?.(detail, composed);
     }
 
     function getItemLinkOptions(item: NavigationItem, index: number): LinkCompositionOptions {
@@ -241,6 +246,7 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
             },
 
             setLabelContent(content): void {
+                if (destroyed || !itemNodes.includes(node)) return;
                 node.link.update({
                     children: toCompositionChildren(content)
                 });
@@ -253,6 +259,7 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "navigation");
         element.setAttribute("data-af-navigation-list", "");
         element.setAttribute("data-af-orientation", orientation);
@@ -260,38 +267,42 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
         element.setAttribute("data-af-size", size);
     }
 
-    function disposeItems(): void {
-        leadingSlot?.dispose();
-        leadingSlot = null;
-        for (const node of [...itemNodes].reverse()) {
-            node.link.destroy();
-        }
-
-        itemNodes = [];
-        composedItems.splice(0, composedItems.length);
-        element.replaceChildren();
-    }
-
     function setItems(items: NavigationItem[]): void {
-        itemDefinitions = items;
-        disposeItems();
+        if (destroyed) return;
+        const current = ++revision;
+        itemDefinitions = [...items];
+        const definitions = itemDefinitions;
+        const children: ComposedNode[] = [];
+        const nodes: NavigationItemNode[] = [];
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            runCleanups(children.reverse().map(child => () => child.destroy?.()));
+        };
 
-        if (leadingContent) {
-            const control = createElement("li", {
-                attributes: { "data-af-navigation-item": "", "data-af-navigation-control": "" }
-            });
-            leadingSlot = createContentSlot(control, toCompositionChildren(leadingContent()));
-            element.append(control);
-        }
-
-        itemNodes = itemDefinitions.map(createItemNode);
-
-        for (const node of itemNodes) {
-            element.append(node.element);
-            composedItems.push(createComposedItem(node));
-        }
-
-        sync();
+        try {
+            if (leadingContent) {
+                const control = createElement("li", {
+                    attributes: { "data-af-navigation-item": "", "data-af-navigation-control": "" }
+                });
+                const slot = createContentSlot(control, toCompositionChildren(leadingContent()));
+                children.push({ element: control, destroy: slot.dispose });
+            }
+            for (const [index, item] of definitions.entries()) {
+                if (destroyed || current !== revision) return;
+                const node = createItemNode(item, index);
+                nodes.push(node);
+                children.push({ element: node.element, destroy: () => node.link.destroy() });
+            }
+            if (destroyed || current !== revision) return;
+            itemNodes = nodes;
+            composedItems.splice(0, composedItems.length, ...nodes.map(createComposedItem));
+            committed = true;
+            runCleanups([() => content.set(children), sync]);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
     function syncCurrentStates(): void {
@@ -303,6 +314,7 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
     }
 
     function setCurrent(match: string | null): void {
+        if (destroyed) return;
         currentOverrideActive = true;
         currentMatch = match;
         syncCurrentStates();
@@ -317,6 +329,7 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
         setCurrent,
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
@@ -339,7 +352,12 @@ export function Navigation(options: NavigationOptions): ComposedNavigation {
         },
 
         destroy(): void {
-            disposeItems();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            itemNodes = [];
+            composedItems.splice(0, composedItems.length);
+            runCleanups([content.dispose, () => element.replaceChildren()]);
         }
     };
 

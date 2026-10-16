@@ -1,9 +1,8 @@
 import { createId } from "../../../core/src/id";
 import { Button, type ButtonCompositionOptions, type ComposedButton } from "../button";
 import {
-    append,
     applyCompositionElementOptions,
-    collectDestroyers,
+    createContentSlot,
     createElement,
     getCompositionElementOptions,
     Icon,
@@ -23,6 +22,11 @@ import {
     type ComposedIconButton,
     type IconButtonCompositionOptions
 } from "../icon-button";
+import { runCleanups } from "../../../core/src/events";
+import { isHTMLElement } from "../../../core/src/dom";
+import { captureInlineStyles } from "../../../core/src/dom/captureInlineStyles";
+import { getFocusableElements } from "../../../core/src/focus";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 
 /**
  * Current layout placement chosen by HeaderTools().
@@ -125,7 +129,7 @@ function isBoxVisible(element: HTMLElement): boolean {
 
 function getElementChildren(element: HTMLElement): HTMLElement[] {
     return Array.from(element.children)
-        .filter((child): child is HTMLElement => child instanceof HTMLElement && !child.hidden);
+        .filter((child): child is HTMLElement => isHTMLElement(child) && !child.hidden);
 }
 
 function getDefaultContainer(element: HTMLElement): HTMLElement | null {
@@ -156,11 +160,11 @@ function getTitle(options: HeaderToolsOptions, locale: HeaderToolsLocalization |
 }
 
 function getDescription(options: HeaderToolsOptions, locale: HeaderToolsLocalization | null): string | null {
-    return options.description ?? getLocaleMessage(locale, "headerTools.description");
+    return options.description !== undefined ? options.description : getLocaleMessage(locale, "headerTools.description");
 }
 
 function getCloseText(options: HeaderToolsOptions, locale: HeaderToolsLocalization | null): string | null {
-    return options.closeText ?? getLocaleMessage(locale, "headerTools.closeText");
+    return options.closeText !== undefined ? options.closeText : getLocaleMessage(locale, "headerTools.closeText");
 }
 
 function getDefaultTriggerIcon(): CompositionChild {
@@ -188,7 +192,7 @@ function isInlineOverflowing(container: HTMLElement, inlineHost: HTMLElement): b
     const tolerance = 1;
     const containerRect = container.getBoundingClientRect();
     const brandRect = getBrandSlot(container)?.getBoundingClientRect() ?? null;
-    const firstTop = controls[0]?.getBoundingClientRect().top ?? containerRect.top;
+    const firstRect = controls[0]!.getBoundingClientRect();
 
     return controls.some((control) => {
         const rect = control.getBoundingClientRect();
@@ -196,7 +200,8 @@ function isInlineOverflowing(container: HTMLElement, inlineHost: HTMLElement): b
         return rect.left < containerRect.left - tolerance
             || rect.right > containerRect.right + tolerance
             || (brandRect !== null && rect.top > brandRect.bottom - tolerance)
-            || Math.abs(rect.top - firstTop) > tolerance;
+            || rect.top >= firstRect.bottom - tolerance
+            || rect.bottom <= firstRect.top + tolerance;
     });
 }
 
@@ -215,8 +220,6 @@ function applyInternalOptions(element: HTMLElement, options: BaseCompositionOpti
 export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     let currentOptions: HeaderToolsOptions = options;
     let locale: HeaderToolsLocalization | null = options.locale ?? null;
-    let controls = [...options.controls];
-    let controlDestroyers = collectDestroyers(controls);
     let placement: HeaderToolsPlacement = "inline";
     let currentHost: HTMLElement | null = null;
     let pendingPlacementFrame: number | null = null;
@@ -224,7 +227,8 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     let resizeObserver: ResizeObserver | null = null;
     let lastOverflowInlineSize = 0;
     let destroyed = false;
-    let unsubscribeLocale: (() => void) | null = null;
+    let revision = 0;
+    let focusOutTimer: number | null = null;
 
     const titleId = options.panelOptions?.id
         ? `${options.panelOptions.id}-title`
@@ -236,6 +240,8 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
         "data-af-composition": "header-tools",
         "data-af-header-tools-placement": placement
     }));
+    const doc = element.ownerDocument;
+    const view = doc.defaultView ?? window;
 
     const inline = createElement("div", getCompositionElementOptions(options.inlineOptions, {
         "data-af-header-tools-inline": ""
@@ -262,37 +268,32 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     const controlsSlot = createElement("div", getCompositionElementOptions(options.controlsOptions, {
         "data-af-header-tools-controls": ""
     }));
+    const controlContent = createContentSlot(controlsSlot, options.controls);
 
     let popover: PopoverInstance;
     let composed!: ComposedHeaderTools;
 
-    function restoreTriggerFocus(): void {
-        window.setTimeout(() => {
-            if (trigger.element.isConnected) {
-                trigger.element.focus({ preventScroll: true });
-            }
-        }, 0);
-    }
-
     function schedulePlacementCheck(): void {
         if (destroyed || pendingPlacementFrame !== null) return;
 
-        pendingPlacementFrame = window.requestAnimationFrame(() => {
+        pendingPlacementFrame = view.requestAnimationFrame(() => {
             pendingPlacementFrame = null;
             checkPlacement();
         });
+    }
+
+    function handleClose(event: Event, button: ComposedButton): void {
+        currentOptions.closeButtonOptions?.onPress?.(event, button);
+        if (destroyed || event.defaultPrevented) return;
+        popover.close();
+        schedulePlacementCheck();
     }
 
     const closeButton = Button({
         ...(options.closeButtonOptions ?? {}),
         text: getCloseText(currentOptions, locale) ?? "",
         variant: options.closeButtonOptions?.variant ?? "secondary",
-        onPress(event, button) {
-            options.closeButtonOptions?.onPress?.(event, button);
-            popover.close();
-            restoreTriggerFocus();
-            schedulePlacementCheck();
-        }
+        onPress: handleClose
     });
 
     const footer = createElement("div", getCompositionElementOptions(options.footerOptions, {
@@ -332,9 +333,14 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     }
 
     function syncText(): void {
+        if (destroyed) return;
+        const current = revision;
         const nextTitle = getTitle(currentOptions, locale);
         const nextDescription = getDescription(currentOptions, locale)?.trim() ?? "";
         const nextCloseText = getCloseText(currentOptions, locale);
+        const nextTriggerLabel = getTriggerLabel(currentOptions, locale);
+        const nextTriggerHint = getTriggerHint(currentOptions, locale);
+        if (destroyed || current !== revision) return;
 
         title.textContent = nextTitle;
         description.textContent = nextDescription;
@@ -342,16 +348,18 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
         closeButton.update({
             text: nextCloseText ?? ""
         });
+        if (destroyed || current !== revision) return;
         closeButton.element.hidden = nextCloseText === null;
         footer.hidden = nextCloseText === null;
 
         trigger.update({
-            label: getTriggerLabel(currentOptions, locale),
-            hint: getTriggerHint(currentOptions, locale),
-            children: getTriggerIcon(currentOptions)
+            label: nextTriggerLabel,
+            hint: nextTriggerHint
         });
+        if (destroyed || current !== revision) return;
 
         popover.update({
+            contentId: panel.id,
             labelledBy: title.id,
             describedBy: nextDescription ? description.id : null,
             announcement: {
@@ -359,19 +367,13 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
                 politeness: "polite"
             }
         });
+        lastOverflowInlineSize = 0;
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            syncText();
-            schedulePlacementCheck();
-        });
-    }
+    const localeSubscription = createLocaleSubscription(() => {
+        syncText();
+        schedulePlacementCheck();
+    });
 
     function focusStaysInsidePanel(): boolean {
         const activeElement = panel.ownerDocument.activeElement;
@@ -383,8 +385,10 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     }
 
     function handlePanelFocusOut(): void {
-        window.setTimeout(() => {
-            if (!popover.isOpen() || focusStaysInsidePanel()) return;
+        if (focusOutTimer !== null) view.clearTimeout(focusOutTimer);
+        focusOutTimer = view.setTimeout(() => {
+            focusOutTimer = null;
+            if (destroyed || !popover.isOpen() || focusStaysInsidePanel()) return;
 
             popover.close();
         }, 0);
@@ -392,21 +396,32 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
 
     function moveControls(host: HTMLElement): void {
         if (currentHost === host) return;
-
-        inline.replaceChildren();
-        controlsSlot.replaceChildren();
-        append(host, ...controls);
+        host.prepend(controlsSlot);
         currentHost = host;
     }
 
-    function setPlacement(nextPlacement: HeaderToolsPlacement): void {
+    function restorePlacementFocus(active: Element | null): void {
+        if (destroyed || !isHTMLElement(active)) return;
+        if (doc.activeElement !== active && doc.activeElement !== doc.body) return;
+        if (controlsSlot.contains(active)) {
+            if (placement === "inline") active.focus({ preventScroll: true });
+            else trigger.element.focus({ preventScroll: true });
+        } else if (active === trigger.element && placement === "inline") {
+            getFocusableElements(inline)[0]?.focus({ preventScroll: true });
+        }
+    }
+
+    function setPlacement(nextPlacement: HeaderToolsPlacement, preserveFocus = true): void {
+        if (destroyed) return;
+        const active = doc.activeElement;
         placement = nextPlacement;
         element.setAttribute("data-af-header-tools-placement", placement);
 
         if (placement === "menu") {
             inline.hidden = true;
             menu.hidden = false;
-            moveControls(controlsSlot);
+            moveControls(body);
+            if (preserveFocus) restorePlacementFocus(active);
             return;
         }
 
@@ -414,6 +429,7 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
         menu.hidden = true;
         inline.hidden = false;
         moveControls(inline);
+        if (preserveFocus) restorePlacementFocus(active);
     }
 
     function shouldProbeInline(container: HTMLElement): boolean {
@@ -429,49 +445,55 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
         resizeObserver?.disconnect();
         observedContainer = container;
 
-        if (typeof ResizeObserver === "undefined") return;
+        if (typeof view.ResizeObserver === "undefined") return;
 
-        resizeObserver = new ResizeObserver(() => {
+        resizeObserver = new view.ResizeObserver(() => {
             schedulePlacementCheck();
         });
         resizeObserver.observe(container);
     }
 
-    function checkPlacement(): void {
+    function checkPlacement(force = false): void {
         if (destroyed) return;
 
         const container = getContainer();
 
         if (!container) {
-            schedulePlacementCheck();
+            resizeObserver?.disconnect();
+            observedContainer = null;
             return;
         }
 
         observeContainer(container);
 
-        if (popover.isOpen() || !shouldProbeInline(container)) {
+        if (popover.isOpen() || (!force && !shouldProbeInline(container))) {
             return;
         }
 
-        const previousVisibility = inline.style.visibility;
+        const active = doc.activeElement;
+        const restoreVisibility = captureInlineStyles(inline, ["visibility"]);
 
         if (placement === "menu") {
             inline.style.visibility = "hidden";
         }
 
-        setPlacement("inline");
-
-        const overflowing = isInlineOverflowing(container, inline);
-
-        inline.style.visibility = previousVisibility;
+        let overflowing: boolean;
+        try {
+            setPlacement("inline", false);
+            overflowing = isInlineOverflowing(container, controlsSlot);
+        } finally {
+            restoreVisibility();
+        }
 
         if (overflowing) {
             lastOverflowInlineSize = getContainerInlineSize(container);
-            setPlacement("menu");
+            setPlacement("menu", false);
+            restorePlacementFocus(active);
             return;
         }
 
         lastOverflowInlineSize = 0;
+        restorePlacementFocus(active);
     }
 
     function handleWindowResize(): void {
@@ -479,15 +501,8 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     }
 
     function resetControls(nextControls: CompositionChild[]): void {
-        for (const destroy of [...controlDestroyers].reverse()) {
-            destroy();
-        }
-
-        controls = [...nextControls];
-        controlDestroyers = collectDestroyers(controls);
-        currentHost = null;
-        setPlacement(placement);
-        schedulePlacementCheck();
+        controlContent.set(nextControls);
+        lastOverflowInlineSize = 0;
     }
 
     popover = createPopover(panel, {
@@ -518,14 +533,13 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
     } satisfies PopoverOptions);
 
     panel.addEventListener("focusout", handlePanelFocusOut);
-    window.addEventListener("resize", handleWindowResize);
-    window.addEventListener("orientationchange", handleWindowResize);
+    view.addEventListener("resize", handleWindowResize);
+    view.addEventListener("orientationchange", handleWindowResize);
 
     syncText();
-    syncLocaleSubscription();
     setPlacement("inline");
     schedulePlacementCheck();
-    document.fonts?.ready.then(schedulePlacementCheck).catch(() => undefined);
+    doc.fonts?.ready.then(schedulePlacementCheck).catch(() => undefined);
 
     composed = {
         element,
@@ -540,9 +554,11 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
             return placement;
         },
 
-        checkPlacement,
+        checkPlacement: () => checkPlacement(true),
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const current = ++revision;
             currentOptions = {
                 ...currentOptions,
                 ...nextOptions
@@ -576,48 +592,50 @@ export function HeaderTools(options: HeaderToolsOptions): ComposedHeaderTools {
             if (nextOptions.triggerOptions !== undefined) {
                 trigger.update(nextOptions.triggerOptions);
             }
+            if (destroyed || current !== revision) return;
 
             if (nextOptions.closeButtonOptions !== undefined) {
-                closeButton.update(nextOptions.closeButtonOptions);
+                closeButton.update({ ...nextOptions.closeButtonOptions, onPress: handleClose });
             }
+            if (destroyed || current !== revision) return;
 
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
 
-            if (nextOptions.controls !== undefined) {
-                resetControls(nextOptions.controls);
-            }
-
-            syncText();
-            schedulePlacementCheck();
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                () => { if (!destroyed && current === revision && "triggerIcon" in nextOptions) trigger.update({ children: getTriggerIcon(currentOptions) }); },
+                () => { if (!destroyed && current === revision && nextOptions.controls !== undefined) resetControls(nextOptions.controls); },
+                () => { if (!destroyed && current === revision) syncText(); },
+                schedulePlacementCheck
+            ]);
         },
 
         destroy(): void {
             if (destroyed) return;
 
             destroyed = true;
+            revision += 1;
 
             if (pendingPlacementFrame !== null) {
-                window.cancelAnimationFrame(pendingPlacementFrame);
+                view.cancelAnimationFrame(pendingPlacementFrame);
                 pendingPlacementFrame = null;
             }
 
-            resizeObserver?.disconnect();
-            unsubscribeLocale?.();
-            window.removeEventListener("resize", handleWindowResize);
-            window.removeEventListener("orientationchange", handleWindowResize);
+            if (focusOutTimer !== null) view.clearTimeout(focusOutTimer);
+            view.removeEventListener("resize", handleWindowResize);
+            view.removeEventListener("orientationchange", handleWindowResize);
             panel.removeEventListener("focusout", handlePanelFocusOut);
-            popover.destroy();
-            closeButton.destroy();
-            trigger.destroy();
-
-            for (const destroy of [...controlDestroyers].reverse()) {
-                destroy();
-            }
+            runCleanups([() => resizeObserver?.disconnect(), localeSubscription.destroy,
+                popover.destroy, closeButton.destroy, trigger.destroy, controlContent.dispose]);
         }
     };
 
+    try { localeSubscription.replace(locale); }
+    catch (error) {
+        try { composed.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
     return composed;
 }

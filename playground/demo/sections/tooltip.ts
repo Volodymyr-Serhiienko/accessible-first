@@ -69,7 +69,7 @@ export function TooltipDemo(): ComposedNode {
                 Panel(
                     Stack(
                         H3("Described trigger"),
-                        P("Focus or hover the button. Press Escape while focused to hide the visual tooltip."),
+                        P("Hover to show the tooltip. Focus keeps its screen-reader description without opening the visual layer. Escape dismisses an open tooltip."),
                         Row(draftTooltip, updateHintButton)
                     )
                 ),

@@ -1,4 +1,5 @@
-import { addEventListener, type Cleanup } from "../../../core/src/events";
+import { addEventListener, runCleanups, type Cleanup } from "../../../core/src/events";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -74,6 +75,7 @@ export interface ComposedOverflowScroller extends ComposedNode<HTMLElement> {
     refresh(): void;
     update(options: OverflowScrollerUpdateOptions): void;
     destroy(): void;
+    isDestroyed(): boolean;
 }
 
 function getScrollBehavior(ownerWindow: Window): ScrollBehavior {
@@ -139,7 +141,6 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     let previousLabel = options.previousLabel;
     let nextLabel = options.nextLabel;
     let locale: OverflowScrollerLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
     let previousButtonOptions = options.previousButtonOptions;
     let nextButtonOptions = options.nextButtonOptions;
     let controls: OverflowScrollerControls = options.controls ?? "auto";
@@ -147,6 +148,8 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     let updateTimer: number | null = null;
     let focusScrollFrame: number | null = null;
     let destroyed = false;
+    let revision = 0;
+    let resizeObserver: ResizeObserver | null = null;
 
     function applyButtonOptions(
         button: HTMLButtonElement,
@@ -161,6 +164,11 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     }
 
     function syncStructure(): void {
+        if (destroyed) return;
+        const current = revision;
+        const previousText = getControlLabel(previousLabel, locale, "overflowScroller.previousLabel");
+        const nextText = getControlLabel(nextLabel, locale, "overflowScroller.nextLabel");
+        if (destroyed || current !== revision) return;
         element.setAttribute("data-af-composition", "overflow-scroller");
         element.setAttribute("data-af-overflow-scroller-controls", controls);
         viewport.setAttribute("data-af-overflow-scroller-viewport", "");
@@ -178,13 +186,13 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             previousButton,
             previousButtonOptions,
             "previous",
-            getControlLabel(previousLabel, locale, "overflowScroller.previousLabel")
+            previousText
         );
         applyButtonOptions(
             nextButton,
             nextButtonOptions,
             "next",
-            getControlLabel(nextLabel, locale, "overflowScroller.nextLabel")
+            nextText
         );
     }
 
@@ -197,14 +205,17 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     }
 
     function updateState(): void {
+        if (destroyed) return;
+        const rtl = ownerWindow.getComputedStyle(viewport).direction === "rtl";
         const maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
-        const currentScroll = Math.max(0, Math.min(viewport.scrollLeft, maxScroll));
+        const currentScroll = Math.max(0, Math.min(rtl ? -viewport.scrollLeft : viewport.scrollLeft, maxScroll));
         const hasOverflow = maxScroll > 1;
         const atStart = currentScroll <= 1;
         const atEnd = currentScroll >= maxScroll - 1;
         const hideControls = controls === "none" || (controls === "auto" && !hasOverflow);
 
         element.setAttribute("data-af-overflow-scroller-overflowing", hasOverflow ? "true" : "false");
+        element.setAttribute("data-af-overflow-scroller-direction", rtl ? "rtl" : "ltr");
 
         previousButton.hidden = hideControls;
         nextButton.hidden = hideControls;
@@ -222,7 +233,7 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     }
 
     function scrollElementIntoView(target: HTMLElement): void {
-        if (!content.contains(target)) return;
+        if (destroyed || !content.contains(target) || target.ownerDocument.activeElement !== target) return;
 
         const targetRect = target.getBoundingClientRect();
         const viewportRect = viewport.getBoundingClientRect();
@@ -249,6 +260,7 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
     }
 
     function scheduleFocusedElementScroll(target: HTMLElement): void {
+        if (destroyed) return;
         if (focusScrollFrame !== null) {
             ownerWindow.cancelAnimationFrame(focusScrollFrame);
         }
@@ -267,36 +279,30 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
         scheduleFocusedElementScroll(target);
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            syncStructure();
-        });
-    }
+    const localeSubscription = createLocaleSubscription(syncStructure);
 
     function scrollPrevious(): void {
+        if (destroyed) return;
         viewport.scrollBy({
-            left: -getScrollDistance(),
+            left: (ownerWindow.getComputedStyle(viewport).direction === "rtl" ? 1 : -1) * getScrollDistance(),
             behavior: getScrollBehavior(ownerWindow)
         });
         scheduleStateUpdate();
     }
 
     function scrollNext(): void {
+        if (destroyed) return;
         viewport.scrollBy({
-            left: getScrollDistance(),
+            left: (ownerWindow.getComputedStyle(viewport).direction === "rtl" ? -1 : 1) * getScrollDistance(),
             behavior: getScrollBehavior(ownerWindow)
         });
         scheduleStateUpdate();
     }
 
     function setContent(children: CompositionChild[]): void {
-        contentSlot.set(children);
-        scheduleStateUpdate();
+        if (destroyed) return;
+        revision += 1;
+        runCleanups([() => contentSlot.set(children), scheduleStateUpdate]);
     }
 
     previousButton.addEventListener("click", scrollPrevious);
@@ -310,18 +316,29 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
         addEventListener<Event>(ownerWindow, "resize", scheduleStateUpdate)
     );
 
-    const resizeObserver = typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(scheduleStateUpdate);
+    try {
+        resizeObserver = typeof ownerWindow.ResizeObserver === "undefined" ? null : new ownerWindow.ResizeObserver(scheduleStateUpdate);
+        resizeObserver?.observe(viewport);
+        resizeObserver?.observe(content);
+        viewport.append(content);
+        element.append(previousButton, viewport, nextButton);
+        localeSubscription.replace(locale);
+        syncStructure();
+        scheduleStateUpdate();
+    } catch (error) {
+        try { destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 
-    resizeObserver?.observe(viewport);
-    resizeObserver?.observe(content);
-
-    viewport.append(content);
-    element.append(previousButton, viewport, nextButton);
-    syncLocaleSubscription();
-    syncStructure();
-    scheduleStateUpdate();
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        if (updateTimer !== null) { ownerWindow.clearTimeout(updateTimer); updateTimer = null; }
+        if (focusScrollFrame !== null) { ownerWindow.cancelAnimationFrame(focusScrollFrame); focusScrollFrame = null; }
+        runCleanups([() => resizeObserver?.disconnect(), localeSubscription.destroy,
+            ...[...cleanups].reverse(), contentSlot.dispose, () => element.remove()]);
+    }
 
     return {
         element,
@@ -335,6 +352,9 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
         refresh: scheduleStateUpdate,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const current = ++revision;
+            const localeChanged = "locale" in nextOptions && (nextOptions.locale ?? null) !== locale;
             applyCompositionElementOptions(element, nextOptions);
 
             if ("label" in nextOptions) label = nextOptions.label ?? null;
@@ -342,7 +362,6 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
             if ("nextLabel" in nextOptions) nextLabel = nextOptions.nextLabel;
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
             if (nextOptions.controls !== undefined) controls = nextOptions.controls;
             if (nextOptions.scrollAmount !== undefined) scrollAmount = nextOptions.scrollAmount;
@@ -365,38 +384,15 @@ export function OverflowScroller(options: OverflowScrollerOptions = {}): Compose
                 applyCompositionElementOptions(nextButton, nextButtonOptions);
             }
 
-            if (nextOptions.children !== undefined) {
-                setContent(nextOptions.children);
-            }
-
-            syncStructure();
-            scheduleStateUpdate();
+            runCleanups([
+                () => { if (localeChanged) localeSubscription.replace(locale); },
+                () => { if (!destroyed && current === revision && nextOptions.children !== undefined) contentSlot.set(nextOptions.children); },
+                () => { if (!destroyed && current === revision) syncStructure(); },
+                scheduleStateUpdate
+            ]);
         },
 
-        destroy(): void {
-            if (destroyed) return;
-
-            destroyed = true;
-
-            if (updateTimer !== null) {
-                ownerWindow.clearTimeout(updateTimer);
-                updateTimer = null;
-            }
-
-            if (focusScrollFrame !== null) {
-                ownerWindow.cancelAnimationFrame(focusScrollFrame);
-                focusScrollFrame = null;
-            }
-
-            resizeObserver?.disconnect();
-            unsubscribeLocale?.();
-
-            for (const cleanup of [...cleanups].reverse()) {
-                cleanup();
-            }
-
-            contentSlot.dispose();
-            element.remove();
-        }
+        destroy,
+        isDestroyed: () => destroyed
     };
 }

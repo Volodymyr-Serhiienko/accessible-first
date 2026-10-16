@@ -9,6 +9,7 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by description list term and details slots.
@@ -86,6 +87,7 @@ interface DescriptionListItemNode {
     details: HTMLElement;
     termSlot: ReturnType<typeof createContentSlot>;
     detailsSlot: ReturnType<typeof createContentSlot>;
+    active: boolean;
 }
 
 function createItemNode(item: DescriptionListItem): DescriptionListItemNode {
@@ -105,21 +107,27 @@ function createItemNode(item: DescriptionListItem): DescriptionListItemNode {
         element,
         term,
         details,
-        termSlot: createContentSlot(term, toCompositionChildren(item.term)),
-        detailsSlot: createContentSlot(details, toCompositionChildren(item.details))
+        termSlot: createContentSlot(term),
+        detailsSlot: createContentSlot(details),
+        active: true
     };
-
-    element.append(term, details);
-
+    try {
+        node.termSlot.set(toCompositionChildren(item.term));
+        node.detailsSlot.set(toCompositionChildren(item.details));
+        element.append(term, details);
+    } catch (error) {
+        runCleanups([() => { throw error; }, () => destroyItemNode(node)]);
+    }
     return node;
 }
 
 function destroyItemNode(node: DescriptionListItemNode): void {
-    node.termSlot.dispose();
-    node.detailsSlot.dispose();
+    if (!node.active) return;
+    node.active = false;
+    runCleanups([node.termSlot.dispose, node.detailsSlot.dispose]);
 }
 
-function createComposedItem(node: DescriptionListItemNode): ComposedDescriptionListItem {
+function createComposedItem(node: DescriptionListItemNode, isCurrent: () => boolean): ComposedDescriptionListItem {
     return {
         element: node.element,
         term: node.term,
@@ -134,10 +142,12 @@ function createComposedItem(node: DescriptionListItemNode): ComposedDescriptionL
         },
 
         setTermContent(content): void {
+            if (!isCurrent()) return;
             node.termSlot.set(toCompositionChildren(content));
         },
 
         setDetailsContent(content): void {
+            if (!isCurrent()) return;
             node.detailsSlot.set(toCompositionChildren(content));
         }
     };
@@ -157,60 +167,75 @@ export function DescriptionList(options: DescriptionListOptions): ComposedDescri
     let layout: DescriptionListLayout = options.layout ?? "stacked";
     let variant: DescriptionListVariant = options.variant ?? "default";
     let size: DescriptionListSize = options.size ?? "md";
+    let destroyed = false;
+    let revision = 0;
+    const contentSlot = createContentSlot(element);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "description-list");
         element.setAttribute("data-af-layout", layout);
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
     }
 
-    function disposeItems(): void {
-        for (const node of [...itemNodes].reverse()) {
-            destroyItemNode(node);
-        }
-
-        itemNodes = [];
-        composedItems.splice(0, composedItems.length);
-        element.replaceChildren();
+    function setItems(items: DescriptionListItem[]): void {
+        if (destroyed) return;
+        const current = ++revision;
+        const nodes: DescriptionListItemNode[] = [];
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            runCleanups([...nodes].reverse().map(node => () => destroyItemNode(node)));
+        };
+        try {
+            for (const item of [...items]) {
+                if (destroyed || current !== revision) return;
+                nodes.push(createItemNode(item));
+            }
+            if (destroyed || current !== revision) return;
+            itemNodes = nodes;
+            composedItems.splice(0, composedItems.length, ...nodes.map(node => createComposedItem(node,
+                () => !destroyed && node.active && itemNodes.includes(node))));
+            committed = true;
+            runCleanups([
+                () => contentSlot.set(nodes.map(node => ({ element: node.element, destroy: () => destroyItemNode(node) }))),
+                sync
+            ]);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
-    function setItems(items: DescriptionListItem[]): void {
-        disposeItems();
-
-        itemNodes = items.map(createItemNode);
-
-        for (const node of itemNodes) {
-            element.append(node.element);
-            composedItems.push(createComposedItem(node));
-        }
-
+    function update(nextOptions: DescriptionListUpdateOptions): void {
+        if (destroyed) return;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.layout !== undefined) layout = nextOptions.layout;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.items !== undefined) setItems(nextOptions.items);
         sync();
     }
 
-    setItems(options.items);
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        itemNodes = [];
+        composedItems.splice(0, composedItems.length);
+        runCleanups([contentSlot.dispose, () => element.replaceChildren()]);
+    }
+
+    try { setItems(options.items); }
+    catch (error) { runCleanups([() => { throw error; }, destroy]); }
 
     return {
         element,
         items: composedItems,
         setItems,
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.items !== undefined) {
-                setItems(nextOptions.items);
-            }
-
-            if (nextOptions.layout !== undefined) layout = nextOptions.layout;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            disposeItems();
-        }
+        update,
+        destroy
     };
 }

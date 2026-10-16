@@ -57,7 +57,7 @@ a[data-af-composition="brand"]:focus-visible {
     min-inline-size: 0;
     display: grid;
     gap: 0.125rem;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 [data-af-brand-name] {
@@ -67,12 +67,12 @@ a[data-af-composition="brand"]:focus-visible {
     font-size: 1.125rem;
     font-weight: 800;
     line-height: 1.15;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 [data-af-brand-tagline] {
     color: var(--af-color-muted);
     font-size: 0.875rem;
     line-height: 1.2;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }

@@ -26,7 +26,7 @@ function isActiveElementRoot(value: DismissVirtualKeyboardTarget): value is Docu
 
 function getActiveElementRoot(target: DismissVirtualKeyboardTarget): Document | ShadowRoot | null {
     if (isActiveElementRoot(target)) return target;
-    if (target instanceof Node) return getOwnerDocument(target);
+    if (target) return getOwnerDocument(target);
 
     return typeof document === "undefined" ? null : document;
 }

@@ -86,7 +86,9 @@
 [data-af-composition="section"] {
     box-sizing: border-box;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-section-gap, var(--af-space-3));
 }
 
@@ -142,6 +144,7 @@
     box-sizing: border-box;
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-stack-gap, var(--af-space-4));
 }
 
@@ -162,7 +165,9 @@
 [data-af-composition="panel"] {
     box-sizing: border-box;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-panel-gap, var(--af-space-3));
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
@@ -231,6 +236,8 @@
 [data-af-composition="icon-label"] {
     display: inline-flex;
     min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
     align-items: center;
     gap: var(--af-icon-label-gap, var(--af-space-2));
 }

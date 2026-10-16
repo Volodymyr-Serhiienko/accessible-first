@@ -191,6 +191,33 @@ createLocaleRefresh({
 
 By default, refresh uses quiet options suitable for in-place updates. Pass `notify: true` only when route-change subscribers should treat the refresh like a route transition.
 
+## Nested Transitions And Cleanup
+
+A nested `navigate()`, `refresh()` or `stop()` supersedes the older operation.
+After application callbacks return, the older operation cannot render its prepared
+screen, apply metadata, move focus, notify remaining subscribers or run diagnostics.
+`navigate()`, `refresh()` and `syncFromLocation()` return `false` when superseded;
+an unknown route also returns `false` without replacing the accepted screen.
+Navigation controls see the incoming current route, including during preparation.
+
+If `render()` returns disposable composition content after its transition becomes
+obsolete, the router releases the unaccepted result. Current and previously
+transferred outlet controllers are not destroyed twice. A renderer still owns
+resources it creates but never returns; do not borrow live controllers from an
+unrelated owner or reuse destroyed controllers.
+
+Subscriptions are snapshotted before `onRouteChange`: newly added handlers wait
+until the next event, removed handlers are skipped, and a nested transition stops
+the remaining old notifications. History writes and arbitrary application callback
+side effects already performed are not rolled back. A thrown renderer propagates
+its original error; retrying the same route can render it again.
+
+`stop()` removes location listeners and cancels pending outlet scroll/announcement
+effects without clearing accepted content or disposing the outlet. It is not a
+terminal destroy: manual navigation and `start()` remain available. A failed
+initial `start()` releases its listeners and can be retried. The router owns its
+outlet's route effects; do not share that outlet with another active router.
+
 ## Activation Helper
 
 Use `createHashRouterRouteActivationHandler()` when several route-aware controls should share the same navigation defaults. The created callback prevents the native event by default and forwards the selected route to `router.navigate(...)`.

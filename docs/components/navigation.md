@@ -110,6 +110,18 @@ navigation.setCurrent("/settings");
 
 Updating `items` rebuilds the item list. Updating visual options keeps the existing list.
 
+`setCurrent()` preserves existing links and focus. Replacing items/leading content
+does not perform keyed reconciliation or choose a new focus destination; restore focus
+in the application when its workflow requires it. Factories must return freshly owned
+composed controls, not reuse controllers destroyed by an earlier rebuild.
+
+Newer item replacement or destruction during a factory/cleanup wins over the older
+candidate. Partial candidates are released, and teardown attempts every owned link
+and leading control even after a cleanup failure. The first error is rethrown.
+`destroy()` is idempotent; late updates and removed item label handles are inert.
+If an item callback destroys/replaces the list, the obsolete activation does not
+continue into the navigation-level callback.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="navigation"]`, `[data-af-navigation-item]`, `[data-af-navigation-link]`, `[aria-current]`, `[data-af-orientation]`, `[data-af-variant]`, and `[data-af-size]`.

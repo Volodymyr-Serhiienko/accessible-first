@@ -37,6 +37,11 @@ tabs.destroy();
 * Uses roving focus for Arrow, Home, and End navigation
 * Supports automatic and manual activation modes
 
+Runtime availability and live RTL arrows follow [Roving Focus](roving-focus.md).
+Navigation also requires an associated panel. `refresh()` releases removed tabs
+and panels' borrowed attributes; keyboard/focus events from editable descendants
+are not activation requests.
+
 ## Principles
 
 * No framework dependency

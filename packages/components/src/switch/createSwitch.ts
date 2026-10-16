@@ -2,6 +2,7 @@ import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import type { FormFieldInvalidState } from "../../../core/src/form-field";
 import { createComponentLifecycle } from "../foundation";
+import { observeNativeFormReset } from "../foundation/observeNativeFormReset";
 import type {
     Switch,
     SwitchChangeDetail,
@@ -10,10 +11,6 @@ import type {
     SwitchUpdateOptions,
     SwitchVariant
 } from "./types";
-
-function normalizeChecked(value: boolean | undefined): boolean {
-    return value ?? false;
-}
 
 function getChangeDetail(input: HTMLInputElement, event: Event): SwitchChangeDetail {
     return {
@@ -52,6 +49,7 @@ export function createSwitch(
     const originalType = element.getAttribute("type");
     const originalRole = element.getAttribute("role");
     const originalChecked = element.checked;
+    const originalIndeterminate = element.indeterminate;
     const originalDisabled = element.disabled;
     const originalRequired = element.required;
     const originalName = element.getAttribute("name");
@@ -63,7 +61,7 @@ export function createSwitch(
     const originalCheckedMarker = element.getAttribute("data-af-checked");
     const originalInvalidMarker = element.getAttribute("data-af-invalid");
 
-    let checked = normalizeChecked(options.checked ?? options.defaultChecked);
+    let checked = options.checked ?? options.defaultChecked ?? element.checked;
     let disabled = options.disabled ?? element.disabled;
     let required = options.required ?? element.required;
     let invalid: FormFieldInvalidState = options.invalid ?? false;
@@ -76,6 +74,7 @@ export function createSwitch(
 
     function syncChecked(): void {
         element.checked = checked;
+        element.indeterminate = false;
         element.setAttribute("aria-checked", String(checked));
         element.setAttribute("data-af-checked", String(checked));
     }
@@ -122,9 +121,14 @@ export function createSwitch(
     syncInvalid();
 
     lifecycle.addCleanup(addEventListener<Event>(element, "change", handleChange));
+    lifecycle.addCleanup(observeNativeFormReset(element, () => [element], () => {
+        checked = element.checked;
+        syncChecked();
+    }));
 
     lifecycle.addCleanup(() => {
         element.checked = originalChecked;
+        element.indeterminate = originalIndeterminate;
         element.disabled = originalDisabled;
         element.required = originalRequired;
 
@@ -152,17 +156,17 @@ export function createSwitch(
         },
 
         getChecked(): boolean {
-            return checked;
+            return element.checked;
         },
 
         isChecked(): boolean {
-            return checked;
+            return element.checked;
         },
 
         toggleChecked(force): boolean {
             if (lifecycle.isDestroyed()) return checked;
 
-            this.setChecked(force ?? !checked);
+            this.setChecked(force ?? !element.checked);
             return this.isChecked();
         },
 
@@ -196,6 +200,8 @@ export function createSwitch(
         },
 
         update(nextOptions: SwitchUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
             if ("checked" in nextOptions) {
                 this.setChecked(nextOptions.checked ?? false);
             }

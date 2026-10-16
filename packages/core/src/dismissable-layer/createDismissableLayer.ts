@@ -7,10 +7,13 @@ import type {
     DismissableLayerEvent,
     DismissableLayerOptions
 } from "./types";
-import type { OverlayStackEntry } from "../overlay-stack";
+import type { OverlayStack, OverlayStackEntry } from "../overlay-stack";
 import {
     getDocumentOverlayStack
 } from "../overlay-stack/getDocumentOverlayStack";
+
+// A top layer can close while the same native event is still visiting listeners.
+const claimedEventsByStack = new WeakMap<OverlayStack, WeakSet<Event>>();
 
 function resolveBranch(branch: DismissableLayerBranch): HTMLElement | null {
     return typeof branch === "function" ? branch() : branch ?? null;
@@ -77,6 +80,13 @@ export function createDismissableLayer(
     let destroyed = false;
     let cleanups: Cleanup[] = [];
     let overlayEntry: OverlayStackEntry | null = null;
+    let activationRevision = 0;
+    const handledEvents = claimedEventsByStack.get(overlayStack) ?? new WeakSet<Event>();
+    if (useOverlayStack) claimedEventsByStack.set(overlayStack, handledEvents);
+
+    function canHandle(event: Event): boolean {
+        return active && !destroyed && isTopLayer() && (!useOverlayStack || !handledEvents.has(event));
+    }
 
     function isTopLayer(): boolean {
         if (!useOverlayStack || !overlayEntry) {
@@ -100,50 +110,58 @@ export function createDismissableLayer(
         return getBranches().some((branch) => eventTargetsElement(event, branch));
     }
 
-    function dismiss(): void {
+    function dismiss(revision: number): void {
+        if (revision !== activationRevision || !active || destroyed || !isTopLayer()) return;
         options.onDismiss?.();
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!active || !isTopLayer() || !isEscapeKey(event)) {
+        if (!canHandle(event) || event.defaultPrevented || event.isComposing
+            || event.ctrlKey || event.altKey || event.metaKey || !isEscapeKey(event)) {
             return;
         }
 
         const layerEvent = createLayerEvent(event);
+        const revision = activationRevision;
+        if (useOverlayStack) handledEvents.add(event);
 
         options.onEscapeKeyDown?.(layerEvent);
 
-        if (!layerEvent.isDefaultPrevented() && dismissOnEscape) {
+        if (!layerEvent.isDefaultPrevented() && dismissOnEscape && active && !destroyed && isTopLayer() && revision === activationRevision) {
             event.preventDefault();
-            dismiss();
+            dismiss(revision);
         }
     }
 
     function handlePointerDown(event: PointerEvent): void {
-        if (!active || !isTopLayer() || isEventInside(event)) {
+        const revision = activationRevision;
+        if (!canHandle(event) || isEventInside(event) || !canHandle(event) || revision !== activationRevision) {
             return;
         }
 
         const layerEvent = createLayerEvent(event);
+        if (useOverlayStack) handledEvents.add(event);
 
         options.onPointerDownOutside?.(layerEvent);
 
         if (!layerEvent.isDefaultPrevented() && dismissOnPointerDownOutside) {
-            dismiss();
+            dismiss(revision);
         }
     }
 
     function handleFocusIn(event: FocusEvent): void {
-        if (!active || !isTopLayer() || isEventInside(event)) {
+        const revision = activationRevision;
+        if (!canHandle(event) || isEventInside(event) || !canHandle(event) || revision !== activationRevision) {
             return;
         }
 
         const layerEvent = createLayerEvent(event);
+        if (useOverlayStack) handledEvents.add(event);
 
         options.onFocusOutside?.(layerEvent);
 
         if (!layerEvent.isDefaultPrevented() && dismissOnFocusOutside) {
-            dismiss();
+            dismiss(revision);
         }
     }
 
@@ -153,6 +171,7 @@ export function createDismissableLayer(
         }
 
         active = true;
+        activationRevision += 1;
 
         if (useOverlayStack) {
             overlayEntry = overlayStack.add(element);

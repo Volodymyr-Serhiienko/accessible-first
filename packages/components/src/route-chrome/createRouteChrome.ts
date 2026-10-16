@@ -1,3 +1,4 @@
+import { runCleanups } from "../../../core/src/events";
 import {
     getAppRouteById,
     getAppRouteHref,
@@ -361,95 +362,103 @@ export function createRouteChrome<
     let search: ComposedRouteSearchBox<TRoute> | null = null;
     let commands: ComposedRouteCommandPalette<TRoute> | null = null;
 
-    if (options.navigation !== undefined && options.navigation !== false) {
-        const navigationOptions: RouteResponsiveNavigationOptions<TRoute> = {
-            ...(options.navigation ?? {}),
-            routes,
-            current: currentId
-        };
-        const navigationItemsOptions = getRouteChromeNavigationItemsOptions(routeText, options.navigation);
+    try {
+        if (options.navigation !== undefined && options.navigation !== false) {
+            const navigationOptions: RouteResponsiveNavigationOptions<TRoute> = {
+                ...(options.navigation ?? {}),
+                routes,
+                current: currentId
+            };
+            const navigationItemsOptions = getRouteChromeNavigationItemsOptions(routeText, options.navigation);
 
-        if (navigationItemsOptions !== undefined) navigationOptions.navigationItemsOptions = navigationItemsOptions;
-        if (onRouteActivate) navigationOptions.onRouteNavigate = onRouteActivate;
+            if (navigationItemsOptions !== undefined) navigationOptions.navigationItemsOptions = navigationItemsOptions;
+            if (onRouteActivate) navigationOptions.onRouteNavigate = onRouteActivate;
 
-        navigation = RouteResponsiveNavigation<TRoute>(navigationOptions);
-    }
-
-    if (options.breadcrumbs !== undefined && options.breadcrumbs !== false) {
-        const {
-            routes: _breadcrumbRoutes,
-            current: _current,
-            root: _root,
-            trailOptions: _trailOptions,
-            breadcrumbItemsOptions: _breadcrumbItemsOptions,
-            ...breadcrumbOptions
-        } = options.breadcrumbs ?? {};
-        const breadcrumbSourceRoutes = getBreadcrumbSourceRoutes(routes, options.breadcrumbs);
-        const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
-            ...breadcrumbOptions,
-            routes: getBreadcrumbRoutes(routes, options.breadcrumbs),
-            current: getBreadcrumbCurrent(current, options.breadcrumbs)
-        };
-        const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
-        const breadcrumbItemsOptions = getRouteChromeBreadcrumbItemsOptions(routeText, options.breadcrumbs);
-        const routeBreadcrumbItemsOptions = createRouteChromeBreadcrumbItemsOptions(
-            breadcrumbSourceRoutes,
-            breadcrumbItemsOptions
-        );
-
-        if (trailOptions !== undefined) routeBreadcrumbsOptions.trailOptions = trailOptions;
-        if (routeBreadcrumbItemsOptions !== undefined) {
-            routeBreadcrumbsOptions.breadcrumbItemsOptions = routeBreadcrumbItemsOptions;
+            navigation = RouteResponsiveNavigation<TRoute>(navigationOptions);
         }
 
-        breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>(routeBreadcrumbsOptions);
+        if (options.breadcrumbs !== undefined && options.breadcrumbs !== false) {
+            const {
+                routes: _breadcrumbRoutes,
+                current: _current,
+                root: _root,
+                trailOptions: _trailOptions,
+                breadcrumbItemsOptions: _breadcrumbItemsOptions,
+                ...breadcrumbOptions
+            } = options.breadcrumbs ?? {};
+            const breadcrumbSourceRoutes = getBreadcrumbSourceRoutes(routes, options.breadcrumbs);
+            const routeBreadcrumbsOptions: RouteBreadcrumbsOptions<AppRouteDescriptor> = {
+                ...breadcrumbOptions,
+                routes: getBreadcrumbRoutes(routes, options.breadcrumbs),
+                current: getBreadcrumbCurrent(current, options.breadcrumbs)
+            };
+            const trailOptions = getBreadcrumbTrailOptions(options.breadcrumbs);
+            const breadcrumbItemsOptions = getRouteChromeBreadcrumbItemsOptions(routeText, options.breadcrumbs);
+            const routeBreadcrumbItemsOptions = createRouteChromeBreadcrumbItemsOptions(
+                breadcrumbSourceRoutes,
+                breadcrumbItemsOptions
+            );
 
-        currentRouteControls.push({
-            setCurrent(nextCurrent): void {
-                breadcrumbs?.setCurrent(nextCurrent);
+            if (trailOptions !== undefined) routeBreadcrumbsOptions.trailOptions = trailOptions;
+            if (routeBreadcrumbItemsOptions !== undefined) {
+                routeBreadcrumbsOptions.breadcrumbItemsOptions = routeBreadcrumbItemsOptions;
             }
-        });
-    }
 
-    if (options.search !== undefined && options.search !== false) {
-        const searchOptions: RouteSearchBoxOptions<TRoute> = {
-            ...options.search,
-            routes
+            breadcrumbs = RouteBreadcrumbs<AppRouteDescriptor>(routeBreadcrumbsOptions);
+
+            currentRouteControls.push({
+                setCurrent(nextCurrent): void {
+                    breadcrumbs?.setCurrent(nextCurrent);
+                }
+            });
+        }
+
+        if (options.search !== undefined && options.search !== false) {
+            const searchOptions: RouteSearchBoxOptions<TRoute> = {
+                ...options.search,
+                routes
+            };
+            const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.search);
+
+            if (searchItemsOptions !== undefined) searchOptions.searchItemsOptions = searchItemsOptions;
+
+            const labelOptions = getRouteChromeSearchLabelOptions(options.search);
+
+            if (labelOptions !== undefined) searchOptions.labelOptions = labelOptions;
+            if (onRouteActivate) searchOptions.onRouteSelect = onRouteActivate;
+
+            search = RouteSearchBox<TRoute>(searchOptions);
+            headerControls.push(search);
+        }
+
+        if (options.commands !== undefined && options.commands !== false) {
+            const commandOptions: RouteCommandPaletteOptions<TRoute> = {
+                ...options.commands,
+                routes
+            };
+            const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.commands);
+
+            if (searchItemsOptions !== undefined) commandOptions.searchItemsOptions = searchItemsOptions;
+            if (onRouteActivate) commandOptions.onRouteSelect = onRouteActivate;
+
+            commands = RouteCommandPalette<TRoute>(commandOptions);
+            headerControls.push(commands);
+        }
+
+        return {
+            navigation,
+            breadcrumbs,
+            search,
+            commands,
+            headerControls,
+            navigationControl: navigation,
+            currentRouteControls
         };
-        const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.search);
-
-        if (searchItemsOptions !== undefined) searchOptions.searchItemsOptions = searchItemsOptions;
-
-        const labelOptions = getRouteChromeSearchLabelOptions(options.search);
-
-        if (labelOptions !== undefined) searchOptions.labelOptions = labelOptions;
-        if (onRouteActivate) searchOptions.onRouteSelect = onRouteActivate;
-
-        search = RouteSearchBox<TRoute>(searchOptions);
-        headerControls.push(search);
+    } catch (error) {
+        try { runCleanups([
+            () => commands?.destroy(), () => search?.destroy(),
+            () => breadcrumbs?.destroy(), () => navigation?.destroy()
+        ]); } catch { /* Preserve the construction failure. */ }
+        throw error;
     }
-
-    if (options.commands !== undefined && options.commands !== false) {
-        const commandOptions: RouteCommandPaletteOptions<TRoute> = {
-            ...options.commands,
-            routes
-        };
-        const searchItemsOptions = getRouteChromeSearchItemsOptions(routeText, options.commands);
-
-        if (searchItemsOptions !== undefined) commandOptions.searchItemsOptions = searchItemsOptions;
-        if (onRouteActivate) commandOptions.onRouteSelect = onRouteActivate;
-
-        commands = RouteCommandPalette<TRoute>(commandOptions);
-        headerControls.push(commands);
-    }
-
-    return {
-        navigation,
-        breadcrumbs,
-        search,
-        commands,
-        headerControls,
-        navigationControl: navigation,
-        currentRouteControls
-    };
 }

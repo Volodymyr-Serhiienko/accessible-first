@@ -8,6 +8,7 @@ import {
 } from "../brand";
 import {
     Image,
+    collectDestroyers,
     type CompositionChild
 } from "../composition";
 import {
@@ -41,6 +42,7 @@ import {
     type ComposedThemeToggle,
     type ThemeToggleOptions
 } from "../theme";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by AppHeader slots.
@@ -297,42 +299,54 @@ export function AppHeader<
     const brandMaxWidth = getBrandMaxWidth(options);
     const identity = options.identity ?? null;
     const locale = options.locale ?? null;
-    const brandControl = "brandContent" in options
-        ? null
-        : createBrandControl(options.brand, identity, brandMaxWidth);
-    const brandContent = "brandContent" in options
-        ? options.brandContent ?? null
-        : brandControl;
-    const languageControl = createLanguageControl(locale, options.language);
-    const themeControl = createThemeControl(locale, options.theme);
-    const accountControl = options.account
-        ? AccountControl({ ...options.account, locale })
-        : null;
-    const controls: CompositionChild[] = [
-        ...(options.controls ?? [])
-    ];
+    let owned: CompositionChild[] = [];
+    const own = <T extends CompositionChild>(child: T): T => { if (child) owned.push(child); return child; };
+    try {
+        const brandControl = own("brandContent" in options
+            ? null
+            : createBrandControl(options.brand, identity, brandMaxWidth));
+        const brandContent = "brandContent" in options
+            ? options.brandContent ?? null
+            : brandControl;
+        const languageControl = own(createLanguageControl(locale, options.language));
+        const themeControl = own(createThemeControl(locale, options.theme));
+        const accountControl = own(options.account
+            ? AccountControl({ ...options.account, locale })
+            : null);
+        const controls: CompositionChild[] = [
+            ...(options.controls ?? [])
+        ];
 
-    if (languageControl) controls.push(languageControl);
-    if (themeControl) controls.push(themeControl);
-    if (accountControl) controls.push(accountControl);
+        if (languageControl) controls.push(languageControl);
+        if (themeControl) controls.push(themeControl);
+        if (accountControl) controls.push(accountControl);
 
-    const toolsControl = createToolsControl(locale, controls, options.tools);
-    const actions = getActionsContent(controls, toolsControl, options.tools);
-    const header = HeaderBar({
-        ...headerBarOptions,
-        brandMaxWidth,
-        brand: brandContent,
-        actions
-    });
+        const toolsControl = createToolsControl(locale, controls, options.tools);
+        if (toolsControl) {
+            owned = owned.filter(child => !controls.includes(child));
+            owned.push(toolsControl);
+        }
+        const actions = getActionsContent(controls, toolsControl, options.tools);
+        const header = HeaderBar({
+            ...headerBarOptions,
+            brandMaxWidth,
+            brand: brandContent,
+            actions
+        });
 
-    return {
-        ...header,
-        header,
-        brandControl,
-        languageControl,
-        themeControl,
-        accountControl,
-        toolsControl,
-        controls
-    };
+        return {
+            ...header,
+            header,
+            brandControl,
+            languageControl,
+            themeControl,
+            accountControl,
+            toolsControl,
+            controls
+        };
+    } catch (error) {
+        try { runCleanups(collectDestroyers(owned).reverse()); }
+        catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

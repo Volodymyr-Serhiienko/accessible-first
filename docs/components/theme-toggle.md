@@ -69,6 +69,23 @@ Row(
 - common button options from [button.md](./button.md).
 - common composition options from [foundation.md](./foundation.md#common-composition-options).
 
+Button display reserves space for both action labels by default; `reserveText: null`
+opts out. Long labels wrap. Pending options and `hintShowOnFocus` follow Button's
+contract: visual hints are hover-only by default; descriptions remain available
+according to `hintDisplay`. Switching back from switch display clears its default tooltip/switch ARIA
+without clearing an explicitly configured hint.
+
+Switch display fills its inner track and places the thumb by logical inline inset
+relative to that track, not by a translation based on the outer button width.
+Both states stay inside the track in LTR/RTL. This short transition is visual only;
+the native switch state changes immediately.
+
+`onThemeChange` runs after applying the theme and before its announcement. Newer
+changes or destruction from the callback/resolver cancel obsolete speech. Destruction
+is terminal, disconnects the theme observer and releases locale/button/announcement
+resources even after a cleanup failure. Late setters/update cannot change the theme.
+The exposed `button` is borrowed; destroy ThemeToggle itself.
+
 ## Manual Checks
 
 - Initial text or switch state matches the already applied theme.

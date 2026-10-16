@@ -115,7 +115,8 @@ export type AppRouteCanonicalResolver<TRoute extends AppRouteDescriptor> = (
  * Resolves JSON-LD structured data for a route.
  */
 export type AppRouteStructuredDataResolver<TRoute extends AppRouteDescriptor> = (
-    route: TRoute
+    route: TRoute,
+    resolvedMetadata?: Readonly<DocumentMetadataUpdateOptions>
 ) => DocumentMetadataStructuredData | null | undefined;
 
 /**
@@ -512,7 +513,10 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
             }
         }
 
-        const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+        const routeMetadata = getAppRouteResolvedMetadata(route, options);
+        const description = routeMetadata?.description !== undefined
+            ? routeMetadata.description
+            : options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
 
         if (options.requireDescription && !description?.trim()) {
             issues.push(createAppRouteDiagnosticsIssue(
@@ -524,7 +528,9 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
             ));
         }
 
-        const documentTitle = options.getDocumentTitle?.(route) ?? getAppRouteDocumentTitle(route);
+        const documentTitle = routeMetadata?.title !== undefined
+            ? routeMetadata.title
+            : options.getDocumentTitle?.(route) ?? getAppRouteDocumentTitle(route);
 
         if (options.requireDocumentTitle && !documentTitle?.trim()) {
             issues.push(createAppRouteDiagnosticsIssue(
@@ -536,7 +542,6 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
             ));
         }
 
-        const routeMetadata = getAppRouteResolvedMetadata(route, options);
         const canonical = routeMetadata?.canonical !== undefined
             ? routeMetadata.canonical
             : getAppRouteCanonical(route, options);
@@ -561,7 +566,7 @@ export function inspectAppRoutes<TRoute extends AppRouteDescriptor>(
 
         const structuredData = routeMetadata?.structuredData !== undefined
             ? routeMetadata.structuredData
-            : options.getStructuredData?.(route);
+            : options.getStructuredData?.(route, { ...routeMetadata, title: documentTitle, description, canonical });
 
         if (options.requireStructuredData && (structuredData === undefined || structuredData === null)) {
             issues.push(createAppRouteDiagnosticsIssue(
@@ -941,25 +946,24 @@ export function createAppRouteDocumentMetadata<TRoute extends AppRouteDescriptor
         ...(routeMetadata ?? {})
     };
 
-    const title = getAppRouteDocumentTitle(route, options);
-    const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
-    const canonical = getAppRouteCanonical(route, options);
-    const structuredData = options.getStructuredData?.(route);
-
-    if (title !== null && metadata.title === undefined) {
-        metadata.title = title;
+    if (metadata.title === undefined) {
+        const title = getAppRouteDocumentTitle(route, options);
+        if (title !== null) metadata.title = title;
     }
 
-    if (description !== null && metadata.description === undefined) {
-        metadata.description = description;
+    if (metadata.description === undefined) {
+        const description = options.getDescription?.(route) ?? getAppRouteDocumentDescription(route);
+        if (description !== null) metadata.description = description;
     }
 
-    if (canonical !== null && metadata.canonical === undefined) {
-        metadata.canonical = canonical;
+    if (metadata.canonical === undefined) {
+        const canonical = getAppRouteCanonical(route, options);
+        if (canonical !== null) metadata.canonical = canonical;
     }
 
-    if (structuredData !== undefined && metadata.structuredData === undefined) {
-        metadata.structuredData = structuredData;
+    if (metadata.structuredData === undefined) {
+        const structuredData = options.getStructuredData?.(route, { ...metadata });
+        if (structuredData !== undefined) metadata.structuredData = structuredData;
     }
 
     return metadata;

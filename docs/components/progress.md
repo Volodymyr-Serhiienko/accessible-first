@@ -102,6 +102,19 @@ lessonProgress.update({
 
 Use `setValue(null)` to switch to indeterminate progress. If `showValue` is not set explicitly, generated value text follows the current state: shown for determinate values and hidden for indeterminate values.
 
+Non-finite values become indeterminate; non-positive/non-finite maxima use `100`.
+Finite values are clamped to the current maximum. A combined max/value update
+normalizes against the new maximum without intermediate slot renders.
+
+The native label tracks changes to the control ID. The component contributes
+only its description ID to `aria-describedby`, preserving external references
+when the description is changed, hidden or disposed.
+
+Slots follow the [shared ownership contract](foundation.md#lifecycle): combined
+updates continue after cleanup failure unless newer work supersedes them.
+Destruction releases every slot and its description reference, is idempotent, and
+makes late setters/update inert. Existing DOM and value getters remain inspectable.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="progress"]`, `[data-af-progress-header]`, `[data-af-progress-label]`, `[data-af-progress-value]`, `[data-af-progress-control]`, `[data-af-progress-description]`, `[data-af-state]`, `[data-af-variant]`, and `[data-af-size]`.
@@ -115,7 +128,11 @@ Progress({
 });
 ```
 
-The default styles use native progress styling where possible and CSS variables such as `--af-progress-height` and `--af-progress-value-ratio`.
+Default styles retain native value/max semantics and expose `--af-progress-track`
+and `--af-progress-fill` for color overrides. The indeterminate background remains
+visible through the native WebKit track and stops animating under reduced motion.
+`--af-progress-value-ratio` exposes the normalized value for application styling;
+there is no built-in `--af-progress-height` token.
 
 ## Manual Checks
 
@@ -126,3 +143,5 @@ The default styles use native progress styling where possible and CSS variables 
 - Frequent progress changes do not create excessive screen reader announcements.
 - Colors meet contrast expectations in light and dark themes.
 - Progress remains readable inside cards and on small screens.
+- Long labels, custom value text and descriptions wrap without page overflow;
+  the header can wrap its value onto a new line.

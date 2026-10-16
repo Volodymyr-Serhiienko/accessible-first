@@ -39,15 +39,16 @@ OverflowScroller({
 - Disables the previous control at the start and the next control at the end.
 - Preserves keyboard access to focusable content inside the scroller.
 - Gives focus indicators extra scroll padding so edge items are not clipped.
-- Keeps focused descendants fully visible when users tab through long content.
+- Scrolls the still-focused descendant into the padded viewport; content wider than the viewport cannot fit completely.
 - Updates control state on scroll, resize, and content changes.
 
 ## Options
 
 - `children` - Content placed inside the scroll track.
 - `label` - Optional accessible group label for the scroller.
-- `previousLabel` - Accessible label for the previous button. Defaults to `"Scroll left"`.
-- `nextLabel` - Accessible label for the next button. Defaults to `"Scroll right"`.
+- `previousLabel` - Accessible label for the previous button. Defaults to `"Scroll backward"`.
+- `nextLabel` - Accessible label for the next button. Defaults to `"Scroll forward"`.
+- `locale` - Optional provider for these service labels; explicit labels override it.
 - `controls` - `"auto"`, `"always"`, or `"none"`. Defaults to `"auto"`.
 - `scrollAmount` - `"page"` or a pixel number. Defaults to `"page"`.
 - `viewportOptions` - Common composition options for the scroll viewport.
@@ -58,7 +59,20 @@ OverflowScroller({
 
 ## Styling
 
-Useful hooks include `[data-af-composition="overflow-scroller"]`, `[data-af-overflow-scroller-viewport]`, `[data-af-overflow-scroller-content]`, and `[data-af-overflow-scroller-button]`.
+Previous/next follow logical inline order: RTL uses negative `scrollLeft`, reverses
+movement and arrow glyphs, and retains logical labels. The obsolete positive RTL
+scroll models of legacy engines are not supported. Call `refresh()` after changing
+inherited direction without a resize, scroll or content update.
+
+Arrow corners use physical borders, with direction applied once by rotation.
+They point along the inline axis in both LTR and RTL rather than turning vertical.
+
+`destroy()` is terminal, cancels timers/frames, disconnects the owner-window resize
+observer and finishes all owned cleanup after an error. Late updates, scrolling
+and refresh are inert; `isDestroyed()` reports the state. A queued focus scroll
+does not follow an element after focus has moved elsewhere.
+
+Useful hooks include `[data-af-composition="overflow-scroller"]`, `[data-af-overflow-scroller-viewport]`, `[data-af-overflow-scroller-content]`, `[data-af-overflow-scroller-button]`, and `[data-af-overflow-scroller-direction]`.
 
 The default styles hide the browser scrollbar and expose arrow buttons when scrolling is possible. Projects can override the hooks when they need visible scrollbars or different button placement.
 

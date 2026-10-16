@@ -110,6 +110,10 @@ const button = createIconButton(existingButton, {
 
 Useful hooks include `[data-af-component="icon-button"]`, `[data-af-tooltip]`, `[data-af-selected="true"]`, `[aria-pressed]`, `[data-af-variant]`, and `[data-af-state]`.
 
+Native and enhanced non-button roots use the same border-box target dimensions
+(`--af-target-size`, 44px by default) and do not shrink in flex rows. Enlarging
+surrounding text does not add borders outside that target.
+
 ```ts
 IconButton({
     label: "Save",
@@ -120,6 +124,20 @@ IconButton({
 
 ## Manual Checks
 
+Enhancement inherits authored disabled/pressed state and restores original
+attributes on destruction. Its locale subscription rejects obsolete callbacks;
+all semantics/listeners are released even if unsubscribe or a child cleanup throws.
+Composed destruction is terminal. Newer content/hint updates supersede older work.
+Changing content/title refreshes fallback-name diagnostics. A meaningful explicit
+label is still preferred over relying on title or a fallback.
+
+Visual hints default to hover-only, as in Button; `hintDisplay: "both"` retains
+the description for screen-reader focus. Set `hintShowOnFocus: true` only to opt in
+to visual focus reveal. A label-derived tooltip is already read as the accessible
+name and does not add a duplicate description.
+Custom-element Enter/Space handling ignores nested, handled, composing and modified
+events; Space requires an owned keydown and is canceled on blur.
+
 - Tab reaches the button.
 - Focus indicator is visible.
 - Disabled buttons cannot be activated.
@@ -128,5 +146,5 @@ IconButton({
 - Missing accessible names produce a diagnostics warning instead of silently creating an unnamed control.
 - Default label tooltip remains readable in light and dark themes.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
-- Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
+- Visual tooltip appears on hover when `hintDisplay` is `"tooltip"` or `"both"`; focus reveal is opt-in.
 - Touch target is at least 44 by 44 CSS pixels.

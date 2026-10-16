@@ -172,6 +172,7 @@ export function createPublicLinkRoutedApp<
         },
 
         refresh(refreshOptions?: LinkRoutedAppRefreshOptions<TRoute>): void {
+            if (routedApp.isDestroyed()) return;
             routedApp.refresh(refreshOptions);
 
             if (shouldLogDiagnosticsOnRefresh(options)) {
@@ -184,11 +185,11 @@ export function createPublicLinkRoutedApp<
         },
 
         inspectDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.inspect() ?? null;
+            return routedApp.isDestroyed() ? null : diagnostics?.inspect() ?? null;
         },
 
         logDiagnostics(): AppDiagnosticsReport | null {
-            return diagnostics?.log() ?? null;
+            return routedApp.isDestroyed() ? null : diagnostics?.log() ?? null;
         },
 
         destroy(): void {
@@ -200,8 +201,11 @@ export function createPublicLinkRoutedApp<
         }
     };
 
-    if (shouldLogDiagnosticsOnCreate(options)) {
-        diagnostics?.log();
+    try {
+        if (shouldLogDiagnosticsOnCreate(options)) diagnostics?.log();
+    } catch (error) {
+        try { publicApp.destroy(); }
+        finally { throw error; }
     }
 
     return publicApp;

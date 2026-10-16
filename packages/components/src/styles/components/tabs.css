@@ -1,14 +1,18 @@
 [data-af-composition="tabs"] {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 
 [data-af-composition="tabs"][data-af-orientation="vertical"] {
-    grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, min(50%, 14rem)) minmax(0, 1fr);
     align-items: start;
 }
 
 [data-af-component="tabs"] {
+    min-inline-size: 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--af-space-2);
@@ -24,7 +28,9 @@
 }
 
 [data-af-tabs-tab] {
+    box-sizing: border-box;
     min-inline-size: var(--af-target-size);
+    max-inline-size: 100%;
     min-block-size: var(--af-target-size);
     border: 1px solid transparent;
     border-radius: 8px 8px 0 0;
@@ -33,6 +39,8 @@
     background: transparent;
     font: inherit;
     font-weight: 600;
+    white-space: normal;
+    overflow-wrap: anywhere;
     cursor: pointer;
 }
 
@@ -64,7 +72,9 @@
 }
 
 [data-af-tabs-panel] {
+    min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 
@@ -74,7 +84,7 @@
 
 @media (max-width: 640px) {
     [data-af-composition="tabs"][data-af-orientation="vertical"] {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     [data-af-component="tabs"][data-af-orientation="vertical"] {

@@ -1,3 +1,7 @@
+import { isHTMLElement, isVisible } from "../../../core/src/dom";
+import { addEventListener, runCleanups, type Cleanup } from "../../../core/src/events";
+import { getFocusableElements, isFocusable } from "../../../core/src/focus";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 import {
     applyCompositionElementOptions,
     createElement,
@@ -129,27 +133,19 @@ export interface ComposedResponsiveNavigation extends ComposedNode<HTMLElement> 
     readonly mobileCloseButton: ComposedButton;
     readonly desktopScroller: ComposedOverflowScroller;
     getFocusTarget(): HTMLElement;
+    /** Rechecks CSS visibility and transfers only focus owned by the hidden branch. */
+    checkLayout(): void;
     setItems(items: NavigationItem[]): void;
     setCurrent(match: string | null): void;
     update(options: ResponsiveNavigationUpdateOptions): void;
     destroy(): void;
-}
-
-function isElementVisible(element: HTMLElement): boolean {
-    const ownerWindow = element.ownerDocument.defaultView;
-    const style = ownerWindow?.getComputedStyle(element);
-
-    return (
-        style?.display !== "none"
-        && style?.visibility !== "hidden"
-        && element.getClientRects().length > 0
-    );
+    isDestroyed(): boolean;
 }
 
 function getVisibleCurrentNavigationLink(
     items: readonly ComposedNavigationItem[]
 ): HTMLElement | null {
-    return items.find((item) => item.isCurrent() && isElementVisible(item.link.element))
+    return items.find((item) => item.isCurrent() && isFocusable(item.link.element))
         ?.link.element ?? null;
 }
 
@@ -162,10 +158,11 @@ export function getResponsiveNavigationFocusTarget(
     return (
         getVisibleCurrentNavigationLink(navigation.desktopNavigation.items)
         ?? getVisibleCurrentNavigationLink(navigation.mobileNavigation.items)
-        ?? (isElementVisible(navigation.mobileDisclosure.trigger)
+        ?? (isFocusable(navigation.mobileDisclosure.trigger)
             ? navigation.mobileDisclosure.trigger
             : null)
-        ?? navigation.desktopNavigation.items[0]?.link.element
+        ?? getFocusableElements(navigation.desktopNavigation.element)[0]
+        ?? getFocusableElements(navigation.mobileNavigation.element)[0]
         ?? navigation.element
     );
 }
@@ -214,6 +211,7 @@ function getNavigationOptions(
 
 function getNavigationUpdateOptions(
     listOptions: ResponsiveNavigationListOptions | undefined,
+    retainedOptions: ResponsiveNavigationListOptions,
     items: NavigationItem[] | undefined,
     variant: NavigationVariant,
     size: NavigationSize,
@@ -222,9 +220,9 @@ function getNavigationUpdateOptions(
 ): NavigationUpdateOptions {
     const updateOptions: NavigationUpdateOptions = {
         ...(listOptions ?? {}),
-        orientation: listOptions?.orientation ?? (mobile ? "vertical" : "horizontal"),
-        variant: listOptions?.variant ?? variant,
-        size: listOptions?.size ?? size,
+        orientation: retainedOptions.orientation ?? (mobile ? "vertical" : "horizontal"),
+        variant: retainedOptions.variant ?? variant,
+        size: retainedOptions.size ?? size,
         onNavigate
     };
 
@@ -254,271 +252,249 @@ export function ResponsiveNavigation(options: ResponsiveNavigationOptions): Comp
     let closeButton = options.closeButton;
     let triggerIconPosition: ResponsiveNavigationTriggerIconPosition = options.triggerIconPosition ?? "start";
     let locale: ResponsiveNavigationLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
     let size: NavigationSize = options.size ?? "md";
     let closeOnNavigate = options.closeOnNavigate ?? true;
     let onNavigate = options.onNavigate ?? null;
     let hasCurrent = "current" in options;
     let current = options.current ?? null;
     let destroyed = false;
+    let revision = 0;
+    let desktopListOptions = { ...options.desktopNavigationOptions };
+    let mobileListOptions = { ...options.mobileNavigationOptions };
+    let scrollerOptions = { ...options.overflowScrollerOptions };
+    const cleanups: Cleanup[] = [];
+    let desktopNavigation!: ComposedNavigation;
+    let desktopScroller!: ComposedOverflowScroller;
+    let mobileNavigation!: ComposedNavigation;
+    let mobileCloseButton!: ComposedButton;
+    let mobileDisclosure!: ComposedDisclosure;
+    const localeSubscription = createLocaleSubscription(syncLocalizedContent);
 
-    function getOverflowScrollerOptions(
-        scrollerOptions: ResponsiveNavigationOverflowScrollerOptions | undefined
-    ): ResponsiveNavigationOverflowScrollerOptions {
-        const resolvedOptions: ResponsiveNavigationOverflowScrollerOptions = {
-            ...(scrollerOptions ?? {})
-        };
-
-        if (resolvedOptions.locale === undefined && locale !== null) {
-            resolvedOptions.locale = locale;
-        }
-
-        return resolvedOptions;
+    function getOverflowScrollerOptions(): ResponsiveNavigationOverflowScrollerOptions {
+        return { ...scrollerOptions, locale: scrollerOptions.locale === undefined ? locale : scrollerOptions.locale };
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
-            syncCloseButtonContent();
-            desktopScroller.update(getOverflowScrollerOptions(undefined));
-        });
+    function syncLocalizedContent(): void {
+        if (destroyed) return;
+        const activeRevision = revision;
+        const triggerContent = getTriggerContent(trigger, locale);
+        const closeContent = getCloseButtonContent(closeButton, locale);
+        if (destroyed || activeRevision !== revision) return;
+        runCleanups([
+            () => mobileDisclosure.setTriggerContent(triggerContent),
+            () => {
+                if (destroyed || activeRevision !== revision) return;
+                mobileCloseButton.update({ children: toCompositionChildren(closeContent) });
+                if (!destroyed && activeRevision === revision) {
+                    mobileCloseButton.element.hidden = closeContent === null || closeContent === false;
+                }
+            }
+        ]);
     }
 
     function handleNavigate(detail: NavigationNavigateDetail): void {
+        if (destroyed) return;
+        const activeRevision = revision;
         onNavigate?.(detail, composed);
 
-        if (closeOnNavigate) {
+        if (!destroyed && activeRevision === revision && closeOnNavigate) {
             mobileDisclosure.close();
         }
     }
 
-    const desktopNavigation = Navigation(getNavigationOptions(
-        { ...options.desktopNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
-        items,
-        variant,
-        size,
-        handleNavigate,
-        false
-    ));
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([
+            localeSubscription.destroy,
+            ...[...cleanups].reverse(),
+            () => desktopScroller ? desktopScroller.destroy() : desktopNavigation?.destroy(),
+            () => mobileDisclosure ? mobileDisclosure.destroy() : runCleanups([
+                () => mobileCloseButton?.destroy(), () => mobileNavigation?.destroy()
+            ]),
+            () => element.remove()
+        ]);
+    }
 
-    const desktopScroller = OverflowScroller({
-        ...getOverflowScrollerOptions(options.overflowScrollerOptions),
-        children: [desktopNavigation]
-    });
+    try {
+        desktopNavigation = Navigation(getNavigationOptions(
+            { ...options.desktopNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
+            items,
+            variant,
+            size,
+            handleNavigate,
+            false
+        ));
 
-    const mobileNavigation = Navigation(getNavigationOptions(
-        { ...options.mobileNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
-        items,
-        mobileVariant,
-        size,
-        handleNavigate,
-        true
-    ));
+        desktopScroller = OverflowScroller({
+            ...getOverflowScrollerOptions(),
+            children: [desktopNavigation]
+        });
 
-    let mobileDisclosure!: ComposedDisclosure;
+        mobileNavigation = Navigation(getNavigationOptions(
+            { ...options.mobileNavigationOptions, ...(options.leadingContent !== undefined ? { leadingContent: options.leadingContent } : {}) },
+            items,
+            mobileVariant,
+            size,
+            handleNavigate,
+            true
+        ));
 
-    function restoreMobileTriggerFocus(): void {
-        const ownerWindow = mobileDisclosure.trigger.ownerDocument.defaultView ?? window;
-
-        ownerWindow.setTimeout(() => {
-            if (mobileDisclosure.trigger.isConnected) {
-                mobileDisclosure.trigger.focus({ preventScroll: true });
+        mobileCloseButton = Button({
+            variant: "secondary",
+            onPress() {
+                mobileDisclosure.close();
             }
-        }, 0);
-    }
+        });
 
-    const mobileCloseButton = Button({
-        variant: "secondary",
-        onPress() {
-            mobileDisclosure.close();
-            restoreMobileTriggerFocus();
+        mobileCloseButton.element.setAttribute("data-af-responsive-navigation-close", "");
+
+        const mobilePanelContentElement = createElement("div", {
+            attributes: {
+                "data-af-responsive-navigation-panel-content": ""
+            }
+        });
+
+        mobilePanelContentElement.append(mobileNavigation.element, mobileCloseButton.element);
+
+        const mobilePanelContent: ComposedNode = {
+            element: mobilePanelContentElement,
+
+            destroy(): void {
+                runCleanups([mobileCloseButton.destroy, mobileNavigation.destroy]);
+            }
+        };
+
+        mobileDisclosure = Disclosure({
+            ...(options.disclosureOptions ?? {}),
+            trigger: getTriggerContent(trigger, locale),
+            panel: mobilePanelContent,
+            variant: options.disclosureOptions?.variant ?? "plain",
+            announcement: options.disclosureOptions?.announcement ?? false
+        });
+
+        desktopScroller.element.setAttribute("data-af-responsive-navigation-desktop", "");
+        desktopNavigation.element.setAttribute("data-af-responsive-navigation-desktop-list", "");
+        mobileDisclosure.element.setAttribute("data-af-responsive-navigation-mobile", "");
+        mobileDisclosure.trigger.setAttribute("data-af-responsive-navigation-trigger", "");
+        mobileDisclosure.panel.setAttribute("data-af-responsive-navigation-panel", "");
+        mobileNavigation.element.setAttribute("data-af-responsive-navigation-mobile-list", "");
+
+        function syncTriggerIconPosition(): void {
+            mobileDisclosure.trigger.setAttribute(
+                "data-af-trigger-icon-position",
+                triggerIconPosition
+            );
         }
-    });
 
-    mobileCloseButton.element.setAttribute("data-af-responsive-navigation-close", "");
+        syncTriggerIconPosition();
 
-    const mobilePanelContentElement = createElement("div", {
-        attributes: {
-            "data-af-responsive-navigation-panel-content": ""
+        element.append(desktopScroller.element, mobileDisclosure.element);
+
+        function syncCurrent(): void {
+            if (destroyed || !hasCurrent) return;
+
+            runCleanups([() => desktopNavigation.setCurrent(current), () => mobileNavigation.setCurrent(current)]);
         }
-    });
 
-    mobilePanelContentElement.append(mobileNavigation.element, mobileCloseButton.element);
-
-    const mobilePanelContent: ComposedNode = {
-        element: mobilePanelContentElement,
-
-        destroy(): void {
-            mobileCloseButton.destroy();
-            mobileNavigation.destroy();
+        function setItems(nextItems: NavigationItem[]): void {
+            update({ items: nextItems });
         }
-    };
 
-    mobileDisclosure = Disclosure({
-        ...(options.disclosureOptions ?? {}),
-        trigger: getTriggerContent(trigger, locale),
-        panel: mobilePanelContent,
-        variant: options.disclosureOptions?.variant ?? "plain",
-        announcement: options.disclosureOptions?.announcement ?? false
-    });
-
-    desktopScroller.element.setAttribute("data-af-responsive-navigation-desktop", "");
-    desktopNavigation.element.setAttribute("data-af-responsive-navigation-desktop-list", "");
-    mobileDisclosure.element.setAttribute("data-af-responsive-navigation-mobile", "");
-    mobileDisclosure.trigger.setAttribute("data-af-responsive-navigation-trigger", "");
-    mobileDisclosure.panel.setAttribute("data-af-responsive-navigation-panel", "");
-    mobileNavigation.element.setAttribute("data-af-responsive-navigation-mobile-list", "");
-
-    function syncCloseButtonContent(): void {
-        const content = getCloseButtonContent(closeButton, locale);
-
-        mobileCloseButton.element.hidden = content === null || content === false;
-
-        if (content !== null && content !== false) {
-            mobileCloseButton.update({
-                children: toCompositionChildren(content)
-            });
+        function setCurrent(match: string | null): void {
+            if (destroyed) return;
+            hasCurrent = true;
+            current = match;
+            syncCurrent();
         }
-    }
 
-    function syncTriggerIconPosition(): void {
-        mobileDisclosure.trigger.setAttribute(
-            "data-af-trigger-icon-position",
-            triggerIconPosition
-        );
-    }
-
-    syncCloseButtonContent();
-    syncTriggerIconPosition();
-    syncLocaleSubscription();
-
-    element.append(desktopScroller.element, mobileDisclosure.element);
-
-    function syncCurrent(): void {
-        if (!hasCurrent) return;
-
-        desktopNavigation.setCurrent(current);
-        mobileNavigation.setCurrent(current);
-    }
-
-    function setItems(nextItems: NavigationItem[]): void {
-        items = nextItems;
-        desktopNavigation.setItems(items);
-        mobileNavigation.setItems(items);
         syncCurrent();
-    }
 
-    function setCurrent(match: string | null): void {
-        hasCurrent = true;
-        current = match;
-        syncCurrent();
-    }
+        function checkLayout(): void {
+            if (destroyed) return;
+            const active = element.ownerDocument.activeElement;
+            const desktopVisible = isVisible(desktopNavigation.element);
+            const mobileVisible = isFocusable(mobileDisclosure.trigger);
+            const ownsDesktopFocus = isHTMLElement(active) && desktopNavigation.element.contains(active);
+            const ownsMobileFocus = isHTMLElement(active) && mobileDisclosure.element.contains(active);
+            const mobileItemIndex = mobileNavigation.items.findIndex((item) => item.link.element === active);
+            if (desktopVisible && mobileDisclosure.isOpen()) mobileDisclosure.close();
+            const afterClose = element.ownerDocument.activeElement;
+            if (afterClose !== active && afterClose !== mobileDisclosure.trigger && afterClose !== element.ownerDocument.body) return;
+            if (!desktopVisible && mobileVisible && ownsDesktopFocus) {
+                mobileDisclosure.trigger.focus({ preventScroll: true });
+            } else if (desktopVisible && !mobileVisible && ownsMobileFocus) {
+                const counterpart = desktopNavigation.items[mobileItemIndex]?.link.element;
+                const target = counterpart && isFocusable(counterpart) ? counterpart : getResponsiveNavigationFocusTarget(composed);
+                target.focus({ preventScroll: true });
+            }
+            desktopScroller.refresh();
+        }
 
-    syncCurrent();
-
-    composed = {
-        element,
-        desktopNavigation,
-        desktopScroller,
-        mobileNavigation,
-        mobileDisclosure,
-        mobileCloseButton,
-
-        getFocusTarget(): HTMLElement {
-            return getResponsiveNavigationFocusTarget(composed);
-        },
-
-        setItems,
-        setCurrent,
-
-        update(nextOptions): void {
+        function update(nextOptions: ResponsiveNavigationUpdateOptions): void {
+            if (destroyed) return;
+            const activeRevision = ++revision;
+            const isCurrent = (): boolean => !destroyed && activeRevision === revision;
             applyCompositionElementOptions(element, nextOptions);
-
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
             if (nextOptions.mobileVariant !== undefined) mobileVariant = nextOptions.mobileVariant;
-            if (nextOptions.triggerIconPosition !== undefined) {
-                triggerIconPosition = nextOptions.triggerIconPosition;
-            }
-            if ("locale" in nextOptions) {
-                locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
-                syncCloseButtonContent();
-            }
+            if (nextOptions.triggerIconPosition !== undefined) triggerIconPosition = nextOptions.triggerIconPosition;
+            if ("locale" in nextOptions) locale = nextOptions.locale ?? null;
+            if ("trigger" in nextOptions) trigger = nextOptions.trigger;
+            if ("closeButton" in nextOptions) closeButton = nextOptions.closeButton ?? null;
             if (nextOptions.size !== undefined) size = nextOptions.size;
             if (nextOptions.closeOnNavigate !== undefined) closeOnNavigate = nextOptions.closeOnNavigate;
-
-            if ("onNavigate" in nextOptions) {
-                onNavigate = nextOptions.onNavigate ?? null;
-            }
-
-            if (nextOptions.items !== undefined) {
-                items = nextOptions.items;
-            }
-
-            desktopNavigation.update(getNavigationUpdateOptions(
-                { ...nextOptions.desktopNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
-                nextOptions.items,
-                variant,
-                size,
-                handleNavigate,
-                false
-            ));
-
-            if (nextOptions.overflowScrollerOptions !== undefined || "locale" in nextOptions) {
-                desktopScroller.update(getOverflowScrollerOptions(nextOptions.overflowScrollerOptions));
-            }
-
-            desktopScroller.refresh();
-
-            mobileNavigation.update(getNavigationUpdateOptions(
-                { ...nextOptions.mobileNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
-                nextOptions.items,
-                mobileVariant,
-                size,
-                handleNavigate,
-                true
-            ));
-
-            if (nextOptions.disclosureOptions !== undefined) {
-                mobileDisclosure.update(nextOptions.disclosureOptions);
-            }
-
-            if ("trigger" in nextOptions) {
-                trigger = nextOptions.trigger;
-                mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
-            } else if ("locale" in nextOptions) {
-                mobileDisclosure.setTriggerContent(getTriggerContent(trigger, locale));
-            }
-
-            if ("closeButton" in nextOptions) {
-                closeButton = nextOptions.closeButton ?? null;
-                syncCloseButtonContent();
-            }
-
-            syncTriggerIconPosition();
-
-            if ("current" in nextOptions) {
-                setCurrent(nextOptions.current ?? null);
-            } else {
-                syncCurrent();
-            }
-        },
-
-        destroy(): void {
-            if (destroyed) return;
-
-            destroyed = true;
-            unsubscribeLocale?.();
-            desktopScroller.destroy();
-            mobileDisclosure.destroy();
-            element.remove();
+            if ("onNavigate" in nextOptions) onNavigate = nextOptions.onNavigate ?? null;
+            if (nextOptions.items !== undefined) items = nextOptions.items;
+            if ("current" in nextOptions) { hasCurrent = true; current = nextOptions.current ?? null; }
+            desktopListOptions = { ...desktopListOptions, ...nextOptions.desktopNavigationOptions };
+            mobileListOptions = { ...mobileListOptions, ...nextOptions.mobileNavigationOptions };
+            scrollerOptions = { ...scrollerOptions, ...nextOptions.overflowScrollerOptions };
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                () => { if (isCurrent()) desktopNavigation.update(getNavigationUpdateOptions(
+                    { ...nextOptions.desktopNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
+                    desktopListOptions, nextOptions.items, variant, size, handleNavigate, false
+                )); },
+                () => { if (isCurrent()) mobileNavigation.update(getNavigationUpdateOptions(
+                    { ...nextOptions.mobileNavigationOptions, ...("leadingContent" in nextOptions ? { leadingContent: nextOptions.leadingContent ?? null } : {}) },
+                    mobileListOptions, nextOptions.items, mobileVariant, size, handleNavigate, true
+                )); },
+                () => { if (isCurrent() && (nextOptions.overflowScrollerOptions !== undefined || "locale" in nextOptions)) desktopScroller.update(getOverflowScrollerOptions()); },
+                () => { if (isCurrent() && nextOptions.disclosureOptions !== undefined) mobileDisclosure.update(nextOptions.disclosureOptions); },
+                () => { if (isCurrent() && ("trigger" in nextOptions || "closeButton" in nextOptions || "locale" in nextOptions)) syncLocalizedContent(); },
+                () => { if (isCurrent()) { syncTriggerIconPosition(); syncCurrent(); checkLayout(); } }
+            ]);
         }
-    };
 
-    return composed;
+        composed = {
+            element,
+            desktopNavigation,
+            desktopScroller,
+            mobileNavigation,
+            mobileDisclosure,
+            mobileCloseButton,
+
+            getFocusTarget(): HTMLElement {
+                return getResponsiveNavigationFocusTarget(composed);
+            },
+
+            checkLayout,
+            setItems,
+            setCurrent,
+            update,
+            destroy,
+            isDestroyed: () => destroyed
+        };
+
+        const ownerWindow = element.ownerDocument.defaultView;
+        if (ownerWindow) cleanups.push(addEventListener(ownerWindow, "resize", checkLayout));
+        localeSubscription.replace(locale);
+        syncLocalizedContent();
+        return composed;
+    } catch (error) {
+        try { destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

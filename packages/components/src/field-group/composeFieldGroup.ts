@@ -1,4 +1,5 @@
 import { createFormField, type FormFieldInvalidState } from "../../../core/src/form-field";
+import { runCleanups } from "../../../core/src/events";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -132,8 +133,11 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
     let size: FieldGroupSize = options.size ?? "md";
 
     const formField = createFormField(element);
+    let destroyed = false;
+    let revision = 0;
 
     function sync(): void {
+        if (destroyed) return;
         description.hidden = !hasVisibleContent(description);
         errorMessage.hidden = !hasVisibleContent(errorMessage);
 
@@ -163,22 +167,54 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
     }
 
     function setLabelContent(content: FieldGroupCompositionContent): void {
-        legendSlot.set(toCompositionChildren(content));
-        sync();
+        update({ label: content });
     }
 
     function setDescription(content: FieldGroupCompositionContent | null): void {
-        descriptionSlot.set(toCompositionChildren(content));
-        sync();
+        update({ description: content });
     }
 
     function setErrorMessage(content: FieldGroupCompositionContent | null): void {
-        errorSlot.set(toCompositionChildren(content));
-        sync();
+        update({ errorMessage: content });
     }
 
     function setChildren(content: FieldGroupCompositionContent | null): void {
-        bodySlot.set(toCompositionChildren(content));
+        update({ children: content });
+    }
+
+    function update(nextOptions: FieldGroupUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.legendOptions !== undefined) applyCompositionElementOptions(legend, nextOptions.legendOptions);
+        if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
+        if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        if (nextOptions.errorOptions !== undefined) applyCompositionElementOptions(errorMessage, nextOptions.errorOptions);
+        legend.setAttribute("data-af-field-group-legend", "");
+        body.setAttribute("data-af-field-group-body", "");
+        description.setAttribute("data-af-field-group-description", "");
+        errorMessage.setAttribute("data-af-field-group-error", "");
+        if (nextOptions.disabled !== undefined) disabled = nextOptions.disabled;
+        if (nextOptions.required !== undefined) required = nextOptions.required;
+        if (nextOptions.invalid !== undefined) invalid = nextOptions.invalid;
+        if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
+        if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        runCleanups([
+            () => { if (!destroyed && current === revision && "label" in nextOptions) legendSlot.set(toCompositionChildren(nextOptions.label)); },
+            () => { if (!destroyed && current === revision && "description" in nextOptions) descriptionSlot.set(toCompositionChildren(nextOptions.description)); },
+            () => { if (!destroyed && current === revision && "errorMessage" in nextOptions) errorSlot.set(toCompositionChildren(nextOptions.errorMessage)); },
+            () => { if (!destroyed && current === revision && "children" in nextOptions) bodySlot.set(toCompositionChildren(nextOptions.children)); },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([legendSlot.dispose, descriptionSlot.dispose, errorSlot.dispose, bodySlot.dispose, formField.destroy]);
     }
 
     sync();
@@ -196,8 +232,7 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
         setChildren,
 
         setDisabled(nextDisabled): void {
-            disabled = nextDisabled;
-            sync();
+            update({ disabled: nextDisabled });
         },
 
         isDisabled(): boolean {
@@ -205,8 +240,7 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
         },
 
         setRequired(nextRequired): void {
-            required = nextRequired;
-            sync();
+            update({ required: nextRequired });
         },
 
         isRequired(): boolean {
@@ -214,8 +248,7 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
         },
 
         setInvalid(nextInvalid): void {
-            invalid = nextInvalid;
-            sync();
+            update({ invalid: nextInvalid });
         },
 
         getInvalid(): FormFieldInvalidState {
@@ -223,55 +256,10 @@ export function FieldGroup(options: FieldGroupOptions): ComposedFieldGroup {
         },
 
         setOrientation(nextOrientation): void {
-            orientation = nextOrientation;
-            sync();
+            update({ orientation: nextOrientation });
         },
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.legendOptions !== undefined) {
-                applyCompositionElementOptions(legend, nextOptions.legendOptions);
-                legend.setAttribute("data-af-field-group-legend", "");
-            }
-
-            if (nextOptions.bodyOptions !== undefined) {
-                applyCompositionElementOptions(body, nextOptions.bodyOptions);
-                body.setAttribute("data-af-field-group-body", "");
-            }
-
-            if (nextOptions.descriptionOptions !== undefined) {
-                applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-                description.setAttribute("data-af-field-group-description", "");
-            }
-
-            if (nextOptions.errorOptions !== undefined) {
-                applyCompositionElementOptions(errorMessage, nextOptions.errorOptions);
-                errorMessage.setAttribute("data-af-field-group-error", "");
-            }
-
-            if (nextOptions.label !== undefined) setLabelContent(nextOptions.label);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("errorMessage" in nextOptions) setErrorMessage(nextOptions.errorMessage ?? null);
-            if ("children" in nextOptions) setChildren(nextOptions.children ?? null);
-
-            if (nextOptions.disabled !== undefined) disabled = nextOptions.disabled;
-            if (nextOptions.required !== undefined) required = nextOptions.required;
-            if (nextOptions.invalid !== undefined) invalid = nextOptions.invalid;
-            if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
-            if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            legendSlot.dispose();
-            descriptionSlot.dispose();
-            errorSlot.dispose();
-            bodySlot.dispose();
-            formField.destroy();
-        }
+        update,
+        destroy
     };
 }

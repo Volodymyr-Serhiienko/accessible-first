@@ -5,6 +5,7 @@ import type {
     ComponentState
 } from "./types";
 import { restoreAttribute } from "../../../core/src/dom";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Creates the shared lifecycle controller used by components.
@@ -57,14 +58,12 @@ export function createComponentLifecycle(
 
             destroyed = true;
 
-            for (const cleanup of [...cleanups].reverse()) {
-                cleanup();
+            const owned = cleanups.splice(0).reverse();
+            try { runCleanups(owned); }
+            finally {
+                restoreAttribute(element, "data-af-component", originalComponent);
+                restoreAttribute(element, "data-af-state", originalState);
             }
-
-            cleanups.length = 0;
-
-            restoreAttribute(element, "data-af-component", originalComponent);
-            restoreAttribute(element, "data-af-state", originalState);
         },
 
         isDestroyed(): boolean {

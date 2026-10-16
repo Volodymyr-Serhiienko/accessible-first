@@ -7,7 +7,6 @@ import { addEventListener, type Cleanup } from "../events";
 import { isEnterKey, isSpaceKey } from "../keyboard";
 import {
     createRovingFocus,
-    isRovingFocusItemDisabled,
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
@@ -22,6 +21,7 @@ import {
     type TypeaheadOptions
 } from "../typeahead";
 import { createAttributeSnapshot } from "../dom";
+import { canFocusCollectionItem, isCollectionItemDisabled, isCollectionItemUnavailable } from "../roving-focus/collectionAvailability";
 
 import type {
     Listbox,
@@ -53,6 +53,7 @@ export function createListbox(
         options.selectionFollowsFocus ?? selectionMode === "single";
 
     const attributes = createAttributeSnapshot();
+    let ownedOptions = new Set<HTMLElement>();
 
     let currentOption: HTMLElement | null = null;
     let destroyed = false;
@@ -65,11 +66,15 @@ export function createListbox(
     }
 
     function isOptionDisabled(option: HTMLElement): boolean {
-        return options.isOptionDisabled?.(option) ?? isRovingFocusItemDisabled(option);
+        return isCollectionItemDisabled(option, options.isOptionDisabled);
+    }
+
+    function isOptionUnavailable(option: HTMLElement): boolean {
+        return isCollectionItemUnavailable(element, option, options.isOptionDisabled);
     }
 
     function isOptionAvailable(option: HTMLElement): boolean {
-        return getOptions().includes(option) && !isOptionDisabled(option);
+        return getOptions().includes(option) && !isOptionUnavailable(option);
     }
 
     function getOptionFromEventTarget(target: EventTarget | null): HTMLElement | null {
@@ -103,6 +108,10 @@ export function createListbox(
     }
 
     function syncState(): void {
+        const optionItems = getOptions();
+        const nextOptions = new Set(optionItems);
+        for (const option of ownedOptions) if (!nextOptions.has(option)) attributes.restoreElement(option);
+        ownedOptions = nextOptions;
         attributes.remember(element, "role");
         attributes.remember(element, "aria-orientation");
         attributes.remember(element, "aria-multiselectable");
@@ -119,7 +128,7 @@ export function createListbox(
             selectionMode === "multiple" ? true : null
         );
 
-        for (const option of getOptions()) {
+        for (const option of optionItems) {
             attributes.remember(option, "role");
             attributes.remember(option, "aria-selected");
 
@@ -145,7 +154,8 @@ export function createListbox(
         option: HTMLElement | null,
         moveOptions: { focus?: boolean; select?: boolean } = {}
     ): boolean {
-        if (destroyed || !option || !isOptionAvailable(option)) {
+        if (destroyed || !option || !isOptionAvailable(option)
+            || (moveOptions.focus && !canFocusCollectionItem(option))) {
             return false;
         }
 
@@ -205,14 +215,16 @@ export function createListbox(
     }
 
     function handleFocusIn(event: FocusEvent): void {
-        moveToOption(getOptionFromEventTarget(event.target));
+        const option = getOptions().find((option) => option === event.target);
+        if (option) moveToOption(option);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
+        if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
+        const option = getOptions().find((option) => option === event.target);
+        if (!option) return;
         if (isEnterKey(event) || isSpaceKey(event)) {
-            const option = getOptionFromEventTarget(event.target) ?? currentOption;
-
-            if (!option || !isOptionAvailable(option)) {
+            if (!isOptionAvailable(option)) {
                 return;
             }
 
@@ -254,7 +266,7 @@ export function createListbox(
         const typeaheadOptions: TypeaheadOptions<HTMLElement> = {
             getItems: getOptions,
             getItemText: getOptionText,
-            isItemDisabled: isOptionDisabled,
+            isItemDisabled: isOptionUnavailable,
             onMatch: (option) => {
                 moveToOption(option, { focus: true });
             }
@@ -270,8 +282,8 @@ export function createListbox(
     selection = createSelection(getSelectionOptions());
 
     currentOption =
-        getSelectedOptions()[0] ??
-        getFirstItem(getOptions(), { isItemDisabled: isOptionDisabled });
+        getFirstItem(getSelectedOptions(), { isItemDisabled: isOptionUnavailable }) ??
+        getFirstItem(getOptions(), { isItemDisabled: isOptionUnavailable });
 
     syncState();
 
@@ -305,6 +317,7 @@ export function createListbox(
         getSelectedOptions,
 
         setSelectedOptions(nextOptions: HTMLElement[]): void {
+            if (destroyed) return;
             selection.setSelectedItems(nextOptions);
         },
 
@@ -319,6 +332,7 @@ export function createListbox(
         toggleOption,
 
         clearSelection(): void {
+            if (destroyed) return;
             selection.clearSelection();
         },
 
@@ -331,8 +345,8 @@ export function createListbox(
 
             if (!currentOption || !isOptionAvailable(currentOption)) {
                 currentOption =
-                    getSelectedOptions()[0] ??
-                    getFirstItem(getOptions(), { isItemDisabled: isOptionDisabled });
+                    getFirstItem(getSelectedOptions(), { isItemDisabled: isOptionUnavailable }) ??
+                    getFirstItem(getOptions(), { isItemDisabled: isOptionUnavailable });
             }
 
             syncState();
@@ -360,6 +374,7 @@ export function createListbox(
 
             rovingFocus.deactivate();
             attributes.restore();
+            ownedOptions.clear();
         }
     };
 }

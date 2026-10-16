@@ -71,6 +71,10 @@ Result state:
 - `page` - current one-based page number used with `pageSize`.
 - `pageSize` - number of items per page used with `page`.
 
+Numeric inputs are rounded and clamped to zero (counts) or one (indices/page
+sizes). Non-finite or unsafe integer results become `null`; derived range indices
+also become `null` when they cannot be represented safely.
+
 Text and localization:
 
 - `format` - custom formatter that receives `ResultSummaryState` and returns composition content.
@@ -106,11 +110,25 @@ The returned `ComposedResultSummary` exposes:
 
 `setRange(start, end, total?)` updates the explicit visible range. When `total` is omitted, the previous total is preserved.
 
+Style, content DOM options and live-region-only updates do not rerun `format` or
+replace its children. A newer content update from inside a formatter supersedes
+the older result; obsolete composed children are disposed unless retained by the
+newer view. A throwing formatter leaves the previous visible content intact and
+propagates the error; the caller owns error feedback/recovery.
+
+Destruction releases both locale subscription and content even if either cleanup
+fails, then rethrows the first error. It is idempotent; late setters/update and
+stale locale callbacks are inert. Getters remain available for inspection.
+
 ## Accessibility
 
 Keep ResultSummary quiet by default. Static result summaries should be normal visible text that screen readers encounter when focus or reading mode reaches them.
 
 Use `live: "polite"` when filtering or pagination changes the visible result count without moving focus to a new heading or screen. Avoid announcing the same result update through both ResultSummary and a toast/status message.
+
+`atomic: false` sets an explicit `aria-atomic="false"` while live mode is enabled,
+including when the root has a role with an implicit atomic default. Actual speech
+timing still depends on the browser/screen-reader pair.
 
 Use `format` for application-specific wording, plural rules, or data labels. The built-in fallback text is intentionally small service text; full product copy belongs in the application locale file.
 

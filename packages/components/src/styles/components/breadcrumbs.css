@@ -16,12 +16,16 @@
 
 [data-af-breadcrumbs-item] {
     min-inline-size: 0;
+    max-inline-size: 100%;
     display: inline-flex;
     align-items: center;
     gap: var(--af-space-2);
 }
 
 [data-af-breadcrumbs-content] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
     min-block-size: var(--af-target-size);
     display: inline-flex;
     align-items: center;
@@ -52,6 +56,7 @@ a[data-af-breadcrumbs-content]:focus-visible {
 }
 
 [data-af-breadcrumbs-separator] {
+    flex-shrink: 0;
     color: var(--af-color-muted);
 }
 

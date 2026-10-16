@@ -56,15 +56,29 @@ page.footer(Footer());
 
 `sticky` keeps the selected region visible after it reaches the top of the viewport. It is the safest first choice for compact app headers, navigation, breadcrumbs, and route helper bars because it does not remove the region from layout flow.
 
-`fixed` pins the selected region to the viewport. Use it carefully because fixed chrome can overlap content unless the application has enough space and the behavior is tested across breakpoints.
+`fixed` pins the selected region to the viewport. PageLayout inserts an owned,
+noninteractive `aria-hidden` flow placeholder beside each fixed region, preserving
+its height at the correct position even in mixed sticky/fixed stacks. These
+placeholders are removed on mode change or destruction. Do not remove/reorder them
+independently. Fixed before-outlet content keeps the main region's contained width.
+Preceding **normal** regions still scroll behind pinned chrome; use sticky when
+conditional docking is intended. Test available vertical space across breakpoints.
 
 `reveal` behaves like sticky chrome that hides while the user scrolls down and appears immediately when the user starts scrolling up. It also remains visible while focus is inside the reveal region or while a descendant control is expanded, so open mobile navigation, search popups, and similar interactive chrome do not disappear during use. It is useful for larger application headers and navigation on mobile because it keeps controls close without permanently taking vertical space.
 
 `beforeOutlet` targets the AppShell content rendered before `PageOutlet`. It is useful for breadcrumbs, route tabs, filters, or compact context bars that should remain available while the current screen scrolls.
 
 `topOffset` and `zIndex` map to `--af-page-chrome-top-offset` and `--af-page-chrome-z-index` on the page root.
+When any region is pinned, the page also reserves `topOffset` in flow, for example
+below an external fixed banner. Do not reserve that same offset twice in app CSS.
 
 PageLayout measures header, navigation, and before-outlet heights with `ResizeObserver` when available. The measurement is based on the rendered elements, so changed logo size, wrapped text, language length, and responsive layout are included automatically when those regions are owned by `createPage()` / `AppShell`.
+
+The observer and unchanged targets are retained across updates. Chrome subtree
+changes, region replacement, visibility and expanded-state changes refresh relevant
+measurements; ordinary outlet edits do not repeatedly reobserve chrome. Native
+resize also refreshes measurements without `ResizeObserver`. Without that API,
+external CSS/font-only changes may require `update({})` to remeasure.
 
 It exposes these CSS variables and attributes on the page root:
 
@@ -77,6 +91,16 @@ It exposes these CSS variables and attributes on the page root:
 - `--af-page-fixed-chrome-block-size`
 - `data-af-page-chrome-visible` - `"true"` unless at least one reveal region is currently hidden
 
+`--af-page-fixed-chrome-block-size` remains the total fixed height, not root
+padding: per-region placeholders now reserve flow space. Do not add that total as
+extra page padding. Top offsets account for preceding visible **pinned** regions.
+Hidden reveal regions move fully out of view even below a non-reveal sticky region.
+
+Destruction is terminal/idempotent. All listeners, observers, queued frames,
+placeholders and borrowed attributes/styles are released even if one cleanup
+throws; the first error is rethrown. Failed construction releases completed
+resources, and retained callbacks cannot mutate the page after destruction.
+
 ## Accessibility Notes
 
 PageLayout is intentionally semantic-neutral. It should not create a second `main`, `header`, `nav`, or `footer`. Use it with `createPage()` instead of wrapping a full page inside another full page shell.
@@ -86,6 +110,11 @@ PageLayout has no user-facing text, no live region, and no custom focus route. I
 Sticky or reveal breadcrumbs and context bars should not replace page headings or navigation landmarks. They are orientation aids, not the only way to understand the current screen.
 
 This separation keeps page semantics predictable while still giving developers a simple default layout for real applications.
+
+This layout targets a document-scrolling page and horizontal writing mode.
+Transformed containing blocks, custom nested scrollers, visual-viewport/keyboard
+occlusion and chrome taller than the viewport need application-specific behavior
+and physical-device testing; they are not solved by build targets or DOM tests.
 
 ## Manual Checks
 

@@ -39,8 +39,11 @@ export function createButton(
     const originalVariant = element.getAttribute("data-af-variant");
     const originalSize = element.getAttribute("data-af-size");
 
-    let disabled = options.disabled ?? false;
-    let pressed: ButtonPressedState = options.pressed ?? null;
+    let disabled = options.disabled ?? (nativeButton?.disabled ?? originalAriaDisabled === "true");
+    let pressed: ButtonPressedState = options.pressed !== undefined ? options.pressed
+        : originalAriaPressed === "mixed" ? "mixed" : originalAriaPressed === "true" ? true
+        : originalAriaPressed === "false" ? false : null;
+    let spaceArmed = false;
     let onPress = options.onPress ?? null;
     const pendingState = createPendingState(element, options);
     lifecycle.addCleanup(pendingState.destroy);
@@ -61,9 +64,10 @@ export function createButton(
     }
 
     function handleClick(event: MouseEvent): void {
+        if (event.defaultPrevented) return;
         if (disabled) {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             return;
         }
 
@@ -73,9 +77,7 @@ export function createButton(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (disabled) {
-            return;
-        }
+        if (!acceptsKey(event)) return;
 
         if (isEnterKey(event)) {
             event.preventDefault();
@@ -85,18 +87,23 @@ export function createButton(
 
         if (isSpaceKey(event)) {
             event.preventDefault();
+            spaceArmed = true;
         }
     }
 
     function handleKeyUp(event: KeyboardEvent): void {
-        if (disabled) {
-            return;
-        }
-
-        if (isSpaceKey(event)) {
+        const activate = spaceArmed && acceptsKey(event);
+        spaceArmed = false;
+        if (activate && isSpaceKey(event)) {
             event.preventDefault();
             element.click();
         }
+    }
+
+    function acceptsKey(event: KeyboardEvent): boolean {
+        return !disabled && event.target === element && !event.defaultPrevented
+            && !event.isComposing && event.keyCode !== 229
+            && !event.altKey && !event.ctrlKey && !event.metaKey;
     }
 
     if (nativeButton) {
@@ -108,6 +115,7 @@ export function createButton(
     }
 
     if (!nativeButton) {
+        lifecycle.addCleanup(addEventListener(element, "blur", () => { spaceArmed = false; }));
         if (!element.hasAttribute("role")) {
             setRole(element, "button");
         }
@@ -147,6 +155,19 @@ export function createButton(
     syncDisabled();
     syncPressed();
 
+    function setDisabled(nextDisabled: boolean): void {
+        if (lifecycle.isDestroyed()) return;
+        disabled = nextDisabled;
+        spaceArmed = false;
+        syncDisabled();
+    }
+
+    function setPressed(nextPressed: ButtonPressedState): void {
+        if (lifecycle.isDestroyed()) return;
+        pressed = nextPressed;
+        syncPressed();
+    }
+
     return {
         element,
 
@@ -158,23 +179,13 @@ export function createButton(
 
         isPending: pendingState.isPending,
 
-        setDisabled(nextDisabled: boolean): void {
-            if (lifecycle.isDestroyed()) return;
-
-            disabled = nextDisabled;
-            syncDisabled();
-        },
+        setDisabled,
 
         isDisabled(): boolean {
             return disabled;
         },
 
-        setPressed(nextPressed: ButtonPressedState): void {
-            if (lifecycle.isDestroyed()) return;
-
-            pressed = nextPressed;
-            syncPressed();
-        },
+        setPressed,
 
         getPressed(): ButtonPressedState {
             return pressed;
@@ -185,11 +196,11 @@ export function createButton(
             pendingState.update(nextOptions);
             syncDisabled();
             if (nextOptions.disabled !== undefined) {
-                this.setDisabled(nextOptions.disabled);
+                setDisabled(nextOptions.disabled);
             }
 
             if ("pressed" in nextOptions) {
-                this.setPressed(nextOptions.pressed ?? null);
+                setPressed(nextOptions.pressed ?? null);
             }
 
             if ("onPress" in nextOptions) {

@@ -143,9 +143,26 @@ When `TextField` is registered with `Form`, the form calls field validation with
 
 Use `announceValidation: false` when an application owns all validation speech through a form, toast, inline status, or another workflow-level announcer.
 
+Validation is synchronous. Native `willValidate` is respected: disabled/read-only
+controls, including those barred by a fieldset, stay idle and do not run the custom
+validator. Required-label markers also update through `setRequired()`.
+
+Destroy, a newer validation, or a controller value/constraint mutation during the
+validator, native `invalid` event, or `onValidationChange` makes the older check
+obsolete. Its result is `{ valid: false, state: "idle", message: "" }` without
+reapplying old state or reporting success to a form. Calling `validate()` after
+destroy has the same inactive result, without callbacks/subscriptions/announcements.
+`clearValidation()` cancels this field's queued feedback. An uncanceled connected
+native form reset clears custom validity and visual validation even without `Form`.
+
 ## Update Notes
 
 `defaultValue` and `multiline` are creation-time options. Use `setValue()` or `update({ value })` to change the current value.
+
+`getValue()` reads the native value after reset, autofill and input-type
+sanitization, rather than a cached string. Enhancement restores the original type
+before its original value and ignores `update()` after destroy. See
+[native field state](./foundation.md#native-field-state) for composed reset defaults.
 
 ```ts
 const field = TextField({
@@ -178,6 +195,12 @@ if (!result.valid) {
 ```
 
 ## Styling
+
+Disabled presentation takes precedence over read-only presentation, including
+native disabled fieldset inheritance. The valid-state tick keeps its conventional
+shape in RTL; the validation icon and PasswordField reveal control retain separate
+space. Single-line values scroll internally rather than wrapping like labels,
+descriptions and errors.
 
 Useful hooks include `[data-af-composition="text-field"]`, `[data-af-component="text-field"]`, `[data-af-text-field-label]`, `[data-af-text-field-control-wrap]`, `[data-af-text-field-control]`, `[data-af-text-field-validation-icon]`, `[data-af-text-field-description]`, `[data-af-text-field-error]`, `[data-af-required]`, `[data-af-validation-state]`, `[data-af-multiline]`, `[data-af-variant]`, `[data-af-size]`, and `[data-af-state]`.
 

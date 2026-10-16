@@ -12,9 +12,14 @@ export function isHTMLElement(value: unknown): value is HTMLElement {
     const element = value as HTMLElement;
     const ownerWindow = element.ownerDocument?.defaultView;
 
-    if (ownerWindow) {
-        return value instanceof ownerWindow.HTMLElement;
-    }
+    if (ownerWindow && value instanceof ownerWindow.HTMLElement) return true;
+    if (typeof HTMLElement !== "undefined" && value instanceof HTMLElement) return true;
 
-    return typeof HTMLElement !== "undefined" && value instanceof HTMLElement;
+    // Adoption changes ownerDocument, but does not replace the node's original prototype.
+    const ElementClass = ownerWindow?.Element ?? (typeof Element !== "undefined" ? Element : null);
+    if (!ElementClass) return false;
+    try {
+        ElementClass.prototype.hasAttribute.call(value, "");
+        return element.namespaceURI === "http://www.w3.org/1999/xhtml";
+    } catch { return false; }
 }

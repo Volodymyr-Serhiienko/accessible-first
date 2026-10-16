@@ -1,4 +1,5 @@
-import { append, collectDestroyers } from "./append";
+import { createContentSlot } from "./contentSlot";
+import { runCleanups } from "../../../core/src/events";
 import { toCompositionChildren } from "./content";
 import { createElement } from "./createElement";
 import { getCompositionElementOptions } from "./options";
@@ -36,10 +37,7 @@ export interface IconLabelOptions extends BaseCompositionOptions {
 export function IconLabel(options: IconLabelOptions): ComposedNode<HTMLSpanElement> {
     const iconPosition = options.iconPosition ?? "start";
     const labelChildren = toCompositionChildren(options.label);
-    const destroyers = collectDestroyers([
-        options.icon,
-        ...labelChildren
-    ]);
+    let destroyed = false;
 
     const element = createElement("span", getCompositionElementOptions(options, {
         "data-af-composition": "icon-label",
@@ -58,17 +56,17 @@ export function IconLabel(options: IconLabelOptions): ComposedNode<HTMLSpanEleme
         }
     });
 
-    append(icon, options.icon);
-    append(label, ...labelChildren);
+    const iconContent = createContentSlot(icon, [options.icon]);
+    const labelContent = createContentSlot(label, labelChildren);
     element.append(icon, label);
 
     return {
         element,
 
         destroy(): void {
-            for (const destroy of [...destroyers].reverse()) {
-                destroy();
-            }
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([labelContent.dispose, iconContent.dispose]);
         }
     };
 }

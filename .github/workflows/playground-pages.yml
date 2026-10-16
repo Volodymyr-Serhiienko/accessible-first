@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -68,4 +68,3 @@ jobs:
         with:
           timeout: 600000
           reporting_interval: 15000
-          

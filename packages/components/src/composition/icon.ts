@@ -131,7 +131,7 @@ function getWrapperOptions(options: IconOptions) {
         attributes.role = null;
         attributes["aria-label"] = null;
         attributes["aria-labelledby"] = null;
-        attributes["aria-hidden"] = true;
+        attributes["aria-hidden"] = "true";
     } else {
         attributes.role = "img";
         attributes["aria-hidden"] = null;
@@ -168,8 +168,8 @@ function createSvgIcon(options: IconPathOptions): SVGSVGElement {
     const svgAttributes: ElementAttributes = {
         ...options.svgAttributes,
         viewBox: options.viewBox ?? "0 0 24 24",
-        focusable: false,
-        "aria-hidden": true
+        focusable: "false",
+        "aria-hidden": "true"
     };
 
     for (const [name, value] of Object.entries(svgAttributes)) {
@@ -206,7 +206,7 @@ function createImageIcon(options: IconImageOptions): HTMLImageElement {
         ...options.imageAttributes,
         src: options.src,
         alt: "",
-        "aria-hidden": true,
+        "aria-hidden": "true",
         draggable: "false"
     };
 

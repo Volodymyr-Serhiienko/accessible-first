@@ -67,6 +67,14 @@ Keyboard behavior:
 - `Enter` or `Space` activates the focused item.
 - `Escape` requests close through `onClose`.
 
+Horizontal arrows follow live computed LTR/RTL direction. Hidden/inert/native-
+disabled items are skipped at runtime, including when a custom logical-disabled
+callback is supplied. Detached/wholly hidden construction preserves defaults;
+an explicit focus request cannot focus unavailable content. Temporary hiding does
+not write `aria-disabled`. On `refresh()`, removed items release borrowed ARIA and
+tabindex attributes. Keyboard activation/typeahead belongs to the item itself,
+not an editable descendant. See [roving contracts](../core/roving-focus.md).
+
 ## Options
 
 Root options:
@@ -144,6 +152,10 @@ All variants, including `plain`, reserve internal space for the item focus outli
 This space follows the shared focus-ring width/offset tokens; scroll padding and
 item scroll margins keep focus clearance part of the scrollable layout. Do not
 remove this padding when placing a menu inside a popover.
+
+The vertical grid and both orientations' items can shrink and wrap long labels.
+Ordinary text does not need horizontal scrolling; arbitrary fixed-width custom
+content still requires application-owned sizing or a deliberate scroll policy.
 
 Useful CSS custom properties:
 

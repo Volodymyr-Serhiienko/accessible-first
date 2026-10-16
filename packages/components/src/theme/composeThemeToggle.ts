@@ -18,6 +18,8 @@ import {
     type LocaleTextProvider
 } from "../localization";
 import { applyResolvedTheme, getResolvedTheme, type ResolvedTheme } from "./theme";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Visual presentation used by ThemeToggle().
@@ -45,6 +47,7 @@ export type ThemeToggleAnnouncement =
  * Localized message keys used by ThemeToggle fallback text.
  */
 export type ThemeToggleMessageKey =
+    | "pending.waitMessage"
     | "themeToggle.toDarkLabel"
     | "themeToggle.toLightLabel"
     | "themeToggle.switchLabel"
@@ -225,6 +228,7 @@ function getButtonOptions(
     theme: ResolvedTheme,
     display: ThemeToggleDisplay,
     actionLabel: string,
+    reservedLabels: readonly string[],
     switchLabel: string,
     selected: boolean,
     onPress: NonNullable<ButtonCompositionOptions["onPress"]>
@@ -237,13 +241,19 @@ function getButtonOptions(
 
     if (display === "switch") {
         buttonOptions.children = createSwitchContent(theme, switchLabel);
+        buttonOptions.reserveText = null;
     } else {
         buttonOptions.text = actionLabel;
+        buttonOptions.reserveText = options.reserveText !== undefined ? options.reserveText : reservedLabels;
     }
 
     if (options.id !== undefined) buttonOptions.id = options.id;
     if (options.className !== undefined) buttonOptions.className = options.className;
     if (options.disabled !== undefined) buttonOptions.disabled = options.disabled;
+    if (options.pending !== undefined) buttonOptions.pending = options.pending;
+    if (options.pendingMessage !== undefined) buttonOptions.pendingMessage = options.pendingMessage;
+    if (options.pendingDelay !== undefined) buttonOptions.pendingDelay = options.pendingDelay;
+    buttonOptions.locale = options.locale ?? null;
     if (options.type !== undefined) buttonOptions.type = options.type;
     if (options.variant !== undefined) buttonOptions.variant = options.variant;
     if (options.size !== undefined) buttonOptions.size = options.size;
@@ -252,6 +262,8 @@ function getButtonOptions(
         buttonOptions.hint = options.hint ?? null;
     } else if (display === "switch") {
         buttonOptions.hint = actionLabel;
+    } else {
+        buttonOptions.hint = null;
     }
 
     if (options.hintId !== undefined) buttonOptions.hintId = options.hintId;
@@ -260,13 +272,18 @@ function getButtonOptions(
         buttonOptions.hintDisplay = options.hintDisplay;
     } else if (display === "switch") {
         buttonOptions.hintDisplay = buttonOptions.hint === null ? "none" : "tooltip";
+    } else {
+        buttonOptions.hintDisplay = "description";
     }
 
     if (options.hintAnnounceOnHover !== undefined) {
         buttonOptions.hintAnnounceOnHover = options.hintAnnounceOnHover;
     } else if (display === "switch") {
         buttonOptions.hintAnnounceOnHover = true;
+    } else {
+        buttonOptions.hintAnnounceOnHover = false;
     }
+    if (options.hintShowOnFocus !== undefined) buttonOptions.hintShowOnFocus = options.hintShowOnFocus;
 
     return buttonOptions;
 }
@@ -283,7 +300,8 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
     let toLightLabel = options.toLightLabel;
     let switchLabel = options.switchLabel;
     let locale: ThemeToggleLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    let destroyed = false;
+    let revision = 0;
     let selectedTheme: ResolvedTheme | null = "selectedTheme" in options
         ? options.selectedTheme ?? null
         : null;
@@ -300,22 +318,28 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         onPress: NonNullable<ButtonCompositionOptions["onPress"]>
     ): ButtonCompositionOptions {
         const theme = getResolvedTheme(target);
+        const darkLabel = getThemeLabel("light", toDarkLabel, toLightLabel, locale);
+        const lightLabel = getThemeLabel("dark", toDarkLabel, toLightLabel, locale);
 
         return getButtonOptions(
             currentOptions,
             theme,
             display,
-            getThemeLabel(theme, toDarkLabel, toLightLabel, locale),
-            getThemeSwitchLabel(switchLabel, locale),
+            theme === "dark" ? lightLabel : darkLabel,
+            [darkLabel, lightLabel],
+            display === "switch" ? getThemeSwitchLabel(switchLabel, locale) : "",
             isSelected(theme),
             onPress
         );
     }
 
     function syncButton(): void {
-        button.update(getCurrentButtonOptions(() => {
+        if (destroyed) return;
+        const current = revision;
+        const next = getCurrentButtonOptions(() => {
             toggleTheme();
-        }));
+        });
+        if (!destroyed && current === revision) button.update(next);
     }
 
     function getAnnouncementMessage(detail: ThemeToggleChangeDetail): string | null {
@@ -325,10 +349,10 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         return announcement;
     }
 
-    function announceChange(detail: ThemeToggleChangeDetail): void {
+    function announceChange(detail: ThemeToggleChangeDetail, current: number): void {
         const message = getAnnouncementMessage(detail);
 
-        if (!message) return;
+        if (destroyed || current !== revision || !message) return;
 
         announcer ??= createDocumentAnnouncementChannel({
             document: target.ownerDocument
@@ -340,12 +364,14 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
     }
 
     function setTheme(theme: ResolvedTheme): void {
+        if (destroyed) return;
+        const current = ++revision;
         const previousTheme = getResolvedTheme(target);
 
         applyResolvedTheme(theme, target);
         syncButton();
 
-        if (theme === previousTheme) return;
+        if (destroyed || current !== revision || theme === previousTheme) return;
 
         const detail: ThemeToggleChangeDetail = {
             theme,
@@ -353,11 +379,12 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
             target
         };
 
-        announceChange(detail);
         onThemeChange?.(detail, composed);
+        if (!destroyed && current === revision) announceChange(detail, current);
     }
 
     function toggleTheme(): ResolvedTheme {
+        if (destroyed) return getResolvedTheme(target);
         const nextTheme: ResolvedTheme = getResolvedTheme(target) === "dark" ? "light" : "dark";
 
         setTheme(nextTheme);
@@ -369,25 +396,14 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         toggleTheme();
     }));
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            syncButton();
-        });
-    }
+    const localeSubscription = createLocaleSubscription(syncButton);
 
     function resetAnnouncer(): void {
         announcer?.destroy();
         announcer = null;
     }
 
-    syncLocaleSubscription();
-
-    const observer = new MutationObserver(syncButton);
+    const observer = new (target.ownerDocument.defaultView?.MutationObserver ?? MutationObserver)(syncButton);
 
     observer.observe(target, {
         attributes: true,
@@ -402,6 +418,8 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
         toggleTheme,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            revision += 1;
             currentOptions = {
                 ...currentOptions,
                 ...nextOptions
@@ -423,7 +441,6 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
             if ("switchLabel" in nextOptions) switchLabel = nextOptions.switchLabel;
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
             if ("selectedTheme" in nextOptions) selectedTheme = nextOptions.selectedTheme ?? null;
             if ("announcement" in nextOptions) announcement = nextOptions.announcement ?? true;
@@ -432,16 +449,24 @@ export function ThemeToggle(options: ThemeToggleOptions = {}): ComposedThemeTogg
             }
             if ("onThemeChange" in nextOptions) onThemeChange = nextOptions.onThemeChange ?? null;
 
-            syncButton();
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                syncButton
+            ]);
         },
 
         destroy(): void {
-            observer.disconnect();
-            unsubscribeLocale?.();
-            resetAnnouncer();
-            button.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            runCleanups([() => observer.disconnect(), localeSubscription.destroy, resetAnnouncer, button.destroy]);
         }
     };
 
+    try { localeSubscription.replace(locale); }
+    catch (error) {
+        try { composed.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
     return composed;
 }

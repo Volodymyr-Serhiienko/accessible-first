@@ -109,6 +109,9 @@ describe("Menu and Tabs contracts", () => {
         }
 
         document.body.append(tabs.element);
+        for (const element of [tabs.tablist, ...tabs.items.map(item => item.tab)]) {
+            vi.spyOn(element, "getClientRects").mockReturnValue([{}] as unknown as DOMRectList);
+        }
 
         expect(tabs.tablist.getAttribute("role")).toBe("tablist");
         expect(details.tab.getAttribute("role")).toBe("tab");

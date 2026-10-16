@@ -1,5 +1,6 @@
-import { restoreAttribute } from "../../../core/src/dom";
-import { addEventListener, type Cleanup } from "../../../core/src/events";
+import { isHTMLElement, restoreAttribute } from "../../../core/src/dom";
+import { addEventListener, runCleanups, type Cleanup } from "../../../core/src/events";
+import { focusElement } from "../../../core/src/focus";
 import { createId } from "../../../core/src/id";
 import { createComponentLifecycle } from "../foundation";
 import { createDocumentAnnouncementChannel } from "../../../core/src/live-region";
@@ -156,16 +157,17 @@ export function createToastViewport(
             .join(". ");
     }
 
-    function announceToast(state: ToastState, toast: Toast): void {
+    function announceToast(state: ToastState, toast: Toast): number | null {
         const message = getAnnouncementText(state);
+        const politeness = state.politeness;
 
-        if (!message) return;
+        if (!message) return null;
 
-        ownerWindow.setTimeout(() => {
+        return ownerWindow.setTimeout(() => {
             if (!toast.isClosed()) {
-                announcedToasts.set(state.politeness, toast);
+                announcedToasts.set(politeness, toast);
                 announcer.announce(message, {
-                    politeness: state.politeness
+                    politeness
                 });
             }
         }, 0);
@@ -182,8 +184,10 @@ export function createToastViewport(
         if (limit === null) return;
 
         while (toasts.length > limit) {
-            const toast = newestOnTop ? toasts[toasts.length - 1] : toasts[0];
-            toast?.close("limit");
+            const oldestFirst = newestOnTop ? [...toasts].reverse() : [...toasts];
+            const toast = oldestFirst.find((candidate) => !candidate.element.contains(ownerDocument.activeElement));
+            if (!toast) return;
+            toast.close("limit");
         }
     }
 
@@ -208,8 +212,27 @@ export function createToastViewport(
         const toastElement = ownerDocument.createElement("div");
         let toast!: Toast;
         let timerId: number | null = null;
+        let announcementTimerId: number | null = null;
         let cleanups: Cleanup[] = [];
         let closed = false;
+        let hovered = false;
+        let previousFocus: HTMLElement | null = null;
+        let restoringFocus = false;
+
+        function containsFocus(): boolean {
+            return toastElement.contains(ownerDocument.activeElement);
+        }
+
+        function clearAnnouncementTimer(): void {
+            if (announcementTimerId === null) return;
+            ownerWindow.clearTimeout(announcementTimerId);
+            announcementTimerId = null;
+        }
+
+        function scheduleAnnouncement(): void {
+            clearAnnouncementTimer();
+            if (!closed) announcementTimerId = announceToast(state, toast);
+        }
 
         function clearTimer(): void {
             if (timerId === null) return;
@@ -221,7 +244,7 @@ export function createToastViewport(
         function scheduleTimer(duration: number | null = state.duration): void {
             clearTimer();
 
-            if (duration === null || duration <= 0) {
+            if (closed || containsFocus() || (pauseOnHover && hovered) || duration === null || duration <= 0) {
                 return;
             }
 
@@ -256,6 +279,8 @@ export function createToastViewport(
         }
 
         function render(): void {
+            const focused = containsFocus();
+            const focusedAction = focused && ownerDocument.activeElement?.hasAttribute("data-af-toast-action");
             disposeCleanups();
             syncToastAttributes();
             toastElement.replaceChildren();
@@ -315,11 +340,36 @@ export function createToastViewport(
                 toastElement.append(actions);
             }
 
-            if (pauseOnHover) {
-                cleanups.push(
-                    addEventListener<PointerEvent>(toastElement, "pointerenter", () => clearTimer()),
-                    addEventListener<PointerEvent>(toastElement, "pointerleave", () => scheduleTimer())
-                );
+            cleanups.push(
+                addEventListener<PointerEvent>(toastElement, "pointerenter", () => {
+                    hovered = true;
+                    if (pauseOnHover) clearTimer();
+                }),
+                addEventListener<PointerEvent>(toastElement, "pointerleave", () => {
+                    hovered = false;
+                    if (pauseOnHover) scheduleTimer();
+                }),
+                addEventListener<FocusEvent>(toastElement, "focusin", (event) => {
+                    if (!restoringFocus && isHTMLElement(event.relatedTarget) && !toastElement.contains(event.relatedTarget)) {
+                        previousFocus = event.relatedTarget;
+                    }
+                    clearTimer();
+                }),
+                addEventListener<FocusEvent>(toastElement, "focusout", (event) => {
+                    if (isHTMLElement(event.relatedTarget) && toastElement.contains(event.relatedTarget)) return;
+                    scheduleTimer();
+                    applyLimit();
+                })
+            );
+
+            if (focused) {
+                const selector = focusedAction ? "[data-af-toast-action]" : "[data-af-toast-close]";
+                const next = toastElement.querySelector<HTMLElement>(selector)
+                    ?? toastElement.querySelector<HTMLElement>("button")
+                    ?? previousFocus;
+                restoringFocus = true;
+                try { focusElement(next); }
+                finally { restoringFocus = false; }
             }
         }
 
@@ -331,10 +381,14 @@ export function createToastViewport(
                 if (closed) return;
 
                 closed = true;
+                const restoreFocus = reason !== "destroy" && containsFocus();
                 clearTimer();
+                clearAnnouncementTimer();
                 disposeCleanups();
                 toastElement.remove();
                 removeToast(toast);
+                if (restoreFocus) focusElement(previousFocus);
+                previousFocus = null;
                 state.onClose?.(reason, toast);
             },
 
@@ -356,7 +410,7 @@ export function createToastViewport(
 
                 render();
                 scheduleTimer();
-                announceToast(state, toast);
+                scheduleAnnouncement();
             },
 
             resetDuration(duration?: number | null): void {
@@ -376,7 +430,7 @@ export function createToastViewport(
 
         render();
         scheduleTimer();
-        announceToast(state, toast);
+        scheduleAnnouncement();
 
         return toast;
     }
@@ -388,7 +442,7 @@ export function createToastViewport(
         if (!locale?.subscribe) return;
 
         unsubscribeLocale = locale.subscribe(() => {
-            syncViewportAttributes();
+            if (!lifecycle.isDestroyed()) syncViewportAttributes();
         });
     }
 
@@ -396,17 +450,19 @@ export function createToastViewport(
     syncViewportAttributes();
 
     lifecycle.addCleanup(() => {
-        for (const toast of [...toasts]) {
-            toast.close("destroy");
-        }
-
-        announcer.destroy();
-        unsubscribeLocale?.();
-
-        restoreAttribute(element, "role", originalRole);
-        restoreAttribute(element, "aria-label", originalLabel);
-        restoreAttribute(element, "aria-relevant", originalRelevant);
-        restoreAttribute(element, "data-af-placement", originalPlacement);
+        const unsubscribe = unsubscribeLocale;
+        unsubscribeLocale = null;
+        runCleanups([
+            ...toasts.map((toast) => () => toast.close("destroy")),
+            () => announcer.destroy(),
+            () => unsubscribe?.(),
+            () => {
+                restoreAttribute(element, "role", originalRole);
+                restoreAttribute(element, "aria-label", originalLabel);
+                restoreAttribute(element, "aria-relevant", originalRelevant);
+                restoreAttribute(element, "data-af-placement", originalPlacement);
+            }
+        ]);
     });
 
     return {
@@ -434,9 +490,7 @@ export function createToastViewport(
         },
 
         closeAll(reason: ToastCloseReason = "programmatic"): void {
-            for (const toast of [...toasts]) {
-                toast.close(reason);
-            }
+            runCleanups(toasts.map((toast) => () => toast.close(reason)));
         },
 
         getToasts(): Toast[] {
@@ -444,6 +498,7 @@ export function createToastViewport(
         },
 
         update(nextOptions: ToastViewportOptions): void {
+            if (lifecycle.isDestroyed()) return;
             if (nextOptions.placement !== undefined) placement = nextOptions.placement;
             if ("label" in nextOptions) label = nextOptions.label;
             if ("locale" in nextOptions) {
@@ -461,6 +516,9 @@ export function createToastViewport(
 
             syncViewportAttributes();
             applyLimit();
+            if (nextOptions.pauseOnHover !== undefined) {
+                for (const toast of toasts) toast.resetDuration();
+            }
         },
 
         destroy(): void {

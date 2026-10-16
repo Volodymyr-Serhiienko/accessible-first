@@ -18,6 +18,9 @@ export type PlaygroundAppMessageKey =
     | "app.brand.name"
     | "app.brand.tagline"
     | "app.commands.description"
+    | "app.demo.loading"
+    | "app.demo.failed"
+    | "app.demo.reload"
     | "app.navigation.label"
     | "app.navigation.returnHint"
     | "app.navigation.returnLink"
@@ -164,6 +167,9 @@ const ruRouteMessages = {
 } satisfies LocaleMessages<PlaygroundRouteMessageKey>;
 
 const enMessages = {
+    "app.demo.loading": "Loading demo...",
+    "app.demo.failed": "The demo could not be loaded.",
+    "app.demo.reload": "Reload page",
     ...enRouteMessages,
     "app.brand.homeLabel": "Accessible First Playground home",
     "app.brand.name": playgroundAppIdentity.name,
@@ -178,7 +184,7 @@ const enMessages = {
     "app.notifications.label": "Playground notifications",
     "app.route.commandDescription": "Open the {title} demo section.",
     "app.route.description": "{title} demo in the {appName}.",
-    "app.route.loaded": "{title} demo loaded.",
+    "app.route.loaded": "Opened the {title} demo section.",
     "app.route.outletLabel": "Playground demo content",
     "app.route.searchDescription": "Open the {title} section.",
     "routeSearchBox.label": "Search demo sections",
@@ -187,6 +193,9 @@ const enMessages = {
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ukMessages = {
+    "app.demo.loading": "Завантаження деморозділу...",
+    "app.demo.failed": "Не вдалося завантажити деморозділ.",
+    "app.demo.reload": "Оновити сторінку",
     ...ukRouteMessages,
     "alertDialog.cancelText": "Скасувати",
     "alertDialog.confirmText": "Підтвердити",
@@ -254,12 +263,15 @@ const ukMessages = {
     "app.notifications.label": "Сповіщення playground",
     "app.route.commandDescription": "Відкрити деморозділ {title}.",
     "app.route.description": "Деморозділ {title} у {appName}.",
-    "app.route.loaded": "Деморозділ {title} завантажено.",
+    "app.route.loaded": "Відкрито деморозділ {title}.",
     "app.route.outletLabel": "Вміст деморозділу playground",
     "app.route.searchDescription": "Відкрити розділ {title}."
 } satisfies LocaleMessages<PlaygroundMessageKey>;
 
 const ruMessages = {
+    "app.demo.loading": "Загрузка демораздела...",
+    "app.demo.failed": "Не удалось загрузить демораздел.",
+    "app.demo.reload": "Обновить страницу",
     ...ruRouteMessages,
     "alertDialog.cancelText": "Отмена",
     "alertDialog.confirmText": "Подтвердить",
@@ -327,7 +339,7 @@ const ruMessages = {
     "app.notifications.label": "Уведомления playground",
     "app.route.commandDescription": "Открыть демо-раздел {title}.",
     "app.route.description": "Демо-раздел {title} в {appName}.",
-    "app.route.loaded": "Демо-раздел {title} загружен.",
+    "app.route.loaded": "Открыт демораздел {title}.",
     "app.route.outletLabel": "Содержимое демо-раздела playground",
     "app.route.searchDescription": "Открыть раздел {title}."
 } satisfies LocaleMessages<PlaygroundMessageKey>;

@@ -1,4 +1,6 @@
 import { createId } from "../../../core/src/id";
+import { runCleanups } from "../../../core/src/events";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
 import { createPendingState } from "../foundation";
 import { createTableSortButton, syncTableSortHeader,
     type TableOnSortChange, type TableSortState } from "./tableSorting";
@@ -389,17 +391,12 @@ function createComposedBodyRow<TItem>(node: TableBodyRowNode<TItem>): ComposedTa
 }
 
 function disposeHeaderCells(cells: TableHeaderCellNode[]): void {
-    cells.forEach((cell) => cell.slot.dispose());
+    runCleanups([...cells].reverse().map(cell => cell.slot.dispose));
 }
 
 function disposeBodyRows<TItem>(rows: TableBodyRowNode<TItem>[]): void {
-    rows.forEach((row) => {
-        row.cells.forEach((cell) => cell.slot.dispose());
-    });
-}
-
-function disposeEmptyRow(row: TableEmptyRowNode | null): void {
-    row?.slot.dispose();
+    runCleanups([...rows].reverse().map(row => () =>
+        runCleanups([...row.cells].reverse().map(cell => cell.slot.dispose))));
 }
 
 /**
@@ -465,14 +462,18 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
     const descriptionSlot = createContentSlot(description, toCompositionChildren(descriptionContent));
 
     let headerCellNodes: TableHeaderCellNode[] = [];
-    let bodyRowNodes: TableBodyRowNode<TItem>[] = [];
-    let emptyRowNode: TableEmptyRowNode | null = null;
+    const headerSlot = createContentSlot(head);
+    const bodySlot = createContentSlot(body);
+    const descriptionReference = createAriaReferenceOwner(table, "aria-describedby");
+    let destroyed = false;
+    let revision = 0;
 
     table.append(caption, head, body);
     viewport.append(table);
     element.append(description, viewport);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "table");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -490,54 +491,50 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
         body.setAttribute("data-af-table-body", "");
 
         description.hidden = !hasDescription;
-        setElementAttributeValue(table, "aria-describedby", hasDescription ? description.id : null);
+        descriptionReference.set(hasDescription ? [description.id] : []);
         headerCellNodes.forEach((cell, index) => {
             const column = columns[index];
             if (column?.sortable) syncTableSortHeader(cell.element, column.id, sort, sortDisabled || !onSortChange);
         });
     }
 
-    function disposeHeader(): void {
-        disposeHeaderCells(headerCellNodes);
-        headerCellNodes = [];
-        headerCells.splice(0, headerCells.length);
-        head.replaceChildren();
-    }
-
-    function disposeBody(): void {
-        disposeBodyRows(bodyRowNodes);
-        disposeEmptyRow(emptyRowNode);
-        bodyRowNodes = [];
-        emptyRowNode = null;
-        bodyRows.splice(0, bodyRows.length);
-        body.replaceChildren();
-    }
-
-    function renderHeader(): void {
-        disposeHeader();
-
+    function renderHeader(current: number): void {
+        if (destroyed || current !== revision) return;
         const row = createElement("tr", {
             attributes: {
                 "data-af-table-header-row": ""
             }
         });
 
-        headerCellNodes = columns.map(column => createHeaderCellNode(column, (columnId, event) => {
-            if (sortDisabled || !onSortChange || pendingState.guard(event)) return;
-            onSortChange({ columnId, direction: sort?.columnId === columnId && sort.direction === "ascending"
-                ? "descending" : "ascending" }, event);
-        }));
-        headerCellNodes.forEach((cell) => {
-            row.append(cell.element);
-            headerCells.push(createComposedHeaderCell(cell));
-        });
-
-        head.append(row);
+        const cells: TableHeaderCellNode[] = [];
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            disposeHeaderCells(cells);
+        };
+        try {
+            for (const column of columns) {
+                const cell = createHeaderCellNode(column, (columnId, event) => {
+                    if (destroyed || !headerCellNodes.includes(cell)
+                        || sortDisabled || !onSortChange || pendingState.guard(event)) return;
+                    onSortChange({ columnId, direction: sort?.columnId === columnId && sort.direction === "ascending"
+                        ? "descending" : "ascending" }, event);
+                });
+                cells.push(cell);
+            }
+            if (destroyed || current !== revision) return;
+            row.append(...cells.map(cell => cell.element));
+            headerCellNodes = cells;
+            headerCells.splice(0, headerCells.length, ...cells.map(createComposedHeaderCell));
+            committed = true;
+            headerSlot.set([{ element: row, destroy: () => disposeHeaderCells(cells) }]);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
-    function renderEmptyRow(): void {
-        if (!hasEmptyState) return;
-
+    function createEmptyRow(): TableEmptyRowNode {
         const row = createElement("tr", {
             attributes: {
                 "data-af-table-empty-row": ""
@@ -550,175 +547,163 @@ export function Table<TItem = Record<string, unknown>>(options: TableOptions<TIt
 
         cell.colSpan = Math.max(columns.length, 1);
         row.append(cell);
-        body.append(row);
-        emptyRowNode = { element: row, cell, slot };
+        return { element: row, cell, slot };
     }
 
-    function renderBody(): void {
-        disposeBody();
-
-        if (rows.length === 0) {
-            renderEmptyRow();
-            return;
-        }
-
-        rows.forEach((item, rowIndex) => {
-            const attributes: ElementAttributes = {
-                "data-af-table-row": ""
-            };
-            const rowKey = getRowKey?.(item, rowIndex);
-
-            if (rowKey !== null && rowKey !== undefined) {
-                attributes["data-af-row-key"] = rowKey;
+    function renderBody(current: number): void {
+        if (destroyed || current !== revision) return;
+        const nextRows = rows;
+        const nextColumns = columns;
+        const nodes: TableBodyRowNode<TItem>[] = [];
+        let empty: TableEmptyRowNode | null = null;
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            runCleanups([() => disposeBodyRows(nodes), () => empty?.slot.dispose()]);
+        };
+        try {
+            for (const [rowIndex, item] of nextRows.entries()) {
+                if (destroyed || current !== revision) return;
+                const attributes: ElementAttributes = { "data-af-table-row": "" };
+                const rowKey = getRowKey?.(item, rowIndex);
+                if (rowKey !== null && rowKey !== undefined) attributes["data-af-row-key"] = rowKey;
+                const row = createElement("tr", getCompositionElementOptions(
+                    getRowOptions(rowOptions, item, rowIndex), attributes
+                ));
+                const node: TableBodyRowNode<TItem> = { element: row, item, cells: [] };
+                nodes.push(node);
+                for (const [columnIndex, column] of nextColumns.entries()) {
+                    if (destroyed || current !== revision) return;
+                    node.cells.push(createBodyCellNode(item, { item, rowIndex, column, columnIndex }));
+                }
+                row.append(...node.cells.map(cell => cell.element));
             }
-
-            const row = createElement("tr", getCompositionElementOptions(
-                getRowOptions(rowOptions, item, rowIndex),
-                attributes
-            ));
-            const cells = columns.map((column, columnIndex) => createBodyCellNode(item, {
-                item,
-                rowIndex,
-                column,
-                columnIndex
+            if (nextRows.length === 0 && hasEmptyState) empty = createEmptyRow();
+            if (destroyed || current !== revision) return;
+            bodyRows.splice(0, bodyRows.length, ...nodes.map(createComposedBodyRow));
+            const children: ComposedNode[] = nodes.map(node => ({
+                element: node.element, destroy: () => disposeBodyRows([node])
             }));
-            const node: TableBodyRowNode<TItem> = {
-                element: row,
-                item,
-                cells
-            };
-
-            cells.forEach((cell) => row.append(cell.element));
-            body.append(row);
-            bodyRowNodes.push(node);
-            bodyRows.push(createComposedBodyRow(node));
-        });
+            if (empty) children.push({ element: empty.element, destroy: empty.slot.dispose });
+            committed = true;
+            bodySlot.set(children);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
     function setCaption(content: TableCompositionContent): void {
-        captionSlot.set(toCompositionChildren(normalizeSlotContent(content)));
-        sync();
+        if (destroyed) return;
+        runCleanups([() => captionSlot.set(toCompositionChildren(normalizeSlotContent(content))), sync]);
     }
 
     function setDescription(content: TableCompositionContent | null): void {
+        if (destroyed) return;
         descriptionContent = normalizeSlotContent(content);
         hasDescription = hasCompositionContent(descriptionContent);
-        descriptionSlot.set(toCompositionChildren(descriptionContent));
-        sync();
+        runCleanups([() => descriptionSlot.set(toCompositionChildren(descriptionContent)), sync]);
     }
 
     function setEmptyState(content: TableCompositionContent | null): void {
+        if (destroyed) return;
         emptyStateContent = normalizeSlotContent(content);
         hasEmptyState = hasCompositionContent(emptyStateContent);
-        renderBody();
-        sync();
+        if (rows.length === 0) runCleanups([() => renderBody(++revision), sync]);
     }
 
     function setColumns(nextColumns: readonly TableColumn<TItem>[]): void {
-        columns = [...nextColumns];
-        renderHeader();
-        renderBody();
-        sync();
+        update({ columns: nextColumns });
     }
 
     function setRows(nextRows: readonly TItem[]): void {
-        rows = [...nextRows];
-        renderBody();
-        sync();
+        update({ rows: nextRows });
     }
 
-    renderHeader();
-    renderBody();
-    sync();
+    function update(nextOptions: TableUpdateOptions<TItem>): void {
+        if (destroyed) return;
+        let shouldRenderBody = false;
+
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.pending !== undefined) pendingState.setPending(nextOptions.pending);
+        if (nextOptions.tableOptions !== undefined) applyCompositionElementOptions(table, nextOptions.tableOptions);
+        if (nextOptions.captionOptions !== undefined) applyCompositionElementOptions(caption, nextOptions.captionOptions);
+        if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        if (nextOptions.headOptions !== undefined) applyCompositionElementOptions(head, nextOptions.headOptions);
+        if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
+
+        if ("emptyState" in nextOptions) {
+            emptyStateContent = normalizeSlotContent(nextOptions.emptyState);
+            hasEmptyState = hasCompositionContent(emptyStateContent);
+            shouldRenderBody = rows.length === 0;
+        }
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.responsive !== undefined) responsive = nextOptions.responsive;
+        if (nextOptions.captionDisplay !== undefined) captionDisplay = nextOptions.captionDisplay;
+        if (nextOptions.descriptionDisplay !== undefined) descriptionDisplay = nextOptions.descriptionDisplay;
+        if ("sort" in nextOptions) sort = nextOptions.sort ?? null;
+        if ("onSortChange" in nextOptions) onSortChange = nextOptions.onSortChange;
+        if (nextOptions.sortDisabled !== undefined) sortDisabled = nextOptions.sortDisabled;
+
+        if ("rowOptions" in nextOptions) {
+            rowOptions = nextOptions.rowOptions;
+            shouldRenderBody = true;
+        }
+        if ("getRowKey" in nextOptions) {
+            getRowKey = nextOptions.getRowKey;
+            shouldRenderBody = true;
+        }
+        if ("emptyCellOptions" in nextOptions) {
+            emptyCellOptions = nextOptions.emptyCellOptions;
+            shouldRenderBody ||= rows.length === 0;
+        }
+        if (nextOptions.columns !== undefined) {
+            columns = [...nextOptions.columns];
+            shouldRenderBody = true;
+        }
+        if (nextOptions.rows !== undefined) {
+            rows = [...nextOptions.rows];
+            shouldRenderBody = true;
+        }
+
+        const current = shouldRenderBody ? ++revision : revision;
+        runCleanups([
+            () => { if (nextOptions.caption !== undefined) setCaption(nextOptions.caption); },
+            () => { if (!destroyed && current === revision && "description" in nextOptions) setDescription(nextOptions.description ?? null); },
+            () => { if (nextOptions.columns !== undefined) renderHeader(current); },
+            () => { if (shouldRenderBody) renderBody(current); },
+            sync
+        ]);
+    }
+
+    try {
+        renderHeader(revision);
+        renderBody(revision);
+        sync();
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        headerCellNodes = [];
+        headerCells.splice(0, headerCells.length);
+        bodyRows.splice(0, bodyRows.length);
+        runCleanups([pendingState.destroy, captionSlot.dispose, descriptionSlot.dispose, descriptionReference.destroy,
+            headerSlot.dispose, bodySlot.dispose, () => head.replaceChildren(), () => body.replaceChildren()]);
+    }
 
     return {
-        element,
-        viewport,
-        table,
-        caption,
-        description,
-        head,
-        body,
-        headerCells,
-        bodyRows,
-
+        element, viewport, table, caption, description, head, body, headerCells, bodyRows,
         getCaptionText(): string {
             return getElementText(caption);
         },
-
         getDescriptionText(): string {
             return getElementText(description);
         },
-
-        setCaption,
-        setDescription,
-        setEmptyState,
-        setColumns,
-        setRows,
-
-        update(nextOptions): void {
-            let shouldRenderBody = false;
-
-            applyCompositionElementOptions(element, nextOptions);
-            if (nextOptions.pending !== undefined) pendingState.setPending(nextOptions.pending);
-
-            if (nextOptions.tableOptions !== undefined) applyCompositionElementOptions(table, nextOptions.tableOptions);
-            if (nextOptions.captionOptions !== undefined) applyCompositionElementOptions(caption, nextOptions.captionOptions);
-            if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-            if (nextOptions.headOptions !== undefined) applyCompositionElementOptions(head, nextOptions.headOptions);
-            if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
-
-            if (nextOptions.caption !== undefined) setCaption(nextOptions.caption);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("emptyState" in nextOptions) setEmptyState(nextOptions.emptyState ?? null);
-
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if (nextOptions.responsive !== undefined) responsive = nextOptions.responsive;
-            if (nextOptions.captionDisplay !== undefined) captionDisplay = nextOptions.captionDisplay;
-            if (nextOptions.descriptionDisplay !== undefined) descriptionDisplay = nextOptions.descriptionDisplay;
-            if ("sort" in nextOptions) sort = nextOptions.sort ?? null;
-            if ("onSortChange" in nextOptions) onSortChange = nextOptions.onSortChange;
-            if (nextOptions.sortDisabled !== undefined) sortDisabled = nextOptions.sortDisabled;
-
-            if ("rowOptions" in nextOptions) {
-                rowOptions = nextOptions.rowOptions;
-                shouldRenderBody = true;
-            }
-
-            if ("getRowKey" in nextOptions) {
-                getRowKey = nextOptions.getRowKey;
-                shouldRenderBody = true;
-            }
-
-            if ("emptyCellOptions" in nextOptions) {
-                emptyCellOptions = nextOptions.emptyCellOptions;
-                shouldRenderBody = true;
-            }
-
-            if (nextOptions.columns !== undefined) {
-                setColumns(nextOptions.columns);
-                return;
-            }
-
-            if (nextOptions.rows !== undefined) {
-                setRows(nextOptions.rows);
-                return;
-            }
-
-            if (shouldRenderBody) {
-                renderBody();
-            }
-
-            sync();
-        },
-
-        destroy(): void {
-            pendingState.destroy();
-            captionSlot.dispose();
-            descriptionSlot.dispose();
-            disposeHeader();
-            disposeBody();
-        }
+        setCaption, setDescription, setEmptyState, setColumns, setRows, update, destroy
     };
 }

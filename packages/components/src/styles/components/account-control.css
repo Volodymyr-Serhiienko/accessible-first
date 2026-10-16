@@ -1,6 +1,5 @@
 [data-af-account-control] {
-    flex: 0 0 auto;
-    white-space: nowrap;
+    flex: 0 1 auto;
 }
 
 [data-af-account-control-display="icon"] {

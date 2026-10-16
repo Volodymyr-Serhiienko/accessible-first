@@ -50,6 +50,16 @@ outlet.render([
 - Uses the focused heading as the normal screen-change announcement.
 - Announces rendered screen changes automatically only when focus cannot move; an explicit `announcement` still always uses the document-coordinated channel.
 - Can render quietly when a change should not be announced.
+- A newer render/update or destruction invalidates older render effects, including
+  reentrant changes from child cleanup, focus listeners and resolver callbacks.
+- Keeps at most one follow-up scroll frame; replacement or destruction cancels it.
+  A new update also clears this outlet's pending announcement, not another owner's.
+- `destroy()` is terminal. Late mutations do nothing and `focus()` returns `false`
+  without calling a supplied resolver. Content supplied after destruction is not
+  accepted or destroyed; it remains the caller's responsibility.
+
+These guards prevent stale framework effects; they cannot undo application side
+effects already performed inside a callback or retract speech already spoken by AT.
 
 ## Options
 

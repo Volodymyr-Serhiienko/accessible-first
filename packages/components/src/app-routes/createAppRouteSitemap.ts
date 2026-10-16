@@ -7,7 +7,7 @@ import {
 import type { DocumentMetadataUrlValue } from "../document-metadata";
 
 const SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9";
-const DEFAULT_MAX_SITEMAP_LOC_LENGTH = 2048;
+const DEFAULT_MAX_SITEMAP_LOC_LENGTH = 2047;
 
 const SITEMAP_CHANGE_FREQUENCIES = new Set<string>([
     "always",
@@ -159,7 +159,22 @@ function stringifySitemapUrl(value: DocumentMetadataUrlValue): string {
 }
 
 function formatLastModified(value: AppRouteSitemapLastModified): string {
-    return value instanceof Date ? value.toISOString() : value;
+    return typeof value === "string" ? value : Date.prototype.toISOString.call(value);
+}
+
+function isValidLastModified(value: string): boolean {
+    // Date.parse alone accepts ambiguous formats and normalizes impossible days.
+    const match = /^(\d{4})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:\d{2}))?)?)?$/.exec(value);
+    if (!match) return false;
+    const year = Number(match[1]);
+    const month = Number(match[2] ?? 1);
+    const day = Number(match[3] ?? 1);
+    const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1]!) return false;
+    if (Number(match[4] ?? 0) > 23 || Number(match[5] ?? 0) > 59 || Number(match[6] ?? 0) > 59) return false;
+    const zone = match[7];
+    return !zone || zone === "Z" || (Number(zone.slice(1, 3)) <= 23 && Number(zone.slice(4, 6)) <= 59);
 }
 
 function shouldIncludeRoute<TRoute extends AppRouteDescriptor>(
@@ -170,12 +185,17 @@ function shouldIncludeRoute<TRoute extends AppRouteDescriptor>(
 }
 
 function escapeXml(value: string): string {
+    if (hasInvalidXmlCharacters(value)) throw new TypeError("Sitemap text contains characters not allowed in XML 1.0.");
     return value
         .replace(/&/g, "&amp;")
         .replace(/'/g, "&apos;")
         .replace(/"/g, "&quot;")
         .replace(/>/g, "&gt;")
         .replace(/</g, "&lt;");
+}
+
+function hasInvalidXmlCharacters(value: string): boolean {
+    return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF]/u.test(value);
 }
 
 function getSitemapDiagnosticsStatus(
@@ -278,7 +298,7 @@ export function createAppRouteSitemapXml(
         }
 
         if (entry.priority !== undefined) {
-            lines.push(`    <priority>${entry.priority}</priority>`);
+            lines.push(`    <priority>${escapeXml(String(entry.priority))}</priority>`);
         }
 
         lines.push("  </url>");
@@ -300,11 +320,14 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
 ): AppRouteSitemapDiagnosticsReport<TRoute> {
     const issues: Array<AppRouteSitemapDiagnosticsIssue<TRoute>> = [];
     const entriesByLoc = new Map<string, AppRouteSitemapEntry<TRoute>>();
-    const maxLocLength = options.maxLocLength ?? DEFAULT_MAX_SITEMAP_LOC_LENGTH;
+    const requestedMaxLength = options.maxLocLength;
+    const maxLocLength = requestedMaxLength !== undefined && Number.isSafeInteger(requestedMaxLength) && requestedMaxLength > 0
+        ? requestedMaxLength : DEFAULT_MAX_SITEMAP_LOC_LENGTH;
     const requireSingleHost = options.requireSingleHost ?? true;
     const allowHash = options.allowHash ?? false;
 
     let host: string | null = null;
+    let protocol: string | null = null;
 
     if (entries.length === 0) {
         issues.push(createSitemapIssue(
@@ -318,6 +341,11 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
     for (const entry of entries) {
         const loc = entry.loc.trim();
 
+        if (/[\r\n\t]/.test(entry.loc) || hasInvalidXmlCharacters(entry.loc)) {
+            issues.push(createSitemapIssue("error", "url", "sitemap.loc.characters",
+                "Sitemap loc contains control characters or invalid XML text.", entry));
+        }
+
         if (!loc) {
             issues.push(createSitemapIssue(
                 "error",
@@ -327,21 +355,6 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
                 entry
             ));
             continue;
-        }
-
-        const relatedEntry = entriesByLoc.get(loc);
-
-        if (relatedEntry) {
-            issues.push(createSitemapIssue(
-                "warning",
-                "url",
-                "sitemap.loc.duplicate",
-                `Sitemap loc "${loc}" is used more than once.`,
-                entry,
-                relatedEntry
-            ));
-        } else {
-            entriesByLoc.set(loc, entry);
         }
 
         if (loc.length > maxLocLength) {
@@ -369,6 +382,14 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
             continue;
         }
 
+        const relatedEntry = entriesByLoc.get(url.href);
+        if (relatedEntry) {
+            issues.push(createSitemapIssue("warning", "url", "sitemap.loc.duplicate",
+                "Sitemap URL is used more than once.", entry, relatedEntry));
+        } else {
+            entriesByLoc.set(url.href, entry);
+        }
+
         if (url.protocol !== "http:" && url.protocol !== "https:") {
             issues.push(createSitemapIssue(
                 "error",
@@ -377,6 +398,11 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
                 "Sitemap loc should use http or https.",
                 entry
             ));
+        }
+
+        if (url.username || url.password) {
+            issues.push(createSitemapIssue("error", "url", "sitemap.loc.credentials",
+                "Public sitemap URLs must not contain credentials.", entry));
         }
 
         if (!allowHash && url.hash) {
@@ -389,9 +415,10 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
             ));
         }
 
-        if (requireSingleHost) {
+        if (requireSingleHost && (url.protocol === "http:" || url.protocol === "https:")) {
             if (host === null) {
                 host = url.host;
+                protocol = url.protocol;
             } else if (url.host !== host) {
                 issues.push(createSitemapIssue(
                     "warning",
@@ -400,6 +427,10 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
                     "All URLs in one sitemap should belong to one host.",
                     entry
                 ));
+            }
+            if (url.protocol !== protocol) {
+                issues.push(createSitemapIssue("warning", "url", "sitemap.loc.scheme",
+                    "All URLs in one sitemap should use the same protocol.", entry));
             }
         }
 
@@ -414,7 +445,7 @@ export function inspectAppRouteSitemap<TRoute extends AppRouteDescriptor>(
                     "Sitemap lastmod must not be empty when provided.",
                     entry
                 ));
-            } else if (Number.isNaN(Date.parse(lastmod))) {
+            } else if (!isValidLastModified(lastmod)) {
                 issues.push(createSitemapIssue(
                     "warning",
                     "metadata",

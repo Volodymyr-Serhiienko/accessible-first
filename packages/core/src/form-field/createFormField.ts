@@ -1,14 +1,13 @@
 import {
     setAriaAttribute,
-    setAriaDescribedBy,
     setAriaDisabled,
-    setAriaLabelledBy,
-    setAriaReferences,
     type AriaReference,
     type AriaReferences
 } from "../aria";
 import { ensureId } from "../id";
-import { createAttributeSnapshot } from "../dom";
+import { createAttributeSnapshot, isHTMLElement, restoreAttribute } from "../dom";
+import { createAriaReferenceOwner } from "../aria/createAriaReferenceOwner";
+import { runCleanups } from "../events";
 
 import type {
     FormField,
@@ -23,7 +22,7 @@ function toReferenceList(references: AriaReferences): AriaReference[] {
 
 function getReferenceElements(references: AriaReferences): HTMLElement[] {
     return toReferenceList(references).filter(
-        (reference): reference is HTMLElement => reference instanceof HTMLElement
+        (reference): reference is HTMLElement => isHTMLElement(reference)
     );
 }
 
@@ -36,12 +35,13 @@ function isLegendElement(element: HTMLElement): element is HTMLLegendElement {
 }
 
 function isLabelableElement(element: HTMLElement): boolean {
+    if (element.localName === "input" && (element as HTMLInputElement).type === "hidden") return false;
     return ["button", "input", "meter", "output", "progress", "select", "textarea"]
         .includes(element.localName);
 }
 
 function isNativeLabelReference(control: HTMLElement, reference: AriaReference): boolean {
-    if (!(reference instanceof HTMLElement)) return false;
+    if (!isHTMLElement(reference) || reference.ownerDocument !== control.ownerDocument) return false;
 
     if (isLabelElement(reference) && isLabelableElement(control)) {
         return true;
@@ -101,6 +101,10 @@ export function createFormField(
     options: FormFieldOptions = {}
 ): FormField {
     const attributes = createAttributeSnapshot();
+    const labels = createAriaReferenceOwner(control, "aria-labelledby");
+    const descriptions = createAriaReferenceOwner(control, "aria-describedby");
+    const errors = createAriaReferenceOwner(control, "aria-errormessage");
+    const nativeLabels = new Map<HTMLElement, { original: string | null; written: string }>();
 
     let destroyed = false;
 
@@ -120,58 +124,45 @@ export function createFormField(
     let hasReadOnly = false;
     let hasInvalid = false;
 
-    function rememberReferenceIds(references: AriaReferences): void {
-        for (const element of getReferenceElements(references)) {
-            attributes.remember(element, "id");
-        }
+    function resolveIds(references: AriaReferences, prefix: string): string[] {
+        return toReferenceList(references).flatMap(reference => {
+            if (typeof reference === "string") return [reference];
+            if (!isHTMLElement(reference) || reference.ownerDocument !== control.ownerDocument) return [];
+            return [ensureId(reference, prefix)];
+        });
     }
 
-    function getDescriptionReferences(): AriaReference[] {
-        if (!hasDescription) return [];
-
-        return toReferenceList(description).filter(Boolean);
+    function releaseNativeLabels(retained: Set<HTMLElement>): void {
+        for (const [element, binding] of nativeLabels) {
+            if (retained.has(element)) continue;
+            nativeLabels.delete(element);
+            if (element.getAttribute("for") === binding.written) restoreAttribute(element, "for", binding.original);
+        }
     }
 
     function syncLabel(): void {
         if (!hasLabel) return;
 
-        attributes.remember(control, "aria-labelledby");
-
-        for (const labelElement of getReferenceElements(label)) {
-            if (!isLabelElement(labelElement) || !isLabelableElement(control)) {
-                continue;
-            }
-
-            attributes.remember(control, "id");
-            attributes.remember(labelElement, "for");
-
-            labelElement.htmlFor = ensureId(control, "af-field");
+        const nextNativeLabels = getReferenceElements(label).filter(element =>
+            isLabelElement(element) && isLabelableElement(control) && element.ownerDocument === control.ownerDocument);
+        releaseNativeLabels(new Set(nextNativeLabels));
+        for (const labelElement of nextNativeLabels) {
+            const currentFor = labelElement.getAttribute("for");
+            const binding = nativeLabels.get(labelElement);
+            const written = ensureId(control, "af-field");
+            nativeLabels.set(labelElement, { original: binding && currentFor === binding.written ? binding.original : currentFor, written });
+            labelElement.setAttribute("for", written);
         }
 
         const ariaLabelReferences = getAriaLabelReferences(control, label);
-
-        rememberReferenceIds(ariaLabelReferences);
-        setAriaLabelledBy(control, ariaLabelReferences);
-        }
+        labels.set(resolveIds(ariaLabelReferences, "af-label"));
+    }
 
     function syncDescriptions(): void {
         if (!hasDescription && !hasErrorMessage) return;
 
-        attributes.remember(control, "aria-describedby");
-        attributes.remember(control, "aria-errormessage");
-
-        rememberReferenceIds(description);
-        rememberReferenceIds(errorMessage);
-
-        const descriptions = getDescriptionReferences();
-
-        setAriaDescribedBy(control, descriptions.length > 0 ? descriptions : null);
-        setAriaReferences(
-            control,
-            "aria-errormessage",
-            hasErrorMessage ? errorMessage : null,
-            "af-error"
-        );
+        if (hasDescription) descriptions.set(resolveIds(description, "af-description"));
+        if (hasErrorMessage) errors.set(resolveIds(errorMessage, "af-error"));
     }
 
     function syncRequired(): void {
@@ -229,6 +220,7 @@ export function createFormField(
     }
 
     function update(nextOptions: FormFieldUpdateOptions): void {
+        if (destroyed) return;
         if ("label" in nextOptions) {
             formField.setLabel(nextOptions.label);
         }
@@ -325,7 +317,8 @@ export function createFormField(
             }
 
             destroyed = true;
-            attributes.restore();
+            runCleanups([labels.destroy, descriptions.destroy, errors.destroy,
+                () => releaseNativeLabels(new Set()), () => attributes.restore()]);
         }
     };
 

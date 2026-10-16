@@ -1,13 +1,27 @@
-import { Combobox, Grid, H3, P, Panel, Section, Stack, type ComposedNode } from "../af";
+import { Checkbox, Combobox, Grid, H3, P, Panel, Section, Stack, type ComposedNode } from "../af";
 import { announce } from "../status";
 
 export function ComboboxDemo(): ComposedNode {
+    const choice = Combobox({
+        label: "Role", value: "user", autocomplete: "none", filterOption: null,
+        openOnFocus: false, openOnInput: false, inputOptions: { attributes: { readonly: true } },
+        pendingMessage: "Please wait.", items: [
+            { value: "user", label: "User" }, { value: "editor", label: "Editor" }
+        ],
+        onValueChange(detail) {
+            if (detail.reason === "selection") announce(`Selected ${detail.selectedText}.`);
+        }
+    });
     return Section({
         id: "combobox",
         title: "Combobox",
         children: [
             Grid(
                 { minColumnWidth: "16rem" },
+                Panel(
+                    Stack(H3("Read-only choice"), choice,
+                        Checkbox({ label: "Pending request", onCheckedChange(detail) { choice.setPending(detail.checked); } }))
+                ),
                 Panel(
                     Stack(
                         H3("Editable search"),

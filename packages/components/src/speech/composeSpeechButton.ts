@@ -8,10 +8,10 @@ import type {
     CompositionChild
 } from "../composition";
 import { Icon } from "../composition";
+import { runCleanups } from "../../../core/src/events";
+import { createSpeechPlaybackOwner } from "./createSpeechPlaybackOwner";
 import type {
     SpeechEngine,
-    SpeechPlayback,
-    SpeechPlaybackState,
     SpeechRequest
 } from "../../../core/src/speech";
 
@@ -42,15 +42,7 @@ export interface ComposedSpeechButton extends ComposedNode<HTMLButtonElement> {
     readonly button: ComposedIconButton;
     play(): void;
     destroy(): void;
-}
-
-function isFinished(state: SpeechPlaybackState): boolean {
-    return (
-        state.status === "idle"
-        || state.status === "completed"
-        || state.status === "unavailable"
-        || state.status === "error"
-    );
+    isDestroyed(): boolean;
 }
 
 /**
@@ -67,46 +59,14 @@ export function SpeechButton(options: SpeechButtonOptions): ComposedSpeechButton
         onFailure,
         ...iconButtonOptions
     } = options;
-    let unsubscribe: (() => void) | null = null;
-
-    function clearSubscription(): void {
-        unsubscribe?.();
-        unsubscribe = null;
-    }
-
-    function watchPlayback(playback: SpeechPlayback): void {
-        let finishedBeforeSubscription = false;
-
-        const handleState = (state: SpeechPlaybackState): void => {
-            if (!isFinished(state)) {
-                return;
-            }
-
-            if (state.status === "unavailable") {
-                onUnavailable?.();
-            }
-
-            if (state.status === "error") {
-                onFailure?.();
-            }
-
-            if (unsubscribe) {
-                clearSubscription();
-            } else {
-                finishedBeforeSubscription = true;
-            }
-        };
-
-        unsubscribe = playback.subscribe(handleState);
-
-        if (finishedBeforeSubscription) {
-            clearSubscription();
-        }
-    }
+    let destroyed = false;
+    const playback = createSpeechPlaybackOwner(engine, state => {
+        if (state.status === "unavailable") onUnavailable?.();
+        else if (state.status === "error") onFailure?.();
+    }, false);
 
     function play(): void {
-        clearSubscription();
-        watchPlayback(engine.speak(request));
+        if (!destroyed) playback.play(request);
     }
 
     const button = IconButton({
@@ -128,10 +88,12 @@ export function SpeechButton(options: SpeechButtonOptions): ComposedSpeechButton
         element: button.element,
         button,
         play,
+        isDestroyed: () => destroyed,
 
         destroy(): void {
-            clearSubscription();
-            button.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([playback.destroy, button.destroy]);
         }
     };
 }

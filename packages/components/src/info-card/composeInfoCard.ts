@@ -16,6 +16,7 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by InfoCard slots.
@@ -200,6 +201,8 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
     let mediaHidden = options.mediaHidden ?? false;
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: InfoCardActionsAlign = options.actionsAlign ?? "start";
+    let destroyed = false;
+    let revision = 0;
 
     let mediaContent: InfoCardSlotContent = normalizeSlotContent(options.media);
     let metaContent: InfoCardSlotContent = normalizeSlotContent(options.meta);
@@ -211,7 +214,6 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
     let hasMeta = hasCompositionContent(metaContent);
     let hasDescription = hasCompositionContent(descriptionContent);
     let hasBody = hasCompositionContent(bodyContent);
-    let hasActions = hasCompositionContent(actionsContent);
 
     const mediaSlot = createContentSlot(media, toCompositionChildren(mediaContent));
     const metaSlot = createContentSlot(meta, toCompositionChildren(metaContent));
@@ -227,6 +229,7 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
     element.append(media, content);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "info-card");
         element.setAttribute("data-af-orientation", orientation);
         element.setAttribute("data-af-variant", variant);
@@ -251,108 +254,103 @@ export function InfoCard(options: InfoCardOptions): ComposedInfoCard {
         meta.hidden = !hasMeta;
         description.hidden = !hasDescription;
         body.hidden = !hasBody;
-        actionsBar.element.hidden = !hasActions;
 
         actionsBar.update(getActionsBarStateOptions(actionsLabel, actionsAlign));
+        actionsBar.element.hidden = Boolean(actionsBar.primarySlot.hidden && actionsBar.secondarySlot.hidden);
         actionsBar.element.setAttribute("data-af-info-card-actions", "");
     }
 
     function setTitle(nextContent: InfoCardCompositionContent): void {
-        titleSlot.set(toCompositionChildren(nextContent));
-        sync();
+        update({ title: nextContent });
     }
 
     function setMeta(nextContent: InfoCardCompositionContent | null): void {
-        metaContent = normalizeSlotContent(nextContent);
-        hasMeta = hasCompositionContent(metaContent);
-        metaSlot.set(toCompositionChildren(metaContent));
-        sync();
+        update({ meta: nextContent });
     }
 
     function setDescription(nextContent: InfoCardCompositionContent | null): void {
-        descriptionContent = normalizeSlotContent(nextContent);
-        hasDescription = hasCompositionContent(descriptionContent);
-        descriptionSlot.set(toCompositionChildren(descriptionContent));
-        sync();
+        update({ description: nextContent });
     }
 
     function setMedia(nextContent: InfoCardCompositionContent | null): void {
-        mediaContent = normalizeSlotContent(nextContent);
-        hasMedia = hasCompositionContent(mediaContent);
-        mediaSlot.set(toCompositionChildren(mediaContent));
-        sync();
+        update({ media: nextContent });
     }
 
     function setBody(nextContent: InfoCardCompositionContent | null): void {
-        bodyContent = normalizeSlotContent(nextContent);
-        hasBody = hasCompositionContent(bodyContent);
-        bodySlot.set(toCompositionChildren(bodyContent));
-        sync();
+        update({ children: nextContent });
     }
 
     function setActions(nextContent: InfoCardCompositionContent | null): void {
-        actionsContent = normalizeSlotContent(nextContent);
-        hasActions = hasCompositionContent(actionsContent);
-        actionsBar.setPrimary(actionsContent);
-        sync();
+        update({ actions: nextContent });
+    }
+
+    function update(nextOptions: InfoCardUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+
+        if (nextOptions.mediaOptions !== undefined) applyCompositionElementOptions(media, nextOptions.mediaOptions);
+        if (nextOptions.metaOptions !== undefined) applyCompositionElementOptions(meta, nextOptions.metaOptions);
+        if (nextOptions.titleOptions !== undefined) applyCompositionElementOptions(title, nextOptions.titleOptions);
+        if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
+        if (nextOptions.actionsOptions !== undefined) applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
+
+        if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? false;
+        if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
+        if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
+        if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+
+        runCleanups([
+            () => { if (!destroyed && current === revision && "title" in nextOptions) titleSlot.set(toCompositionChildren(nextOptions.title)); },
+            () => {
+                if (destroyed || current !== revision || !("meta" in nextOptions)) return;
+                metaContent = normalizeSlotContent(nextOptions.meta);
+                hasMeta = hasCompositionContent(metaContent);
+                metaSlot.set(toCompositionChildren(metaContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("description" in nextOptions)) return;
+                descriptionContent = normalizeSlotContent(nextOptions.description);
+                hasDescription = hasCompositionContent(descriptionContent);
+                descriptionSlot.set(toCompositionChildren(descriptionContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("media" in nextOptions)) return;
+                mediaContent = normalizeSlotContent(nextOptions.media);
+                hasMedia = hasCompositionContent(mediaContent);
+                mediaSlot.set(toCompositionChildren(mediaContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("children" in nextOptions)) return;
+                bodyContent = normalizeSlotContent(nextOptions.children);
+                hasBody = hasCompositionContent(bodyContent);
+                bodySlot.set(toCompositionChildren(bodyContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("actions" in nextOptions)) return;
+                actionsContent = normalizeSlotContent(nextOptions.actions);
+                actionsBar.setPrimary(actionsContent);
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([mediaSlot.dispose, metaSlot.dispose, titleSlot.dispose, descriptionSlot.dispose,
+            bodySlot.dispose, actionsBar.destroy]);
     }
 
     sync();
-
     return {
-        element,
-        media,
-        content,
-        meta,
-        title,
-        description,
-        body,
-        actions: actionsBar.element,
-        actionsBar,
-
+        element, media, content, meta, title, description, body, actions: actionsBar.element, actionsBar,
         getTitleText: () => getElementText(title),
         getDescriptionText: () => getElementText(description),
-
-        setTitle,
-        setMeta,
-        setDescription,
-        setMedia,
-        setBody,
-        setActions,
-
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.mediaOptions !== undefined) applyCompositionElementOptions(media, nextOptions.mediaOptions);
-            if (nextOptions.metaOptions !== undefined) applyCompositionElementOptions(meta, nextOptions.metaOptions);
-            if (nextOptions.titleOptions !== undefined) applyCompositionElementOptions(title, nextOptions.titleOptions);
-            if (nextOptions.descriptionOptions !== undefined) applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-            if (nextOptions.bodyOptions !== undefined) applyCompositionElementOptions(body, nextOptions.bodyOptions);
-            if (nextOptions.actionsOptions !== undefined) applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
-
-            if ("title" in nextOptions) setTitle(nextOptions.title);
-            if ("meta" in nextOptions) setMeta(nextOptions.meta ?? null);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("media" in nextOptions) setMedia(nextOptions.media ?? null);
-            if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? false;
-            if ("children" in nextOptions) setBody(nextOptions.children ?? null);
-            if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
-            if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
-            if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
-            if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            mediaSlot.dispose();
-            metaSlot.dispose();
-            titleSlot.dispose();
-            descriptionSlot.dispose();
-            bodySlot.dispose();
-            actionsBar.destroy();
-        }
+        setTitle, setMeta, setDescription, setMedia, setBody, setActions, update, destroy
     };
 }

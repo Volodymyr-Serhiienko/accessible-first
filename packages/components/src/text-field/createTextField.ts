@@ -212,7 +212,6 @@ export function createTextField(
     lifecycle.addCleanup(addEventListener<Event>(element, "change", handleChange));
 
     lifecycle.addCleanup(() => {
-        element.value = originalValue;
         element.disabled = originalDisabled;
         element.required = originalRequired;
         element.readOnly = originalReadOnly;
@@ -233,6 +232,7 @@ export function createTextField(
         restoreAttribute(element, "data-af-size", originalSize);
         restoreAttribute(element, "data-af-multiline", originalMultiline);
         restoreAttribute(element, "data-af-invalid", originalInvalidMarker);
+        element.value = originalValue;
     });
 
     textField = {
@@ -240,7 +240,7 @@ export function createTextField(
         control: element,
 
         getValue(): string {
-            return value;
+            return element.value;
         },
 
         setValue(nextValue): void {
@@ -291,6 +291,8 @@ export function createTextField(
         },
 
         update(nextOptions: TextFieldUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
             if ("value" in nextOptions) this.setValue(nextOptions.value ?? "");
 
             if (nextOptions.type !== undefined) type = nextOptions.type;

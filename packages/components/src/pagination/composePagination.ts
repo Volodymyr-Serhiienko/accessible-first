@@ -1,6 +1,7 @@
 import { createId } from "../../../core/src/id";
 import {
     applyCompositionElementOptions,
+    createContentSlot,
     createElement,
     getCompositionElementOptions,
     type BaseCompositionOptions,
@@ -12,6 +13,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { runCleanups } from "../../../core/src/events";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 
 /**
  * Visual variant for Pagination.
@@ -358,6 +361,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     element.append(list);
 
     const composedItems: ComposedPaginationItem[] = [];
+    const content = createContentSlot(list);
 
     let composed!: ComposedPagination;
     let pageCount = normalizePageCount(options.pageCount);
@@ -380,7 +384,9 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     let itemOptions = options.itemOptions;
     let controlOptions = options.controlOptions;
     let itemNodes: PaginationItemNode[] = [];
-    let unsubscribeLocale: (() => void) | null = null;
+    const localeSubscription = createLocaleSubscription(renderItems);
+    let destroyed = false;
+    let revision = 0;
 
     function getPageContext(targetPage: number): PaginationPageContext {
         return {
@@ -419,6 +425,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "pagination");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -441,7 +448,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     }
 
     function handlePageActivation(targetPage: number, event: Event): void {
-        if (disabled || targetPage === page) return;
+        if (destroyed || disabled || targetPage === page) return;
 
         const previousPage = page;
 
@@ -455,16 +462,6 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
         );
     }
 
-    function disposeItems(): void {
-        for (const node of [...itemNodes].reverse()) {
-            node.cleanup?.();
-        }
-
-        itemNodes = [];
-        composedItems.splice(0, composedItems.length);
-        list.replaceChildren();
-    }
-
     function createItemNode(definition: PaginationControlDefinition): PaginationItemNode {
         const element = createElement("li", getCompositionElementOptions(itemOptions, {
             "data-af-pagination-item": "",
@@ -472,11 +469,14 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
         }));
         const href = definition.page === null ? null : getHrefForPage(definition.page);
         const control = createControlElement(definition, href, controlOptions);
-        let cleanup: (() => void) | null = null;
+        const node: PaginationItemNode = {
+            element, control, kind: definition.kind, page: definition.page, cleanup: null
+        };
 
         if (definition.page !== null && !definition.disabled && !definition.current) {
             const targetPage = definition.page;
             const handleClick = (event: Event): void => {
+                if (destroyed || !itemNodes.includes(node)) return;
                 if (href !== null && !onPageChange) return;
 
                 event.preventDefault();
@@ -484,20 +484,14 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
             };
 
             control.addEventListener("click", handleClick);
-            cleanup = () => {
+            node.cleanup = () => {
                 control.removeEventListener("click", handleClick);
             };
         }
 
         element.append(control);
 
-        return {
-            element,
-            control,
-            kind: definition.kind,
-            page: definition.page,
-            cleanup
-        };
+        return node;
     }
 
     function getControlDefinitions(): PaginationControlDefinition[] {
@@ -552,46 +546,69 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     }
 
     function renderItems(): void {
-        disposeItems();
-
-        itemNodes = getControlDefinitions().map(createItemNode);
-
-        for (const node of itemNodes) {
-            list.append(node.element);
-            composedItems.push(createComposedItem(node));
-        }
-
-        sync();
+        if (destroyed) return;
+        const current = ++revision;
+        const nodes: PaginationItemNode[] = [];
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            runCleanups(nodes.reverse().map(node => () => node.cleanup?.()));
+        };
+        try {
+            const definitions = getControlDefinitions();
+            for (const definition of definitions) {
+                if (destroyed || current !== revision) return;
+                nodes.push(createItemNode(definition));
+            }
+            if (destroyed || current !== revision) return;
+            itemNodes = nodes;
+            composedItems.splice(0, composedItems.length, ...nodes.map(createComposedItem));
+            committed = true;
+            runCleanups([() => content.set(nodes.map(node => ({
+                element: node.element, destroy: () => node.cleanup?.()
+            }))), sync]);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
     function setPage(nextPage: number): void {
-        page = normalizePage(nextPage, pageCount);
+        if (destroyed) return;
+        const normalized = normalizePage(nextPage, pageCount);
+        if (normalized === page) return;
+        page = normalized;
         renderItems();
     }
 
     function setPageCount(nextPageCount: number): void {
-        pageCount = normalizePageCount(nextPageCount);
+        if (destroyed) return;
+        const normalized = normalizePageCount(nextPageCount);
+        if (normalized === pageCount) return;
+        pageCount = normalized;
         page = normalizePage(page, pageCount);
         renderItems();
-    }
-
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            renderItems();
-        });
     }
 
     if (!element.id) {
         element.id = createId("af-pagination");
     }
 
-    syncLocaleSubscription();
-    renderItems();
+    try {
+        localeSubscription.replace(locale);
+        renderItems();
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        itemNodes = [];
+        composedItems.splice(0, composedItems.length);
+        runCleanups([localeSubscription.destroy, content.dispose, () => list.replaceChildren()]);
+    }
 
     return composed = {
         element,
@@ -607,6 +624,12 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
         setPageCount,
 
         update(nextOptions): void {
+            if (destroyed) return;
+            const previousPage = page;
+            const previousPageCount = pageCount;
+            const rebuild = ["previousText", "nextText", "ellipsisText", "getPageLabel", "getCurrentPageLabel", "getHref",
+                "siblingCount", "boundaryCount", "disabled", "locale", "itemOptions", "controlOptions"]
+                .some(key => key in nextOptions);
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.listOptions !== undefined) {
@@ -628,7 +651,6 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
             if ("disabled" in nextOptions) disabled = nextOptions.disabled ?? false;
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
             if ("itemOptions" in nextOptions) itemOptions = nextOptions.itemOptions;
             if ("controlOptions" in nextOptions) controlOptions = nextOptions.controlOptions;
@@ -645,14 +667,16 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
                 page = normalizePage(page, pageCount);
             }
 
-            renderItems();
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                () => {
+                    if (rebuild || page !== previousPage || pageCount !== previousPageCount) renderItems();
+                    else sync();
+                }
+            ]);
         },
 
-        destroy(): void {
-            unsubscribeLocale?.();
-            unsubscribeLocale = null;
-            disposeItems();
-        }
+        destroy
     };
 }
 

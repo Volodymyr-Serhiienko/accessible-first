@@ -136,7 +136,7 @@ function createTemplateRouteChromeRenderer<
 
     const rendererOptions = {
         options(context: LinkRoutedAppContext<TRoute>): LinkAppRouteChromeBaseOptions<TRoute, TLocale, TKey> {
-            return resolvePublicAppTemplateRouteChromeOptions(routeChrome, context, options);
+            return resolvePublicAppTemplateRouteChromeOptions(routeChrome, context, options, context.route !== null);
         }
     };
 

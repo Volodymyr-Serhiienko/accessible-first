@@ -71,6 +71,14 @@ Keyboard behavior:
 - In single-selection mode, selection follows focus by default.
 - In multiple-selection mode, `Enter` or `Space` toggles the focused option.
 
+Horizontal arrows follow live computed LTR/RTL direction. Runtime navigation and
+typeahead skip hidden/inert/native-disabled options without erasing hidden
+selected values. Logical disabled flags and explicit selection changes still
+apply normally. `refresh()` moves the future Tab stop to an available option and
+releases removed options' borrowed attributes, without moving focus on its own.
+Nested inputs/widgets retain their keyboard/focus events; an option is not a
+replacement for a form container. See [roving contracts](../core/roving-focus.md).
+
 ## Options
 
 Root options:
@@ -145,6 +153,15 @@ Useful CSS custom properties:
 
 - `--af-listbox-max-block-size` - maximum listbox height before scrolling.
 
+Both variants reserve space for the focus ring using the shared
+`--af-focus-ring-width` and `--af-focus-ring-offset` tokens. Keep that inset,
+scroll padding and option scroll margin when overriding the listbox styles;
+zero padding can clip focus at the scroll viewport edges.
+
+Vertical lists wrap long labels inside a shrinkable column. Horizontal lists keep
+their intentional max-content scroll track; this is local scrolling, not page
+overflow. Keep that distinction when overriding layout or option widths.
+
 ```ts
 Listbox({
     className: "settings-listbox",
@@ -161,6 +178,7 @@ Listbox({
 - Typeahead moves to matching options.
 - Single-selection mode updates predictably.
 - Multiple-selection mode toggles options with `Enter` or `Space`.
-- Focus indicator is visible.
+- Focus indicator is visible on first/last options after scrolling, including
+  `plain`, horizontal lists and larger focus tokens.
 - Mouse hover announces option labels when `announceOnHover` is enabled.
 - Touch targets are comfortable on mobile.

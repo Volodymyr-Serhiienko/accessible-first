@@ -83,6 +83,10 @@ const popover = createPopover(content, {
 - Composition API uses a visible `description` as a concise open announcement when no explicit `announcement` is provided.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
+- Ignores late setters, updates and positioning after destruction. Teardown
+  completes owned cleanup even when one child fails, then rethrows the first error.
+- Focus-triggered reopening supersedes a stale close. Closing/destroying from an
+  announcement builder prevents that obsolete opening from speaking/notifying.
 
 ## Options
 
@@ -216,6 +220,13 @@ Useful CSS custom properties:
 - `--af-popover-max-width` - maximum inline size.
 - `--af-popover-max-block-size` - maximum block size before scrolling.
 
+Single-column surface/body grids shrink percentage-bounded content. Width limits
+use the positioned containing block's available width, excluding viewport
+scrollbars for the default fixed strategy. With `strategy: "absolute"`, give the
+containing block the width needed by the popup; a narrow trigger wrapper does not
+implicitly provide viewport-wide space. Deliberately wider custom layouts need
+their own CSS/positioning contract. Tall content scrolls locally.
+
 ```ts
 Popover({
     trigger: "Open help",
@@ -238,6 +249,10 @@ Popover({
 - `Tab` can move into focusable content inside the popover.
 - `Tab` is not trapped inside the popover.
 - Closing from inside restores focus to the trigger when `restoreFocus` is enabled.
+- Focus already outside remains there. If the trigger was removed or hidden,
+  the application owns the next focus destination; no unrelated control is guessed.
 - Description and announcement do not create repeated or confusing speech.
 - Popover remains inside the viewport on small screens.
 - Mobile screen reader can open, read, move through, and close the popover.
+
+Real-CSS return-focus checks: `npm run test:styles`, then `/overlays.html`.

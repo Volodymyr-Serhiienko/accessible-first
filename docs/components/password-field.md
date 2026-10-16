@@ -30,7 +30,8 @@ text but does not force speech or announce the password through a live region.
 the visibility state. `update()` accepts field options, `locale` and
 `visibilityLabel`. Disabled/read-only fields disable reveal and restore masking;
 clearing the value and `destroy()` also restore masking. `destroy()` releases
-the button and locale subscription. Visibility is ephemeral: do not persist it
+the button, field listeners and both locale subscriptions even if cleanup throws;
+late mutators are inert. Visibility is ephemeral: do not persist it
 or log/store the password. Showing a password can expose it to nearby people.
 
 Styles reuse TextField width and validation layout. `data-af-password-field` and

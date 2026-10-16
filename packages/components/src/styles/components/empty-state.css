@@ -1,8 +1,10 @@
 [data-af-composition="empty-state"] {
     box-sizing: border-box;
     min-inline-size: 0;
-    max-inline-size: var(--af-empty-state-max-width, 42rem);
+    overflow-wrap: anywhere;
+    max-inline-size: min(100%, var(--af-empty-state-max-width, 42rem));
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     padding: var(--af-empty-state-padding, var(--af-space-4));
     color: var(--af-color-fg);
@@ -41,7 +43,8 @@
 }
 
 [data-af-empty-state-description] {
-    max-inline-size: var(--af-empty-state-description-width, 36rem);
+    min-inline-size: 0;
+    max-inline-size: min(100%, var(--af-empty-state-description-width, 36rem));
     color: var(--af-color-muted);
 }
 

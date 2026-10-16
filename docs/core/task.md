@@ -25,6 +25,11 @@ boundary before committing UI/application state. `addCleanup()` owns subscriptio
 or listeners and runs immediately for an obsolete task. Cleanup happens before
 abort notifications. `cancel()` leaves the scope reusable; `destroy()` is final.
 
+All owned cleanups run even if one throws; the prior signal is still aborted, then
+the first cleanup error is rethrown. If a cleanup starts a newer task reentrantly,
+the interrupted outer `begin()` returns an already-aborted task instead of replacing
+that newer owner. Do not suppress cleanup failures as normal request cancellation.
+
 The application still checks the account, selected resource and user focus when
 those determine whether a result is applicable. For owned playback with a
 non-speech fallback, use [createSpeechTask](speech.md#owned-speech-tasks).

@@ -30,6 +30,7 @@ export function createOverlayStack(): OverlayStack {
     }
 
     function bringToFront(entry: OverlayStackEntry): void {
+        if (!entries.includes(entry)) return;
         remove(entry);
         entries.push(entry);
     }

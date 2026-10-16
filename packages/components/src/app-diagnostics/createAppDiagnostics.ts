@@ -122,11 +122,10 @@ function getAppDiagnosticsStatus(
     return "healthy";
 }
 
-function countIssuesByLevel(
-    report: AppDiagnosticsCompatibleReport,
-    level: AppDiagnosticsLevel
-): number {
-    return report.issues?.filter((issue) => issue.level === level).length ?? 0;
+function normalizeCount(value: number | undefined, listedCount: number): number {
+    return value !== undefined && Number.isSafeInteger(value) && value >= 0
+        ? Math.max(value, listedCount)
+        : listedCount;
 }
 
 function normalizeReportStatus(
@@ -134,14 +133,8 @@ function normalizeReportStatus(
     errorCount: number,
     warningCount: number
 ): AppDiagnosticsStatus {
-    if (
-        report.status === "healthy"
-        || report.status === "needs-attention"
-        || report.status === "blocked"
-    ) {
-        return report.status;
-    }
-
+    if (report.status === "blocked" || errorCount > 0) return "blocked";
+    if (report.status === "needs-attention" || warningCount > 0) return "needs-attention";
     return getAppDiagnosticsStatus(errorCount, warningCount);
 }
 
@@ -177,10 +170,16 @@ export function createAppDiagnosticsSourceReport(
 
     if (!report) return null;
 
-    const errorCount = report.errorCount ?? countIssuesByLevel(report, "error");
-    const warningCount = report.warningCount ?? countIssuesByLevel(report, "warning");
-    const infoCount = report.infoCount ?? countIssuesByLevel(report, "info");
-    const issueCount = report.issues?.length ?? errorCount + warningCount + infoCount;
+    const listed = { error: 0, warning: 0, info: 0 };
+    for (const issue of report.issues ?? []) {
+        if (issue.level === "error" || issue.level === "warning" || issue.level === "info") {
+            listed[issue.level]++;
+        }
+    }
+    const errorCount = normalizeCount(report.errorCount, listed.error);
+    const warningCount = normalizeCount(report.warningCount, listed.warning);
+    const infoCount = normalizeCount(report.infoCount, listed.info);
+    const issueCount = Math.max(report.issues?.length ?? 0, errorCount + warningCount + infoCount);
 
     const source: AppDiagnosticsSourceReport = {
         id: options.id,
@@ -225,7 +224,9 @@ export function createAppDiagnosticsReport(
     const issueCount = sources.reduce((total, source) => total + source.issueCount, 0);
 
     return {
-        status: getAppDiagnosticsStatus(errorCount, warningCount),
+        status: sources.some(source => source.status === "blocked") ? "blocked"
+            : sources.some(source => source.status === "needs-attention") ? "needs-attention"
+                : getAppDiagnosticsStatus(errorCount, warningCount),
         sources,
         issueCount,
         errorCount,

@@ -369,6 +369,16 @@ createAppRouteDocumentMetadata(route, {
 
 This lets one route descriptor feed navigation, search, breadcrumbs, command palettes, document title, canonical URLs, structured data, and document metadata without separate per-screen wiring.
 
+Explicit fields from `route.metadata` / `getMetadata` win, including `null` clears.
+Fallback title/description/canonical/structured-data resolvers run only when their
+field is absent. `getStructuredData(route, resolvedMetadata?)` receives a separate,
+shallow, readonly snapshot of the final title/description/canonical when called by
+the metadata builder or route inspector. Existing one-argument resolvers still
+work; direct caller invocation may omit the snapshot. Do not mutate nested values.
+Identity-generated WebPage JSON-LD uses this snapshot rather than running the
+same resolvers again. Route inspection also evaluates explicit metadata overrides,
+not unused defaults, for required title/description checks.
+
 ## Route Diagnostics
 
 Use `inspectPublicAppRoutes()` for public apps and indexed route sets that should provide descriptions, document titles, canonical URLs, and structured data. Use `inspectAppRoutes()` directly for private apps or custom requirements:

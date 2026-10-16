@@ -14,7 +14,7 @@ import type {
     ComboboxValueChangeDetail as CoreComboboxValueChangeDetail,
     ComboboxValueChangeReason
 } from "../../../core/src/combobox";
-import type { Component } from "../foundation";
+import type { Component, PendingStateOptions } from "../foundation";
 
 /**
  * Visual variant for combobox.
@@ -82,7 +82,7 @@ export interface ComboboxOptions
     extends Omit<
         CoreComboboxOptions,
         "onOpenChange" | "onValueChange" | "onActiveOptionChange"
-    > {
+    >, PendingStateOptions {
     variant?: ComboboxVariant;
     size?: ComboboxSize;
     onOpenChange?: ComboboxOnOpenChange | null;
@@ -109,6 +109,10 @@ export interface Combobox
         Component<HTMLInputElement> {
     readonly input: HTMLInputElement;
     readonly listbox: HTMLElement;
+    /** Guards user interaction while keeping the input focusable and named. */
+    setPending(pending: boolean): void;
+    /** Whether this combobox is waiting for an asynchronous operation. */
+    isPending(): boolean;
     update(options: ComboboxUpdateOptions): void;
 }
 

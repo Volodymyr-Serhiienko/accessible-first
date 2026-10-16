@@ -16,6 +16,7 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by EmptyState slots.
@@ -179,13 +180,14 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
     let mediaHidden = options.mediaHidden ?? true;
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: EmptyStateActionsAlign = options.actionsAlign ?? "start";
+    let destroyed = false;
+    let revision = 0;
     let mediaContent: EmptyStateSlotContent = normalizeSlotContent(options.media);
     let descriptionContent: EmptyStateSlotContent = normalizeSlotContent(options.description);
     let actionsContent: EmptyStateSlotContent = normalizeSlotContent(options.actions);
 
     let hasMedia = hasCompositionContent(mediaContent);
     let hasDescription = hasCompositionContent(descriptionContent);
-    let hasActions = hasCompositionContent(actionsContent);
 
     const mediaSlot = createContentSlot(media, toCompositionChildren(mediaContent));
     const titleSlot = createContentSlot(title, toCompositionChildren(options.title));
@@ -198,6 +200,7 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
     element.append(media, title, description, actionsBar.element);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "empty-state");
         element.setAttribute("data-af-align", align);
         element.setAttribute("data-af-variant", variant);
@@ -216,105 +219,91 @@ export function EmptyState(options: EmptyStateOptions): ComposedEmptyState {
 
         media.hidden = !hasMedia;
         description.hidden = !hasDescription;
-        actionsBar.element.hidden = !hasActions;
 
         actionsBar.update(getActionsBarStateOptions(actionsLabel, actionsAlign));
+        actionsBar.element.hidden = Boolean(actionsBar.primarySlot.hidden && actionsBar.secondarySlot.hidden);
         actionsBar.element.setAttribute("data-af-empty-state-actions", "");
     }
 
     function setTitle(content: EmptyStateCompositionContent): void {
-        titleSlot.set(toCompositionChildren(content));
-        sync();
+        update({ title: content });
     }
 
     function setDescription(content: EmptyStateCompositionContent | null): void {
-        const nextContent = normalizeSlotContent(content);
-
-        descriptionContent = nextContent;
-        hasDescription = hasCompositionContent(descriptionContent);
-        descriptionSlot.set(toCompositionChildren(descriptionContent));
-        sync();
+        update({ description: content });
     }
 
     function setMedia(content: EmptyStateCompositionContent | null): void {
-        const nextContent = normalizeSlotContent(content);
-
-        mediaContent = nextContent;
-        hasMedia = hasCompositionContent(mediaContent);
-        mediaSlot.set(toCompositionChildren(mediaContent));
-        sync();
+        update({ media: content });
     }
 
     function setActions(content: EmptyStateCompositionContent | null): void {
-        const nextContent = normalizeSlotContent(content);
+        update({ actions: content });
+    }
 
-        actionsContent = nextContent;
-        hasActions = hasCompositionContent(actionsContent);
-        actionsBar.setPrimary(actionsContent);
-        sync();
+    function update(nextOptions: EmptyStateUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+
+        if (nextOptions.mediaOptions !== undefined) {
+            applyCompositionElementOptions(media, nextOptions.mediaOptions);
+        }
+
+        if (nextOptions.titleOptions !== undefined) {
+            applyCompositionElementOptions(title, nextOptions.titleOptions);
+        }
+
+        if (nextOptions.descriptionOptions !== undefined) {
+            applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        }
+
+        if (nextOptions.actionsOptions !== undefined) {
+            applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
+        }
+
+        if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? true;
+        if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
+        if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
+        if (nextOptions.align !== undefined) align = nextOptions.align;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+
+        runCleanups([
+            () => { if (!destroyed && current === revision && "title" in nextOptions) titleSlot.set(toCompositionChildren(nextOptions.title)); },
+            () => {
+                if (destroyed || current !== revision || !("description" in nextOptions)) return;
+                descriptionContent = normalizeSlotContent(nextOptions.description);
+                hasDescription = hasCompositionContent(descriptionContent);
+                descriptionSlot.set(toCompositionChildren(descriptionContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("media" in nextOptions)) return;
+                mediaContent = normalizeSlotContent(nextOptions.media);
+                hasMedia = hasCompositionContent(mediaContent);
+                mediaSlot.set(toCompositionChildren(mediaContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("actions" in nextOptions)) return;
+                actionsContent = normalizeSlotContent(nextOptions.actions);
+                actionsBar.setPrimary(actionsContent);
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([mediaSlot.dispose, titleSlot.dispose, descriptionSlot.dispose, actionsBar.destroy]);
     }
 
     sync();
-
     return {
-        element,
-        media,
-        title,
-        description,
-        actions: actionsBar.element,
-        actionsBar,
-
-        getTitleText(): string {
-            return getElementText(title);
-        },
-
-        getDescriptionText(): string {
-            return getElementText(description);
-        },
-
-        setTitle,
-        setDescription,
-        setMedia,
-        setActions,
-
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.mediaOptions !== undefined) {
-                applyCompositionElementOptions(media, nextOptions.mediaOptions);
-            }
-
-            if (nextOptions.titleOptions !== undefined) {
-                applyCompositionElementOptions(title, nextOptions.titleOptions);
-            }
-
-            if (nextOptions.descriptionOptions !== undefined) {
-                applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-            }
-
-            if (nextOptions.actionsOptions !== undefined) {
-                applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
-            }
-
-            if ("title" in nextOptions) setTitle(nextOptions.title);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("media" in nextOptions) setMedia(nextOptions.media ?? null);
-            if ("mediaHidden" in nextOptions) mediaHidden = nextOptions.mediaHidden ?? true;
-            if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
-            if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
-            if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
-            if (nextOptions.align !== undefined) align = nextOptions.align;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            mediaSlot.dispose();
-            titleSlot.dispose();
-            descriptionSlot.dispose();
-            actionsBar.destroy();
-        }
+        element, media, title, description, actions: actionsBar.element, actionsBar,
+        getTitleText: () => getElementText(title),
+        getDescriptionText: () => getElementText(description),
+        setTitle, setDescription, setMedia, setActions, update, destroy
     };
 }

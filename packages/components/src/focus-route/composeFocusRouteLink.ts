@@ -6,6 +6,7 @@ import {
 } from "../link";
 import {
     runFocusRoute,
+    resolveFocusRouteTarget,
     type FocusRouteOptions,
     type FocusRouteResult,
     type FocusRouteTarget
@@ -93,11 +94,19 @@ export function FocusRouteLink(options: FocusRouteLinkOptions): ComposedFocusRou
     let focusOptions = options.focusOptions;
     let preventDefault = options.preventDefault ?? true;
     let onNavigate = options.onNavigate ?? null;
+    let revision = 0;
 
     function focusTargetNow(): FocusRouteResult {
+        const empty = { target: null, focused: false, scrolled: false };
+        if (link.isDestroyed()) return empty;
+        const current = revision;
+        let target = resolveFocusRouteTarget(focusTarget);
+        if (link.isDestroyed() || current !== revision) return empty;
+        target ??= resolveFocusRouteTarget(fallbackFocusTarget);
+        if (link.isDestroyed() || current !== revision) return empty;
         return runFocusRoute(getRunFocusRouteOptions(
-            focusTarget,
-            fallbackFocusTarget,
+            target,
+            undefined,
             scroll,
             focusOptions
         ));
@@ -107,17 +116,20 @@ export function FocusRouteLink(options: FocusRouteLinkOptions): ComposedFocusRou
         ...getLinkOptions(options),
         onNavigate(event) {
             if (preventDefault) event.preventDefault();
-
+            const current = revision;
             const result = focusTargetNow();
-
+            if (link.isDestroyed() || current !== revision) return;
             onNavigate?.(event, composed, result);
         }
     });
+    const updateLink = link.update.bind(link);
 
     composed = Object.assign(link, {
         focusTarget: focusTargetNow,
 
         update(nextOptions: FocusRouteLinkUpdateOptions): void {
+            if (link.isDestroyed()) return;
+            revision += 1;
             if ("focusTarget" in nextOptions) focusTarget = nextOptions.focusTarget;
             if ("fallbackFocusTarget" in nextOptions) {
                 fallbackFocusTarget = nextOptions.fallbackFocusTarget;
@@ -127,7 +139,7 @@ export function FocusRouteLink(options: FocusRouteLinkOptions): ComposedFocusRou
             if (nextOptions.preventDefault !== undefined) preventDefault = nextOptions.preventDefault;
             if ("onNavigate" in nextOptions) onNavigate = nextOptions.onNavigate ?? null;
 
-            link.update(getLinkOptions(nextOptions));
+            updateLink(getLinkOptions(nextOptions));
         }
     }) as ComposedFocusRouteLink;
 

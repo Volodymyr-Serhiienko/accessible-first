@@ -167,6 +167,9 @@ export function createRobotsTxt(options: RobotsTxtOptions = {}): string {
         for (const path of group.disallow ?? []) {
             lines.push(`Disallow: ${sanitizeLine(path)}`);
         }
+
+        // Blank lines/comments do not end consecutive user-agent declarations.
+        if (!group.allow?.length && !group.disallow?.length) lines.push("Disallow:");
     }
 
     if (options.sitemaps?.length) {
@@ -230,6 +233,11 @@ export function inspectRobotsTxtOptions(
         for (const userAgent of userAgents) {
             const normalized = userAgent.trim();
 
+            if (/[\r\n]/.test(userAgent)) {
+                issues.push(createIssue("error", "group", "robots.user-agent.multiline",
+                    "User-agent must not contain line breaks.", group));
+            }
+
             if (!normalized) {
                 issues.push(createIssue(
                     "error",
@@ -240,10 +248,10 @@ export function inspectRobotsTxtOptions(
                 ));
             } else if (!isValidUserAgent(normalized)) {
                 issues.push(createIssue(
-                    "warning",
+                    "error",
                     "group",
                     "robots.user-agent.invalid",
-                    "User-agent should be '*' or a product token containing letters, hyphens, and underscores.",
+                    "User-agent must be '*' or a product token containing letters, hyphens, and underscores.",
                     group
                 ));
             }
@@ -260,6 +268,11 @@ export function inspectRobotsTxtOptions(
                 ));
             }
 
+            if (path.includes("#")) {
+                issues.push(createIssue("warning", "rule", "robots.rule.comment",
+                    "A literal '#' starts a comment; use '%23' when it belongs to the path.", group));
+            }
+
             if (!isValidPathRule(path.trim())) {
                 issues.push(createIssue(
                     "warning",
@@ -273,7 +286,13 @@ export function inspectRobotsTxtOptions(
     }
 
     for (const sitemap of sitemaps) {
-        const value = stringifyUrl(sitemap).trim();
+        const rawValue = stringifyUrl(sitemap);
+        const value = rawValue.trim();
+
+        if (/[\r\n]/.test(rawValue)) {
+            issues.push(createIssue("error", "sitemap", "robots.sitemap.multiline",
+                "Sitemap URL must not contain line breaks.", undefined, sitemap));
+        }
 
         if (!value) {
             issues.push(createIssue(
@@ -325,6 +344,15 @@ export function inspectRobotsTxtOptions(
                 undefined,
                 sitemap
             ));
+        }
+
+        if (url.username || url.password) {
+            issues.push(createIssue("error", "sitemap", "robots.sitemap.credentials",
+                "Public sitemap URLs must not contain credentials.", undefined, sitemap));
+        }
+        if (url.hash) {
+            issues.push(createIssue("warning", "sitemap", "robots.sitemap.hash",
+                "Sitemap URL must identify a document, not a fragment.", undefined, sitemap));
         }
     }
 

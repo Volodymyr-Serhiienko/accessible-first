@@ -68,6 +68,9 @@ const link = createLink(existingLink, {
 - Supports optional `hint` through `aria-describedby` and optional visual tooltip.
 - Exposes stable data attributes for styling.
 - Restores original attributes on `destroy()`.
+- Composed cleanup releases content, hints and listeners even after a child failure;
+  the first error is rethrown. Destruction is idempotent and late mutations are ignored.
+- Non-native fallback navigation does not continue after its callback destroys the link.
 
 ## Options
 
@@ -92,6 +95,10 @@ const link = createLink(existingLink, {
 
 Useful hooks include `[data-af-component="link"]`, `[data-af-variant]`, `[data-af-state]`, and `[aria-current]`.
 
+Default, muted and standalone links reflow long unbroken labels within their
+available width. Rich labels should also use shrinkable content such as
+`IconLabel`; application-defined fixed-width children still need responsive sizing.
+
 ```ts
 Link({
     text: "Skip to examples",
@@ -111,6 +118,6 @@ Link({
 - External links use safe `rel` values when opened in a new tab.
 - Screen readers announce name and link role.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
-- Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
+- Visual tooltip appears on hover when `hintDisplay` is `"tooltip"` or `"both"`; focus reveal is opt-in.
 - Link text is readable in light and dark themes.
 

@@ -79,6 +79,11 @@ Useful hooks include `[data-af-composition="icon-label"]`, `[data-af-icon-label-
 
 ## Manual Checks
 
+Destruction releases both owned slots once, even when a child cleanup fails;
+the first error is rethrown after the remaining children are released. Long labels
+wrap within their parent width. The parent button/link still owns interaction,
+accessible naming and focus styling.
+
 - The parent link or button is one focus stop, not the icon and label separately.
 - A screen reader announces the visible label and parent role once.
 - Decorative icons are skipped by assistive technologies.

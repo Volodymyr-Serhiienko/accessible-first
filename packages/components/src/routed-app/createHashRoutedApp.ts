@@ -10,6 +10,8 @@ import {
     type MountTarget
 } from "../composition";
 import type { DocumentMetadataUpdateOptions } from "../document-metadata";
+import { runCleanups } from "../../../core/src/events";
+import { discardPreparedContent } from "../composition/preparedContent";
 import {
     createLocaleRefresh,
     type LocaleCode,
@@ -31,6 +33,7 @@ import {
 } from "../routing";
 import {
     applyRoutedAppChromeSlots,
+    getRoutedAppChromeContent,
     getRoutedAppLocaleRefreshOptions,
     setupRoutedAppPageHideCleanup,
     type RoutedAppChromeSlots,
@@ -182,6 +185,13 @@ export function createHashRoutedApp<
     let hasBoundNavigation = false;
     let started = false;
     let destroyed = false;
+    let revision = 0;
+    let binding: object | null = null;
+    let chromeAttempt: object | null = null;
+
+    function isCurrent(current: number): boolean {
+        return !destroyed && current === revision;
+    }
 
     function getContext(): HashRoutedAppContext<TRoute> {
         return {
@@ -194,14 +204,15 @@ export function createHashRoutedApp<
         };
     }
 
-    function clearRouteControls(): void {
-        routeControlsCleanup?.();
+    function clearRouteControls(current?: number): void {
+        const cleanup = routeControlsCleanup;
+        const unbindNavigation = hasBoundNavigation;
         routeControlsCleanup = null;
-
-        if (hasBoundNavigation) {
-            router.setNavigation(null);
-            hasBoundNavigation = false;
-        }
+        hasBoundNavigation = false;
+        binding = null;
+        runCleanups([() => cleanup?.(), () => {
+            if (unbindNavigation && (current === undefined || isCurrent(current))) router.setNavigation(null);
+        }]);
     }
 
     function bindChromeRouteControls(chrome: HashRoutedAppChrome<TRoute>): void {
@@ -209,59 +220,96 @@ export function createHashRoutedApp<
         const currentRouteControls = chrome.currentRouteControls ?? [];
 
         if (!hasNavigationControl && currentRouteControls.length === 0) return;
-
-        routeControlsCleanup = bindHashRouterRouteControls(router, {
-            navigation: hasNavigationControl ? chrome.navigationControl ?? null : null,
-            currentRouteControls
-        });
+        const token = {};
+        binding = token;
         hasBoundNavigation = hasNavigationControl;
+        const active = (): boolean => !destroyed && binding === token;
+        const navigation = chrome.navigationControl;
+        let cleanup: HashRouterUnsubscribe;
+        try {
+            cleanup = bindHashRouterRouteControls(router, {
+                navigation: hasNavigationControl && navigation ? {
+                    setCurrent(id) { if (active() && router.getCurrentRoute().id === id) navigation.setCurrent(id); }
+                } : null,
+                currentRouteControls: currentRouteControls.map(control => ({
+                    setCurrent(route) {
+                        if (active() && route && typeof route === "object" && router.getCurrentRoute().id === route.id) control.setCurrent(route);
+                    }
+                }))
+            });
+        } catch (error) {
+            try { if (binding === token) clearRouteControls(); }
+            finally { throw error; }
+        }
+        if (active()) routeControlsCleanup = cleanup;
+        else cleanup();
+    }
+
+    function runRefreshChrome(current: number): void {
+        const attempt = {};
+        chromeAttempt = attempt;
+        const chrome = options.renderChrome?.(getContext()) ?? null;
+
+        if (!chrome) {
+            if (isCurrent(current)) clearRouteControls(current);
+            return;
+        }
+        const candidates = getRoutedAppChromeContent(chrome);
+        runCleanups([
+            () => {
+                if (!isCurrent(current)) return;
+                clearRouteControls(current);
+                if (!isCurrent(current)) return;
+                applyRoutedAppChromeSlots(shell, chrome);
+                if (!destroyed && chromeAttempt === attempt) bindChromeRouteControls(chrome);
+            },
+            () => discardPreparedContent(shell, candidates)
+        ]);
     }
 
     function refreshChrome(): void {
         if (destroyed) return;
-
-        clearRouteControls();
-
-        const chrome = options.renderChrome?.(getContext()) ?? null;
-
-        if (!chrome) return;
-
-        applyRoutedAppChromeSlots(shell, chrome);
-        bindChromeRouteControls(chrome);
+        runRefreshChrome(++revision);
     }
 
     function refresh(refreshOptions: HashRoutedAppRefreshOptions = {}): void {
         if (destroyed) return;
+        const current = ++revision;
 
         if (refreshOptions.chrome ?? true) {
-            refreshChrome();
+            runRefreshChrome(current);
         }
 
-        if (refreshOptions.route ?? true) {
+        if (isCurrent(current) && (refreshOptions.route ?? true)) {
             router.refresh(refreshOptions.routeOptions ?? defaultLocaleRefreshRouteOptions);
         }
     }
 
-    const router = createHashRouter<TRoute>({
-        ...hashRouterOptions,
-        routes,
-        outlet: shell.outlet,
-        updateDocumentMetadata(metadata) {
-            if (routerUpdateDocumentMetadata) {
-                routerUpdateDocumentMetadata(metadata, getContext());
-                return;
-            }
+    let router: HashRouter<TRoute>;
+    try {
+        router = createHashRouter<TRoute>({
+            ...hashRouterOptions,
+            routes,
+            outlet: shell.outlet,
+            updateDocumentMetadata(metadata) {
+                if (routerUpdateDocumentMetadata) {
+                    routerUpdateDocumentMetadata(metadata, getContext());
+                    return;
+                }
 
-            shell.updateMetadata(metadata);
-        },
-        onRouteChange(route, previousRoute, nextRouter) {
-            routerOnRouteChange?.(route, previousRoute, nextRouter);
+                shell.updateMetadata(metadata);
+            },
+            onRouteChange(route, previousRoute, nextRouter) {
+                const current = revision;
+                routerOnRouteChange?.(route, previousRoute, nextRouter);
 
-            if (options.refreshChromeOnRouteChange) {
-                refreshChrome();
+                if (isCurrent(current) && nextRouter.getCurrentRoute().id === route.id && options.refreshChromeOnRouteChange) refreshChrome();
             }
-        }
-    });
+        });
+    } catch (error) {
+        try { shell.destroy(); }
+        finally { throw error; }
+    }
 
     function setupLocaleRefresh(): void {
         const locale = options.locale;
@@ -325,20 +373,15 @@ export function createHashRoutedApp<
             if (destroyed) return;
 
             destroyed = true;
-            removePageHideListener?.();
+            revision += 1;
+            const removePageHide = removePageHideListener;
+            const refreshController = localeRefresh;
+            const tree = mountedTree;
             removePageHideListener = null;
-            localeRefresh?.destroy();
             localeRefresh = null;
-            clearRouteControls();
-            router.stop();
-
-            if (mountedTree) {
-                mountedTree.unmount();
-                mountedTree = null;
-                return;
-            }
-
-            shell.destroy();
+            mountedTree = null;
+            runCleanups([() => removePageHide?.(), () => refreshController?.destroy(),
+                clearRouteControls, () => router.stop(), () => tree ? tree.unmount() : shell.destroy()]);
         },
 
         isDestroyed(): boolean {
@@ -346,16 +389,19 @@ export function createHashRoutedApp<
         }
     };
 
-    setupLocaleRefresh();
-    setupPageHideCleanup();
-    refreshChrome();
+    try {
+        setupLocaleRefresh();
+        setupPageHideCleanup();
+        refreshChrome();
 
-    if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
-        app.mount(options.mount, options.mountOptions ?? {});
-    }
+        if (options.mount !== undefined && options.mount !== null && options.mount !== false) {
+            app.mount(options.mount, options.mountOptions ?? {});
+        }
 
-    if (options.start !== false) {
-        app.start(options.startOptions ?? {});
+        if (options.start !== false) app.start(options.startOptions ?? {});
+    } catch (error) {
+        try { app.destroy(); }
+        finally { throw error; }
     }
 
     return app;

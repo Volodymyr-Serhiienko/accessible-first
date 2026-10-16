@@ -74,6 +74,13 @@ Keyboard behavior:
 - In `activationMode: "automatic"`, moving focus selects the tab.
 - In `activationMode: "manual"`, `Enter` or `Space` selects the focused tab.
 
+Horizontal arrows follow live computed LTR/RTL direction; vertical arrows and
+Home/End retain logical order. Hidden/inert/native-disabled tabs and tabs without
+a panel are not navigation targets. Before mounting or revealing the whole tab
+set, requested defaults are retained. `refresh()` releases removed tabs/panels'
+borrowed ARIA/hidden/tabindex state; application-owned focus repair remains
+explicit. Manual activation still requires Enter/Space after an arrow move.
+
 ## Options
 
 Root options:
@@ -139,6 +146,12 @@ tabs.update({
 ## Styling
 
 Useful hooks include `[data-af-composition="tabs"]`, `[data-af-component="tabs"]`, `[data-af-tabs-tab]`, `[data-af-tabs-panel]`, `[aria-selected]`, `[data-af-orientation]`, and `[data-af-activation-mode]`.
+
+Long tab labels wrap inside their available width; content grids can shrink.
+The vertical tablist is capped at half the available inline space on desktop,
+so a narrow embedded tab set retains room for its panel. Below the `640px`
+viewport breakpoint it stacks above the panel; keyboard orientation remains the
+configured creation-time value. There is no automatic container-query mode.
 
 ```ts
 Tabs({

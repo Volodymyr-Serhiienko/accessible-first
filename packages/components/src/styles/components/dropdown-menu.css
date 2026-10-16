@@ -3,8 +3,8 @@
     inline-size: 0.4rem;
     block-size: 0.4rem;
     flex: 0 0 auto;
-    border-inline-end: 2px solid currentColor;
-    border-block-end: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
     margin-inline-start: var(--af-space-2);
     margin-block-end: 0.2rem;

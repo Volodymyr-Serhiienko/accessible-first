@@ -1,3 +1,5 @@
+import { runCleanups } from "../events";
+
 /** A cancellable operation owned by a view or another disposable resource. */
 export interface ScopedTask {
     /** Signal for APIs that support aborting their work. */
@@ -22,23 +24,26 @@ export interface TaskScope {
 export function createTaskScope(): TaskScope {
     let current: AbortController | null = null;
     let disposed = false;
+    let revision = 0;
     let cleanups: (() => void)[] = [];
 
     function cancel(): void {
+        revision += 1;
         const previous = current;
         const owned = cleanups;
         current = null;
         cleanups = [];
         // Unsubscribe before abort handlers can produce terminal notifications.
-        try { for (const cleanup of owned) cleanup(); }
+        try { runCleanups(owned); }
         finally { previous?.abort(); }
     }
 
     return {
         begin(): ScopedTask {
+            const attempt = revision + 1;
             cancel();
             const controller = new AbortController();
-            if (disposed) controller.abort();
+            if (disposed || revision !== attempt) controller.abort();
             else current = controller;
             const isCurrent = (): boolean => current === controller && !controller.signal.aborted;
             return {

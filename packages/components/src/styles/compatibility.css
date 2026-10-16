@@ -31,3 +31,14 @@
         transform: translateY(0);
     }
 }
+
+/* Author layout must not expose hidden AF roots/items. Leave find-to-reveal to supporting browsers. */
+[data-af-component][hidden]:not([hidden="until-found" i]),
+[data-af-composition][hidden]:not([hidden="until-found" i]),
+[data-af-layout][hidden]:not([hidden="until-found" i]),
+[data-af-menu-item][hidden]:not([hidden="until-found" i]),
+[data-af-listbox-option][hidden]:not([hidden="until-found" i]),
+[data-af-tabs-tab][hidden]:not([hidden="until-found" i]),
+[data-af-page][hidden]:not([hidden="until-found" i]) {
+    display: none !important;
+}

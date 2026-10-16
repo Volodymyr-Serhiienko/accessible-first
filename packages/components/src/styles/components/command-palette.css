@@ -11,8 +11,9 @@
     margin-block-start: min(8vh, var(--af-space-6));
 }
 
-[data-af-command-palette-search] {
+[data-af-command-palette-search][data-af-search-box] {
     --af-search-box-width: 100%;
+    --af-search-box-max-width: 100%;
     --af-combobox-width: 100%;
     --af-combobox-listbox-max-width: var(--af-command-palette-results-width, 42rem);
     --af-combobox-listbox-max-block-size: var(--af-command-palette-results-max-block-size, 22rem);

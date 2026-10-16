@@ -1,7 +1,3 @@
-[data-af-component="button"][data-af-theme-toggle-display="button"] {
-    white-space: nowrap;
-}
-
 [data-af-component="button"][data-af-theme-toggle-display="switch"] {
     --af-theme-toggle-switch-width: 3.5rem;
     --af-theme-toggle-switch-track-height: 1.75rem;
@@ -12,6 +8,10 @@
     min-inline-size: var(--af-theme-toggle-switch-width);
     padding: 0;
     border-radius: 999px;
+}
+
+[data-af-theme-toggle-display="switch"] > [data-af-button-content] {
+    inline-size: 100%;
 }
 
 [data-af-theme-toggle-switch-track] {
@@ -43,18 +43,12 @@
     border-radius: 999px;
     background: var(--af-color-primary);
     transform: translateY(-50%);
-    transition: transform 120ms ease;
+    transition: inset-inline-start 120ms ease;
 }
 
 [data-af-theme-toggle-display="switch"][aria-checked="true"] [data-af-theme-toggle-switch-thumb] {
-    transform: translate(
-        calc(
-            var(--af-theme-toggle-switch-width)
-            - var(--af-theme-toggle-switch-thumb-size)
-            - var(--af-theme-toggle-switch-inset)
-            - var(--af-theme-toggle-switch-inset)
-        ),
-        -50%
+    inset-inline-start: calc(
+        100% - var(--af-theme-toggle-switch-thumb-size) - var(--af-theme-toggle-switch-inset)
     );
 }
 

@@ -51,7 +51,12 @@ Accessible First follows the Robots Exclusion Protocol shape from RFC 9309:
 - `Sitemap` lines can be added as additional records;
 - a group without rules allows access by default.
 
-See RFC 9309: https://www.rfc-editor.org/rfc/rfc9309.html
+The generator emits an empty `Disallow:` for a group with no rules. This preserves
+the intended unrestricted group before the next user-agent: blank lines/comments
+alone do not separate consecutive user-agent declarations. An explicit empty
+path is otherwise preserved, and path case/wildcards are not rewritten.
+
+See [RFC 9309](https://www.rfc-editor.org/rfc/rfc9309.html#section-2.2).
 
 ## Options
 
@@ -91,6 +96,14 @@ Diagnostics check:
 - duplicate sitemap URLs;
 - sitemap URL protocol.
 
+Line breaks in user-agent/rule/sitemap values are errors. Literal `#` in a path
+warns because it starts a comment; use `%23` for a literal path character.
+Credentialed sitemap URLs are errors; document fragments warn. Generation keeps
+each value on one line but does not replace validation: inspect options before
+publishing and reject blocked reports. Comments may be multiline input and are
+flattened to one comment line. These helpers do not fetch URLs, evaluate matching
+rules or implement a crawler. A healthy report does not prove crawlability.
+
 The report shape is compatible with `AppDiagnostics` custom sources.
 
 ## Manual Checks
@@ -100,3 +113,6 @@ The report shape is compatible with `AppDiagnostics` custom sources.
 - `robots.txt` is deployed at the site root.
 - `robots.txt` does not include secrets or private URLs.
 - Private data is protected by real access control, not only by crawler instructions.
+- Disallow is not a noindex/removal guarantee. Keep authentication and indexing
+  policy separate; a crawler cannot read a page's noindex directive if crawling
+  that page is blocked.

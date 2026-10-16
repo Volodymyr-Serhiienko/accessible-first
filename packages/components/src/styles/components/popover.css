@@ -7,9 +7,10 @@
     box-sizing: border-box;
     inline-size: fit-content;
     overflow-wrap: anywhere;
-    max-inline-size: min(var(--af-popover-max-width, 24rem), calc(100vw - 1rem));
+    max-inline-size: min(var(--af-popover-max-width, 24rem), calc(100% - 1rem));
     max-block-size: min(var(--af-popover-max-block-size, 20rem), calc(100vh - 1rem));
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     overflow: auto;
     border: 1px solid var(--af-color-border);
@@ -50,6 +51,7 @@
 
 [data-af-popover-body] {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 
@@ -64,7 +66,7 @@
 
 @media (max-width: 640px) {
     [data-af-component="popover"] {
-        inline-size: min(var(--af-popover-mobile-width, 100%), calc(100vw - 1rem));
-        max-inline-size: calc(100vw - 1rem);
+        inline-size: min(var(--af-popover-mobile-width, 100%), calc(100% - 1rem));
+        max-inline-size: calc(100% - 1rem);
     }
 }

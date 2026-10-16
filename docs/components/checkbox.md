@@ -6,7 +6,8 @@ Checkbox provides an accessible native checkbox with Accessible First styling ho
 
 Use `Checkbox` when users can turn one independent option on or off.
 
-For a mutually exclusive choice, use `RadioGroup`. For a setting that behaves like an immediate on/off switch, use a future `Switch`.
+For a mutually exclusive choice, use `RadioGroup`. For an immediate on/off setting,
+use `Switch`.
 
 ## Quick Start
 
@@ -122,6 +123,12 @@ On touch screen readers, the label may also be discoverable as a large tap targe
 
 `defaultChecked` is creation-time only. Use `setChecked()` or `update({ checked })` to change the current state.
 
+Enhancement without checked options preserves the native checked/mixed state.
+Mixed state changes `indeterminate`, without clearing the underlying native
+checked value used for form submission. See [native field state](./foundation.md#native-field-state)
+for reset defaults, silent synchronization and document boundaries. Enhancement
+`update()` is inert after destroy.
+
 ```ts
 const checkbox = Checkbox({
     label: "Email updates"
@@ -152,6 +159,9 @@ Checkbox({
     className: "settings-checkbox"
 });
 ```
+
+Checkbox labels follow the surrounding text direction; the tick retains its
+conventional shape and the mixed mark remains centered in both LTR and RTL.
 
 ## Manual Checks
 

@@ -15,6 +15,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { runCleanups } from "../../../core/src/events";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 
 /**
  * Content accepted by breadcrumb item labels.
@@ -113,6 +115,7 @@ interface BreadcrumbsItemNode {
     content: HTMLAnchorElement | HTMLSpanElement;
     separator: HTMLElement | null;
     contentSlot: ReturnType<typeof createContentSlot>;
+    active: boolean;
 }
 
 function getAriaCurrentValue(
@@ -216,11 +219,14 @@ function createItemNode(
         element,
         content,
         separator,
-        contentSlot
+        contentSlot,
+        active: true
     };
 }
 
 function destroyItemNode(node: BreadcrumbsItemNode): void {
+    if (!node.active) return;
+    node.active = false;
     node.contentSlot.dispose();
 }
 
@@ -242,6 +248,7 @@ function createComposedItem(node: BreadcrumbsItemNode): ComposedBreadcrumbsItem 
         },
 
         setLabelContent(content): void {
+            if (!node.active) return;
             node.contentSlot.set(toCompositionChildren(content));
         }
     };
@@ -280,17 +287,20 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
 
     const composedItems: ComposedBreadcrumbsItem[] = [];
 
-    let itemDefinitions = options.items;
+    const content = createContentSlot(list);
     let separator = options.separator ?? "/";
     let label = options.label;
     let labelledBy = options.labelledBy ?? null;
     let locale: BreadcrumbsLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    const localeSubscription = createLocaleSubscription(sync);
     let variant: BreadcrumbsVariant = options.variant ?? "default";
     let size: BreadcrumbsSize = options.size ?? "md";
     let itemNodes: BreadcrumbsItemNode[] = [];
+    let destroyed = false;
+    let revision = 0;
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "breadcrumbs");
         const resolvedLabel = getNavigationLabel(label, locale);
         const trimmedLabel = resolvedLabel?.trim() ?? "";
@@ -313,50 +323,43 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
     }
 
     function setLabel(nextLabel: string | null): void {
+        if (destroyed) return;
         label = nextLabel;
         sync();
     }
 
     function setLabelledBy(nextLabelledBy: string | null): void {
+        if (destroyed) return;
         labelledBy = nextLabelledBy;
         sync();
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            sync();
-        });
-    }
-
-    function disposeItems(): void {
-        for (const node of [...itemNodes].reverse()) {
-            destroyItemNode(node);
-        }
-
-        itemNodes = [];
-        composedItems.splice(0, composedItems.length);
-        list.replaceChildren();
-    }
-
     function setItems(items: BreadcrumbsItem[]): void {
-        itemDefinitions = items;
-        disposeItems();
-
-        itemNodes = itemDefinitions.map((item, index) => (
-            createItemNode(item, index, itemDefinitions.length, separator)
-        ));
-
-        for (const node of itemNodes) {
-            list.append(node.element);
-            composedItems.push(createComposedItem(node));
-        }
-
-        sync();
+        if (destroyed) return;
+        const current = ++revision;
+        const definitions = [...items];
+        const nodes: BreadcrumbsItemNode[] = [];
+        let committed = false;
+        const discard = (): void => {
+            if (committed) return;
+            committed = true;
+            runCleanups(nodes.reverse().map(node => () => destroyItemNode(node)));
+        };
+        try {
+            for (const [index, item] of definitions.entries()) {
+                if (destroyed || current !== revision) return;
+                nodes.push(createItemNode(item, index, definitions.length, separator));
+            }
+            if (destroyed || current !== revision) return;
+            itemNodes = nodes;
+            composedItems.splice(0, composedItems.length, ...nodes.map(createComposedItem));
+            committed = true;
+            runCleanups([() => content.set(nodes.map(node => ({
+                element: node.element, destroy: () => destroyItemNode(node)
+            }))), sync]);
+        } catch (error) {
+            runCleanups([() => { throw error; }, discard]);
+        } finally { discard(); }
     }
 
     function syncSeparators(): void {
@@ -365,8 +368,21 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         });
     }
 
-    syncLocaleSubscription();
-    setItems(itemDefinitions);
+    try {
+        localeSubscription.replace(locale);
+        setItems(options.items);
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        itemNodes = [];
+        composedItems.splice(0, composedItems.length);
+        runCleanups([localeSubscription.destroy, content.dispose, () => list.replaceChildren()]);
+    }
 
     return {
         element,
@@ -377,6 +393,7 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
         setItems,
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.listOptions !== undefined) {
@@ -388,7 +405,7 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
             if ("labelledBy" in nextOptions) labelledBy = nextOptions.labelledBy ?? null;
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
+                localeSubscription.replace(locale);
             }
             if (nextOptions.separator !== undefined) separator = nextOptions.separator;
             if (nextOptions.variant !== undefined) variant = nextOptions.variant;
@@ -403,9 +420,6 @@ export function Breadcrumbs(options: BreadcrumbsOptions): ComposedBreadcrumbs {
             sync();
         },
 
-        destroy(): void {
-            unsubscribeLocale?.();
-            disposeItems();
-        }
+        destroy
     };
 }

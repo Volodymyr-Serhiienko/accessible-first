@@ -80,6 +80,10 @@ Brand({
 - `aspectRatio`, `fit`, `objectPosition`, `inlineSize`, and `blockSize` apply CSS custom properties.
 - Presentation presets never replace meaningful `alt` text decisions.
 
+A logo next to the same visible brand name can be decorative. Keep its empty
+`alt`; an automated SEO warning about empty text is not a reason to introduce
+duplicate screen-reader output. Informative images still need meaningful text.
+
 ## Options
 
 - `src` - Image URL.

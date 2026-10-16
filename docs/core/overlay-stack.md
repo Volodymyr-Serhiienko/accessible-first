@@ -51,6 +51,11 @@ createDismissableLayer(element, {
 * Supports custom stack instances
 * Keeps nested overlays from all dismissing at once
 
+`bringToFront()` reorders only a currently registered entry. Removed, replaced
+or foreign entries cannot be resurrected; call `add()` for a new registration.
+`getEntries()` returns a snapshot. `clear()` clears ordering metadata, not the
+controllers themselves; each owner must still deactivate/destroy its layer.
+
 ## Principles
 
 * No framework dependency

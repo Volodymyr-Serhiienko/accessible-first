@@ -1,4 +1,8 @@
 import type { PublicAppDiagnosticsLocaleResolver } from "../app-diagnostics";
+import { runCleanups } from "../../../core/src/events";
+import { toCompositionChildren, type CompositionChild } from "../composition";
+import { getDestroyer } from "../composition/append";
+import { discardPreparedContent } from "../composition/preparedContent";
 import type {
     AppRouteDescriptor,
     LocalizedAppRouteText
@@ -11,7 +15,8 @@ import type { AppRouteChromeHeaderOptions } from "../route-chrome";
 import type {
     AppShellOptions,
     AppShellOutletOptions,
-    AppShellUpdateOptions
+    AppShellUpdateOptions,
+    ComposedAppShell
 } from "../app-shell";
 import type { DocumentMetadataOptions, DocumentMetadataUpdateOptions } from "../document-metadata";
 import type {
@@ -218,7 +223,8 @@ function getPublicAppTemplateIdentityMetadata(
 }
 
 function getPublicAppTemplateShellMetadata(
-    options: PublicAppTemplateBaseOptions
+    options: PublicAppTemplateBaseOptions,
+    title?: AppShellOptions["title"]
 ): PublicAppTemplateMetadata | undefined {
     const resolvedMetadata = resolvePublicAppTemplateValue(options.shell?.metadata);
 
@@ -230,6 +236,7 @@ function getPublicAppTemplateShellMetadata(
 
     return {
         ...identityMetadata,
+        ...(title !== undefined ? { title } : {}),
         ...(resolvedMetadata ?? {})
     };
 }
@@ -274,7 +281,7 @@ export function resolvePublicAppTemplateRouteChromeOptions<
         shell?: AppShellUpdateOptions;
         routeText?: PublicAppTemplateRouteChromeRouteText<TRoute> | false;
     },
-    TContext
+    TContext extends { shell: ComposedAppShell }
 >(
     routeChrome: PublicAppTemplateContextValue<
         PublicAppTemplateRouteChromeBaseOptions<TRoute, TOptions> | PublicAppTemplateDefaultRouteChrome,
@@ -284,7 +291,8 @@ export function resolvePublicAppTemplateRouteChromeOptions<
     templateOptions: PublicAppTemplateBaseOptions & {
         routes: readonly TRoute[];
         routeText?: PublicAppTemplateRouteText<TRoute> | false;
-    }
+    },
+    preserveDocumentTitle = false
 ): TOptions {
     const resolvedRouteChromeOptions = resolvePublicAppTemplateContextValue(routeChrome, context);
     const routeChromeOptions = resolvedRouteChromeOptions === true
@@ -298,10 +306,21 @@ export function resolvePublicAppTemplateRouteChromeOptions<
 
     if (routeText !== undefined) nextOptions.routeText = routeText;
 
-    return withPublicAppTemplateShellUpdate(
-        nextOptions as TOptions,
-        getPublicAppTemplateShellUpdateOptions(templateOptions)
+    const shellOptions = { ...(templateOptions.shell ?? {}) };
+    for (const key of Object.keys(routeChromeOptions.shell ?? {})) {
+        delete shellOptions[key as keyof PublicAppTemplateShellOptions];
+    }
+    const shellUpdate = getPublicAppTemplateShellUpdateOptions(
+        { ...templateOptions, shell: shellOptions }, false, { owner: context.shell }
     );
+    if (preserveDocumentTitle) {
+        delete shellUpdate.title;
+        if (shellUpdate.metadata) {
+            shellUpdate.metadata = { ...shellUpdate.metadata };
+            delete shellUpdate.metadata.title;
+        }
+    }
+    return withPublicAppTemplateShellUpdate(nextOptions as TOptions, shellUpdate);
 }
 
 /**
@@ -373,10 +392,12 @@ export function getPublicAppTemplateDiagnosticsOptions<
 }
 
 /**
- * Creates AppShell options with public app template defaults applied.
+ * Creates initial AppShell options, optionally resolving static-template content.
+ * Returned factory children are cleaned if a later content factory fails.
  */
 export function getPublicAppTemplateShellOptions(
-    options: PublicAppTemplateBaseOptions
+    options: PublicAppTemplateBaseOptions,
+    content?: PublicAppTemplateValue<AppShellOptions["content"]>
 ): AppShellOptions {
     const shellOptions = options.shell ?? {};
     const {
@@ -403,13 +424,35 @@ export function getPublicAppTemplateShellOptions(
     const resolvedTitle = resolvePublicAppTemplateValue(title);
     const resolvedSkipLink = resolvePublicAppTemplateValue(skipLink);
     const resolvedNavigationLabel = resolvePublicAppTemplateValue(navigationLabel);
-    const resolvedMetadata = getPublicAppTemplateShellMetadata(options);
+    const resolvedMetadata = getPublicAppTemplateShellMetadata(options, resolvedTitle);
     const resolvedOutletOptions = resolvePublicAppTemplateValue(outletOptions);
-    const resolvedHeader = resolvePublicAppTemplateValue(header);
-    const resolvedNavigation = resolvePublicAppTemplateValue(navigation);
-    const resolvedBeforeOutlet = resolvePublicAppTemplateValue(beforeOutlet);
-    const resolvedAfterOutlet = resolvePublicAppTemplateValue(afterOutlet);
-    const resolvedFooter = resolvePublicAppTemplateValue(footer);
+    const prepared: CompositionChild[] = [];
+    function resolveSlot(value: PublicAppTemplateValue<PublicAppTemplateShellSlot> | undefined): PublicAppTemplateShellSlot {
+        const resolved = resolvePublicAppTemplateValue(value);
+        if (typeof value === "function") prepared.push(...toCompositionChildren(resolved));
+        return resolved;
+    }
+
+    // Until AppShell is called, only returned factory results belong to this batch.
+    try {
+        const resolvedHeader = resolveSlot(header);
+        const resolvedNavigation = resolveSlot(navigation);
+        const resolvedBeforeOutlet = resolveSlot(beforeOutlet);
+        const resolvedAfterOutlet = resolveSlot(afterOutlet);
+        const resolvedFooter = resolveSlot(footer);
+
+        if (resolvedHeader !== undefined) shell.header = resolvedHeader;
+        if (resolvedNavigation !== undefined) shell.navigation = resolvedNavigation;
+        if (resolvedBeforeOutlet !== undefined) shell.beforeOutlet = resolvedBeforeOutlet;
+        if (resolvedAfterOutlet !== undefined) shell.afterOutlet = resolvedAfterOutlet;
+        if (resolvedFooter !== undefined) shell.footer = resolvedFooter;
+        if (content !== undefined) shell.content = resolveSlot(content) ?? null;
+    } catch (error) {
+        try {
+            runCleanups([...new Set(prepared)].reverse().map(child => () => getDestroyer(child)?.()));
+        } catch { /* Preserve the resolver failure after attempting every cleanup. */ }
+        throw error;
+    }
 
     if (resolvedTitle !== undefined) shell.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) shell.skipLink = resolvedSkipLink;
@@ -417,11 +460,6 @@ export function getPublicAppTemplateShellOptions(
     if (shellLocale !== undefined) shell.locale = shellLocale;
     if (resolvedMetadata !== undefined) shell.metadata = resolvedMetadata;
     if (resolvedOutletOptions !== undefined) shell.outletOptions = resolvedOutletOptions;
-    if (resolvedHeader !== undefined) shell.header = resolvedHeader;
-    if (resolvedNavigation !== undefined) shell.navigation = resolvedNavigation;
-    if (resolvedBeforeOutlet !== undefined) shell.beforeOutlet = resolvedBeforeOutlet;
-    if (resolvedAfterOutlet !== undefined) shell.afterOutlet = resolvedAfterOutlet;
-    if (resolvedFooter !== undefined) shell.footer = resolvedFooter;
 
     return shell;
 }
@@ -430,21 +468,49 @@ export function getPublicAppTemplateShellOptions(
  * Creates runtime AppShell updates from resolver-backed template shell options.
  */
 export function getPublicAppTemplateShellUpdateOptions(
-    options: PublicAppTemplateBaseOptions
+    options: PublicAppTemplateBaseOptions,
+    includeIdentityMetadata = false,
+    preparation?: { owner: ComposedAppShell; isCurrent?: () => boolean }
 ): AppShellUpdateOptions {
     const shellOptions = options.shell ?? {};
     const updateOptions: AppShellUpdateOptions = {};
     const shellLocale = getPublicAppTemplateShellLocale(options);
-    const resolvedTitle = resolvePublicAppTemplateValue(shellOptions.title);
-    const resolvedSkipLink = resolvePublicAppTemplateValue(shellOptions.skipLink);
-    const resolvedNavigationLabel = resolvePublicAppTemplateValue(shellOptions.navigationLabel);
-    const resolvedMetadata = resolvePublicAppTemplateValue(shellOptions.metadata);
-    const resolvedOutletOptions = resolvePublicAppTemplateValue(shellOptions.outletOptions);
-    const resolvedHeader = resolvePublicAppTemplateValue(shellOptions.header);
-    const resolvedNavigation = resolvePublicAppTemplateValue(shellOptions.navigation);
-    const resolvedBeforeOutlet = resolvePublicAppTemplateValue(shellOptions.beforeOutlet);
-    const resolvedAfterOutlet = resolvePublicAppTemplateValue(shellOptions.afterOutlet);
-    const resolvedFooter = resolvePublicAppTemplateValue(shellOptions.footer);
+    const isCurrent = (): boolean => !preparation?.owner.isDestroyed() && preparation?.isCurrent?.() !== false;
+    const resolveValue = <T>(value: PublicAppTemplateValue<T> | undefined): T | undefined =>
+        isCurrent() ? resolvePublicAppTemplateValue(value) : undefined;
+    const resolvedTitle = resolveValue(shellOptions.title);
+    const resolvedSkipLink = resolveValue(shellOptions.skipLink);
+    const resolvedNavigationLabel = resolveValue(shellOptions.navigationLabel);
+    const resolvedMetadata = includeIdentityMetadata && isCurrent()
+        ? getPublicAppTemplateShellMetadata(options, resolvedTitle)
+        : resolveValue(shellOptions.metadata);
+    const resolvedOutletOptions = resolveValue(shellOptions.outletOptions);
+    const prepared: CompositionChild[] = [];
+    function resolveSlot(value: PublicAppTemplateValue<PublicAppTemplateShellSlot> | undefined): PublicAppTemplateShellSlot {
+        const resolved = resolveValue(value);
+        if (typeof value === "function") prepared.push(...toCompositionChildren(resolved));
+        return resolved;
+    }
+    try {
+        const header = resolveSlot(shellOptions.header);
+        const navigation = resolveSlot(shellOptions.navigation);
+        const beforeOutlet = resolveSlot(shellOptions.beforeOutlet);
+        const afterOutlet = resolveSlot(shellOptions.afterOutlet);
+        const footer = resolveSlot(shellOptions.footer);
+        if (!isCurrent()) {
+            if (preparation) discardPreparedContent(preparation.owner, prepared);
+            return {};
+        }
+        if ("header" in shellOptions && header !== undefined) updateOptions.header = header;
+        if ("navigation" in shellOptions && navigation !== undefined) updateOptions.navigation = navigation;
+        if ("beforeOutlet" in shellOptions && beforeOutlet !== undefined) updateOptions.beforeOutlet = beforeOutlet;
+        if ("afterOutlet" in shellOptions && afterOutlet !== undefined) updateOptions.afterOutlet = afterOutlet;
+        if ("footer" in shellOptions && footer !== undefined) updateOptions.footer = footer;
+    } catch (error) {
+        try { if (preparation) discardPreparedContent(preparation.owner, prepared); }
+        catch { /* Preserve the resolver failure. */ }
+        throw error;
+    }
 
     if (resolvedTitle !== undefined) updateOptions.title = resolvedTitle;
     if (resolvedSkipLink !== undefined) updateOptions.skipLink = resolvedSkipLink;
@@ -455,11 +521,6 @@ export function getPublicAppTemplateShellUpdateOptions(
         updateOptions.metadata = resolvedMetadata as DocumentMetadataUpdateOptions;
     }
     if (resolvedOutletOptions !== undefined) updateOptions.outletOptions = resolvedOutletOptions;
-    if ("header" in shellOptions && resolvedHeader !== undefined) updateOptions.header = resolvedHeader;
-    if ("navigation" in shellOptions && resolvedNavigation !== undefined) updateOptions.navigation = resolvedNavigation;
-    if ("beforeOutlet" in shellOptions && resolvedBeforeOutlet !== undefined) updateOptions.beforeOutlet = resolvedBeforeOutlet;
-    if ("afterOutlet" in shellOptions && resolvedAfterOutlet !== undefined) updateOptions.afterOutlet = resolvedAfterOutlet;
-    if ("footer" in shellOptions && resolvedFooter !== undefined) updateOptions.footer = resolvedFooter;
 
     return updateOptions;
 }

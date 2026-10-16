@@ -19,6 +19,63 @@ function createOption(text: string): HTMLElement {
 }
 
 describe("createCombobox", () => {
+    it("ignores IME, prevented and repeated Enter instead of committing an option", () => {
+        const input = document.createElement("input");
+        const listbox = document.createElement("div");
+        const option = createOption("Alpha");
+        listbox.append(option);
+        document.body.append(input, listbox);
+        const changed = vi.fn();
+        const combobox = createCombobox(input, listbox, { getOptions: () => [option], autoUpdate: false, onValueChange: changed });
+        combobox.open();
+        const composing = new KeyboardEvent("keydown", { key: "Enter", isComposing: true, cancelable: true });
+        const prevented = new KeyboardEvent("keydown", { key: "Enter", cancelable: true });
+        prevented.preventDefault();
+        const repeated = new KeyboardEvent("keydown", { key: "Enter", repeat: true, cancelable: true });
+        for (const event of [composing, prevented, repeated]) input.dispatchEvent(event);
+        expect(changed).not.toHaveBeenCalled();
+        expect(combobox.isOpen()).toBe(true);
+        expect(combobox.getSelectedOption()).toBeNull();
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+        expect(changed).toHaveBeenCalledOnce();
+        expect(combobox.getSelectedOption()).toBe(option);
+        combobox.destroy();
+    });
+
+    it("owns read-only click and Space activation without changing editable typing", () => {
+        const input = document.createElement("input");
+        input.readOnly = true;
+        const listbox = document.createElement("div");
+        const first = createOption("Alpha");
+        const second = createOption("Beta");
+        listbox.append(first, second);
+        document.body.append(input, listbox);
+        const combobox = createCombobox(input, listbox, { getOptions: () => [first, second], autocomplete: "none", autoUpdate: false });
+        input.click();
+        expect(combobox.isOpen()).toBe(true);
+        input.click();
+        expect(combobox.isOpen()).toBe(false);
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: " ", cancelable: true }));
+        expect(combobox.isOpen()).toBe(true);
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: " ", repeat: true, cancelable: true }));
+        expect(combobox.isOpen()).toBe(true);
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", cancelable: true }));
+        input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", cancelable: true }));
+        expect(combobox.getSelectedOption()).toBe(second);
+        combobox.destroy();
+        input.click();
+        expect(combobox.isOpen()).toBe(false);
+
+        input.readOnly = false;
+        const editable = createCombobox(input, listbox, { getOptions: () => [first, second], autoUpdate: false });
+        input.click();
+        expect(editable.isOpen()).toBe(false);
+        input.value = "B";
+        input.dispatchEvent(new Event("input"));
+        expect(editable.getVisibleOptions()).toEqual([second]);
+        editable.destroy();
+    });
+
     it("keeps focus on the input while keyboard navigation selects and closes options", () => {
         const input = document.createElement("input");
         const listbox = document.createElement("div");

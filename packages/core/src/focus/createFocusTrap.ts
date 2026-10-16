@@ -4,6 +4,7 @@ import { isTabKey } from "../keyboard";
 import { createFocusStack } from "./createFocusStack";
 import { focusElement } from "./focusElement";
 import { focusFirst } from "./focusFirst";
+import { focusProgrammatically } from "./focusProgrammatically";
 import { getFocusableElements } from "./getFocusableElements";
 
 /**
@@ -49,6 +50,12 @@ export function createFocusTrap(
     let paused = false;
     let cleanupKeyDown: Cleanup | null = null;
 
+    function focusFallback(): void {
+        if (!focusProgrammatically(resolveElement(options.fallbackFocus))) {
+            focusProgrammatically(container);
+        }
+    }
+
     function focusInitialElement(): void {
         const initialFocus = resolveElement(options.initialFocus);
 
@@ -60,24 +67,20 @@ export function createFocusTrap(
             return;
         }
 
-        focusElement(resolveElement(options.fallbackFocus));
+        focusFallback();
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!active || paused || !isTabKey(event)) {
+        if (!active || paused || event.defaultPrevented || event.isComposing
+            || event.ctrlKey || event.altKey || event.metaKey || !isTabKey(event)) {
             return;
         }
 
-        const elements = getFocusableElements(container);
+        const elements = getFocusableElements(container, event.shiftKey);
 
         if (elements.length === 0) {
-            const fallbackFocus = resolveElement(options.fallbackFocus);
-
-            if (fallbackFocus) {
-                event.preventDefault();
-                focusElement(fallbackFocus);
-            }
-
+            event.preventDefault();
+            focusFallback();
             return;
         }
 

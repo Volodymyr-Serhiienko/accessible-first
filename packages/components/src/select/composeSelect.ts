@@ -259,6 +259,7 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
 
     element.append(select);
 
+    let destroyed = false;
     let composed!: ComposedSelect;
     let composedItems: ComposedSelectItem[] = [];
     let labelElement: HTMLLabelElement | null = null;
@@ -294,6 +295,7 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
     }
 
     function setLabel(label: string | null): void {
+        if (destroyed) return;
         const text = label?.trim() ?? "";
 
         if (!text) {
@@ -323,10 +325,12 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
             },
 
             setLabel(label): void {
+                if (destroyed || !itemNodes.includes(node)) return;
                 node.option.textContent = label;
             },
 
             setDisabled(disabled): void {
+                if (destroyed || !itemNodes.includes(node)) return;
                 syncItemDisabled(node, disabled);
             },
 
@@ -408,6 +412,7 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
 
         composedItems = createComposedItems();
         selectComponent.setValue(replacementValue);
+        for (const option of Array.from(select.options)) option.defaultSelected = option.selected;
     }
 
     const handleValueChange = (detail: SelectChangeDetail): void => {
@@ -429,6 +434,8 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         select,
         getSelectOptions(options, initialValue, handleValueChange)
     );
+
+    for (const option of Array.from(select.options)) option.defaultSelected = option.selected;
 
     composedItems = createComposedItems();
 
@@ -465,6 +472,7 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         replaceItems,
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.selectOptions !== undefined) {
@@ -517,12 +525,14 @@ export function Select(options: SelectCompositionOptions): ComposedSelect {
         },
 
         destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
             labelElement?.remove();
             selectComponent.destroy();
         },
 
         isDestroyed(): boolean {
-            return selectComponent.isDestroyed();
+            return destroyed;
         }
     };
 

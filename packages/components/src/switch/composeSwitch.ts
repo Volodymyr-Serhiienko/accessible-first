@@ -1,5 +1,6 @@
 import { createFormField, type FormFieldInvalidState } from "../../../core/src/form-field";
 import { createId } from "../../../core/src/id";
+import { runCleanups } from "../../../core/src/events";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -158,6 +159,7 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
     label.append(track, labelText);
     element.append(input, label, description, errorMessage);
 
+    let destroyed = false;
     let composed!: ComposedSwitch;
     let onCheckedChange = options.onCheckedChange ?? null;
     let invalid: FormFieldInvalidState = options.invalid ?? false;
@@ -181,6 +183,7 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
     }
 
     function syncFormFieldReferences(): void {
+        if (destroyed) return;
         syncInputId();
         syncDescriptionVisibility();
         syncErrorVisibility();
@@ -191,16 +194,19 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
     }
 
     function setDescription(content: SwitchCompositionContent | null): void {
+        if (destroyed) return;
         descriptionSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setErrorMessage(content: SwitchCompositionContent | null): void {
+        if (destroyed) return;
         errorSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
 
     function setLabelContent(content: SwitchCompositionContent): void {
+        if (destroyed) return;
         labelSlot.set(toCompositionChildren(content));
         syncFormFieldReferences();
     }
@@ -211,6 +217,8 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
             onCheckedChange?.(detail, composed);
         })
     );
+
+    input.defaultChecked = input.checked;
 
     syncFormFieldReferences();
 
@@ -226,12 +234,14 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
         setErrorMessage,
 
         setInvalid(nextInvalid): void {
+            if (destroyed) return;
             invalid = nextInvalid;
             switchControl.setInvalid(nextInvalid);
             syncFormFieldReferences();
         },
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.inputOptions !== undefined) {
@@ -286,11 +296,14 @@ export function Switch(options: SwitchCompositionOptions): ComposedSwitch {
         },
 
         destroy(): void {
-            labelSlot.dispose();
-            descriptionSlot.dispose();
-            errorSlot.dispose();
-            formField.destroy();
-            switchControl.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([labelSlot.dispose, descriptionSlot.dispose, errorSlot.dispose,
+                () => formField.destroy(), () => switchControl.destroy()]);
+        },
+
+        isDestroyed(): boolean {
+            return destroyed;
         }
     };
 

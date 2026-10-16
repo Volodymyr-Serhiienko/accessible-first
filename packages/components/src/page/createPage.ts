@@ -1,7 +1,7 @@
 import {
-    append,
-    collectDestroyers,
+    createContentSlot,
     createElement,
+    type ContentSlot,
     type CompositionChild
 } from "../composition";
 import { inspectPage } from "./diagnostics";
@@ -13,11 +13,13 @@ import {
     type DocumentMetadataUpdateOptions
 } from "../document-metadata";
 import { restoreAttribute } from "../../../core/src/dom";
+import { runCleanups } from "../../../core/src/events";
 import { focusProgrammatically } from "../../../core/src/focus";
 import {
     accessibleFirstEnglishMessages,
     getLocaleText
 } from "../localization";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 import {
     applyResolvedTheme,
     getSystemTheme,
@@ -48,18 +50,29 @@ function setupPageTheme(options: PageOptions): () => void {
         return restorePageTheme;
     }
 
+    if (typeof window.matchMedia !== "function") {
+        applyTheme("light");
+        return restorePageTheme;
+    }
     const media = window.matchMedia("(prefers-color-scheme: dark)");
+    let active = true;
 
     function syncSystemTheme(): void {
-        applyTheme(getSystemTheme());
+        if (active) applyTheme(getSystemTheme());
     }
 
     syncSystemTheme();
-    media.addEventListener("change", syncSystemTheme);
+    try {
+        if (typeof media.addEventListener === "function") media.addEventListener("change", syncSystemTheme);
+        else media.addListener(syncSystemTheme);
+    } catch (error) { restorePageTheme(); throw error; }
 
     return () => {
-        media.removeEventListener("change", syncSystemTheme);
-        restorePageTheme();
+        active = false;
+        runCleanups([() => {
+            if (typeof media.removeEventListener === "function") media.removeEventListener("change", syncSystemTheme);
+            else media.removeListener(syncSystemTheme);
+        }, restorePageTheme]);
     };
 }
 
@@ -98,11 +111,13 @@ export function createPage(options: PageOptions = {}): Page {
     const main = createElement("main", {
         id: options.mainId ?? "main",
         attributes: {
-            "data-af-page-main": ""
+            "data-af-page-main": "",
+            tabindex: "-1"
         }
     });
 
     let destroyed = false;
+    let revision = 0;
     let headerElement: HTMLElement | null = null;
     let navigationElement: HTMLElement | null = null;
     let footerElement: HTMLElement | null = null;
@@ -113,13 +128,14 @@ export function createPage(options: PageOptions = {}): Page {
     let currentSkipLinkTargetId = options.skipLinkTargetId;
     let currentNavigationLabel = options.navigationLabel;
     let locale = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
-
-    const pageDestroyers: Array<() => void> = [setupPageTheme(options)];
-    const headerDestroyers: Array<() => void> = [];
-    const navigationDestroyers: Array<() => void> = [];
-    const mainDestroyers: Array<() => void> = [];
-    const footerDestroyers: Array<() => void> = [];
+    const localeSubscription = createLocaleSubscription(syncLocalizedText);
+    const pageDestroyers: Array<() => void> = [localeSubscription.destroy];
+    let headerSlot: ContentSlot | null = null;
+    let navigationSlot: ContentSlot | null = null;
+    const mainSlot = createContentSlot(main);
+    let footerSlot: ContentSlot | null = null;
+    const originalTitle = document.title;
+    let ownsTitle = false;
 
     function registerMetadataController(controller: DocumentMetadataController): void {
         metadataController = controller;
@@ -143,19 +159,6 @@ export function createPage(options: PageOptions = {}): Page {
         registerMetadataController(controller);
 
         return controller;
-    }
-
-    const metadataOptions = getPageMetadataOptions(options);
-
-    if (metadataOptions) {
-        registerMetadataController(createDocumentMetadata(metadataOptions));
-    } else if (options.title !== undefined) {
-        const originalTitle = document.title;
-
-        document.title = options.title;
-        pageDestroyers.push(() => {
-            document.title = originalTitle;
-        });
     }
 
     function getSkipLinkText(): string {
@@ -191,6 +194,10 @@ export function createPage(options: PageOptions = {}): Page {
     }
 
     function syncSkipLink(): void {
+        if (destroyed) return;
+        const current = revision;
+        const text = currentSkipLink === false ? null : getSkipLinkText();
+        if (destroyed || current !== revision) return;
         if (currentSkipLink === false) {
             skipLinkElement?.remove();
             skipLinkElement = null;
@@ -199,51 +206,23 @@ export function createPage(options: PageOptions = {}): Page {
 
         const link = ensureSkipLinkElement();
 
-        link.textContent = getSkipLinkText();
+        link.textContent = text;
         link.setAttribute("href", `#${currentSkipLinkTargetId ?? main.id}`);
     }
 
     function syncLocalizedText(): void {
+        if (destroyed) return;
+        const current = revision;
         syncSkipLink();
-
+        if (destroyed || current !== revision) return;
         if (navigationElement) {
-            navigationElement.setAttribute("aria-label", getNavigationLabel());
+            const label = getNavigationLabel();
+            if (!destroyed && current === revision) navigationElement.setAttribute("aria-label", label);
         }
     }
-
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(syncLocalizedText);
-    }
-
-    syncLocaleSubscription();
-    pageDestroyers.push(() => {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-    });
-    syncSkipLink();
-
-    root.append(main);
 
     function disposeDestroyers(destroyers: Array<() => void>): void {
-        for (const destroy of [...destroyers].reverse()) {
-            destroy();
-        }
-
-        destroyers.length = 0;
-    }
-
-    function appendTracked(
-        parent: HTMLElement,
-        children: CompositionChild[],
-        destroyers: Array<() => void>
-    ): void {
-        destroyers.push(...collectDestroyers(children));
-        append(parent, ...children);
+        runCleanups(destroyers.splice(0).reverse());
     }
 
     function moveFocusToMain(options: FocusOptions = {}): void {
@@ -259,6 +238,7 @@ export function createPage(options: PageOptions = {}): Page {
             });
 
             root.insertBefore(headerElement, main);
+            headerSlot = createContentSlot(headerElement);
         }
 
         return headerElement;
@@ -268,12 +248,12 @@ export function createPage(options: PageOptions = {}): Page {
         if (!navigationElement) {
             navigationElement = createElement("nav", {
                 attributes: {
-                    "data-af-page-navigation": "",
-                    "aria-label": getNavigationLabel()
+                    "data-af-page-navigation": ""
                 }
             });
 
             root.insertBefore(navigationElement, main);
+            navigationSlot = createContentSlot(navigationElement);
         }
 
         return navigationElement;
@@ -288,6 +268,7 @@ export function createPage(options: PageOptions = {}): Page {
             });
 
             root.append(footerElement);
+            footerSlot = createContentSlot(footerElement);
         }
 
         return footerElement;
@@ -298,51 +279,45 @@ export function createPage(options: PageOptions = {}): Page {
         main,
 
         header(...children: CompositionChild[]): Page {
-            const region = ensureHeader();
-
-            disposeDestroyers(headerDestroyers);
-            region.replaceChildren();
-            appendTracked(region, children, headerDestroyers);
-
+            if (destroyed) return page;
+            ensureHeader();
+            headerSlot!.set(children);
             return page;
         },
 
         navigation(...children: CompositionChild[]): Page {
-            const region = ensureNavigation();
-
-            disposeDestroyers(navigationDestroyers);
-            region.replaceChildren();
-            appendTracked(region, children, navigationDestroyers);
-
+            if (destroyed) return page;
+            ensureNavigation();
+            runCleanups([() => navigationSlot!.set(children), syncLocalizedText]);
             return page;
         },
 
         section(section: CompositionChild): Page {
-            appendTracked(main, [section], mainDestroyers);
+            if (!destroyed) mainSlot.append([section]);
             return page;
         },
 
         setMainContent(...children: CompositionChild[]): Page {
-            disposeDestroyers(mainDestroyers);
-            main.replaceChildren();
-            appendTracked(main, children, mainDestroyers);
-
+            if (!destroyed) mainSlot.set(children);
             return page;
         },
 
         focusMain(options: FocusOptions = {}): Page {
-            moveFocusToMain(options);
+            if (!destroyed) moveFocusToMain(options);
 
             return page;
         },
 
         update(nextOptions: PageUpdateOptions): Page {
+            if (destroyed) return page;
+            const current = ++revision;
             if (nextOptions.title !== undefined) {
                 currentTitle = nextOptions.title;
 
                 if (metadataController) {
                     ensureMetadataController().update({ title: currentTitle });
                 } else {
+                    ownsTitle = true;
                     document.title = currentTitle;
                 }
             }
@@ -353,36 +328,31 @@ export function createPage(options: PageOptions = {}): Page {
 
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
             }
-
-            if (nextOptions.metadata !== undefined) {
-                ensureMetadataController().update(nextOptions.metadata);
-            }
-
-            syncLocalizedText();
+            runCleanups([
+                () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+                () => { if (!destroyed && current === revision && nextOptions.metadata !== undefined) ensureMetadataController().update(nextOptions.metadata); },
+                () => { if (!destroyed && current === revision) syncLocalizedText(); }
+            ]);
 
             return page;
         },
 
         updateMetadata(metadataOptions: DocumentMetadataUpdateOptions): Page {
-            ensureMetadataController().update(metadataOptions);
+            if (!destroyed) { revision += 1; ensureMetadataController().update(metadataOptions); }
 
             return page;
         },
 
         footer(...children: CompositionChild[]): Page {
-            const region = ensureFooter();
-
-            disposeDestroyers(footerDestroyers);
-            region.replaceChildren();
-            appendTracked(region, children, footerDestroyers);
-
+            if (destroyed) return page;
+            ensureFooter();
+            footerSlot!.set(children);
             return page;
         },
 
         appendToMain(...children: CompositionChild[]): Page {
-            appendTracked(main, children, mainDestroyers);
+            if (!destroyed) mainSlot.append(children);
             return page;
         },
 
@@ -396,13 +366,12 @@ export function createPage(options: PageOptions = {}): Page {
             }
 
             destroyed = true;
+            revision += 1;
 
-            disposeDestroyers(footerDestroyers);
-            disposeDestroyers(mainDestroyers);
-            disposeDestroyers(navigationDestroyers);
-            disposeDestroyers(headerDestroyers);
-            disposeDestroyers(pageDestroyers);
-            root.remove();
+            try {
+                runCleanups([() => footerSlot?.dispose(), mainSlot.dispose,
+                    () => navigationSlot?.dispose(), () => headerSlot?.dispose(), () => disposeDestroyers(pageDestroyers)]);
+            } finally { root.remove(); }
         },
 
         isDestroyed(): boolean {
@@ -410,5 +379,17 @@ export function createPage(options: PageOptions = {}): Page {
         }
     };
 
-    return page;
+    try {
+        pageDestroyers.push(setupPageTheme(options), () => { if (ownsTitle) document.title = originalTitle; });
+        const metadataOptions = getPageMetadataOptions(options);
+        if (metadataOptions) registerMetadataController(createDocumentMetadata(metadataOptions));
+        else if (options.title !== undefined) { ownsTitle = true; document.title = options.title; }
+        root.append(main);
+        localeSubscription.replace(locale);
+        syncLocalizedText();
+        return page;
+    } catch (error) {
+        try { page.destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 }

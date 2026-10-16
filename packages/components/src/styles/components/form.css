@@ -1,6 +1,7 @@
 [data-af-composition="form"] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-4);
     color: var(--af-color-fg);
 }
@@ -12,6 +13,7 @@
 [data-af-form-body] {
     min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-4);
 }
 

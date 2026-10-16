@@ -1,4 +1,6 @@
 import type { CompositionContent } from "../composition";
+import { discardPreparedContent } from "../composition/preparedContent";
+import { runCleanups } from "../../../core/src/events";
 import type { DocumentMetadataUpdateOptions } from "../document-metadata";
 import type { ComposedPageOutlet, PageOutletAnnouncement, PageOutletFocusTarget } from "../page-outlet";
 import type { HashRouterRouteMatcher } from "./createHashRouterRoutePattern";
@@ -114,12 +116,14 @@ export interface HashRouter<TRoute extends HashRouterRoute> {
     getRouteById(id: string | null | undefined): TRoute | null;
     /** Finds a registered parameterized route matcher by its stable definition id. */
     getRoutePatternById(id: string | null | undefined): HashRouterRouteMatcher<TRoute> | null;
+    /** Returns false for an unknown route or an operation superseded by a nested transition. */
     navigate(routeOrId: TRoute | string | null | undefined, options?: HashRouterNavigateOptions): boolean;
     refresh(options?: HashRouterRefreshOptions): boolean;
     syncFromLocation(options?: HashRouterNavigateOptions): boolean;
     setNavigation(navigation: HashRouterNavigation | null): void;
     subscribe(handler: HashRouterRouteChangeHandler<TRoute>): HashRouterUnsubscribe;
     start(options?: HashRouterNavigateOptions): void;
+    /** Stops location listeners and pending transition effects; manual navigation/restart remain available. */
     stop(): void;
 }
 
@@ -196,10 +200,13 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
     let router!: HashRouter<TRoute>;
     let navigation = options.navigation ?? null;
     let currentRoute: TRoute | null = null;
+    let renderedRoute: TRoute | null = null;
     let started = false;
     let lastSyncedHash = ownerWindow.location.hash;
+    let revision = 0;
+    let listenerRevision = 0;
 
-    function getRouteById(id: string | null | undefined): TRoute | null {
+    function getRouteById(id: string | null | undefined, isCurrent = () => true): TRoute | null {
         if (!id) return null;
 
         const routeId = normalizeRouteId(id);
@@ -214,6 +221,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         for (const pattern of routePatterns) {
             const route = pattern.match(id);
 
+            if (!isCurrent()) return null;
             if (!route) continue;
 
             if (matchedRoute) {
@@ -237,16 +245,16 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         return routePatterns.find((pattern) => pattern.id === patternId) ?? null;
     }
 
-    function resolveRoute(routeOrId: TRoute | string | null | undefined): TRoute | null {
+    function resolveRoute(routeOrId: TRoute | string | null | undefined, isCurrent = () => true): TRoute | null {
         if (!routeOrId) return null;
-        if (typeof routeOrId === "string") return getRouteById(routeOrId);
+        if (typeof routeOrId === "string") return getRouteById(routeOrId, isCurrent);
 
-        return getRouteById(routeOrId.id);
+        return getRouteById(routeOrId.id, isCurrent);
     }
 
-    function getDefaultRoute(): TRoute {
+    function getDefaultRoute(isCurrent = () => true): TRoute {
         if (options.defaultRoute !== undefined) {
-            const route = resolveRoute(options.defaultRoute);
+            const route = resolveRoute(options.defaultRoute, isCurrent);
 
             if (route) return route;
         }
@@ -254,8 +262,9 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         return firstRoute;
     }
 
-    function getRouteFromLocation(): TRoute {
-        return getRouteById(ownerWindow.location.hash) ?? getDefaultRoute();
+    function getRouteFromLocation(isCurrent = () => true): TRoute {
+        const route = getRouteById(ownerWindow.location.hash, isCurrent);
+        return route ?? (isCurrent() ? getDefaultRoute(isCurrent) : firstRoute);
     }
 
     const initialRoute = getRouteFromLocation();
@@ -268,7 +277,14 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         return getHashRouteHref(getRouteId(routeOrId));
     }
 
-    function syncHistory(route: TRoute, navigateOptions: HashRouterNavigateOptions): void {
+    function beginOperation(): () => boolean {
+        const current = ++revision;
+        // Invalidate the outlet's queued scroll/announcement and any effects in progress.
+        options.outlet.update({});
+        return () => revision === current;
+    }
+
+    function syncHistory(route: TRoute, navigateOptions: HashRouterNavigateOptions, isCurrent: () => boolean): void {
         const href = getRouteHref(route);
 
         if (navigateOptions.updateHistory && ownerWindow.location.hash !== href) {
@@ -279,14 +295,14 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
             }
         }
 
-        lastSyncedHash = ownerWindow.location.hash;
+        if (isCurrent()) lastSyncedHash = ownerWindow.location.hash;
     }
 
     function syncNavigation(route: TRoute): void {
         navigation?.setCurrent(route.id);
     }
 
-    function focusOutlet(navigateOptions: HashRouterNavigateOptions): void {
+    function focusOutlet(navigateOptions: HashRouterNavigateOptions, isCurrent: () => boolean): void {
         if (navigateOptions.scroll ?? true) {
             options.outlet.element.scrollIntoView({
                 block: "start",
@@ -295,6 +311,7 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
             });
         }
 
+        if (!isCurrent()) return;
         if ("focusTarget" in navigateOptions) {
             if (navigateOptions.focusTarget !== null) {
                 options.outlet.focus(navigateOptions.focusTarget);
@@ -306,64 +323,84 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         options.outlet.focus();
     }
 
-    function notifyRouteChange(route: TRoute, previousRoute: TRoute | null): void {
+    function notifyRouteChange(route: TRoute, previousRoute: TRoute | null, isCurrent: () => boolean): void {
+        const handlers = [...routeChangeHandlers];
         options.onRouteChange?.(route, previousRoute, router);
 
-        routeChangeHandlers.forEach((handler) => {
-            handler(route, previousRoute, router);
-        });
+        for (const handler of handlers) {
+            if (!isCurrent()) break;
+            if (routeChangeHandlers.has(handler)) handler(route, previousRoute, router);
+        }
     }
 
-    function renderRoute(route: TRoute, previousRoute: TRoute | null, navigateOptions: HashRouterNavigateOptions): void {
+    function renderRoute(route: TRoute, previousRoute: TRoute | null, navigateOptions: HashRouterNavigateOptions, isCurrent: () => boolean): void {
         const documentMetadata = options.getDocumentMetadata?.(route, previousRoute) ?? null;
+        if (!isCurrent()) return;
         const documentTitle = options.getDocumentTitle
             ? options.getDocumentTitle(route)
             : documentMetadata && "title" in documentMetadata
                 ? documentMetadata.title ?? null
                 : route.title;
+        if (!isCurrent()) return;
+        let content: CompositionContent;
+        runCleanups([
+            () => {
+                renderedRoute = null;
+                content = route.render();
+                if (!isCurrent()) return;
+                const announcement = "announcement" in navigateOptions
+                    ? navigateOptions.announcement ?? false
+                    : options.getAnnouncement?.(route, previousRoute) ?? true;
+                if (!isCurrent()) return;
+                options.outlet.render(content, {
+                    title: route.title,
+                    documentTitle,
+                    scroll: navigateOptions.scroll ?? true,
+                    focusTarget: "focusTarget" in navigateOptions
+                        ? navigateOptions.focusTarget ?? null
+                        : route.focusTarget ?? "first-heading",
+                    announcement
+                });
+                if (isCurrent()) renderedRoute = route;
+                if (isCurrent() && documentMetadata) options.updateDocumentMetadata?.(documentMetadata);
+            },
+            () => discardPreparedContent(options.outlet, content)
+        ]);
+    }
 
-        options.outlet.render(route.render(), {
-            title: route.title,
-            documentTitle,
-            scroll: navigateOptions.scroll ?? true,
-            focusTarget: "focusTarget" in navigateOptions
-                ? navigateOptions.focusTarget ?? null
-                : route.focusTarget ?? "first-heading",
-            announcement: "announcement" in navigateOptions
-                ? navigateOptions.announcement ?? false
-                : options.getAnnouncement?.(route, previousRoute) ?? true
-        });
+    function navigateResolved(route: TRoute, navigateOptions: HashRouterNavigateOptions): boolean {
+        const isCurrent = beginOperation();
+        if (!isCurrent()) return false;
+        const previousRoute = currentRoute;
+        const sameRoute = currentRoute !== null && currentRoute.id === route.id && renderedRoute?.id === route.id;
 
-        if (documentMetadata) {
-            options.updateDocumentMetadata?.(documentMetadata);
+        syncHistory(route, navigateOptions, isCurrent);
+        if (!isCurrent()) return false;
+        currentRoute = route;
+        syncNavigation(route);
+        if (!isCurrent()) return false;
+
+        if (sameRoute) {
+            focusOutlet(navigateOptions, isCurrent);
+            return isCurrent();
         }
+
+        renderRoute(route, previousRoute, navigateOptions, isCurrent);
+        if (!isCurrent()) return false;
+        notifyRouteChange(route, previousRoute, isCurrent);
+        if (isCurrent()) options.inspect?.();
+
+        return isCurrent();
     }
 
     function navigate(
         routeOrId: TRoute | string | null | undefined,
         navigateOptions: HashRouterNavigateOptions = {}
     ): boolean {
-        const route = resolveRoute(routeOrId);
-
-        if (!route) return false;
-
-        const previousRoute = currentRoute;
-        const sameRoute = currentRoute !== null && currentRoute.id === route.id;
-
-        syncHistory(route, navigateOptions);
-        syncNavigation(route);
-
-        if (sameRoute) {
-            focusOutlet(navigateOptions);
-            return true;
-        }
-
-        currentRoute = route;
-        renderRoute(route, previousRoute, navigateOptions);
-        notifyRouteChange(route, previousRoute);
-        options.inspect?.();
-
-        return true;
+        const beforeResolution = revision;
+        const isCurrent = () => revision === beforeResolution;
+        const route = resolveRoute(routeOrId, isCurrent);
+        return route && isCurrent() ? navigateResolved(route, navigateOptions) : false;
     }
 
     function refresh(refreshOptions: HashRouterRefreshOptions = {}): boolean {
@@ -373,35 +410,40 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
         } = refreshOptions;
         const route = getCurrentRoute();
         const previousRoute = currentRoute;
+        const isCurrent = beginOperation();
+        if (!isCurrent()) return false;
 
         currentRoute = route;
         syncNavigation(route);
+        if (!isCurrent()) return false;
         renderRoute(route, previousRoute, {
             scroll: false,
             focusTarget: null,
             announcement: false,
             ...navigateOptions
-        });
+        }, isCurrent);
+        if (!isCurrent()) return false;
 
         if (shouldNotify) {
-            notifyRouteChange(route, previousRoute);
+            notifyRouteChange(route, previousRoute, isCurrent);
         }
 
-        options.inspect?.();
+        if (isCurrent()) options.inspect?.();
 
-        return true;
+        return isCurrent();
     }
 
     function syncFromLocation(navigateOptions: HashRouterNavigateOptions = {}): boolean {
         const hash = ownerWindow.location.hash;
 
-        if (hash === lastSyncedHash && currentRoute !== null) {
+        if (hash === lastSyncedHash && currentRoute !== null && renderedRoute?.id === currentRoute.id) {
             return true;
         }
 
-        lastSyncedHash = hash;
-
-        return navigate(getRouteFromLocation(), {
+        const beforeResolution = revision;
+        const isCurrent = () => revision === beforeResolution;
+        const route = getRouteFromLocation(isCurrent);
+        return isCurrent() && navigateResolved(route, {
             ...navigateOptions,
             updateHistory: false
         });
@@ -439,17 +481,29 @@ export function createHashRouter<TRoute extends HashRouterRoute>(
             if (started) return;
 
             started = true;
+            const currentListener = ++listenerRevision;
             ownerWindow.addEventListener("popstate", handleLocationChange);
             ownerWindow.addEventListener("hashchange", handleLocationChange);
-            syncFromLocation(startOptions);
+            try {
+                syncFromLocation(startOptions);
+            } catch (error) {
+                if (started && currentListener === listenerRevision) {
+                    try { router.stop(); } catch { /* Preserve the original startup error. */ }
+                }
+                throw error;
+            }
         },
 
         stop(): void {
-            if (!started) return;
-
+            revision += 1;
+            listenerRevision += 1;
+            const wasStarted = started;
             started = false;
-            ownerWindow.removeEventListener("popstate", handleLocationChange);
-            ownerWindow.removeEventListener("hashchange", handleLocationChange);
+            runCleanups([
+                () => { if (wasStarted) ownerWindow.removeEventListener("popstate", handleLocationChange); },
+                () => { if (wasStarted) ownerWindow.removeEventListener("hashchange", handleLocationChange); },
+                () => options.outlet.update({})
+            ]);
         }
     };
 

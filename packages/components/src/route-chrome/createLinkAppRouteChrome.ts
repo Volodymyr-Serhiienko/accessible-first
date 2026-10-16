@@ -1,3 +1,4 @@
+import { isHTMLElement } from "../../../core/src/dom";
 import {
     getAppRouteHref,
     type AppRouteDescriptor,
@@ -13,6 +14,7 @@ import type {
 } from "../localization";
 import {
     createAppRouteChrome,
+    disposeFailedAppRouteChrome,
     type AppRouteChrome,
     type AppRouteChromeOptions
 } from "./createAppRouteChrome";
@@ -111,8 +113,10 @@ export interface LinkAppRouteChromeRendererOptions<
 function getEventAnchor(event: Event | null | undefined): HTMLAnchorElement | null {
     const target = event?.currentTarget ?? event?.target;
 
-    if (target instanceof HTMLAnchorElement) return target;
-    if (target instanceof Element) return target.closest("a[href]");
+    if (isHTMLElement(target)) return target.closest<HTMLAnchorElement>("a[href]");
+    const element = target as Element | null | undefined;
+    const ElementClass = element?.ownerDocument?.defaultView?.Element;
+    if (ElementClass && element instanceof ElementClass) return element.closest<HTMLAnchorElement>("a[href]");
 
     return null;
 }
@@ -120,6 +124,11 @@ function getEventAnchor(event: Event | null | undefined): HTMLAnchorElement | nu
 function getEventWindow(event: Event | null | undefined): Window | null {
     const target = event?.currentTarget ?? event?.target;
 
+    const node = target as Node | null | undefined;
+    const ownerWindow = node?.ownerDocument?.defaultView;
+    if (ownerWindow && node instanceof ownerWindow.Node) return node.ownerDocument?.defaultView ?? null;
+    const documentWindow = node?.nodeType === 9 ? (node as Document).defaultView : null;
+    if (documentWindow && node instanceof documentWindow.Document) return documentWindow;
     if (!(target instanceof Node)) return null;
 
     const ownerDocument = target.nodeType === Node.DOCUMENT_NODE
@@ -251,7 +260,11 @@ export function createLinkAppRouteChromeRenderer<
             current: context.route
         });
 
-        options.onCreate?.(chrome, context);
+        try { options.onCreate?.(chrome, context); }
+        catch (error) {
+            try { disposeFailedAppRouteChrome(chrome); } catch { /* Preserve the hook failure. */ }
+            throw error;
+        }
 
         return chrome;
     };

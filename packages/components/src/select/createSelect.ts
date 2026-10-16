@@ -77,7 +77,8 @@ export function createSelect(
     const originalDisabled = element.disabled;
     const originalRequired = element.required;
     const originalMultiple = element.multiple;
-    const originalValues = getValues(element);
+    const originalSelectedIndex = element.selectedIndex;
+    const originalSelection = Array.from(element.options, option => ({ option, selected: option.selected }));
     const originalName = element.getAttribute("name");
     const originalVariant = element.getAttribute("data-af-variant");
     const originalSize = element.getAttribute("data-af-size");
@@ -156,7 +157,11 @@ export function createSelect(
         element.disabled = originalDisabled;
         element.required = originalRequired;
         element.multiple = originalMultiple;
-        setSelectedValue(element, originalValues);
+        element.selectedIndex = -1;
+        for (const { option, selected } of originalSelection) {
+            option.selected = selected;
+        }
+        if (!originalMultiple) element.selectedIndex = originalSelectedIndex;
 
         restoreAttribute(element, "name", originalName);
         restoreAttribute(element, "data-af-variant", originalVariant);
@@ -216,6 +221,8 @@ export function createSelect(
         },
 
         update(nextOptions: SelectUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
             if (nextOptions.disabled !== undefined) {
                 this.setDisabled(nextOptions.disabled);
             }

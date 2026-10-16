@@ -1,0 +1,80 @@
+import "../../packages/components/src/styles/index.css";
+import { Button, TextField, createContentSlot, createControlHint } from "../../packages/components/src";
+import { createFormField } from "../../packages/core/src/form-field";
+import { getAriaReferencedText } from "../../packages/core/src/aria";
+import { addPageHideCleanup } from "../../packages/core/src/events";
+
+const app = document.querySelector<HTMLElement>("#app")!;
+app.style.cssText = "max-width:48rem;margin:auto;padding:1rem;font:16px/1.5 sans-serif";
+const heading = document.createElement("h1");
+heading.textContent = "AF Content And ARIA Ownership";
+const summary = document.createElement("p");
+summary.setAttribute("role", "status");
+const report = document.createElement("ol");
+const probe = document.createElement("div");
+const field = TextField({ label: "Review text", description: "Field description", defaultValue: "Example" });
+const author = document.createElement("p");
+author.id = "ownership-author-help";
+author.textContent = "Author help";
+field.control.setAttribute("aria-describedby", `${field.description.id} ${author.id}`);
+const hint = createControlHint(field.control, { hint: "Additional hint", hintDisplay: "both" });
+
+const run = Button({ text: "Run ownership checks", onPress() {
+    const results: Array<{ name: string; passed: boolean }> = [];
+    const check = (name: string, passed: boolean) => results.push({ name, passed });
+    const parent = document.createElement("div");
+    probe.replaceChildren(parent);
+    let abandonedDisposed = 0;
+    const newer = { element: document.createElement("span") };
+    newer.element.textContent = "Newest view";
+    const abandoned = { element: document.createElement("span"), destroy() { abandonedDisposed += 1; } };
+    const removed = { element: document.createElement("span"), destroy() { slot.set([newer]); } };
+    const slot = createContentSlot(parent, [removed]);
+    slot.set([abandoned]);
+    check("Reentrant replacement keeps the newest DOM", parent.textContent === "Newest view");
+    check("Canceled candidate is disposed without being appended", abandonedDisposed === 1 && !parent.contains(abandoned.element));
+    slot.dispose();
+
+    field.setDescription("Updated field description");
+    check("Native label stays associated without redundant ARIA name", field.control.labels?.[0] === field.label && !field.control.hasAttribute("aria-labelledby"));
+    const help = getAriaReferencedText(field.control, "aria-describedby");
+    check("Field, authored help and hint coexist", ["Updated field description", "Author help", "Additional hint"].every(text => help.includes(text)));
+    field.setInvalid(true);
+    field.setErrorMessage("Review required");
+    check("Error is referenced separately from normal descriptions", field.control.getAttribute("aria-errormessage") === field.errorMessage.id && !getAriaReferencedText(field.control, "aria-describedby").includes("Review required"));
+    field.setInvalid(false);
+    field.setErrorMessage(null);
+
+    const input = document.createElement("input");
+    input.setAttribute("aria-describedby", author.id);
+    const first = createFormField(input, { description: "shared-help" });
+    const second = createFormField(input, { description: ["shared-help", field.description.id] });
+    first.destroy();
+    check("Shared ID remains until the final owner releases it", input.getAttribute("aria-describedby")?.includes("shared-help") === true);
+    second.destroy();
+    check("Final release preserves authored help", input.getAttribute("aria-describedby") === author.id);
+
+    const frame = document.createElement("iframe");
+    frame.hidden = true;
+    probe.append(frame);
+    const doc = frame.contentDocument!;
+    const foreignInput = doc.createElement("input");
+    const foreignLabel = doc.createElement("label");
+    const foreignField = createFormField(foreignInput, { label: foreignLabel });
+    doc.body.append(foreignLabel, foreignInput);
+    check("Iframe native label resolves to its own input", foreignLabel.control === foreignInput && !foreignInput.hasAttribute("aria-labelledby"));
+    foreignField.destroy();
+    frame.remove();
+    check("Document layout remains within the viewport", document.documentElement.scrollWidth <= innerWidth);
+    probe.replaceChildren();
+    report.replaceChildren(...results.map(result => {
+        const row = document.createElement("li");
+        row.dataset.passed = String(result.passed);
+        row.textContent = `${result.passed ? "PASS" : "FAIL"}: ${result.name}`;
+        return row;
+    }));
+    summary.textContent = `${results.filter(result => result.passed).length}/${results.length} passed`;
+    run.element.focus();
+} });
+app.append(heading, run.element, summary, report, field.element, author, probe);
+addPageHideCleanup(window, () => { hint.destroy(); field.destroy(); });

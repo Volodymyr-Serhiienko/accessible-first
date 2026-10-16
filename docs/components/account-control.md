@@ -57,6 +57,10 @@ Applications can override these native Button hint options; hover does not add a
 separate live announcement by default.
 Text mode reserves space for both labels. State and display changes update the same
 button element. Locale/source subscriptions are removed on replacement or destroy.
+Only the changed subscription is replaced; obsolete callbacks are ignored even if
+the provider retains them. Cleanup attempts both subscriptions and the owned button
+before rethrowing the first failure. Updates after destruction have no effect.
+The exposed `button` is borrowed; destroy the AccountControl, not its child alone.
 
 UI state is not authorization: protected application operations must still be checked
 on the server. A failed request must not be treated as a successful sign-out.
@@ -65,7 +69,8 @@ on the server. A failed request must not be treated as a successful sign-out.
 
 Use `data-af-account-control`, `data-af-account-control-display` and
 `data-af-account-control-signed-in`; native Button styles remain the visual base.
-The icon uses the shared target size, and action text stays on one line.
+The icon uses the shared target size. Text mode reserves label space and wraps
+unusually long localized action labels within the available width.
 
 - Check Enter/Space, pending/retry and both confirmed session states.
 - Verify stable label width, the icon's accessible name and a short account tooltip.

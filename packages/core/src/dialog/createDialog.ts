@@ -4,15 +4,16 @@ import {
     setAriaModal,
     setRole
 } from "../aria";
-import { addEventListener, type Cleanup } from "../events";
+import { addEventListener, runCleanups, type Cleanup } from "../events";
 import {
+    createFocusStack,
     createFocusTrap,
     focusElement,
     focusFirst,
     type FocusTrapOptions
 } from "../focus";
 import { isEscapeKey } from "../keyboard";
-import { restoreAttribute } from "../dom";
+import { getActiveElement, restoreAttribute } from "../dom";
 
 import type { Dialog, DialogElement, DialogOptions } from "./types";
 
@@ -64,9 +65,19 @@ export function createDialog(
         element,
         getFocusTrapOptions(element, options)
     );
+    const untrappedFocus = createFocusStack();
 
     let open = options.defaultOpen ?? !element.hidden;
     let destroyed = false;
+    let revision = 0;
+
+    function restoreUntrappedFocus(): void {
+        const previous = untrappedFocus.pop();
+        const active = getActiveElement(element);
+        if (options.restoreFocus !== false && active && element.contains(active)) {
+            focusElement(previous);
+        }
+    }
 
     function focusInitialElement(): void {
         if (focusElement(resolveElement(options.initialFocus))) {
@@ -87,6 +98,7 @@ export function createDialog(
             if (trapFocus) {
                 focusTrap.activate();
             } else {
+                untrappedFocus.capture(element);
                 focusInitialElement();
             }
 
@@ -95,9 +107,11 @@ export function createDialog(
 
         if (focusTrap.isActive()) {
             focusTrap.deactivate();
+        } else {
+            restoreUntrappedFocus();
         }
 
-        element.hidden = true;
+        if (!destroyed && !open) element.hidden = true;
     }
 
     function setOpen(nextOpen: boolean): void {
@@ -106,12 +120,15 @@ export function createDialog(
         }
 
         open = nextOpen;
+        const currentRevision = ++revision;
         syncState();
+        if (destroyed || revision !== currentRevision) return;
         options.onOpenChange?.(open);
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (!open || !closeOnEscape || !isEscapeKey(event)) {
+        if (!open || !closeOnEscape || event.defaultPrevented || event.isComposing
+            || event.ctrlKey || event.altKey || event.metaKey || !isEscapeKey(event)) {
             return;
         }
 
@@ -168,21 +185,22 @@ export function createDialog(
 
             destroyed = true;
 
-            for (const cleanup of cleanups) {
-                cleanup();
-            }
-
-            if (focusTrap.isActive()) {
-                focusTrap.deactivate();
-            }
-
-            restoreAttribute(element, "role", originalRole);
-            restoreAttribute(element, "aria-modal", originalAriaModal);
-            restoreAttribute(element, "aria-labelledby", originalAriaLabelledBy);
-            restoreAttribute(element, "aria-describedby", originalAriaDescribedBy);
-            restoreAttribute(element, "tabindex", originalTabIndex);
-
-            element.hidden = originalHidden;
+            runCleanups([
+                ...cleanups,
+                () => {
+                    if (focusTrap.isActive()) focusTrap.deactivate();
+                    else restoreUntrappedFocus();
+                },
+                () => {
+                    untrappedFocus.clear();
+                    restoreAttribute(element, "role", originalRole);
+                    restoreAttribute(element, "aria-modal", originalAriaModal);
+                    restoreAttribute(element, "aria-labelledby", originalAriaLabelledBy);
+                    restoreAttribute(element, "aria-describedby", originalAriaDescribedBy);
+                    restoreAttribute(element, "tabindex", originalTabIndex);
+                    element.hidden = originalHidden;
+                }
+            ]);
         }
     };
 }

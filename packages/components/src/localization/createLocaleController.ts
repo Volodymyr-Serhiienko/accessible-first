@@ -65,7 +65,7 @@ export function getLocaleText<TKey extends string>(
     fallback: string,
     params?: LocaleMessageParams
 ): string {
-    return locale?.t(key, params) ?? fallback;
+    return locale?.t(key, params) ?? formatMessage(fallback, params);
 }
 
 function isLocaleMessageKeyArray<TKey extends string>(

@@ -9,6 +9,7 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by HeaderBar slots.
@@ -100,6 +101,8 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
     let size: HeaderBarSize = options.size ?? "md";
     let layout: HeaderBarLayout = options.layout ?? "auto";
     let brandMaxWidth = options.brandMaxWidth ?? null;
+    let destroyed = false;
+    let revision = 0;
 
     let hasBrand = hasCompositionContent(brandContent);
     let hasContent = hasCompositionContent(mainContent);
@@ -121,6 +124,7 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "header-bar");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -137,70 +141,74 @@ export function HeaderBar(options: HeaderBarOptions = {}): ComposedHeaderBar {
     }
 
     function setBrand(content: HeaderBarCompositionContent | null): void {
-        brandContent = normalizeSlotContent(content);
-        hasBrand = hasCompositionContent(brandContent);
-        brandContentSlot.set(toCompositionChildren(brandContent));
-        sync();
+        update({ brand: content });
     }
 
     function setContent(content: HeaderBarCompositionContent | null): void {
-        mainContent = normalizeSlotContent(content);
-        hasContent = hasCompositionContent(mainContent);
-        mainContentSlot.set(toCompositionChildren(mainContent));
-        sync();
+        update({ content });
     }
 
     function setActions(content: HeaderBarCompositionContent | null): void {
-        actionsContent = normalizeSlotContent(content);
-        hasActions = hasCompositionContent(actionsContent);
-        actionsContentSlot.set(toCompositionChildren(actionsContent));
-        sync();
+        update({ actions: content });
+    }
+
+    function update(nextOptions: HeaderBarUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+
+        if (nextOptions.brandOptions !== undefined) {
+            applyCompositionElementOptions(brandSlot, nextOptions.brandOptions);
+            brandSlot.setAttribute("data-af-header-bar-brand", "");
+        }
+
+        if (nextOptions.contentOptions !== undefined) {
+            applyCompositionElementOptions(contentSlot, nextOptions.contentOptions);
+            contentSlot.setAttribute("data-af-header-bar-content", "");
+        }
+
+        if (nextOptions.actionsOptions !== undefined) {
+            applyCompositionElementOptions(actionsSlot, nextOptions.actionsOptions);
+            actionsSlot.setAttribute("data-af-header-bar-actions", "");
+        }
+
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if (nextOptions.layout !== undefined) layout = nextOptions.layout;
+        if ("brandMaxWidth" in nextOptions) brandMaxWidth = nextOptions.brandMaxWidth ?? null;
+
+        runCleanups([
+            () => {
+                if (destroyed || current !== revision || !("brand" in nextOptions)) return;
+                brandContent = normalizeSlotContent(nextOptions.brand);
+                hasBrand = hasCompositionContent(brandContent);
+                brandContentSlot.set(toCompositionChildren(brandContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("content" in nextOptions)) return;
+                mainContent = normalizeSlotContent(nextOptions.content);
+                hasContent = hasCompositionContent(mainContent);
+                mainContentSlot.set(toCompositionChildren(mainContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("actions" in nextOptions)) return;
+                actionsContent = normalizeSlotContent(nextOptions.actions);
+                hasActions = hasCompositionContent(actionsContent);
+                actionsContentSlot.set(toCompositionChildren(actionsContent));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([brandContentSlot.dispose, mainContentSlot.dispose, actionsContentSlot.dispose]);
     }
 
     sync();
-
     return {
-        element,
-        brandSlot,
-        contentSlot,
-        actionsSlot,
-        setBrand,
-        setContent,
-        setActions,
-
-        update(nextOptions) {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.brandOptions !== undefined) {
-                applyCompositionElementOptions(brandSlot, nextOptions.brandOptions);
-                brandSlot.setAttribute("data-af-header-bar-brand", "");
-            }
-
-            if (nextOptions.contentOptions !== undefined) {
-                applyCompositionElementOptions(contentSlot, nextOptions.contentOptions);
-                contentSlot.setAttribute("data-af-header-bar-content", "");
-            }
-
-            if (nextOptions.actionsOptions !== undefined) {
-                applyCompositionElementOptions(actionsSlot, nextOptions.actionsOptions);
-                actionsSlot.setAttribute("data-af-header-bar-actions", "");
-            }
-
-            if ("brand" in nextOptions) setBrand(nextOptions.brand ?? null);
-            if ("content" in nextOptions) setContent(nextOptions.content ?? null);
-            if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if (nextOptions.layout !== undefined) layout = nextOptions.layout;
-            if ("brandMaxWidth" in nextOptions) brandMaxWidth = nextOptions.brandMaxWidth ?? null;
-
-            sync();
-        },
-
-        destroy() {
-            brandContentSlot.dispose();
-            mainContentSlot.dispose();
-            actionsContentSlot.dispose();
-        }
+        element, brandSlot, contentSlot, actionsSlot, setBrand, setContent, setActions, update, destroy
     };
 }

@@ -85,6 +85,11 @@ The generated identity logo is decorative because the adjacent brand name gives 
 
 The generated language selector, theme toggle, and overflow tools keep their own labels, hints, announcements, and locale subscriptions. Custom controls should follow the same rule: the header arranges controls, but each control owns its accessible name and behavior.
 
+Returned child controllers are borrowed. Destroy the owning AppHeader, not its
+children independently. Slot replacement can retire those children; old references
+do not become replacement controls. Exceptional teardown still releases remaining
+siblings; construction failure releases already-created generated components.
+
 Use `HeaderTools` overflow for responsive headers instead of duplicating desktop and mobile controls. Moving one control set avoids duplicate shortcuts, stale state, and confusing screen-reader order.
 
 ## Manual Checks

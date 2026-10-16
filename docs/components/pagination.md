@@ -98,6 +98,20 @@ The returned `ComposedPagination` exposes:
 
 `onPageChange` does not mutate the current page automatically. The application should update the component after changing its own state. This keeps the component predictable for data loading, routing, optimistic updates, and validation.
 
+Chrome-only changes (`label`, `labelledBy`, variant/size, root/list options and
+`onPageChange`) preserve controls and focus. Unchanged normalized page/count setters
+also avoid a rebuild. Changes to the page range, control text/options, href resolver
+or locale rebuild the item list; the surrounding workflow owns focus afterward.
+
+Resolvers should be deterministic. If one triggers a newer range replacement or
+destroy, the obsolete candidate does not overwrite it. Partially created click
+listeners and failed initial locale subscriptions are released. Cleanup completes
+despite unsubscribe failures, then rethrows the first error. Destruction is
+idempotent; late mutations and stale locale notifications are ignored.
+
+Default English page labels interpolate their page number even without a locale
+provider. Long translated control text wraps within its container.
+
 ## Accessibility
 
 Use real links when each page has a URL. This is the best default for public MPA/static pages and helps browsers, assistive technology, sharing, and indexing.

@@ -33,12 +33,18 @@ menu.destroy();
 
 * Sets role="menu" on the container
 * Sets role="menuitem" on items
-* Sets aria-disabled on disabled items
+* Reflects a supplied logical-disabled callback through aria-disabled, without
+  turning temporary hiding or pre-mount layout into a permanent disabled flag
 * Uses roving focus for Arrow, Home, and End navigation
 * Supports optional typeahead navigation
 * Supports Enter and Space activation
 * Supports Escape close callback
 * Preserves and restores original attributes on destroy
+
+Runtime availability, live RTL arrows, pre-mount defaults and keyboard ownership
+follow [Roving Focus](roving-focus.md). `refresh()` immediately restores/releases
+removed items' borrowed attributes; focus repair after removing the focused item
+remains application-owned.
 
 ## Principles
 

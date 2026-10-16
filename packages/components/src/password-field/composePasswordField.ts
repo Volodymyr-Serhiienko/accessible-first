@@ -1,4 +1,5 @@
 import { Icon } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 import { IconButton, type ComposedIconButton } from "../icon-button";
 import { accessibleFirstEnglishMessages, getLocaleText, type LocaleTextProvider } from "../localization";
 import { TextField, type ComposedTextField, type TextFieldCompositionOptions,
@@ -96,15 +97,18 @@ export function PasswordField(options: PasswordFieldOptions): ComposedPasswordFi
         isPasswordVisible: () => visible,
         setPasswordVisible,
         setValue(value: string): void {
+            if (disposed) return;
             setValue(value);
             if (!value) setPasswordVisible(false);
         },
         setDisabled(value: boolean): void {
+            if (disposed) return;
             if (value) setPasswordVisible(false);
             setDisabled(value);
             sync();
         },
         setReadOnly(value: boolean): void {
+            if (disposed) return;
             if (value) setPasswordVisible(false);
             setReadOnly(value);
             sync();
@@ -122,9 +126,12 @@ export function PasswordField(options: PasswordFieldOptions): ComposedPasswordFi
             if (disposed) return;
             setPasswordVisible(false);
             disposed = true;
-            unsubscribeLocale?.();
-            button.destroy();
-            destroyField();
+            const unsubscribe = unsubscribeLocale;
+            unsubscribeLocale = null;
+            runCleanups([() => unsubscribe?.(), () => button.destroy(), destroyField]);
+        },
+        isDestroyed(): boolean {
+            return disposed;
         }
     });
     subscribeLocale();

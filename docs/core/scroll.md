@@ -22,6 +22,18 @@ scrollLock.destroy();
 
 Multiple locks on the same document are reference-counted. This allows nested overlays to close independently without unlocking the page too early.
 
+The final release restores the captured scroll coordinates and only the borrowed
+body/root inline declarations, including `!important` priorities. Unrelated style
+edits survive. While locked, body width includes scrollbar compensation inside
+`border-box`; signed horizontal coordinates (including negative RTL scroll) remain
+valid. Ordinary deactivate/reactivate captures a fresh snapshot; `destroy()` is
+terminal and idempotent and can be passed as an unbound cleanup callback.
+
+The body/root must exist and remain the document's scrolling shell while locked.
+This is a document lock, not a nested scroller lock or a mobile virtual-keyboard
+layout engine. Verify actual iOS/Android scroll behavior on target devices.
+Real-CSS nested-dialog checks: `npm run test:styles`, `/geometry.html`.
+
 ---
 
 ### resetInitialScrollPosition()

@@ -7,7 +7,8 @@ import {
     createAttributeSnapshot,
     restoreAttribute
 } from "../../../core/src/dom";
-import { createComponentLifecycle } from "../foundation";
+import { addEventListener } from "../../../core/src/events";
+import { createComponentLifecycle, createPendingState } from "../foundation";
 import type {
     Combobox,
     ComboboxOptions,
@@ -63,6 +64,7 @@ function getCoreComboboxOptions(
     };
 
     applyCoreOptions(options, coreOptions);
+    if (options.pending) coreOptions.open = false;
 
     if (options.openOnFocus === undefined) {
         coreOptions.openOnFocus = true;
@@ -107,6 +109,7 @@ export function createCombobox(
     });
 
     const attributes = createAttributeSnapshot();
+    const waiting = createPendingState(input, options);
 
     const originalVariant = input.getAttribute("data-af-variant");
     const originalSize = input.getAttribute("data-af-size");
@@ -139,6 +142,7 @@ export function createCombobox(
     }
 
     function syncAttributes(): void {
+        if (lifecycle.isDestroyed()) return;
         input.setAttribute("data-af-variant", variant);
         input.setAttribute("data-af-size", size);
         listbox.setAttribute("data-af-combobox-listbox", "");
@@ -156,6 +160,17 @@ export function createCombobox(
     });
 
     lifecycle.addCleanup(() => combobox.destroy());
+    lifecycle.addCleanup(() => waiting.destroy());
+    const guardKey = (event: KeyboardEvent): void => {
+        if (["ArrowDown", "ArrowUp", "Enter", " ", "Spacebar"].includes(event.key)) waiting.guard(event);
+    };
+    lifecycle.addCleanup(addEventListener(input, "keydown", guardKey, true));
+    for (const element of [input, listbox]) {
+        lifecycle.addCleanup(addEventListener(element, "click", event => { waiting.guard(event); }, true));
+        lifecycle.addCleanup(addEventListener(element, "pointerdown", event => { waiting.guard(event); }, true));
+    }
+    lifecycle.addCleanup(addEventListener(input, "beforeinput", event => { waiting.guard(event); }, true));
+    lifecycle.addCleanup(addEventListener(input, "focus", event => { waiting.guard(event); }, true));
 
     component = {
         ...combobox,
@@ -163,17 +178,28 @@ export function createCombobox(
         input,
         listbox,
 
+        setPending(pending): void {
+            if (lifecycle.isDestroyed()) return;
+            waiting.setPending(pending);
+            if (pending) combobox.close();
+        },
+        isPending: () => waiting.isPending(),
+
         setDisabled(disabled): void {
+            if (lifecycle.isDestroyed()) return;
             combobox.setDisabled(disabled);
             syncAttributes();
         },
 
         refresh(): void {
+            if (lifecycle.isDestroyed()) return;
             combobox.refresh();
             syncAttributes();
         },
 
         update(nextOptions): void {
+            if (lifecycle.isDestroyed()) return;
+            waiting.update(nextOptions);
             if (nextOptions.getOptions !== undefined) {
                 getOptions = nextOptions.getOptions;
             }
@@ -199,6 +225,7 @@ export function createCombobox(
             }
 
             combobox.update(getCoreComboboxUpdateOptions(nextOptions));
+            if (waiting.isPending()) combobox.close();
             syncAttributes();
         },
 

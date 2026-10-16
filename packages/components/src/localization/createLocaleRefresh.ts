@@ -87,6 +87,7 @@ export function createLocaleRefresh<TLocale extends LocaleCode = LocaleCode>(
     }
 
     function scheduleRefresh(context: LocaleRefreshContext<TLocale>): void {
+        if (destroyed) return;
         nextContext = context;
 
         if (options.schedule === "sync") {
@@ -121,12 +122,20 @@ export function createLocaleRefresh<TLocale extends LocaleCode = LocaleCode>(
         });
     });
 
-    if (options.immediate) {
-        scheduleRefresh(nextContext);
+    try {
+        if (options.immediate) scheduleRefresh(nextContext);
+    } catch (error) {
+        destroyed = true;
+        try { cancelAnimationFrameRefresh(); }
+        finally {
+            try { unsubscribe(); }
+            finally { throw error; }
+        }
     }
 
     return {
         refresh(): void {
+            if (destroyed) return;
             scheduleRefresh({
                 locale: options.locale.getLocale(),
                 previousLocale: null,

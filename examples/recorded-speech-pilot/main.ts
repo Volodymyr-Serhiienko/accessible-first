@@ -2,6 +2,7 @@ import "../../packages/components/src/styles/index.css";
 import "./styles.css";
 import { H1, H2, P, Select, SpeechControls, StatusMessage, TextField } from "../../packages/components/src";
 import { createAudioSpeechEngine, createAudioSpeechResolver, createAudioSpellingResolver, type SpeechRequest } from "../../packages/core/src/speech";
+import { addEventListener, addPageHideCleanup, runCleanups, type Cleanup } from "../../packages/core/src/events";
 import { loadPilotRecordings, type PilotRecording } from "./catalog";
 import { materialItems, pilotMaterial } from "./material";
 
@@ -10,17 +11,23 @@ const heading = H1({ id: "page-title" }, "Озвучка");
 const status = StatusMessage({ text: "Загрузка…", announcement: false });
 mount.append(heading.element, status.element);
 const controller = new AbortController();
-window.addEventListener("pagehide", () => controller.abort(), { once: true });
+let disposePilot: Cleanup | null = null;
+addPageHideCleanup(window, () => {
+    controller.abort();
+    const dispose = disposePilot;
+    disposePilot = null;
+    runCleanups([() => dispose?.(), () => status.destroy(), () => heading.destroy?.()]);
+});
 
 void loadPilotRecordings(controller.signal).then((recordings) => {
     if (controller.signal.aborted) return;
     status.hide();
-    createPilot(recordings);
+    disposePilot = createPilot(recordings);
 }).catch(() => {
     if (!controller.signal.aborted) status.update({ text: "Аудиозаписи недоступны.", variant: "danger", announcement: true });
 });
 
-function createPilot(recordings: readonly PilotRecording[]): void {
+function createPilot(recordings: readonly PilotRecording[]): Cleanup {
     const names: Record<string, string> = {
         "ru-ru": "Русский", "uk-ua": "Украинский", "en-gb": "Английский", "nb-no": "Норвежский",
         "de-de": "Немецкий", "pl-pl": "Польский", "zh-cn": "Китайский, мандарин"
@@ -72,11 +79,18 @@ function createPilot(recordings: readonly PilotRecording[]): void {
     fields.className = "pilot-fields";
     fields.append(languageSelect.element, fragmentSelect.element, spellingField.element, rate.label, volume.label);
     mount.append(fields, controls.element, content, audio);
-    rate.input.addEventListener("input", update);
-    volume.input.addEventListener("input", update);
-    window.addEventListener("pagehide", () => engine.stop());
+    const removeRate = addEventListener(rate.input, "input", update);
+    const removeVolume = addEventListener(volume.input, "input", update);
+    const removePageHide = addEventListener(window, "pagehide", () => engine.stop());
     resetCustomText();
     update();
+    return () => runCleanups([
+        removePageHide, removeRate, removeVolume, rate.destroy, volume.destroy,
+        () => engine.stop(), () => controls.destroy(), () => spellingField.destroy(),
+        () => fragmentSelect.destroy(), () => languageSelect.destroy(),
+        () => voice.destroy?.(), () => title.destroy?.(),
+        () => { fields.remove(); controls.element.remove(); content.remove(); audio.remove(); }
+    ]);
 
     function resetCustomText(): void {
         spellingField.setValue(language.startsWith("zh") ? "行 2026" : recordings.find((entry) => entry.language === language && entry.mode === "text")?.text ?? "");
@@ -108,7 +122,7 @@ function range(text: string, id: string, min: number, max: number, step: number,
     input.type = "range";
     input.id = id;
     input.min = String(min); input.max = String(max); input.step = String(step); input.value = String(initial);
-    input.addEventListener("input", () => { value.textContent = input.value; });
+    const destroy = addEventListener(input, "input", () => { value.textContent = input.value; });
     label.append(name, value, input);
-    return { label, input };
+    return { label, input, destroy };
 }

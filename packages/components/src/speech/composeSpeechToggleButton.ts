@@ -4,10 +4,10 @@ import {
     type ComposedButton
 } from "../button";
 import type { ComposedNode } from "../composition";
+import { runCleanups } from "../../../core/src/events";
+import { createSpeechPlaybackOwner, isSpeechPlaybackTerminal } from "./createSpeechPlaybackOwner";
 import type {
     SpeechEngine,
-    SpeechPlayback,
-    SpeechPlaybackState,
     SpeechRequest
 } from "../../../core/src/speech";
 
@@ -40,19 +40,7 @@ export interface ComposedSpeechToggleButton extends ComposedNode<HTMLButtonEleme
     resume(): void;
     setRequest(request: SpeechRequest): void;
     destroy(): void;
-}
-
-function isActive(state: SpeechPlaybackState): boolean {
-    return state.status === "speaking" || state.status === "paused";
-}
-
-function isTerminal(state: SpeechPlaybackState): boolean {
-    return (
-        state.status === "idle"
-        || state.status === "completed"
-        || state.status === "unavailable"
-        || state.status === "error"
-    );
+    isDestroyed(): boolean;
 }
 
 /**
@@ -73,88 +61,28 @@ export function SpeechToggleButton(
         ...buttonOptions
     } = options;
     let request = initialRequest;
-    let playback: SpeechPlayback | null = null;
-    let unsubscribe: (() => void) | null = null;
-
-    function clearSubscription(): void {
-        unsubscribe?.();
-        unsubscribe = null;
-    }
-
-    function clearPlayback(stop = false): void {
-        const currentPlayback = playback;
-
-        clearSubscription();
-        playback = null;
-
-        if (stop) currentPlayback?.stop();
-    }
-
-    function syncButton(state: SpeechPlaybackState): void {
-        if (state.status === "speaking") {
-            button.setText(pauseText);
-            return;
-        }
-
-        if (state.status === "paused") {
-            button.setText(resumeText);
-            return;
-        }
-
-        button.setText(startText);
-    }
-
-    function watchPlayback(nextPlayback: SpeechPlayback): void {
-        let completedBeforeSubscription = false;
-        let reportedUnavailable = false;
-        let reportedFailure = false;
-
-        const handleState = (state: SpeechPlaybackState): void => {
-            syncButton(state);
-
-            if (state.status === "unavailable" && !reportedUnavailable) {
-                reportedUnavailable = true;
-                onUnavailable?.();
-            }
-
-            if (state.status === "error" && !reportedFailure) {
-                reportedFailure = true;
-                onFailure?.();
-            }
-
-            if (!isTerminal(state)) return;
-
-            if (unsubscribe) {
-                clearSubscription();
-            } else {
-                completedBeforeSubscription = true;
-            }
-        };
-
-        unsubscribe = nextPlayback.subscribe(handleState);
-
-        if (completedBeforeSubscription) {
-            clearSubscription();
-        }
-    }
+    let destroyed = false;
+    const playback = createSpeechPlaybackOwner(engine, (state, isCurrent) => {
+        if (destroyed || !isCurrent()) return;
+        const canPause = engine.getCapabilities().pause;
+        if (destroyed || !isCurrent()) return;
+        button.setText(canPause && state.status === "speaking" ? pauseText
+            : canPause && state.status === "paused" ? resumeText : startText);
+        if (destroyed || !isCurrent()) return;
+        if (state.status === "unavailable") onUnavailable?.();
+        else if (state.status === "error") onFailure?.();
+    });
 
     function play(): void {
-        clearPlayback(true);
-
-        playback = engine.speak(request);
-        watchPlayback(playback);
+        if (!destroyed) playback.play(request);
     }
 
     function pause(): void {
-        if (!playback || playback.getState().status !== "speaking") return;
-
-        playback.pause();
+        if (!destroyed) playback.pause();
     }
 
     function resume(): void {
-        if (!playback || playback.getState().status !== "paused") return;
-
-        playback.resume();
+        if (!destroyed) playback.resume();
     }
 
     const button = Button({
@@ -162,9 +90,12 @@ export function SpeechToggleButton(
         text: startText,
         reserveText: [startText, pauseText, resumeText],
         onPress: () => {
-            const state = playback?.getState();
+            const state = playback.getState();
+            const revision = playback.getRevision();
+            const canPause = isSpeechPlaybackTerminal(state) || engine.getCapabilities().pause;
+            if (destroyed || revision !== playback.getRevision()) return;
 
-            if (!state || isTerminal(state)) {
+            if (isSpeechPlaybackTerminal(state) || !canPause) {
                 play();
                 return;
             }
@@ -174,7 +105,7 @@ export function SpeechToggleButton(
                 return;
             }
 
-            if (isActive(state)) pause();
+            pause();
         }
     });
 
@@ -186,16 +117,18 @@ export function SpeechToggleButton(
         play,
         pause,
         resume,
+        isDestroyed: () => destroyed,
 
         setRequest(nextRequest): void {
+            if (destroyed) return;
             request = nextRequest;
-            clearPlayback(true);
-            button.setText(startText);
+            playback.reset();
         },
 
         destroy(): void {
-            clearPlayback(true);
-            button.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([playback.destroy, button.destroy]);
         }
     };
 }

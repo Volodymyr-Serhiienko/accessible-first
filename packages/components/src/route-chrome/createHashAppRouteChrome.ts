@@ -15,6 +15,7 @@ import {
 } from "../routing";
 import {
     createAppRouteChrome,
+    disposeFailedAppRouteChrome,
     type AppRouteChrome,
     type AppRouteChromeOptions
 } from "./createAppRouteChrome";
@@ -159,7 +160,11 @@ export function createHashAppRouteChromeRenderer<
             current: context.route
         });
 
-        options.onCreate?.(chrome, context);
+        try { options.onCreate?.(chrome, context); }
+        catch (error) {
+            try { disposeFailedAppRouteChrome(chrome); } catch { /* Preserve the hook failure. */ }
+            throw error;
+        }
 
         return chrome;
     };

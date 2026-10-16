@@ -116,6 +116,11 @@ empty.update({
 
 Use `setMedia(null)`, `setDescription(null)`, or `setActions(null)` to hide optional slots.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle). Combined
+updates continue after cleanup errors unless newer work supersedes them.
+Destruction attempts every owned slot, is idempotent, and makes later setters and
+updates inert. Independently added secondary actions keep the action area visible.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="empty-state"]`, `[data-af-empty-state-media]`, `[data-af-empty-state-title]`, `[data-af-empty-state-description]`, `[data-af-empty-state-actions]`, `[data-af-align]`, `[data-af-variant]`, and `[data-af-size]`.
@@ -130,6 +135,10 @@ EmptyState({
 
 The default styles use CSS custom properties such as `--af-empty-state-max-width`, `--af-empty-state-padding`, `--af-empty-state-media-size`, and `--af-empty-state-description-width`.
 
+The root and description maximums are also bounded by their parent width. A
+shrinkable grid track and description minimum keep percentage-bounded content
+inside both start- and center-aligned states, including narrow desktop panels.
+
 ## Manual Checks
 
 - The heading clearly names the state.
@@ -137,7 +146,9 @@ The default styles use CSS custom properties such as `--af-empty-state-max-width
 - Empty states are not used for blocking decisions.
 - Actions are reachable by keyboard and have clear names.
 - Icons that are decorative are hidden from assistive technologies.
+- Decorative media must not contain focusable controls; put controls in actions.
 - Meaningful media uses `mediaHidden: false` and has an accessible name, such as informative image `alt` text.
 - The block remains readable in light and dark themes.
 - Layout remains comfortable on small screens.
+- Long unbroken titles and descriptions wrap without page overflow.
 

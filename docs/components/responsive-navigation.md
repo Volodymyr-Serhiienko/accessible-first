@@ -76,7 +76,7 @@ const navigation = ResponsiveNavigation({
   navigation links retain their native semantics. See [DropdownMenu](./dropdown-menu.md).
 - `trigger` - Mobile trigger content. Defaults to `"Menu"`.
 - `closeButton` - Mobile close button content. Defaults to localized `"Close menu"`; pass `null` to hide it when the surrounding shell provides another close route.
-- `triggerIconPosition` - Mobile trigger icon side: `"end"` or `"start"`. Defaults to `"end"`.
+- `triggerIconPosition` - Mobile trigger icon side: `"end"` or `"start"`. Defaults to `"start"`.
 - `current` - Optional current item match by item `id` or `href`.
 - `variant` - Desktop navigation variant. Defaults to `"pills"`.
 - `mobileVariant` - Mobile navigation variant. Defaults to `"pills"`.
@@ -104,7 +104,16 @@ navigation.update({
 
 `setCurrent(value)` matches an item by `id` first and then by `href`. Pass `null` to clear current state.
 
-`getFocusTarget()` returns the best visible focus destination for workflow links such as "Back to navigation". It prefers the current desktop link, then the current mobile link, then the visible mobile trigger, then the first desktop link, and finally the navigation root.
+`getFocusTarget()` prefers an available current desktop/mobile link, then the
+mobile trigger, then a focusable control in either list, and finally the root.
+Hidden, disabled and inert links are not selected.
+
+Window resize checks actual CSS visibility rather than duplicating the breakpoint
+in JavaScript. Focus owned by a disappearing branch moves to the mobile trigger
+or corresponding desktop link; external focus is preserved. Call `checkLayout()`
+after mounting or changing layout through application CSS without a window resize.
+It does not reconstruct focus already discarded by the browser or replace an
+application's focus policy after removing a control.
 
 Use `ResponsiveNavigationFocusLink()` when the return route should be a visible link. In routed apps built with RouteChrome, prefer `navigationReturnLink` on `createAppRouteChrome`, `createHashAppRouteChromeRenderer`, or `createLinkAppRouteChromeRenderer` so the recipe wires the navigation reference automatically:
 
@@ -122,6 +131,16 @@ ResponsiveNavigationFocusLink({
 ```
 
 Updating `items` updates both desktop and mobile navigation lists.
+Chrome-only updates retain leading controls and per-list orientation/variant
+overrides. Newer updates or destruction cancel obsolete post-navigation work;
+ordinary `setCurrent()` still allows the menu to close. Closing returns only
+panel-owned focus, without a deferred timer that can steal a new destination.
+Passing `closeButton: null` also releases its owned content.
+
+Destruction is terminal and attempts all owned cleanup even after an error;
+`isDestroyed()` reports that state. Initial construction failure releases already
+created branches. Internal lists/disclosure/scroller belong to this composition,
+not to separate application cleanup owners.
 
 ## Styling
 
@@ -137,7 +156,7 @@ The default breakpoint is intentionally conservative. Application shells can ove
 - Links remain reachable with Tab.
 - Focus indicators are not clipped by the horizontal desktop scroller.
 - Mobile menu closes after link activation unless `closeOnNavigate` is false.
-- Mobile close button closes the menu and restores focus to the menu trigger.
+- Mobile close button returns panel-owned focus to the trigger without stealing external focus.
 - Current item is announced consistently in both layouts.
 - Return-to-navigation flows use `ResponsiveNavigationFocusLink()` or `getFocusTarget()` to focus the visible current item or mobile trigger instead of depending on app-specific DOM queries.
 - Hidden desktop/mobile duplicate links are not reachable by keyboard.

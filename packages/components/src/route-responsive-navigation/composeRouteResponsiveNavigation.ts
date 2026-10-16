@@ -111,6 +111,8 @@ export function RouteResponsiveNavigation<
     let navigationItemsOptions = options.navigationItemsOptions;
     let onNavigate: ResponsiveNavigationOnNavigate | null = options.onNavigate ?? null;
     let onRouteNavigate = options.onRouteNavigate ?? null;
+    let revision = 0;
+    let destroyed = false;
 
     function getItems(): NavigationItem[] {
         return createAppRouteNavigationItems(routes, navigationItemsOptions);
@@ -125,11 +127,13 @@ export function RouteResponsiveNavigation<
     }
 
     const handleNavigate: ResponsiveNavigationOnNavigate = (detail, navigation): void => {
+        if (destroyed || navigation.isDestroyed()) return;
+        const current = revision;
         const route = getRouteFromItem(detail.item);
 
         onNavigate?.(detail, navigation);
 
-        if (!route) return;
+        if (!route || destroyed || navigation.isDestroyed() || current !== revision) return;
 
         onRouteNavigate?.(
             {
@@ -168,8 +172,9 @@ export function RouteResponsiveNavigation<
         onNavigate: handleNavigate
     });
 
-    const setNavigationItems = navigation.setItems.bind(navigation);
     const updateNavigation = navigation.update.bind(navigation);
+    const setNavigationItems = navigation.setItems.bind(navigation);
+    const destroyNavigation = navigation.destroy.bind(navigation);
 
     setRouteResponsiveNavigationAttribute(navigation);
 
@@ -180,13 +185,19 @@ export function RouteResponsiveNavigation<
 
         getRouteFromItem,
 
+        setItems(items: NavigationItem[]): void {
+            if (destroyed || navigation.isDestroyed()) return;
+            revision += 1;
+            setNavigationItems(items);
+        },
+
         setRoutes(nextRoutes: readonly TRoute[]): void {
-            routes = nextRoutes;
-            setNavigationItems(getItems());
-            setRouteResponsiveNavigationAttribute(navigation);
+            composed.update({ routes: nextRoutes });
         },
 
         update(nextOptions: RouteResponsiveNavigationUpdateOptions<TRoute>): void {
+            if (destroyed || navigation.isDestroyed()) return;
+            const current = ++revision;
             if (nextOptions.routes !== undefined) routes = nextOptions.routes;
             if ("navigationItemsOptions" in nextOptions) {
                 navigationItemsOptions = nextOptions.navigationItemsOptions;
@@ -196,8 +207,17 @@ export function RouteResponsiveNavigation<
                 onRouteNavigate = nextOptions.onRouteNavigate ?? null;
             }
 
-            updateNavigation(getResponsiveNavigationUpdateOptions(nextOptions));
-            setRouteResponsiveNavigationAttribute(navigation);
+            const updateOptions = getResponsiveNavigationUpdateOptions(nextOptions);
+            if (destroyed || navigation.isDestroyed() || current !== revision) return;
+            updateNavigation(updateOptions);
+            if (!destroyed && current === revision) setRouteResponsiveNavigationAttribute(navigation);
+        },
+
+        destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            destroyNavigation();
         }
     }) as ComposedRouteResponsiveNavigation<TRoute>;
 

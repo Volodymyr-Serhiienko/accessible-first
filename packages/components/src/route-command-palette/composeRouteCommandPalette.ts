@@ -19,6 +19,8 @@ import {
     getLocaleText,
     type LocaleTextProvider
 } from "../localization";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Localized message keys used by RouteCommandPalette fallback text.
@@ -146,7 +148,8 @@ export function RouteCommandPalette<
     let searchItemsOptions = options.searchItemsOptions;
     let commandLabelPrefix = options.commandLabelPrefix;
     let locale: RouteCommandPaletteLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    let destroyed = false;
+    let revision = 0;
     let onSelect = options.onSelect ?? null;
     let onRouteSelect = options.onRouteSelect ?? null;
 
@@ -164,8 +167,10 @@ export function RouteCommandPalette<
         detail,
         palette
     ): void => {
+        if (destroyed) return;
+        const current = revision;
         onSelect?.(detail, palette);
-
+        if (destroyed || current !== revision) return;
         onRouteSelect?.(
             {
                 ...detail,
@@ -190,21 +195,9 @@ export function RouteCommandPalette<
 
         return {
             ...nextCommandPaletteOptions,
-            locale: getCommandPaletteLocale(locale),
+            ...("locale" in nextOptions ? { locale: getCommandPaletteLocale(locale) } : {}),
             onSelect: handleSelect
         };
-    }
-
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            setPaletteItems(getItems());
-            updatePalette({ locale: getCommandPaletteLocale(locale), onSelect: handleSelect });
-        });
     }
 
     const palette = CommandPalette<RouteCommandPaletteItem<TRoute>>({
@@ -217,51 +210,56 @@ export function RouteCommandPalette<
     const updatePalette = palette.update.bind(palette);
     const destroyPalette = palette.destroy.bind(palette);
 
-    setRouteCommandPaletteAttribute(palette.element);
-    syncLocaleSubscription();
+    const localeSubscription = createLocaleSubscription(() => update({}, true));
+
+    function update(nextOptions: RouteCommandPaletteUpdateOptions<TRoute>, refreshItems = false): void {
+        if (destroyed) return;
+        const current = ++revision;
+        if (nextOptions.routes !== undefined) routes = nextOptions.routes;
+        if ("searchItemsOptions" in nextOptions) searchItemsOptions = nextOptions.searchItemsOptions;
+        if ("commandLabelPrefix" in nextOptions) {
+            commandLabelPrefix = nextOptions.commandLabelPrefix;
+        }
+        if ("locale" in nextOptions) {
+            locale = nextOptions.locale ?? null;
+        }
+        if ("onSelect" in nextOptions) onSelect = nextOptions.onSelect ?? null;
+        if ("onRouteSelect" in nextOptions) onRouteSelect = nextOptions.onRouteSelect ?? null;
+
+        const items = (
+            refreshItems || nextOptions.routes !== undefined
+            || "searchItemsOptions" in nextOptions
+            || "commandLabelPrefix" in nextOptions
+            || "locale" in nextOptions
+        ) ? getItems() : null;
+        if (destroyed || current !== revision) return;
+        runCleanups([
+            () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+            () => { if (!destroyed && current === revision && items) setPaletteItems(items); },
+            () => { if (!destroyed && current === revision) updatePalette(getCommandPaletteUpdateOptions(nextOptions)); }
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([localeSubscription.destroy, destroyPalette]);
+    }
 
     composed = Object.assign(palette, {
-        getRoutes(): readonly TRoute[] {
-            return routes;
-        },
-
-        setRoutes(nextRoutes: readonly TRoute[]): void {
-            routes = nextRoutes;
-            setPaletteItems(getItems());
-            setRouteCommandPaletteAttribute(palette.element);
-        },
-
-        update(nextOptions: RouteCommandPaletteUpdateOptions<TRoute>): void {
-            if (nextOptions.routes !== undefined) routes = nextOptions.routes;
-            if ("searchItemsOptions" in nextOptions) searchItemsOptions = nextOptions.searchItemsOptions;
-            if ("commandLabelPrefix" in nextOptions) {
-                commandLabelPrefix = nextOptions.commandLabelPrefix;
-            }
-            if ("locale" in nextOptions) {
-                locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
-            }
-            if ("onSelect" in nextOptions) onSelect = nextOptions.onSelect ?? null;
-            if ("onRouteSelect" in nextOptions) onRouteSelect = nextOptions.onRouteSelect ?? null;
-
-            if (
-                nextOptions.routes !== undefined
-                || "searchItemsOptions" in nextOptions
-                || "commandLabelPrefix" in nextOptions
-                || "locale" in nextOptions
-            ) {
-                setPaletteItems(getItems());
-            }
-
-            updatePalette(getCommandPaletteUpdateOptions(nextOptions));
-            setRouteCommandPaletteAttribute(palette.element);
-        },
-
-        destroy(): void {
-            unsubscribeLocale?.();
-            destroyPalette();
-        }
+        getRoutes: () => routes,
+        setRoutes: (nextRoutes: readonly TRoute[]) => update({ routes: nextRoutes }),
+        update,
+        destroy
     }) as ComposedRouteCommandPalette<TRoute>;
+
+    setRouteCommandPaletteAttribute(palette.element);
+    try { localeSubscription.replace(locale); }
+    catch (error) {
+        try { destroy(); } catch { /* Preserve the construction failure. */ }
+        throw error;
+    }
 
     return composed;
 }

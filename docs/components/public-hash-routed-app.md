@@ -115,6 +115,11 @@ The returned controller behaves like `HashRoutedApp` and adds:
 - `inspectDiagnostics()` - returns a fresh diagnostics report without logging.
 - `logDiagnostics()` - logs and returns a fresh diagnostics report.
 
+App-level diagnostics return `null` after destruction and do not resolve sources.
+The public recipe owns page-exit cleanup, including startup scroll work; BFCache
+hides preserve the app. Startup failures (also after manual `start()`) tear down
+accepted resources and rethrow the original error, even if cleanup also fails.
+
 ## When To Use Lower Layers
 
 Use `PublicHashAppTemplate` for normal public SPAs with standard shell and route chrome wiring. Use `HashRoutedApp` directly when the app is private, internal, experimental, or needs custom startup behavior.

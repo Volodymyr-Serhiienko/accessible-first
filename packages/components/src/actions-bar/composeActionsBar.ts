@@ -9,6 +9,7 @@ import {
     type ComposedNode,
     type CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by ActionsBar slots.
@@ -106,6 +107,8 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     let size: ActionsBarSize = options.size ?? "md";
     let hasPrimary = hasCompositionContent(getPrimaryContent(options));
     let hasSecondary = hasCompositionContent(options.secondary);
+    let destroyed = false;
+    let revision = 0;
 
     const secondaryContent = createContentSlot(secondarySlot, toCompositionChildren(options.secondary));
     const primaryContent = createContentSlot(primarySlot, toCompositionChildren(getPrimaryContent(options)));
@@ -113,6 +116,7 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     element.append(secondarySlot, primarySlot);
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "actions-bar");
         element.setAttribute("data-af-align", align);
         if (fillOnWrap) {
@@ -148,75 +152,72 @@ export function ActionsBar(options: ActionsBarOptions = {}): ComposedActionsBar 
     }
 
     function setLabel(nextLabel: string | null): void {
-        label = nextLabel;
-        sync();
+        update({ label: nextLabel });
     }
 
     function setLabelledBy(nextLabelledBy: string | null): void {
-        labelledBy = nextLabelledBy;
-        sync();
+        update({ labelledBy: nextLabelledBy });
     }
 
     function setPrimary(content: ActionsBarCompositionContent | null): void {
-        hasPrimary = hasCompositionContent(content);
-        primaryContent.set(toCompositionChildren(content));
-        sync();
+        update({ primary: content });
     }
 
     function setSecondary(content: ActionsBarCompositionContent | null): void {
-        hasSecondary = hasCompositionContent(content);
-        secondaryContent.set(toCompositionChildren(content));
-        sync();
+        update({ secondary: content });
+    }
+
+    function update(nextOptions: ActionsBarUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+
+        if (nextOptions.primaryOptions !== undefined) {
+            applyCompositionElementOptions(primarySlot, nextOptions.primaryOptions);
+            primarySlot.setAttribute("data-af-actions-bar-primary", "");
+        }
+
+        if (nextOptions.secondaryOptions !== undefined) {
+            applyCompositionElementOptions(secondarySlot, nextOptions.secondaryOptions);
+            secondarySlot.setAttribute("data-af-actions-bar-secondary", "");
+        }
+
+        if ("label" in nextOptions) label = nextOptions.label ?? null;
+        if ("labelledBy" in nextOptions) labelledBy = nextOptions.labelledBy ?? null;
+
+        if (nextOptions.align !== undefined) align = nextOptions.align;
+        if ("fillOnWrap" in nextOptions) {
+            fillOnWrap = nextOptions.fillOnWrap ?? false;
+        }
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+
+        runCleanups([
+            () => {
+                if (destroyed || current !== revision || (!("primary" in nextOptions) && !("children" in nextOptions))) return;
+                const content = getPrimaryContent(nextOptions);
+                hasPrimary = hasCompositionContent(content);
+                primaryContent.set(toCompositionChildren(content));
+            },
+            () => {
+                if (destroyed || current !== revision || !("secondary" in nextOptions)) return;
+                hasSecondary = hasCompositionContent(nextOptions.secondary);
+                secondaryContent.set(toCompositionChildren(nextOptions.secondary));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([secondaryContent.dispose, primaryContent.dispose]);
     }
 
     sync();
-
     return {
-        element,
-        primarySlot,
-        secondarySlot,
-        setLabel,
-        setLabelledBy,
-        setPrimary,
-        setSecondary,
-
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.primaryOptions !== undefined) {
-                applyCompositionElementOptions(primarySlot, nextOptions.primaryOptions);
-                primarySlot.setAttribute("data-af-actions-bar-primary", "");
-            }
-
-            if (nextOptions.secondaryOptions !== undefined) {
-                applyCompositionElementOptions(secondarySlot, nextOptions.secondaryOptions);
-                secondarySlot.setAttribute("data-af-actions-bar-secondary", "");
-            }
-
-            if ("label" in nextOptions) setLabel(nextOptions.label ?? null);
-            if ("labelledBy" in nextOptions) setLabelledBy(nextOptions.labelledBy ?? null);
-
-            if ("primary" in nextOptions) {
-                setPrimary(nextOptions.primary ?? null);
-            } else if ("children" in nextOptions) {
-                setPrimary(nextOptions.children ?? null);
-            }
-
-            if ("secondary" in nextOptions) setSecondary(nextOptions.secondary ?? null);
-
-            if (nextOptions.align !== undefined) align = nextOptions.align;
-            if ("fillOnWrap" in nextOptions) {
-                fillOnWrap = nextOptions.fillOnWrap ?? false;
-            }
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            secondaryContent.dispose();
-            primaryContent.dispose();
-        }
+        element, primarySlot, secondarySlot,
+        setLabel, setLabelledBy, setPrimary, setSecondary, update, destroy
     };
 }

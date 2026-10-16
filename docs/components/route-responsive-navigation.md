@@ -53,8 +53,13 @@ Use `RouteResponsiveNavigation` when navigation items should be derived from rou
 - `getRouteFromItem(item)` - resolves a route from one generated navigation item.
 - `setCurrent(match)` - updates current route state.
 - `getFocusTarget()` - inherited from `ResponsiveNavigation`; returns the best visible destination for returning focus to navigation.
+- `checkLayout()` / `isDestroyed()` - inherited CSS-layout check and terminal state.
 - `update(options)` - updates route options and underlying `ResponsiveNavigation` options.
 - `destroy()` - destroys the underlying `ResponsiveNavigation`.
+
+Newer route/resolver updates win over reentrant resolver results. A lower-level
+`onNavigate` that replaces routes/items or destroys the control cancels activation
+of the obsolete route. Calls after destruction do not rebuild the lists.
 
 ## Styling
 

@@ -95,6 +95,12 @@ On touch screen readers, the label may also be discoverable as a large tap targe
 
 `defaultChecked` is creation-time only. Use `setChecked()` or `update({ checked })` to change the current state.
 
+Enhancement preserves an existing checked value and clears indeterminate while
+active, since a switch has only two states; destroy restores the original state.
+See [native field state](./foundation.md#native-field-state) for reset defaults,
+silent synchronization and document boundaries. Enhancement `update()` is inert
+after destroy. The styled thumb follows logical direction in LTR and RTL.
+
 ```ts
 const switchControl = Switch({
     label: "Reduce motion"

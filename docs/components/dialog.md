@@ -59,6 +59,8 @@ Dialog({
 - Keeps `Tab` and `Shift+Tab` inside the dialog while modal focus trapping is enabled.
 - Locks page scrolling behind modal dialogs by default.
 - Restores focus to the trigger on close by default.
+- Untrapped dialogs restore the captured opener only when focus remains inside;
+  closing after focus moved elsewhere does not take it back.
 - Closes with `Escape` by default.
 - Can close on pointer interaction outside the dialog surface.
 - Provides a visible close button in the composition API by default.
@@ -103,9 +105,22 @@ Use `descriptionMode: "content"` when the description is long, when it is repeat
 
 Creation-time focus and stack wiring options are intentionally not updateable: `defaultOpen`, `trapFocus`, `restoreFocus`, `initialFocus`, `fallbackFocus`, `initialFocusTarget`, `useOverlayStack`, and `overlayStack`. Create a new dialog when those contracts need to change.
 
+Changing `modal` updates semantics and the default scroll-lock policy; it does
+not rewire the creation-time Tab trap. Recreate the dialog to change trapping.
+Composition setters and enhancement/composition `update()` are no-ops after
+destruction. Cleanup is idempotent, finishes all owned resources when a child
+fails, then rethrows the first failure. Focus-triggered reopening takes precedence
+over a stale close; destroying inside a state callback does not resync old DOM.
+
 ## Styling
 
 Useful hooks include `[data-af-component="dialog"]`, `[data-af-open]`, `[data-af-dialog-surface]`, `[data-af-dialog-title]`, `[data-af-dialog-description]`, `[data-af-dialog-body]`, `[data-af-dialog-actions]`, and the shared ActionsBar hooks `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, and `[data-af-actions-bar-primary]`.
+
+The backdrop, surface, header and body have shrinkable grid tracks; title and
+description text wrap unbroken strings. A tall surface scrolls within its viewport
+maximum, with `vh` before `dvh` as a compatibility fallback. Mobile width uses the
+backdrop's available content width, not a viewport width that includes scrollbars.
+This does not guarantee on-screen-keyboard or transformed-ancestor behavior.
 
 ```ts
 Dialog({
@@ -127,4 +142,8 @@ Dialog({
 - `Escape` closes the dialog when enabled.
 - Close button closes the dialog.
 - Focus returns to the trigger after closing.
+- Non-modal Tab can leave; closing after outside focus does not steal it.
+- Removed/hidden openers do not cause a guessed fallback; application deletion/navigation flows provide their own destination.
 - Mobile screen reader can open, read, and close the dialog.
+
+Real-CSS return-focus checks: `npm run test:styles`, then `/overlays.html`.

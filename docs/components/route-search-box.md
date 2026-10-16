@@ -58,6 +58,13 @@ Use `RouteSearchBox` when search results should be derived from route metadata. 
 - `update(options)` - updates route options and underlying `SearchBox` options.
 - `destroy()` - destroys the underlying `SearchBox`.
 
+Chrome-only updates retain option nodes, selection and focus. Route/resolver/locale
+changes replace results; the application owns focus after removing an active result.
+Resolvers should normally be pure. If a resolver starts a newer update, its newer
+result wins. The low-level `onSelect` runs before `onRouteSelect`; destroying or
+updating the wrapper there cancels the obsolete route callback. Destruction is
+terminal and completes even if locale unsubscribe fails; stale notifications are ignored.
+
 ## Styling
 
 RouteSearchBox uses the normal SearchBox and Combobox DOM structure and styles.

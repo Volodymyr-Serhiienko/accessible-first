@@ -107,6 +107,13 @@ The returned controller behaves like `LinkRoutedApp` and adds:
 - `inspectDiagnostics()` - returns a fresh diagnostics report without logging.
 - `logDiagnostics()` - logs and returns a fresh diagnostics report.
 
+An explicitly supplied `current` route is retained during initial setup rather
+than replaced by location matching. Later refreshes without `current` use normal
+location matching. App-level diagnostics return `null` after destruction;
+late refresh calls do not log. An initial logger failure tears down the app and
+rethrows the startup error. Template chrome refresh preserves an active route's
+document title; explicit route-chrome shell overrides remain authoritative.
+
 ## When To Use Lower Layers
 
 Use `PublicLinkAppTemplate` for normal public native-link or MPA pages with standard shell and route chrome wiring.

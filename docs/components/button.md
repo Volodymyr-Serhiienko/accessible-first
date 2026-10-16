@@ -127,7 +127,7 @@ const button = createButton(existingButton, {
 - `hintId` - Custom id for the generated hint text.
 - `hintDisplay` - `"description"`, `"tooltip"`, `"both"`, or `"none"`.
 - `hintAnnounceOnHover` - Announces hint text when a mouse pointer enters the button.
-- `hintShowOnFocus` - Whether focus shows the visual tooltip (default `true`).
+- `hintShowOnFocus` - Whether focus shows the visual tooltip (default `false`).
   Set `false` with `hintDisplay: "both"` for a hover-only visual layer while keeping
   the screen-reader description on focus.
 - `type` - `"button"`, `"submit"`, or `"reset"`.
@@ -139,6 +139,24 @@ const button = createButton(existingButton, {
 ## Styling
 
 Useful hooks include `[data-af-component="button"]`, `[data-af-variant]`, `[data-af-state]`, and `[data-af-selected="true"]`.
+
+Long labels and `reserveText` candidates, including unbroken words, wrap within
+the available inline width. Reservation stabilizes the changing text label, not
+arbitrary rich content with different icons or application-defined dimensions.
+
+Both `selected: true` and `pressed: true` receive the inset visual selection mark.
+Pending preserves the enabled palette and text contrast; it uses a progress cursor
+and busy semantics rather than reducing the whole control's opacity.
+
+Enhancement inherits authored disabled/pressed state unless explicitly overridden
+and restores it on destruction. Custom-element keyboard activation ignores nested,
+handled, composing and modified events; Space activates only after its own keydown
+and is canceled on blur. Native buttons keep browser keyboard semantics.
+
+Composed destruction is terminal and attempts all owned cleanups before rethrowing
+the first error. Late setters do nothing; newer updates/hints from child cleanup
+win over the older update. A waiting-message resolver cannot announce after it
+finishes or destroys the pending action.
 
 ```ts
 Button({
@@ -159,7 +177,8 @@ Button({
 - Stable-label toggle buttons announce pressed state through `aria-pressed`.
 - Changing-label buttons with `reserveText` do not shift neighbouring controls.
 - Hint is announced on focus when `hintDisplay` is `"description"` or `"both"`.
-- Visual tooltip appears on hover/focus when `hintDisplay` is `"tooltip"` or `"both"`.
+- Visual tooltip appears on hover when `hintDisplay` is `"tooltip"` or `"both"`; focus reveal is opt-in.
 - Text contrast is readable in light and dark themes.
 - Touch target is comfortable on mobile.
+- Long localized labels wrap without hiding focus or overflowing their container.
 

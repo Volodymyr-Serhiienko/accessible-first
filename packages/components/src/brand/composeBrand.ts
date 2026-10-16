@@ -10,6 +10,7 @@ import {
     type CompositionContent
 } from "../composition";
 import { createLink, type LinkOptions, type LinkTarget } from "../link";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by Brand logo, name, and tagline slots.
@@ -147,6 +148,8 @@ export function Brand(options: BrandOptions): ComposedBrand {
     const taglineSlot = createContentSlot(tagline, toCompositionChildren(options.tagline));
 
     let composed!: ComposedBrand;
+    let destroyed = false;
+    let revision = 0;
     let logoContent = options.logo;
     let maxWidth = options.maxWidth ?? null;
     let logoAspectRatio = options.logoAspectRatio ?? null;
@@ -157,12 +160,13 @@ export function Brand(options: BrandOptions): ComposedBrand {
     let logoOffsetY = options.logoOffsetY ?? null;
     let taglineContent = options.tagline;
     let logoPosition: BrandLogoPosition = options.logoPosition ?? "start";
-    let label = options.label;
+    let label = options.label !== undefined ? options.label : element.getAttribute("aria-label");
     let variant: BrandVariant = options.variant ?? "default";
     let size: BrandSize = options.size ?? "md";
     let onNavigate = options.onNavigate ?? null;
 
     const handleNavigate = (event: Event): void => {
+        if (destroyed) return;
         onNavigate?.(event, composed);
     };
 
@@ -171,15 +175,9 @@ export function Brand(options: BrandOptions): ComposedBrand {
         : null;
 
     function syncStructure(): void {
-        content.replaceChildren();
-
-        if (logoPosition === "end") {
-            content.append(text, logo);
-        } else {
-            content.append(logo, text);
-        }
-
-        text.replaceChildren(name, tagline);
+        const ordered = logoPosition === "end" ? [text, logo] : [logo, text];
+        if (content.firstChild !== ordered[0] || content.lastChild !== ordered[1]) content.replaceChildren(...ordered);
+        if (text.firstChild !== name || text.lastChild !== tagline) text.replaceChildren(name, tagline);
     }
 
     function syncBrandCssVariable(name: string, value: string | null): void {
@@ -207,6 +205,7 @@ export function Brand(options: BrandOptions): ComposedBrand {
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "brand");
         element.setAttribute("data-af-logo-position", logoPosition);
         element.setAttribute("data-af-variant", variant);
@@ -224,106 +223,105 @@ export function Brand(options: BrandOptions): ComposedBrand {
     }
 
     function setLogo(content: BrandCompositionContent | null): void {
-        logoContent = content;
-        logoSlot.set(toCompositionChildren(content));
-        sync();
+        update({ logo: content });
     }
 
     function setName(content: BrandCompositionContent): void {
-        nameSlot.set(toCompositionChildren(content));
+        update({ name: content });
     }
 
     function setTagline(content: BrandCompositionContent | null): void {
-        taglineContent = content;
-        taglineSlot.set(toCompositionChildren(content));
-        sync();
+        update({ tagline: content });
     }
 
     syncStructure();
     sync();
     element.append(content);
 
-    composed = {
-        element,
-        content,
-        logo,
-        text,
-        name,
-        tagline,
-        setLogo,
-        setName,
-        setTagline,
+    function update(nextOptions: BrandUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
 
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.logoOptions !== undefined) {
-                applyCompositionElementOptions(logo, nextOptions.logoOptions);
-                logo.setAttribute("data-af-brand-logo", "");
-            }
-
-            if (nextOptions.nameOptions !== undefined) {
-                applyCompositionElementOptions(name, nextOptions.nameOptions);
-                name.setAttribute("data-af-brand-name", "");
-            }
-
-            if (nextOptions.taglineOptions !== undefined) {
-                applyCompositionElementOptions(tagline, nextOptions.taglineOptions);
-                tagline.setAttribute("data-af-brand-tagline", "");
-            }
-
-            if (nextOptions.logoPosition !== undefined) {
-                logoPosition = nextOptions.logoPosition;
-                syncStructure();
-            }
-
-            if ("maxWidth" in nextOptions) {
-                maxWidth = nextOptions.maxWidth ?? null;
-            }
-
-            if ("logoAspectRatio" in nextOptions) {
-                logoAspectRatio = nextOptions.logoAspectRatio ?? null;
-            }
-
-            if ("logoSize" in nextOptions) {
-                logoSize = nextOptions.logoSize ?? null;
-            }
-
-            if ("logoMinSize" in nextOptions) {
-                logoMinSize = nextOptions.logoMinSize ?? null;
-            }
-
-            if ("logoMaxSize" in nextOptions) {
-                logoMaxSize = nextOptions.logoMaxSize ?? null;
-            }
-
-            if ("logoScale" in nextOptions) {
-                logoScale = nextOptions.logoScale ?? null;
-            }
-
-            if ("logoOffsetY" in nextOptions) {
-                logoOffsetY = nextOptions.logoOffsetY ?? null;
-            }
-
-            if ("label" in nextOptions) label = nextOptions.label ?? null;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-            if ("onNavigate" in nextOptions) onNavigate = nextOptions.onNavigate ?? null;
-
-            if ("logo" in nextOptions) setLogo(nextOptions.logo ?? null);
-            if (nextOptions.name !== undefined) setName(nextOptions.name);
-            if ("tagline" in nextOptions) setTagline(nextOptions.tagline ?? null);
-
-            link?.update(getLinkOptions(nextOptions, handleNavigate));
-            sync();
-        },
-
-        destroy(): void {
-            logoSlot.dispose();
-            nameSlot.dispose();
-            taglineSlot.dispose();
-            link?.destroy();
+        if (nextOptions.logoOptions !== undefined) {
+            applyCompositionElementOptions(logo, nextOptions.logoOptions);
+            logo.setAttribute("data-af-brand-logo", "");
         }
+
+        if (nextOptions.nameOptions !== undefined) {
+            applyCompositionElementOptions(name, nextOptions.nameOptions);
+            name.setAttribute("data-af-brand-name", "");
+        }
+
+        if (nextOptions.taglineOptions !== undefined) {
+            applyCompositionElementOptions(tagline, nextOptions.taglineOptions);
+            tagline.setAttribute("data-af-brand-tagline", "");
+        }
+
+        if (nextOptions.logoPosition !== undefined) {
+            logoPosition = nextOptions.logoPosition;
+            syncStructure();
+        }
+
+        if ("maxWidth" in nextOptions) {
+            maxWidth = nextOptions.maxWidth ?? null;
+        }
+
+        if ("logoAspectRatio" in nextOptions) {
+            logoAspectRatio = nextOptions.logoAspectRatio ?? null;
+        }
+
+        if ("logoSize" in nextOptions) {
+            logoSize = nextOptions.logoSize ?? null;
+        }
+
+        if ("logoMinSize" in nextOptions) {
+            logoMinSize = nextOptions.logoMinSize ?? null;
+        }
+
+        if ("logoMaxSize" in nextOptions) {
+            logoMaxSize = nextOptions.logoMaxSize ?? null;
+        }
+
+        if ("logoScale" in nextOptions) {
+            logoScale = nextOptions.logoScale ?? null;
+        }
+
+        if ("logoOffsetY" in nextOptions) {
+            logoOffsetY = nextOptions.logoOffsetY ?? null;
+        }
+
+        if ("label" in nextOptions) label = nextOptions.label ?? null;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        if ("onNavigate" in nextOptions) onNavigate = nextOptions.onNavigate ?? null;
+
+        link?.update(getLinkOptions(nextOptions, handleNavigate));
+        runCleanups([
+            () => {
+                if (destroyed || current !== revision || !("logo" in nextOptions)) return;
+                logoContent = nextOptions.logo;
+                logoSlot.set(toCompositionChildren(logoContent));
+            },
+            () => { if (!destroyed && current === revision && nextOptions.name !== undefined) nameSlot.set(toCompositionChildren(nextOptions.name)); },
+            () => {
+                if (destroyed || current !== revision || !("tagline" in nextOptions)) return;
+                taglineContent = nextOptions.tagline;
+                taglineSlot.set(toCompositionChildren(taglineContent));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([logoSlot.dispose, nameSlot.dispose, taglineSlot.dispose, () => link?.destroy()]);
+    }
+
+    composed = {
+        element, content, logo, text, name, tagline, setLogo, setName, setTagline, update, destroy
     };
 
     return composed;

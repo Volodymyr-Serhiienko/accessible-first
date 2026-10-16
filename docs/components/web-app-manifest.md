@@ -125,6 +125,11 @@ Shared manifest options:
 - `shortcuts` - common app actions.
 - `extras` - additional manifest fields not typed by the helper yet.
 
+Typed arrays/image/shortcut records are copied during generation. `extras` is a
+shallow escape hatch applied last, so it can override typed members; validate the
+final result before publishing. JSON member names such as `__proto__` stay own
+data properties and do not change the manifest object's prototype.
+
 ## Installable Icon Assets
 
 Use SVG for scalable brand marks and favicons, but provide bitmap PNG icons for install surfaces.
@@ -181,7 +186,14 @@ logAppDiagnostics(createAppDiagnosticsReport({
 }));
 ```
 
-Diagnostics check required identity, launch, color, icon, and shortcut fields without fetching external assets.
+Diagnostics check required identity, supplied string member shapes, icon sources/
+size/type shapes and shortcut name/URL fields without fetching external assets.
+An empty required name blocks publication just like a missing name. A maskable
+purpose without a nonempty source does not satisfy the maskable-icon check.
+Missing icon size/type is informational; malformed supplied values are errors.
+This is not full manifest-spec validation: URL origin/scope relationships, CSS
+color parsing, nested shortcut icons, supported display modes, downloaded image
+dimensions and actual browser installability require separate checks.
 
 ## Manual Checks
 

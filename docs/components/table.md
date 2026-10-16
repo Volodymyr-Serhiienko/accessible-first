@@ -153,6 +153,22 @@ Filters belong to the surrounding form (`TextField`, `Select`, etc.); their doma
 rules and queries are not Table concerns. `update({ rows, sort })` preserves header
 buttons; `setColumns()` replaces them. Native buttons provide Enter/Space activation.
 
+`update({ columns, rows })` applies both data sets in one body render. Changing
+`emptyState` or `emptyCellOptions` does not rebuild populated rows. Body replacement
+does not reconcile by `getRowKey` or automatically move focus to another record;
+the application owns focus after deletion, filtering or page changes.
+
+Cell renderers create independently owned content. Do not return the same composed
+instance for multiple cells or reuse an instance destroyed by an earlier render.
+A newer replacement/destroy during rendering or cleanup cancels the older candidate;
+partial candidates are released. Cleanup attempts all owned cells even if one fails,
+commits the current replacement, then rethrows the first failure. `destroy()` is
+idempotent and late mutations are ignored. A renderer exception still needs handling
+and recovery with valid data in the consumer; there is no transactional data rollback.
+
+Table description updates contribute only their own `aria-describedby` ID, preserving
+authored/external descriptions and releasing the owned reference on teardown.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="table"]`, `[data-af-table-viewport]`, `[data-af-table]`, `[data-af-table-caption]`, `[data-af-table-description]`, `[data-af-table-head]`, `[data-af-table-body]`, `[data-af-table-header-cell]`, `[data-af-table-row]`, `[data-af-table-cell]`, and `[data-af-table-empty-cell]`.
@@ -164,6 +180,12 @@ Use `--af-table-min-inline-size` on the table root to tune when horizontal scrol
     --af-table-min-inline-size: 48rem;
 }
 ```
+
+Descriptions, captions, cells and sort labels wrap unbroken strings. The outer
+single-column grid stays bounded while a wide native table scrolls inside its
+viewport. `responsive: "none"` removes that scroller and the default minimum width;
+it does not make arbitrary fixed-width cell content responsive. Keep scrolling
+enabled for genuinely wide data, rather than hiding overflow or removing columns.
 
 ## Accessibility
 

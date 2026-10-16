@@ -1,18 +1,29 @@
 [data-af-component="listbox"] {
+    --af-listbox-focus-space: calc(
+        var(--af-focus-ring-width) + var(--af-focus-ring-offset)
+    );
+
+    box-sizing: border-box;
+    min-inline-size: 0;
     display: grid;
     gap: var(--af-space-2);
     max-block-size: var(--af-listbox-max-block-size, 18rem);
     overflow: auto;
+    scroll-padding: var(--af-listbox-focus-space);
     border: 1px solid var(--af-color-border);
     border-radius: 8px;
-    padding: var(--af-space-2);
+    padding: max(var(--af-space-2), var(--af-listbox-focus-space));
     background: var(--af-color-bg);
 }
 
 [data-af-component="listbox"][data-af-variant="plain"] {
     border-color: transparent;
     border-radius: 0;
-    padding: 0;
+    padding: var(--af-listbox-focus-space);
+}
+
+[data-af-component="listbox"]:not([data-af-orientation="horizontal"]) {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 [data-af-component="listbox"][data-af-orientation="horizontal"] {
@@ -23,6 +34,9 @@
 }
 
 [data-af-listbox-option] {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+    scroll-margin: var(--af-listbox-focus-space);
     min-block-size: var(--af-target-size);
     display: flex;
     align-items: center;

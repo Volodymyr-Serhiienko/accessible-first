@@ -104,6 +104,13 @@ brand.setTagline("Component reference");
 brand.setLogo(null);
 ```
 
+Updates retain unchanged owned content and do not rebuild unchanged structure.
+Combined slot changes finish remaining work after a cleanup error; newer updates
+or destruction supersede older work. Destruction attempts all slots and link
+behavior once, then rethrows the first error. Late setters/update are ignored.
+An authored `attributes["aria-label"]` is retained unless `label` overrides/clears it.
+Long unbroken names and taglines wrap within the available brand width.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="brand"]`, `[data-af-brand-link]`, `[data-af-brand-content]`, `[data-af-brand-logo]`, `[data-af-brand-text]`, `[data-af-brand-name]`, `[data-af-brand-tagline]`, `[data-af-logo-position]`, `[data-af-variant]`, and `[data-af-size]`.

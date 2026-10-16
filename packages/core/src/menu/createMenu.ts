@@ -8,7 +8,6 @@ import { addEventListener, type Cleanup } from "../events";
 import { isEnterKey, isEscapeKey, isSpaceKey } from "../keyboard";
 import {
     createRovingFocus,
-    isRovingFocusItemDisabled,
     type RovingFocus,
     type RovingFocusOptions
 } from "../roving-focus";
@@ -18,6 +17,7 @@ import {
     type TypeaheadOptions
 } from "../typeahead";
 import { createAttributeSnapshot } from "../dom";
+import { canFocusCollectionItem, isCollectionItemDisabled, isCollectionItemUnavailable } from "../roving-focus/collectionAvailability";
 
 import type { Menu, MenuItem, MenuOptions } from "./types";
 
@@ -43,6 +43,7 @@ export function createMenu(
     const closeOnSelect = options.closeOnSelect ?? true;
 
     const attributes = createAttributeSnapshot();
+    let ownedItems = new Set<HTMLElement>();
 
     let currentItem: HTMLElement | null = null;
     let destroyed = false;
@@ -54,11 +55,15 @@ export function createMenu(
     }
 
     function isItemDisabled(item: HTMLElement): boolean {
-        return options.isItemDisabled?.(item) ?? isRovingFocusItemDisabled(item);
+        return isCollectionItemDisabled(item, options.isItemDisabled);
+    }
+
+    function isItemUnavailable(item: HTMLElement): boolean {
+        return isCollectionItemUnavailable(element, item, options.isItemDisabled);
     }
 
     function isItemAvailable(item: HTMLElement): boolean {
-        return getItems().includes(item) && !isItemDisabled(item);
+        return getItems().includes(item) && !isItemUnavailable(item);
     }
 
     function getItemFromEventTarget(target: EventTarget | null): HTMLElement | null {
@@ -78,10 +83,14 @@ export function createMenu(
             return defaultItem;
         }
 
-        return getFirstItem(getItems(), { isItemDisabled });
+        return getFirstItem(getItems(), { isItemDisabled: isItemUnavailable });
     }
 
     function syncState(): void {
+        const items = getItems();
+        const nextItems = new Set(items);
+        for (const item of ownedItems) if (!nextItems.has(item)) attributes.restoreElement(item);
+        ownedItems = nextItems;
         attributes.remember(element, "role");
         attributes.remember(element, "aria-orientation");
 
@@ -92,12 +101,12 @@ export function createMenu(
             orientation === "horizontal" ? "horizontal" : null
         );
 
-        for (const item of getItems()) {
+        for (const item of items) {
             attributes.remember(item, "role");
             attributes.remember(item, "aria-disabled");
 
             setRole(item, "menuitem");
-            setAriaDisabled(item, isItemDisabled(item) ? true : null);
+            if (options.isItemDisabled) setAriaDisabled(item, isItemDisabled(item) ? true : null);
         }
     }
 
@@ -105,7 +114,8 @@ export function createMenu(
         item: HTMLElement | null,
         setCurrentOptions: { focus?: boolean } = {}
     ): boolean {
-        if (destroyed || !item || !isItemAvailable(item)) {
+        if (destroyed || !item || !isItemAvailable(item)
+            || (setCurrentOptions.focus && !canFocusCollectionItem(item))) {
             return false;
         }
 
@@ -146,17 +156,24 @@ export function createMenu(
         selectItem(item, event);
     }
 
+    function handleFocusIn(event: FocusEvent): void {
+        const item = getItemFromEventTarget(event.target);
+        if (item && item === event.target) setCurrentItem(item);
+    }
+
     function handleKeyDown(event: KeyboardEvent): void {
+        if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
         if (isEscapeKey(event)) {
             event.preventDefault();
             options.onClose?.();
             return;
         }
 
-        if (isEnterKey(event) || isSpaceKey(event)) {
-            const item = getItemFromEventTarget(event.target) ?? currentItem;
+        const item = getItems().find((item) => item === event.target);
+        if (!item) return;
 
-            if (!item || !isItemAvailable(item)) {
+        if (isEnterKey(event) || isSpaceKey(event)) {
+            if (!isItemAvailable(item)) {
                 return;
             }
 
@@ -192,7 +209,7 @@ export function createMenu(
         const typeaheadOptions: TypeaheadOptions<HTMLElement> = {
             getItems,
             getItemText,
-            isItemDisabled,
+            isItemDisabled: isItemUnavailable,
             onMatch: (item) => {
                 setCurrentItem(item, { focus: true });
             }
@@ -217,6 +234,7 @@ export function createMenu(
 
     const cleanups: Cleanup[] = [
         addEventListener<MouseEvent>(element, "click", handleClick),
+        addEventListener<FocusEvent>(element, "focusin", handleFocusIn),
         addEventListener<KeyboardEvent>(element, "keydown", handleKeyDown)
     ];
 
@@ -263,6 +281,7 @@ export function createMenu(
 
             rovingFocus.deactivate();
             attributes.restore();
+            ownedItems.clear();
         }
     };
 }

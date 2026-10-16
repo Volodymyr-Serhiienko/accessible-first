@@ -37,6 +37,8 @@ selection.clearSelection();
 * Preserves collection order for multiple selection
 * Notifies when selection changes
 * Allows silent updates with notify: false
+* Keeps item identity unchanged, including `0`, `false` and an empty string;
+  single selection does not treat these values as absence
 
 ## Principles
 

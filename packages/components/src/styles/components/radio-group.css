@@ -8,6 +8,7 @@
 }
 
 [data-af-composition="radio-group"] {
+    overflow-wrap: anywhere;
     display: grid;
     gap: var(--af-space-2);
     max-inline-size: min(100%, var(--af-radio-group-width, 36rem));
@@ -36,6 +37,7 @@
 }
 
 [data-af-radio-group-items] {
+    min-inline-size: 0;
     display: grid;
     gap: var(--af-space-2);
 }
@@ -47,6 +49,8 @@
 }
 
 [data-af-radio-group-item] {
+    min-inline-size: 0;
+    max-inline-size: 100%;
     display: grid;
     gap: var(--af-space-2);
 }
@@ -79,6 +83,7 @@
 }
 
 [data-af-radio-label-text] {
+    min-inline-size: 0;
     min-block-size: var(--af-target-size);
     display: inline-flex;
     align-items: center;
@@ -105,11 +110,12 @@
     border-color: var(--af-color-primary);
 }
 
+/* Physical centering stays symmetric with translate(-50%, -50%) in either direction. */
 [data-af-radio-input]:checked + [data-af-radio-label] [data-af-radio-indicator]::after {
     content: "";
     position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
+    top: 50%;
+    left: 50%;
     inline-size: 0.65rem;
     block-size: 0.65rem;
     border-radius: 999px;

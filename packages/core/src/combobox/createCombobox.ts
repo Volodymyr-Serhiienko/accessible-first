@@ -13,14 +13,15 @@ import {
     getOwnerDocument,
     getOwnerWindow
 } from "../dom";
-import { addEventListener, type Cleanup } from "../events";
+import { addEventListener, runCleanups, type Cleanup } from "../events";
 import { dismissVirtualKeyboard } from "../focus";
 import { createId } from "../id";
 import {
     isArrowDownKey,
     isArrowUpKey,
     isEnterKey,
-    isEscapeKey
+    isEscapeKey,
+    isSpaceKey
 } from "../keyboard";
 import {
     createPopoverPosition,
@@ -95,6 +96,7 @@ export function createCombobox(
     const originalDisabled = input.disabled;
 
     let destroyed = false;
+    let filterRevision = 0;
     let disabled = options.disabled ?? input.disabled;
     let open = options.open ?? options.defaultOpen ?? false;
     let autocomplete = options.autocomplete ?? "list";
@@ -159,13 +161,23 @@ export function createCombobox(
             optionText: getOptionTextValue(option)
         };
 
+        if (destroyed) return false;
         return filterOption?.(context) ?? defaultFilter(context);
     }
 
-    function applyFilter(): void {
-        filteredOptions = new Set(
-            getOptions().filter((option) => optionMatchesFilter(option))
-        );
+    function applyFilter(): boolean {
+        const current = ++filterRevision;
+        const next = new Set<HTMLElement>();
+        const source = getOptions();
+        for (const option of source) {
+            if (destroyed || current !== filterRevision) return false;
+            const matches = optionMatchesFilter(option);
+            if (destroyed || current !== filterRevision) return false;
+            if (matches) next.add(option);
+        }
+        if (destroyed || current !== filterRevision) return false;
+        filteredOptions = next;
+        return true;
     }
 
     function getVisibleOptions(): HTMLElement[] {
@@ -196,6 +208,7 @@ export function createCombobox(
     }
 
     function updatePosition(): PopoverPositionState | null {
+        if (destroyed) return null;
         if (!open) {
             return position?.getState() ?? null;
         }
@@ -224,6 +237,7 @@ export function createCombobox(
     }
 
     function syncAttributes(): void {
+        if (destroyed) return;
         attributes.remember(input, "role");
         attributes.remember(input, "aria-autocomplete");
         attributes.remember(input, "aria-expanded");
@@ -254,6 +268,7 @@ export function createCombobox(
     }
 
     function notifyOpenChange(reason: ComboboxOpenChangeReason): void {
+        if (destroyed) return;
         onOpenChange?.(
             {
                 open,
@@ -269,6 +284,7 @@ export function createCombobox(
         reason: ComboboxValueChangeReason,
         event: Event | null
     ): void {
+        if (destroyed) return;
         onValueChange?.(
             {
                 inputValue: input.value,
@@ -281,6 +297,7 @@ export function createCombobox(
     }
 
     function notifyActiveOptionChange(reason: ComboboxActiveOptionChangeReason): void {
+        if (destroyed) return;
         onActiveOptionChange?.(
             {
                 activeOption,
@@ -299,7 +316,7 @@ export function createCombobox(
             return;
         }
 
-        applyFilter();
+        if (!applyFilter()) return;
 
         const resolvedOpen =
             !disabled
@@ -379,7 +396,7 @@ export function createCombobox(
     }
 
     function commitOption(option: HTMLElement, event: Event | null): boolean {
-        if (!isAvailableOption(option)) {
+        if (destroyed || !isAvailableOption(option)) {
             return false;
         }
 
@@ -388,10 +405,11 @@ export function createCombobox(
         activeOption = option;
 
         setOpenState(false, "selection");
+        if (destroyed || selectedOption !== option) return false;
         syncAttributes();
         notifyValueChange("selection", event);
 
-        if (dismissKeyboardOnSelection) {
+        if (!destroyed && dismissKeyboardOnSelection && getOwnerDocument(input).activeElement === input) {
             dismissVirtualKeyboard(input);
         }
 
@@ -399,9 +417,10 @@ export function createCombobox(
     }
 
     function handleInput(event: Event): void {
+        if (disabled || input.readOnly || event.defaultPrevented) return;
         selectedOption = null;
         activeOption = null;
-        applyFilter();
+        if (!applyFilter()) return;
 
         const visibleOptions = getVisibleOptions();
 
@@ -443,7 +462,13 @@ export function createCombobox(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (disabled) {
+        if (destroyed || disabled || event.defaultPrevented || event.isComposing || event.keyCode === 229) {
+            return;
+        }
+
+        if (input.readOnly && isSpaceKey(event) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            if (!event.repeat) combobox.toggle();
             return;
         }
 
@@ -458,6 +483,8 @@ export function createCombobox(
             setOpenState(false, "keyboard");
             return;
         }
+
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
 
         if (isArrowDownKey(event)) {
             event.preventDefault();
@@ -488,7 +515,7 @@ export function createCombobox(
             return;
         }
 
-        if (isEnterKey(event) && open && activeOption) {
+        if (isEnterKey(event) && !event.repeat && open && activeOption) {
             event.preventDefault();
             commitOption(activeOption, event);
             return;
@@ -513,6 +540,7 @@ export function createCombobox(
     }
 
     function handleListboxClick(event: MouseEvent): void {
+        if (disabled || event.defaultPrevented) return;
         const option = getOptionFromEventTarget(event.target);
 
         if (!option) {
@@ -521,9 +549,12 @@ export function createCombobox(
 
         event.preventDefault();
         
+        const previousFocus = getOwnerDocument(input).activeElement;
         const committed = commitOption(option, event);
 
-        if (committed && !dismissKeyboardOnSelection) {
+        const active = getOwnerDocument(input).activeElement;
+        if (!destroyed && committed && !dismissKeyboardOnSelection
+            && (active === previousFocus || active === getOwnerDocument(input).body)) {
             input.focus();
         }
     }
@@ -545,7 +576,7 @@ export function createCombobox(
             return;
         }
 
-        applyFilter();
+        if (!applyFilter()) return;
 
         if (activeOption && !isAvailableOption(activeOption)) {
             activeOption = null;
@@ -571,6 +602,9 @@ export function createCombobox(
     syncAttributes();
 
     const cleanups: Cleanup[] = [
+        addEventListener<MouseEvent>(input, "click", event => {
+            if (input.readOnly && !disabled && !event.defaultPrevented) combobox.toggle();
+        }),
         addEventListener<InputEvent>(input, "input", handleInput),
         addEventListener<FocusEvent>(input, "focus", handleFocus),
         addEventListener<FocusEvent>(input, "blur", handleBlur),
@@ -603,10 +637,11 @@ export function createCombobox(
         },
 
         toggle(): void {
+            if (destroyed) return;
             if (open) {
-                this.close();
+                combobox.close();
             } else {
-                this.open();
+                combobox.open();
             }
         },
 
@@ -699,6 +734,7 @@ export function createCombobox(
         },
 
         update(nextOptions: ComboboxUpdateOptions): void {
+            if (destroyed) return;
             if (nextOptions.getOptions !== undefined) getOptions = nextOptions.getOptions;
             if (nextOptions.getOptionText !== undefined) getOptionText = nextOptions.getOptionText;
             if (nextOptions.isOptionDisabled !== undefined) isOptionDisabled = nextOptions.isOptionDisabled;
@@ -712,9 +748,10 @@ export function createCombobox(
             if ("onOpenChange" in nextOptions) onOpenChange = nextOptions.onOpenChange ?? null;
             if ("onValueChange" in nextOptions) onValueChange = nextOptions.onValueChange ?? null;
             if ("onActiveOptionChange" in nextOptions) onActiveOptionChange = nextOptions.onActiveOptionChange ?? null;
-            if (nextOptions.disabled !== undefined) this.setDisabled(nextOptions.disabled);
-            if (nextOptions.inputValue !== undefined) this.setInputValue(nextOptions.inputValue);
-            if ("selectedOption" in nextOptions) this.setSelectedOption(nextOptions.selectedOption ?? null);
+            if (nextOptions.disabled !== undefined) combobox.setDisabled(nextOptions.disabled);
+            if (nextOptions.inputValue !== undefined) combobox.setInputValue(nextOptions.inputValue);
+            if ("selectedOption" in nextOptions) combobox.setSelectedOption(nextOptions.selectedOption ?? null);
+            if (destroyed) return;
 
             if (
                 nextOptions.side !== undefined
@@ -757,16 +794,11 @@ export function createCombobox(
             }
 
             destroyed = true;
-
-            for (const cleanup of cleanups) {
-                cleanup();
-            }
-
-            destroyPosition();
-            attributes.restore();
-
-            input.value = originalValue;
-            input.disabled = originalDisabled;
+            filterRevision += 1;
+            runCleanups([...cleanups, destroyPosition, () => attributes.restore(), () => {
+                input.value = originalValue;
+                input.disabled = originalDisabled;
+            }]);
         },
 
         isDestroyed(): boolean {

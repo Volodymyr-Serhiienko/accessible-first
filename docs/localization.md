@@ -124,6 +124,11 @@ Applications should keep one locale file near the app shell. The playground uses
 
 English framework fallback text is built into Accessible First. Non-English applications should provide translated `AccessibleFirstMessageKey` values in their locale file, next to application copy. Missing keys fall back to English.
 
+`getLocaleText(provider, key, fallback, params)` also formats `{parameter}` tokens
+in the fallback when no provider supplies text, using the same formatter as the
+locale controller. Zero and `false` are valid values; missing/null parameters stay
+as tokens. Provider output is already resolved and is not interpolated a second time.
+
 For route-owned application text, use `createLocalizedAppRouteText()` so navigation, search, breadcrumbs, announcements, metadata, and diagnostics can share the same localized route resolvers. Larger apps can keep this wiring in a small app-owned `routeText.ts` file beside `routes.ts`. Pass the `routeText` bundle to public app templates so they can merge route text into metadata/diagnostics defaults, inject route chrome item defaults, and, for hash SPAs, use `getLoadedAnnouncement` unless the router overrides it. Pass `routeLoadedAnnouncementKey` when route-change announcements should use one localized app-owned phrase such as `{title} loaded`; use per-route `localeKeys.loadedAnnouncement` only for screens that need a different spoken phrase.
 
 For application-owned text created during composition, use `createLocaleRefresh()` near the app shell. It subscribes to the shared locale controller and lets the app refresh header text, route search, command palettes, breadcrumbs, metadata, and the current screen without a full page reload.
@@ -161,6 +166,12 @@ format.sort(routes, { getText: (route) => route.title, sensitivity: "base" });
 ```
 
 Use it for application data, progress labels, dates, lesson metadata, route/result sorting, and other text that depends on the active locale. Message translation still belongs to `LocaleController`; formatting and collation belong to `LocaleFormatter`.
+
+`createLocaleRefresh()` is terminal after `destroy()`: manual refresh and stale
+locale events do not read locale or schedule more work. If an immediate sync
+render throws during creation, its subscription is released before the error is
+rethrown. Factories remain responsible for resources they allocate but never
+return to an owner.
 
 ## Reactive App Refresh
 

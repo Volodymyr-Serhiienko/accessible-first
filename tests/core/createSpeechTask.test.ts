@@ -15,6 +15,53 @@ function fixture() {
 const request = { segments: [{ text: "test", language: "en" }] };
 
 describe("createSpeechTask", () => {
+    it("still stops playback and disposes when subscription cleanup fails", () => {
+        const { engine, listeners } = fixture();
+        const speak = engine.speak;
+        let stops = 0;
+        let requests = 0;
+        engine.speak = request => {
+            requests++;
+            const current = speak(request);
+            return { ...current, stop() { stops++; current.stop(); },
+                subscribe(listener) {
+                    const cleanup = current.subscribe(listener);
+                    return () => { cleanup(); throw new Error("unsubscribe failed"); };
+                } };
+        };
+        const task = createSpeechTask(engine);
+        task.speak(request);
+        expect(() => task.destroy()).toThrow("unsubscribe failed");
+        expect(stops).toBe(1);
+        expect(listeners.size).toBe(0);
+        task.speak(request);
+        expect(requests).toBe(1);
+    });
+
+    it("keeps newer speech started reentrantly while an old request is stopped", () => {
+        const { engine, emit } = fixture();
+        const speak = engine.speak;
+        const seen: string[] = [];
+        let restart = true;
+        let completions = 0;
+        const task = createSpeechTask(engine);
+        engine.speak = value => {
+            seen.push(value.segments[0]!.text);
+            return { ...speak(value), stop() {
+                if (!restart) return;
+                restart = false;
+                task.speak({ segments: [{ text: "newest", language: "en" }] },
+                    { onComplete: () => { completions++; } });
+            } };
+        };
+        task.speak(request);
+        task.speak({ segments: [{ text: "obsolete", language: "en" }] });
+        expect(seen).toEqual(["test", "newest"]);
+        emit({ status: "completed" });
+        expect(completions).toBe(1);
+        task.destroy();
+    });
+
     it("completes once but never follows cancellation or a destroyed view", () => {
         const { engine, emit, listeners } = fixture();
         const task = createSpeechTask(engine);

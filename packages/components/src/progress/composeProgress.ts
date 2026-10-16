@@ -1,4 +1,6 @@
 import { createId } from "../../../core/src/id";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
+import { runCleanups } from "../../../core/src/events";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -154,6 +156,9 @@ export function Progress(options: ProgressOptions): ComposedProgress {
     let descriptionContent: ProgressSlotContent = normalizeSlotContent(options.description);
     let explicitValueText = options.valueText ?? null;
     let hasDescription = hasCompositionContent(descriptionContent);
+    let destroyed = false;
+    let revision = 0;
+    const descriptionReference = createAriaReferenceOwner(control, "aria-describedby");
 
     const labelSlot = createContentSlot(label, toCompositionChildren(options.label));
     const descriptionSlot = createContentSlot(description, toCompositionChildren(descriptionContent));
@@ -184,6 +189,7 @@ export function Progress(options: ProgressOptions): ComposedProgress {
     }
 
     function sync(): void {
+        if (destroyed) return;
         const ratio = getValueRatio(value, max);
         const state = value === null ? "indeterminate" : "determinate";
 
@@ -204,39 +210,74 @@ export function Progress(options: ProgressOptions): ComposedProgress {
         control.style.setProperty("--af-progress-value-ratio", String(ratio ?? 0));
 
         description.hidden = !hasDescription;
-        setElementAttributeValue(control, "aria-describedby", hasDescription ? description.id : null);
+        descriptionReference.set(hasDescription ? [description.id] : []);
 
         syncValueText();
     }
 
     function setLabel(content: ProgressCompositionContent): void {
-        labelSlot.set(toCompositionChildren(content));
-        sync();
+        update({ label: content });
     }
 
     function setValue(nextValue: ProgressValue): void {
-        value = normalizeValue(nextValue, max);
-        syncDefaultShowValue();
-        sync();
+        update({ value: nextValue });
     }
 
     function setMax(nextMax: number): void {
-        max = normalizeMax(nextMax);
-        value = normalizeValue(value, max);
-        syncDefaultShowValue();
-        sync();
+        update({ max: nextMax });
     }
 
     function setDescription(content: ProgressCompositionContent | null): void {
-        descriptionContent = normalizeSlotContent(content);
-        hasDescription = hasCompositionContent(descriptionContent);
-        descriptionSlot.set(toCompositionChildren(descriptionContent));
-        sync();
+        update({ description: content });
     }
 
     function setValueText(text: string | null): void {
-        explicitValueText = text;
-        sync();
+        update({ valueText: text });
+    }
+
+    function update(nextOptions: ProgressUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.labelOptions !== undefined) applyCompositionElementOptions(label, nextOptions.labelOptions);
+        if (nextOptions.controlOptions !== undefined) {
+            applyCompositionElementOptions(control, nextOptions.controlOptions);
+            if (!control.id) control.id = createId("af-progress");
+        }
+        if (nextOptions.descriptionOptions !== undefined) {
+            applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+            if (!description.id) description.id = createId("af-progress-description");
+        }
+        if (nextOptions.valueOptions !== undefined) applyCompositionElementOptions(valueText, nextOptions.valueOptions);
+        if (nextOptions.max !== undefined) max = normalizeMax(nextOptions.max);
+        value = normalizeValue("value" in nextOptions ? nextOptions.value : value, max);
+        if ("valueText" in nextOptions) explicitValueText = nextOptions.valueText ?? null;
+        if (nextOptions.showValue !== undefined) {
+            showValue = nextOptions.showValue;
+            hasExplicitShowValue = true;
+        }
+        syncDefaultShowValue();
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        runCleanups([
+            () => {
+                if (!destroyed && current === revision && "label" in nextOptions) labelSlot.set(toCompositionChildren(nextOptions.label));
+            },
+            () => {
+                if (destroyed || current !== revision || !("description" in nextOptions)) return;
+                descriptionContent = normalizeSlotContent(nextOptions.description);
+                hasDescription = hasCompositionContent(descriptionContent);
+                descriptionSlot.set(toCompositionChildren(descriptionContent));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([labelSlot.dispose, descriptionSlot.dispose, valueSlot.dispose, descriptionReference.destroy]);
     }
 
     sync();
@@ -263,46 +304,7 @@ export function Progress(options: ProgressOptions): ComposedProgress {
         setDescription,
         setValueText,
 
-        update(nextOptions) {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.labelOptions !== undefined) {
-                applyCompositionElementOptions(label, nextOptions.labelOptions);
-            }
-
-            if (nextOptions.controlOptions !== undefined) {
-                applyCompositionElementOptions(control, nextOptions.controlOptions);
-                if (!control.id) control.id = createId("af-progress");
-            }
-
-            if (nextOptions.descriptionOptions !== undefined) {
-                applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-                if (!description.id) description.id = createId("af-progress-description");
-            }
-
-            if (nextOptions.valueOptions !== undefined) {
-                applyCompositionElementOptions(valueText, nextOptions.valueOptions);
-            }
-
-            if ("label" in nextOptions) setLabel(nextOptions.label);
-            if (nextOptions.max !== undefined) setMax(nextOptions.max);
-            if ("value" in nextOptions) setValue(nextOptions.value ?? null);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("valueText" in nextOptions) setValueText(nextOptions.valueText ?? null);
-            if (nextOptions.showValue !== undefined) {
-                showValue = nextOptions.showValue;
-                hasExplicitShowValue = true;
-            }
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy() {
-            labelSlot.dispose();
-            descriptionSlot.dispose();
-            valueSlot.dispose();
-        }
+        update,
+        destroy
     };
 }

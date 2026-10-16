@@ -1,4 +1,5 @@
 import { createElement } from "./createElement";
+import { createContentSlot } from "./contentSlot";
 import { getCompositionElementOptions } from "./options";
 import type {
     BaseCompositionOptions,
@@ -65,11 +66,9 @@ function tag<KTagName extends keyof HTMLElementTagNameMap>(
     args: Array<CompositionChild | TagOptions>
 ): ComposedNode {
     const { options, children } = resolveArgs(args);
-    const elementOptions = getCompositionElementOptions(options, {}, children);
-
-    return {
-        element: createElement(tagName, elementOptions)
-    };
+    const element = createElement(tagName, getCompositionElementOptions(options));
+    const slot = createContentSlot(element, children);
+    return { element, destroy: () => slot.dispose() };
 }
 
 /** Creates a div element. */

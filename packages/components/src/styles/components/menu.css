@@ -5,8 +5,10 @@
 
     box-sizing: border-box;
     min-inline-size: min(100%, var(--af-menu-width, 16rem));
+    max-inline-size: 100%;
     max-block-size: var(--af-menu-max-block-size, 18rem);
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
     overflow: auto;
     scroll-padding: var(--af-menu-focus-space);
@@ -31,6 +33,10 @@
 }
 
 [data-af-menu-item] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
     scroll-margin: var(--af-menu-focus-space);
     min-block-size: var(--af-target-size);
     display: flex;

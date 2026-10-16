@@ -1,4 +1,5 @@
 import type { ComposedNode, CompositionChild } from "./types";
+import { isHTMLElement } from "../../../core/src/dom";
 
 /**
  * Checks whether a value is an Accessible First composed node.
@@ -8,7 +9,7 @@ export function isComposedNode(value: unknown): value is ComposedNode {
         value
         && typeof value === "object"
         && "element" in value
-        && (value as ComposedNode).element instanceof HTMLElement
+        && isHTMLElement((value as ComposedNode).element)
     );
 }
 
@@ -25,26 +26,36 @@ export function toNode(child: CompositionChild): Node | null {
         return document.createTextNode(String(child));
     }
 
-    if (child instanceof Node) {
+    const ownerWindow = (child as Node).ownerDocument?.defaultView;
+    if ((ownerWindow && child instanceof ownerWindow.Node)
+        || (typeof Node !== "undefined" && child instanceof Node)) {
         return child;
     }
+    if (ownerWindow && (child as Node).nodeType) {
+        try {
+            ownerWindow.Node.prototype.hasChildNodes.call(child);
+            return child as Node;
+        } catch { /* Not a DOM node. Continue with composed-child detection. */ }
+    }
 
-    if (isComposedNode(child)) {
-        return child.element;
+    if (child && typeof child === "object" && "element" in child) {
+        const element = child.element;
+        return isHTMLElement(element) ? element : null;
     }
 
     return null;
 }
 
 /**
- * Returns a cleanup callback for a composed child when it exposes destroy().
+ * Returns a composed child's cleanup without materializing its element again.
+ * Explicit controller-shaped children can release resources after render failure.
  */
 export function getDestroyer(child: CompositionChild): (() => void) | null {
-    if (!isComposedNode(child) || typeof child.destroy !== "function") {
+    if (!child || typeof child !== "object" || !("element" in child) || typeof child.destroy !== "function") {
         return null;
     }
-
-    return () => child.destroy?.();
+    const destroy = child.destroy;
+    return () => destroy.call(child);
 }
 
 /**

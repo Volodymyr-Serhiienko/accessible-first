@@ -36,6 +36,11 @@ styles. The controller owns combobox semantics and keyboard behavior.
   configurable through `ComboboxOptions`.
 - `destroy()` removes listeners, restores captured attributes and input state,
   and tears down popup positioning.
+- Handled/composing keys and unrelated Ctrl/Meta/Alt combinations are not consumed.
+  Filter callbacks are synchronous; a newer filter pass or destruction supersedes
+  the old result set. Selection dismisses the virtual keyboard only while this
+  input still owns focus, never a destination focused by a callback.
+- Destruction is terminal and completes remaining cleanup after an error.
 
 ## Boundaries
 

@@ -7,6 +7,7 @@
     inset: 0;
     z-index: var(--af-z-dialog, 1000);
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     place-items: center;
     padding: var(--af-space-4);
     color: var(--af-color-fg);
@@ -23,7 +24,10 @@
 [data-af-dialog-surface] {
     inline-size: min(100%, var(--af-dialog-width, 34rem));
     max-block-size: calc(100vh - 2rem);
+    max-block-size: calc(100dvh - 2rem);
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    overflow-wrap: anywhere;
     gap: var(--af-space-4);
     overflow: auto;
     border: 1px solid var(--af-color-border);
@@ -44,7 +48,9 @@
 }
 
 [data-af-dialog-header] {
+    min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-2);
 }
 
@@ -60,7 +66,9 @@
 }
 
 [data-af-dialog-body] {
+    min-inline-size: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
 }
 
@@ -75,8 +83,9 @@
     }
 
     [data-af-dialog-surface] {
-        inline-size: min(100%, calc(100vw - var(--af-space-3) - var(--af-space-3)));
+        inline-size: 100%;
         max-inline-size: 100%;
+        max-block-size: calc(100vh - var(--af-space-3) - var(--af-space-3));
         max-block-size: calc(100dvh - var(--af-space-3) - var(--af-space-3));
     }
 }

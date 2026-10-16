@@ -65,8 +65,8 @@ LanguageSelect({
 - `width` - Optional explicit CSS width for the language control. When omitted, the control auto-sizes.
 - `autoWidth` - Set to `false` to disable automatic width calculation.
 - `onLocaleChange` - Called after a user selection changes the active locale.
-- Select options inherited from `Select`: `disabled`, `required`,
-ame`, `variant`, `size`, `labelOptions`, `selectOptions`, `visibleRows`.
+- Select options inherited from `Select`: `disabled`, `required`, `name`,
+  `variant`, `size`, `labelOptions`, `selectOptions`, `visibleRows`.
 - Base options: `id`, `className`, `attributes`.
 
 ## Custom Items
@@ -75,14 +75,19 @@ ame`, `variant`, `size`, `labelOptions`, `selectOptions`, `visibleRows`.
 LanguageSelect({
     locale,
     items: [
-        { locale: "en", label: "English" },
-        { locale: "uk", label: "Українська" },
-        { locale: "ru", label: "Русский" }
+        { locale: "en", label: "English", optionOptions: { attributes: { lang: "en" } } },
+        { locale: "uk", label: "Українська", optionOptions: { attributes: { lang: "uk" } } },
+        { locale: "ru", label: "Русский", optionOptions: { attributes: { lang: "ru" } } }
     ]
 });
 ```
 
 When labels are omitted, LanguageSelect uses `Intl.DisplayNames` where available and falls back to the locale code.
+
+Automatic `native` names carry the item's language. Localized, combined and
+resolver-produced names carry the UI language. Explicit labels remain unchanged;
+set `optionOptions.attributes.lang` for foreign custom labels. Native option text
+cannot mark the parenthesized part of a combined name as a separate language.
 
 To retain a native name for sighted users while making the leading text match
 the active interface language, omit `items` and use:
@@ -97,6 +102,27 @@ LanguageSelect({
 ## Runtime App Text
 
 LanguageSelect changes the locale controller. Components that subscribe to the controller update themselves. Application-owned text produced with `t(...)` should refresh through the application layer, usually with `createLocaleRefresh()` near `AppShell`.
+
+## Updates And Ownership
+
+Locale/items/placeholder are creation-time options. Other `update()` calls retain
+the native control and option nodes; chrome-only updates do not rerun label
+resolvers or reset the current choice. Explicit labels, including `null`, persist.
+Resolvers should normally be pure; a newer update or destruction during a resolver
+supersedes its older result. Automatic width is a preferred size, not a pixel-perfect
+text measurement; responsive CSS still constrains the control.
+
+Use the wrapper's `setLocale()` for programmatic changes. It is silent and honors
+`LocaleSetOptions`, including per-call persistence, language/direction and source
+overrides. Only an actual user locale change invokes `onLocaleChange`; a newer
+locale change or destruction during controller notification cancels stale feedback.
+Native form reset alone does not change the shared locale controller; app-level
+locale reset must call `setLocale()`.
+
+The exposed `select` is borrowed, while the LocaleController remains caller-owned.
+Destroy the wrapper, not its parts. Destruction is terminal/idempotent, completes
+underlying cleanup after unsubscribe failure and ignores stale notifications/late
+updates. A late `setLocale()` returns the controller's current value without changing it.
 
 ## Styling
 

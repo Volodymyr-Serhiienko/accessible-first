@@ -1,4 +1,6 @@
 [data-af-composition="select"] {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
     display: grid;
     gap: var(--af-space-2);
 }
@@ -10,6 +12,8 @@
 }
 
 [data-af-component="select"] {
+    box-sizing: border-box;
+    max-inline-size: 100%;
     min-inline-size: min(100%, var(--af-select-width, 20rem));
     min-block-size: var(--af-target-size);
     border: 1px solid var(--af-color-border);

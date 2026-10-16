@@ -13,6 +13,7 @@ import {
     accessibleFirstEnglishMessages,
     getLocaleText
 } from "../localization";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 
 import type { ButtonPressedState } from "../button";
 import type { IconButton, IconButtonLocalization, IconButtonOptions, IconButtonUpdateOptions } from "./types";
@@ -69,8 +70,11 @@ export function createIconButton(
     const originalSize = element.getAttribute("data-af-size");
     const originalWarning = element.getAttribute("data-af-warning");
 
-    let disabled = options.disabled ?? false;
-    let pressed: ButtonPressedState = options.pressed ?? null;
+    let disabled = options.disabled ?? (nativeButton?.disabled ?? originalAriaDisabled === "true");
+    let pressed: ButtonPressedState = options.pressed !== undefined ? options.pressed
+        : originalAriaPressed === "mixed" ? "mixed" : originalAriaPressed === "true" ? true
+        : originalAriaPressed === "false" ? false : null;
+    let spaceArmed = false;
     let onPress = options.onPress ?? null;
     let label: string | null = options.label ?? null;
     let labelledBy: AriaReferences = options.labelledBy ?? null;
@@ -78,9 +82,12 @@ export function createIconButton(
     let hasExplicitLabelledBy = options.labelledBy !== undefined;
     let fallbackLabelApplied = false;
     let locale: IconButtonLocalization | null = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    let nameRevision = 0;
+    const localeSubscription = createLocaleSubscription(syncAccessibleName);
 
     function syncAccessibleName(): void {
+        if (lifecycle.isDestroyed()) return;
+        const current = ++nameRevision;
         element.removeAttribute("data-af-warning");
 
         if (hasExplicitLabelledBy) {
@@ -88,6 +95,7 @@ export function createIconButton(
 
             if (element.getAttribute("aria-labelledby")?.trim()) {
                 element.removeAttribute("aria-label");
+                fallbackLabelApplied = false;
                 return;
             }
         }
@@ -96,6 +104,7 @@ export function createIconButton(
             if (label?.trim()) {
                 element.setAttribute("aria-label", label);
                 element.removeAttribute("aria-labelledby");
+                fallbackLabelApplied = false;
                 return;
             }
 
@@ -111,20 +120,11 @@ export function createIconButton(
             return;
         }
 
-        element.setAttribute("aria-label", getFallbackLabel(locale));
+        const fallback = getFallbackLabel(locale);
+        if (lifecycle.isDestroyed() || current !== nameRevision) return;
+        element.setAttribute("aria-label", fallback);
         element.setAttribute("data-af-warning", "missing-accessible-name");
         fallbackLabelApplied = true;
-    }
-
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            syncAccessibleName();
-        });
     }
 
     function syncDisabled(): void {
@@ -144,9 +144,10 @@ export function createIconButton(
     }
 
     function handleClick(event: MouseEvent): void {
+        if (event.defaultPrevented) return;
         if (disabled) {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             return;
         }
 
@@ -154,9 +155,7 @@ export function createIconButton(
     }
 
     function handleKeyDown(event: KeyboardEvent): void {
-        if (disabled) {
-            return;
-        }
+        if (!acceptsKey(event)) return;
 
         if (isEnterKey(event)) {
             event.preventDefault();
@@ -165,24 +164,30 @@ export function createIconButton(
 
         if (isSpaceKey(event)) {
             event.preventDefault();
+            spaceArmed = true;
         }
     }
 
     function handleKeyUp(event: KeyboardEvent): void {
-        if (disabled) {
-            return;
-        }
-
-        if (isSpaceKey(event)) {
+        const activate = spaceArmed && acceptsKey(event);
+        spaceArmed = false;
+        if (activate && isSpaceKey(event)) {
             event.preventDefault();
             element.click();
         }
+    }
+
+    function acceptsKey(event: KeyboardEvent): boolean {
+        return !disabled && event.target === element && !event.defaultPrevented
+            && !event.isComposing && event.keyCode !== 229
+            && !event.altKey && !event.ctrlKey && !event.metaKey;
     }
 
     function setDisabled(nextDisabled: boolean): void {
         if (lifecycle.isDestroyed()) return;
 
         disabled = nextDisabled;
+        spaceArmed = false;
         syncDisabled();
     }
 
@@ -218,6 +223,7 @@ export function createIconButton(
     }
 
     if (!nativeButton) {
+        lifecycle.addCleanup(addEventListener(element, "blur", () => { spaceArmed = false; }));
         if (!element.hasAttribute("role")) {
             setRole(element, "button");
         }
@@ -236,7 +242,6 @@ export function createIconButton(
     lifecycle.addCleanup(addEventListener<MouseEvent>(element, "click", handleClick));
 
     lifecycle.addCleanup(() => {
-        unsubscribeLocale?.();
         restoreAttribute(element, "role", originalRole);
         restoreAttribute(element, "tabindex", originalTabIndex);
         restoreAttribute(element, "aria-label", originalAriaLabel);
@@ -252,8 +257,9 @@ export function createIconButton(
             nativeButton.disabled = originalDisabled;
         }
     });
+    lifecycle.addCleanup(localeSubscription.destroy);
 
-    syncLocaleSubscription();
+    localeSubscription.replace(locale);
     syncAccessibleName();
     syncDisabled();
     syncPressed();
@@ -271,6 +277,7 @@ export function createIconButton(
         setLabelledBy,
 
         update(nextOptions: IconButtonUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
             if (nextOptions.disabled !== undefined) {
                 setDisabled(nextOptions.disabled);
             }
@@ -293,9 +300,10 @@ export function createIconButton(
 
             if ("locale" in nextOptions) {
                 locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
-                syncAccessibleName();
+                localeSubscription.replace(locale);
             }
+
+            if (lifecycle.isDestroyed()) return;
 
             if (nextOptions.variant !== undefined) {
                 element.setAttribute("data-af-variant", nextOptions.variant);
@@ -308,6 +316,7 @@ export function createIconButton(
             if (nativeButton && nextOptions.type !== undefined) {
                 nativeButton.type = nextOptions.type;
             }
+            syncAccessibleName();
         },
 
         destroy(): void {

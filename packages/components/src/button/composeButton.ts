@@ -16,6 +16,7 @@ import {
 } from "../foundation";
 import type { Button as ButtonInstance, ButtonOptions } from "./types";
 import { accessibleFirstEnglishMessages, getLocaleText, type LocaleTextProvider } from "../localization";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Called when the composed button is activated.
@@ -46,7 +47,7 @@ export interface ButtonCompositionOptions
     hintId?: string;
     hintDisplay?: ControlHintDisplay;
     hintAnnounceOnHover?: boolean;
-    /** Display the tooltip on focus as well as hover. Defaults to true. */
+    /** Display the tooltip on focus as well as hover. Defaults to false. */
     hintShowOnFocus?: boolean;
     onPress?: ButtonCompositionOnPress | null;
 }
@@ -158,6 +159,8 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     element.append(contentElement);
 
     let composed!: ComposedButton;
+    let destroyed = false;
+    let revision = 0;
     let onPress = options.onPress ?? null;
     let reservedText = getReservedText(options.reserveText);
     let locale = options.locale;
@@ -178,6 +181,7 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     }
 
     function handlePress(event: Event): void {
+        if (destroyed) return;
         onPress?.(event, composed);
     }
 
@@ -191,7 +195,10 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
     syncReservedText();
 
     function setText(text: string): void {
+        if (destroyed) return;
+        revision += 1;
         content.set([text]);
+        if (destroyed) return;
         controlHint.refresh();
     }
 
@@ -202,9 +209,16 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
         setSelected: selectedState.setSelected,
         isSelected: selectedState.isSelected,
         toggleSelected: selectedState.toggleSelected,
-        setHint: controlHint.setHint,
+        isDestroyed: () => destroyed || button.isDestroyed(),
+        setHint(hint): void {
+            if (destroyed) return;
+            revision += 1;
+            controlHint.setHint(hint);
+        },
 
         update(nextOptions: ButtonCompositionUpdateOptions): void {
+            if (destroyed) return;
+            const current = ++revision;
             applyCompositionElementOptions(element, nextOptions);
             if ("locale" in nextOptions) locale = nextOptions.locale;
             if ("pendingMessage" in nextOptions) pendingMessage = nextOptions.pendingMessage;
@@ -224,21 +238,24 @@ export function Button(options: ButtonCompositionOptions = {}): ComposedButton {
 
             button.update({ ...getButtonOptions(nextOptions), pendingMessage: pendingMessage === false ? false : waitingMessage });
 
-            if (nextOptions.children !== undefined) {
-                content.set(nextOptions.children);
-            } else if (nextOptions.text !== undefined) {
-                setText(nextOptions.text);
-            }
-
-            controlHint.update(getControlHintOptions(nextOptions));
-            controlHint.refresh();
+            runCleanups([
+                () => {
+                    if (nextOptions.children !== undefined) content.set(nextOptions.children);
+                    else if (nextOptions.text !== undefined) content.set([nextOptions.text]);
+                },
+                () => {
+                    if (destroyed || current !== revision) return;
+                    controlHint.update(getControlHintOptions(nextOptions));
+                    controlHint.refresh();
+                }
+            ]);
         },
 
         destroy(): void {
-            content.dispose();
-            selectedState.destroy();
-            controlHint.destroy();
-            button.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            revision += 1;
+            runCleanups([content.dispose, selectedState.destroy, controlHint.destroy, button.destroy]);
         }
     };
 

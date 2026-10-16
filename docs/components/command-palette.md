@@ -61,6 +61,8 @@ Do not use it for critical confirmations. Use [Dialog](./dialog.md) or [AlertDia
 - Allows individual commands to opt out with `closeOnSelect: false`.
 - Lets Escape close the palette directly, even when the search result popup is open.
 - Restores focus through Dialog behavior when closed.
+- Stops the remaining selection chain if closing or running a command destroys
+  the palette or starts a newer update. A newly focused command destination is retained.
 
 ## Options
 
@@ -78,6 +80,12 @@ Do not use it for critical confirmations. Use [Dialog](./dialog.md) or [AlertDia
 - `dialogOptions` - Dialog options not owned by CommandPalette.
 - `onSelect` - called when a command is selected.
 - `onOpenChange` - called when the palette opens or closes.
+
+`searchLabel`, `placeholder`, `notFoundText` and `description` accept `null` to
+omit their content. Supply another accessible name when omitting the input label.
+Dialog body, focus setup, actions and selection/open callbacks are palette-owned;
+`dialogOptions` updates cannot replace these. Base `id`, `className` and `attributes`
+apply to the dialog element, as in `Dialog`.
 
 ## Command Items
 
@@ -125,6 +133,18 @@ shortcut: { key: "k", code: "KeyK", ctrlKey: true }
 Always provide a visible trigger too. Shortcuts should accelerate access, not become the only way to open important UI.
 
 `allowInEditable: true` allows the shortcut to work while focus is inside inputs, textareas, selects, or editable content. Use it carefully, because it can intercept shortcuts users expect inside text fields.
+
+Handled, composing/IME and repeated key events do not open the palette. Escape
+on its own search input closes the palette directly; other descendants follow
+Dialog/layer ownership. Modified or composing Escape is not stolen.
+
+## Ownership
+
+The palette owns its Dialog and SearchBox. Exposed parts are borrowed controls;
+call the palette's `destroy()` once rather than destroying them separately.
+Teardown completes after a child/subscription cleanup error and rejects late
+setters or locale notifications. Locale refresh retains the input and results;
+`setItems()` replaces results. Search remains synchronous and in-memory.
 
 ## Runtime Passed To Commands
 

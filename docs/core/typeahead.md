@@ -35,6 +35,11 @@ typeahead.destroy();
 * Searches from the current item forward
 * Supports repeated-character cycling
 * Calls onMatch when an item matches
+* Preserves falsy identities such as `0`, `false` and `""`; only null means no match
+* Refines a multi-character prefix on the current match before looking elsewhere;
+  repeated single characters still cycle to the next match
+* Ignores already-handled events, IME composition and Ctrl/Alt/Meta chords without
+  changing the query
 
 ## Principles
 

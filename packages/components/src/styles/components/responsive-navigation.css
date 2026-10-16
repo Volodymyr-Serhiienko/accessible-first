@@ -45,6 +45,7 @@
     box-sizing: border-box;
     white-space: normal;
     overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 [data-af-responsive-navigation-mobile][data-af-component="disclosure"] {
@@ -99,6 +100,7 @@
     min-inline-size: 0;
     max-inline-size: 100%;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--af-space-3);
     background: var(--af-color-bg);
 }

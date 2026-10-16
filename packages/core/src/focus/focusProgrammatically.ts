@@ -4,10 +4,9 @@ import { focusElement } from "./focusElement";
 /**
  * Focuses an element even when it is not normally keyboard-focusable.
  *
- * The helper temporarily applies `tabindex="-1"` when needed, focuses the
- * element, and restores the previous tabindex immediately after that. This
- * keeps semantic targets out of the regular Tab order while still allowing
- * route changes, skip links, screens, and dialogs to move focus predictably.
+ * A semantic target without tabindex keeps a temporary `tabindex="-1"`
+ * until blur; removing it while focused can send focus back to the body.
+ * Failed attempts clean up immediately. Existing tabindex values are preserved.
  */
 export function focusProgrammatically(
     element: HTMLElement | null,
@@ -15,15 +14,23 @@ export function focusProgrammatically(
 ): boolean {
     if (!element) return false;
 
-    const previousTabIndex = element.getAttribute("tabindex");
-
-    if (element.tabIndex < 0) {
-        element.tabIndex = -1;
+    if (element.tabIndex >= 0 || element.hasAttribute("tabindex")) {
+        return focusElement(element, options);
     }
 
-    const focused = focusElement(element, options);
+    element.tabIndex = -1;
+    let focused = false;
+    const restore = (): void => {
+        if (element.getAttribute("tabindex") === "-1") {
+            restoreAttribute(element, "tabindex", null);
+        }
+    };
 
-    restoreAttribute(element, "tabindex", previousTabIndex);
-
-    return focused;
+    try {
+        focused = focusElement(element, options);
+        if (focused) element.addEventListener("blur", restore, { once: true });
+        return focused;
+    } finally {
+        if (!focused) restore();
+    }
 }

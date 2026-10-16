@@ -1,3 +1,4 @@
+import { runCleanups } from "../../../core/src/events";
 import {
     Button,
     type ButtonCompositionOptions,
@@ -305,6 +306,7 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
     element.append(triggerButton.element, content);
 
     let composed!: ComposedPopover;
+    let destroyed = false;
     let onOpenChange = options.onOpenChange ?? null;
 
     let descriptionMode = options.descriptionMode ?? "content";
@@ -327,16 +329,19 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
     );
 
     function setTriggerContent(nextContent: PopoverCompositionContent): void {
+        if (destroyed) return;
         triggerButton.update({
             children: toCompositionChildren(nextContent)
         });
     }
 
     function setContent(nextContent: PopoverCompositionContent): void {
+        if (destroyed) return;
         contentSlot.set(toCompositionChildren(nextContent));
     }
 
     function setDescription(nextDescription: string | null): void {
+        if (destroyed) return;
         const text = nextDescription?.trim() ?? "";
 
         description.textContent = text;
@@ -356,6 +361,7 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
         setContent,
 
         update(nextOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.contentOptions !== undefined) {
@@ -384,6 +390,7 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
             if (nextOptions.children !== undefined) {
                 setContent(nextOptions.children);
             }
+            if (destroyed) return;
 
             const contentIdChanged = (
                 nextOptions.contentId !== undefined
@@ -433,9 +440,13 @@ export function Popover(options: PopoverCompositionOptions): ComposedPopover {
         },
 
         destroy(): void {
-            popover.destroy();
-            contentSlot.dispose();
-            triggerButton.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([
+                () => popover.destroy(),
+                () => contentSlot.dispose(),
+                () => triggerButton.destroy()
+            ]);
         }
     };
 

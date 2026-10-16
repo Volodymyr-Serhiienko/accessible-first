@@ -1,5 +1,7 @@
 import { restoreAttribute } from "../../../core/src/dom";
 import { focusProgrammatically } from "../../../core/src/focus";
+import { runCleanups } from "../../../core/src/events";
+import { createLocaleSubscription } from "../localization/createLocaleSubscription";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -166,7 +168,9 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
     let listLabel = options.listLabel;
     let detailLabel = options.detailLabel;
     let locale = options.locale ?? null;
-    let unsubscribeLocale: (() => void) | null = null;
+    const localeSubscription = createLocaleSubscription(sync);
+    let destroyed = false;
+    let revision = 0;
     let orientation: ListDetailOrientation = options.orientation ?? "auto";
     let variant: ListDetailVariant = options.variant ?? "default";
     let size: ListDetailSize = options.size ?? "md";
@@ -197,10 +201,12 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         target: ListDetailFocusTarget = defaultFocusTarget,
         focusOptions: FocusOptions = { preventScroll: true }
     ): boolean {
+        if (destroyed) return false;
         return focusProgrammatically(getFocusTarget(target), focusOptions);
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "list-detail");
         element.setAttribute("data-af-orientation", orientation);
         element.setAttribute("data-af-variant", variant);
@@ -235,92 +241,76 @@ export function ListDetail(options: ListDetailOptions): ComposedListDetail {
         }
     }
 
-    function syncLocaleSubscription(): void {
-        unsubscribeLocale?.();
-        unsubscribeLocale = null;
-
-        if (!locale?.subscribe) return;
-
-        unsubscribeLocale = locale.subscribe(() => {
-            sync();
-        });
-    }
-
     function setList(content: ListDetailCompositionContent): void {
-        listContent = normalizeSlotContent(content);
-        listSlot.set(toCompositionChildren(listContent));
-        sync();
+        update({ list: content });
     }
 
     function setDetail(content: ListDetailCompositionContent | null): void {
-        detailSlotContent = normalizeSlotContent(content);
-        hasDetail = hasCompositionContent(detailSlotContent);
-        detailSlot.set(toCompositionChildren(detailSlotContent));
-        sync();
+        update({ detail: content });
     }
 
     function setEmpty(content: ListDetailCompositionContent | null): void {
-        emptyContent = normalizeSlotContent(content);
-        hasEmpty = hasCompositionContent(emptyContent);
-        emptySlot.set(toCompositionChildren(emptyContent));
-        sync();
+        update({ empty: content });
     }
 
-    syncLocaleSubscription();
-    sync();
+    function update(nextOptions: ListDetailUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+        if (nextOptions.listOptions !== undefined) applyCompositionElementOptions(list, nextOptions.listOptions);
+        if (nextOptions.detailOptions !== undefined) applyCompositionElementOptions(detail, nextOptions.detailOptions);
+        if (nextOptions.emptyOptions !== undefined) applyCompositionElementOptions(empty, nextOptions.emptyOptions);
+
+        if ("listLabel" in nextOptions) listLabel = nextOptions.listLabel;
+        if ("detailLabel" in nextOptions) detailLabel = nextOptions.detailLabel;
+        if ("locale" in nextOptions) locale = nextOptions.locale ?? null;
+        if ("listWidth" in nextOptions) listWidth = nextOptions.listWidth ?? null;
+        if (nextOptions.defaultFocusTarget !== undefined) defaultFocusTarget = nextOptions.defaultFocusTarget;
+        if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+
+        runCleanups([
+            () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
+            () => {
+                if (destroyed || current !== revision || !("list" in nextOptions)) return;
+                listContent = normalizeSlotContent(nextOptions.list);
+                listSlot.set(toCompositionChildren(listContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("detail" in nextOptions)) return;
+                detailSlotContent = normalizeSlotContent(nextOptions.detail);
+                hasDetail = hasCompositionContent(detailSlotContent);
+                detailSlot.set(toCompositionChildren(detailSlotContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("empty" in nextOptions)) return;
+                emptyContent = normalizeSlotContent(nextOptions.empty);
+                hasEmpty = hasCompositionContent(emptyContent);
+                emptySlot.set(toCompositionChildren(emptyContent));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([localeSubscription.destroy, listSlot.dispose, detailSlot.dispose, emptySlot.dispose,
+            () => restoreAttribute(list, "tabindex", originalListTabIndex),
+            () => restoreAttribute(detail, "tabindex", originalDetailTabIndex)]);
+    }
+
+    try {
+        localeSubscription.replace(locale);
+        sync();
+    } catch (error) {
+        runCleanups([() => { throw error; }, destroy]);
+    }
 
     return {
-        element,
-        list,
-        detail,
-        detailContent,
-        empty,
-        setList,
-        setDetail,
-        setEmpty,
-        getFocusTarget,
-        focus,
-
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.listOptions !== undefined) {
-                applyCompositionElementOptions(list, nextOptions.listOptions);
-            }
-
-            if (nextOptions.detailOptions !== undefined) {
-                applyCompositionElementOptions(detail, nextOptions.detailOptions);
-            }
-
-            if (nextOptions.emptyOptions !== undefined) {
-                applyCompositionElementOptions(empty, nextOptions.emptyOptions);
-            }
-
-            if ("list" in nextOptions) setList(nextOptions.list);
-            if ("detail" in nextOptions) setDetail(nextOptions.detail ?? null);
-            if ("empty" in nextOptions) setEmpty(nextOptions.empty ?? null);
-            if ("listLabel" in nextOptions) listLabel = nextOptions.listLabel;
-            if ("detailLabel" in nextOptions) detailLabel = nextOptions.detailLabel;
-            if ("locale" in nextOptions) {
-                locale = nextOptions.locale ?? null;
-                syncLocaleSubscription();
-            }
-            if ("listWidth" in nextOptions) listWidth = nextOptions.listWidth ?? null;
-            if (nextOptions.defaultFocusTarget !== undefined) defaultFocusTarget = nextOptions.defaultFocusTarget;
-            if (nextOptions.orientation !== undefined) orientation = nextOptions.orientation;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            unsubscribeLocale?.();
-            listSlot.dispose();
-            detailSlot.dispose();
-            emptySlot.dispose();
-            restoreAttribute(list, "tabindex", originalListTabIndex);
-            restoreAttribute(detail, "tabindex", originalDetailTabIndex);
-        }
+        element, list, detail, detailContent, empty,
+        setList, setDetail, setEmpty, getFocusTarget, focus, update, destroy
     };
 }

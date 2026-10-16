@@ -7,7 +7,7 @@ function normalizeText(text: string): string {
 }
 
 function isTypeaheadKey(event: KeyboardEvent): boolean {
-    if (event.altKey || event.ctrlKey || event.metaKey) {
+    if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) {
         return false;
     }
 
@@ -79,8 +79,10 @@ export function createTypeahead<TItem>(
         }
 
         const effectiveQuery = getSearchQuery(searchQuery);
-        const currentIndex = currentItem ? items.indexOf(currentItem) : -1;
-        const startIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
+        const currentIndex = currentItem == null ? -1 : items.indexOf(currentItem);
+        const startIndex = currentIndex >= 0
+            ? currentIndex + (effectiveQuery.length === 1 ? 1 : 0)
+            : 0;
 
         for (let offset = 0; offset < items.length; offset++) {
             const index = (startIndex + offset) % items.length;
@@ -118,14 +120,14 @@ export function createTypeahead<TItem>(
 
         let match = findMatchingItem(query, currentItem);
 
-        if (!match && query.length > 1) {
+        if (match === null && query.length > 1) {
             query = normalizedCharacter;
             match = findMatchingItem(query, currentItem);
         }
 
         scheduleReset();
 
-        if (match) {
+        if (match !== null) {
             options.onMatch?.(match);
         }
 
@@ -142,7 +144,7 @@ export function createTypeahead<TItem>(
 
             const match = search(event.key, currentItem);
 
-            if (!match) {
+            if (match === null) {
                 return false;
             }
 

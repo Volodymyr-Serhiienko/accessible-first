@@ -10,6 +10,7 @@
     border-radius: 8px;
     color: var(--af-color-fg);
     background: var(--af-color-bg);
+    overflow-wrap: anywhere;
 }
 
 [data-af-composition="field-group"][data-af-variant="plain"] {
@@ -20,6 +21,9 @@
 }
 
 [data-af-field-group-legend] {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     margin: 0;
     padding: 0;
     color: var(--af-color-fg);

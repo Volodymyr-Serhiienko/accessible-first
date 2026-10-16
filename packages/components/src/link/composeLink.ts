@@ -13,6 +13,7 @@ import {
 } from "../foundation";
 import { createLink } from "./createLink";
 import type { Link as LinkInstance, LinkOptions } from "./types";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Called when the composed link is activated.
@@ -135,8 +136,10 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
 
     let composed!: ComposedLink;
     let onNavigate = options.onNavigate ?? null;
+    let destroyed = false;
 
     const handleNavigate = (event: Event): void => {
+        if (destroyed) return;
         onNavigate?.(event, composed);
     };
 
@@ -148,7 +151,9 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
     const controlHint = createControlHint(element, getControlHintOptions(options));
 
     function setText(text: string): void {
+        if (destroyed) return;
         content.set([text]);
+        if (destroyed) return;
         controlHint.refresh();
     }
 
@@ -156,9 +161,13 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
         ...link,
         element,
         setText,
-        setHint: controlHint.setHint,
+        isDestroyed: () => destroyed || link.isDestroyed(),
+        setHint(hint): void {
+            if (!destroyed) controlHint.setHint(hint);
+        },
 
         update(nextOptions: LinkCompositionUpdateOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if ("onNavigate" in nextOptions) {
@@ -173,14 +182,15 @@ export function Link(options: LinkCompositionOptions = {}): ComposedLink {
                 setText(nextOptions.text);
             }
 
+            if (destroyed) return;
             controlHint.update(getControlHintOptions(nextOptions));
             controlHint.refresh();
         },
 
         destroy(): void {
-            content.dispose();
-            controlHint.destroy();
-            link.destroy();
+            if (destroyed) return;
+            destroyed = true;
+            runCleanups([content.dispose, controlHint.destroy, link.destroy]);
         }
     };
 

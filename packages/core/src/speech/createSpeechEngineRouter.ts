@@ -80,13 +80,14 @@ function createRoutedPlayback(
         listeners.forEach((listener) => listener(state));
     }
 
-    function detach(): SpeechPlayback | null {
+    function detach(): { previous: SpeechPlayback | null; failed: boolean } {
         revision += 1;
-        unsubscribe?.();
+        const cleanup = unsubscribe;
         unsubscribe = null;
         const previous = child;
         child = null;
-        return previous;
+        try { cleanup?.(); return { previous, failed: false }; }
+        catch { return { previous, failed: true }; }
     }
 
     function finish(next: SpeechPlaybackState): void {
@@ -94,8 +95,9 @@ function createRoutedPlayback(
         if (pauseTimer !== null) clearTimeout(pauseTimer);
         pauseTimer = null;
         pauseRemaining = 0;
-        const previous = detach();
+        const { previous, failed } = detach();
         try { previous?.stop(); } catch { /* The routed state still settles if a provider cannot stop. */ }
+        if (failed && state.status !== "idle") state = { status: "error", error: "speech-engine-routing-failed" };
         notify();
     }
 
@@ -133,7 +135,12 @@ function createRoutedPlayback(
                     const cleanup = current.subscribe((next) => {
                         if (ticket !== revision || child !== current) return;
                         if (next.status === "completed") {
-                            detach();
+                            const { previous, failed } = detach();
+                            if (failed) {
+                                try { previous?.stop(); } catch { /* Detachment already invalidated late provider callbacks. */ }
+                                finish({ status: "error", error: "speech-engine-routing-failed" });
+                                return;
+                            }
                             index += 1;
                             pauseRemaining = index < groups.length ? group.pauseAfterMs : 0;
                             continueAfterPause();

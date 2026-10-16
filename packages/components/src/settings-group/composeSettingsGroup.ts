@@ -12,6 +12,7 @@ import type {
     ComposedNode,
     CompositionContent
 } from "../composition";
+import { runCleanups } from "../../../core/src/events";
 
 /**
  * Content accepted by SettingsGroup slots.
@@ -135,8 +136,10 @@ export function SettingsGroup(options: SettingsGroupOptions): ComposedSettingsGr
 
     let variant: SettingsGroupVariant = options.variant ?? "default";
     let size: SettingsGroupSize = options.size ?? "md";
+    let destroyed = false;
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "settings-group");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -149,23 +152,32 @@ export function SettingsGroup(options: SettingsGroupOptions): ComposedSettingsGr
     }
 
     function setTitleContent(content: SettingsGroupCompositionContent): void {
-        formSection.setTitleContent(content);
-        sync();
+        update({ title: content });
     }
 
     function setDescription(content: SettingsGroupCompositionContent | null): void {
-        formSection.setDescription(content);
-        sync();
+        update({ description: content });
     }
 
     function setChildren(content: SettingsGroupCompositionContent | null): void {
-        formSection.setChildren(content);
-        sync();
+        update({ children: content });
     }
 
     function setActions(content: SettingsGroupCompositionContent | null): void {
-        formSection.setActions(content);
-        sync();
+        update({ actions: content });
+    }
+
+    function update(nextOptions: SettingsGroupUpdateOptions): void {
+        if (destroyed) return;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+        runCleanups([() => formSection.update(getFormSectionUpdateOptions(nextOptions)), sync]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        formSection.destroy();
     }
 
     sync();
@@ -183,17 +195,7 @@ export function SettingsGroup(options: SettingsGroupOptions): ComposedSettingsGr
         setChildren,
         setActions,
 
-        update(nextOptions) {
-            formSection.update(getFormSectionUpdateOptions(nextOptions));
-
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy() {
-            formSection.destroy();
-        }
+        update,
+        destroy
     };
 }

@@ -25,6 +25,8 @@ export { Div, Em, H1, H2, H3, Li, Ol, P, Small, Span, Strong, Ul } from "./tags"
 export { VisuallyHidden } from "./visuallyHidden";
 export { Image } from "./image";
 export { LanguageText } from "./languageText";
+export { LazyContent } from "./lazyContent";
+export type { ComposedLazyContent, LazyContentFactory, LazyContentOptions } from "./lazyContent";
 
 export type { ContentSlot } from "./contentSlot";
 export type {

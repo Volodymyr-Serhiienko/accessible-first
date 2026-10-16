@@ -1,4 +1,6 @@
 import { createId } from "../../../core/src/id";
+import { focusProgrammatically } from "../../../core/src/focus";
+import { isRovingFocusItemDisabled } from "../../../core/src/roving-focus";
 import { type BaseCompositionOptions, type ComposedNode, type CompositionContent } from "../composition";
 import { type ButtonCompositionOptions, type ComposedButton } from "../button";
 import { Menu, type ComposedMenu, type MenuCompositionItem, type MenuCompositionSelectDetail } from "../menu";
@@ -65,6 +67,14 @@ export function DropdownMenu(options: DropdownMenuOptions): ComposedDropdownMenu
     function syncControls(): void {
         popover.trigger.setAttribute("aria-controls", menu.element.id);
     }
+    function focusOpeningItem(): void {
+        const enabled = menu.items.filter(item => !item.isDisabled() && !isRovingFocusItemDisabled(item.item));
+        const target = openingEdge === "last" ? enabled[enabled.length - 1]
+            : openingEdge === "first" ? enabled[0]
+            : enabled.find(item => item.value === value) ?? enabled[0];
+        openingEdge = null;
+        if (!target || !menu.setCurrentValue(target.value, { focus: true })) focusProgrammatically(menu.element);
+    }
     const popover = Popover({
         ...options,
         ...options.position,
@@ -77,12 +87,7 @@ export function DropdownMenu(options: DropdownMenuOptions): ComposedDropdownMenu
         onOpenChange: detail => {
             syncControls();
             if (!detail.open) return;
-            const enabled = menu.items.filter(item => !item.isDisabled());
-            const target = openingEdge === "last" ? enabled[enabled.length - 1]
-                : openingEdge === "first" ? enabled[0]
-                : enabled.find(item => item.value === value) ?? enabled[0];
-            openingEdge = null;
-            if (target) menu.setCurrentValue(target.value, { focus: true });
+            focusOpeningItem();
         }
     });
     popover.element.setAttribute("data-af-dropdown-menu", "");
@@ -90,19 +95,18 @@ export function DropdownMenu(options: DropdownMenuOptions): ComposedDropdownMenu
     popover.trigger.setAttribute("data-af-dropdown-trigger", "");
 
     function handleTriggerKey(event: KeyboardEvent): void {
+        if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.altKey || event.metaKey) return;
         if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
         event.preventDefault();
         openingEdge = event.key === "ArrowUp" ? "last" : "first";
         if (popover.isOpen()) {
-            const enabled = menu.items.filter(item => !item.isDisabled());
-            const target = openingEdge === "last" ? enabled[enabled.length - 1] : enabled[0];
-            openingEdge = null;
-            if (target) menu.setCurrentValue(target.value, { focus: true });
+            focusOpeningItem();
         } else popover.open();
     }
     function handleMenuKey(event: KeyboardEvent): void {
         // Closing restores the trigger before the browser's native Tab traversal.
-        if (event.key === "Tab") popover.close();
+        if (!event.defaultPrevented && !event.isComposing && !event.ctrlKey && !event.altKey && !event.metaKey
+            && event.key === "Tab") popover.close();
     }
     popover.trigger.addEventListener("keydown", handleTriggerKey);
     popover.content.addEventListener("keydown", handleMenuKey);
@@ -118,8 +122,9 @@ export function DropdownMenu(options: DropdownMenuOptions): ComposedDropdownMenu
         close: popover.close,
         isOpen: popover.isOpen,
         getValue: () => value,
-        setValue(next): void { value = next; syncCurrent(); },
+        setValue(next): void { if (!destroyed) { value = next; syncCurrent(); } },
         setItems(items): void {
+            if (destroyed) return;
             popover.close();
             menu = createMenu(items);
             popover.setContent(menu);
@@ -127,6 +132,7 @@ export function DropdownMenu(options: DropdownMenuOptions): ComposedDropdownMenu
             syncControls();
         },
         setDisabled(disabled): void {
+            if (destroyed) return;
             popover.setDisabled(disabled);
             popover.triggerButton.setDisabled(disabled);
             syncControls();

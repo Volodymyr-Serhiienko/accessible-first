@@ -2,6 +2,7 @@ import { restoreAttribute } from "../../../core/src/dom";
 import { addEventListener } from "../../../core/src/events";
 import type { FormFieldInvalidState } from "../../../core/src/form-field";
 import { createComponentLifecycle } from "../foundation";
+import { observeNativeFormReset } from "../foundation/observeNativeFormReset";
 import type {
     Checkbox,
     CheckboxChangeDetail,
@@ -11,10 +12,6 @@ import type {
     CheckboxUpdateOptions,
     CheckboxVariant
 } from "./types";
-
-function normalizeCheckedState(value: CheckboxCheckedState | undefined): CheckboxCheckedState {
-    return value ?? false;
-}
 
 function getInputCheckedState(input: HTMLInputElement): CheckboxCheckedState {
     return input.indeterminate ? "mixed" : input.checked;
@@ -72,7 +69,7 @@ export function createCheckbox(
     const originalCheckedMarker = element.getAttribute("data-af-checked");
     const originalInvalidMarker = element.getAttribute("data-af-invalid");
 
-    let checked = normalizeCheckedState(options.checked ?? options.defaultChecked);
+    let checked = options.checked ?? options.defaultChecked ?? getInputCheckedState(element);
     let disabled = options.disabled ?? element.disabled;
     let required = options.required ?? element.required;
     let invalid: FormFieldInvalidState = options.invalid ?? false;
@@ -84,7 +81,7 @@ export function createCheckbox(
     let checkbox!: Checkbox;
 
     function syncChecked(): void {
-        element.checked = checked === true;
+        if (checked !== "mixed") element.checked = checked;
         element.indeterminate = checked === "mixed";
         element.setAttribute("data-af-checked", String(checked));
         element.setAttribute("aria-checked", checked === "mixed" ? "mixed" : String(checked));
@@ -131,6 +128,10 @@ export function createCheckbox(
     syncInvalid();
 
     lifecycle.addCleanup(addEventListener<Event>(element, "change", handleChange));
+    lifecycle.addCleanup(observeNativeFormReset(element, () => [element], () => {
+        checked = getInputCheckedState(element);
+        syncChecked();
+    }));
 
     lifecycle.addCleanup(() => {
         element.checked = originalChecked;
@@ -161,17 +162,17 @@ export function createCheckbox(
         },
 
         getChecked(): CheckboxCheckedState {
-            return checked;
+            return getInputCheckedState(element);
         },
 
         isChecked(): boolean {
-            return checked === true;
+            return getInputCheckedState(element) === true;
         },
 
         toggleChecked(force): boolean {
             if (lifecycle.isDestroyed()) return checked === true;
 
-            this.setChecked(force ?? checked !== true);
+            this.setChecked(force ?? !this.isChecked());
             return this.isChecked();
         },
 
@@ -205,6 +206,8 @@ export function createCheckbox(
         },
 
         update(nextOptions: CheckboxUpdateOptions): void {
+            if (lifecycle.isDestroyed()) return;
+
             if ("checked" in nextOptions) {
                 this.setChecked(nextOptions.checked ?? false);
             }

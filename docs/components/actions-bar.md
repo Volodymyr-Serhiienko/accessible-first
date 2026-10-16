@@ -122,6 +122,12 @@ actions.update({
 });
 ```
 
+Changing layout/labels does not replace slot content or its focused controls.
+Slots follow the [shared ownership contract](foundation.md#lifecycle): cleanup
+errors do not skip remaining slot work, but a newer update supersedes older work.
+Destruction attempts both groups, is idempotent, and makes late setters/update
+inert. The bar and both groups stay within their container's inline width.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="actions-bar"]`, `[data-af-actions-bar-secondary]`, `[data-af-actions-bar-primary]`, `[data-af-align]`, `[data-af-fill-on-wrap]`, `[data-af-variant]`, and `[data-af-size]`.

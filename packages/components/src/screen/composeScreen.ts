@@ -1,4 +1,5 @@
-import { setAriaDescribedBy, setAriaLabelledBy } from "../../../core/src/aria";
+import { createAriaReferenceOwner } from "../../../core/src/aria/createAriaReferenceOwner";
+import { runCleanups } from "../../../core/src/events";
 import { focusProgrammatically } from "../../../core/src/focus";
 import { ensureId } from "../../../core/src/id";
 import {
@@ -196,6 +197,10 @@ export function Screen(options: ScreenOptions): ComposedScreen {
     let actionsLabel = options.actionsLabel ?? null;
     let actionsAlign: ScreenActionsAlign = options.actionsAlign ?? "end";
     let defaultFocusTarget: ScreenFocusTarget = options.defaultFocusTarget ?? "title";
+    let destroyed = false;
+    let revision = 0;
+    const titleReference = createAriaReferenceOwner(element, "aria-labelledby");
+    const descriptionReference = createAriaReferenceOwner(element, "aria-describedby");
 
     let descriptionContent = normalizeSlotContent(options.description);
     let bodyContent = normalizeSlotContent(options.children);
@@ -203,7 +208,6 @@ export function Screen(options: ScreenOptions): ComposedScreen {
     let footerContent = normalizeSlotContent(options.footer);
 
     let hasBody = hasCompositionContent(bodyContent);
-    let hasActions = hasCompositionContent(actionsContent);
     let hasFooter = hasCompositionContent(footerContent);
 
     const titleSlot = createContentSlot(title, toCompositionChildren(options.title));
@@ -233,10 +237,12 @@ export function Screen(options: ScreenOptions): ComposedScreen {
         target: ScreenFocusTarget = defaultFocusTarget,
         focusOptions: FocusOptions = { preventScroll: true }
     ): boolean {
+        if (destroyed) return false;
         return focusProgrammatically(getFocusTarget(target), focusOptions);
     }
 
     function sync(): void {
+        if (destroyed) return;
         ensureId(title, "af-screen-title");
 
         element.setAttribute("data-af-composition", "screen");
@@ -253,125 +259,117 @@ export function Screen(options: ScreenOptions): ComposedScreen {
 
         description.hidden = !hasVisibleContent(description);
         body.hidden = !hasBody;
-        actionsBar.element.hidden = !hasActions;
         footer.hidden = !hasFooter;
 
-        setAriaLabelledBy(element, title);
-        setAriaDescribedBy(
-            element,
-            descriptionMode === "aria" && !description.hidden ? description : null
-        );
+        titleReference.set([title.id]);
+        descriptionReference.set(descriptionMode === "aria" && !description.hidden
+            ? [ensureId(description, "af-screen-description")] : []);
 
         actionsBar.update(getActionsBarStateOptions(actionsLabel, actionsAlign));
+        actionsBar.element.hidden = Boolean(actionsBar.primarySlot.hidden && actionsBar.secondarySlot.hidden);
         actionsBar.element.setAttribute("data-af-screen-actions", "");
     }
 
     function setTitle(content: ScreenCompositionContent): void {
-        titleSlot.set(toCompositionChildren(content));
-        sync();
+        update({ title: content });
     }
 
     function setDescription(content: ScreenCompositionContent | null): void {
-        descriptionContent = normalizeSlotContent(content);
-        descriptionSlot.set(toCompositionChildren(descriptionContent));
-        sync();
+        update({ description: content });
     }
 
     function setBody(content: ScreenCompositionContent | null): void {
-        bodyContent = normalizeSlotContent(content);
-        hasBody = hasCompositionContent(bodyContent);
-        bodySlot.set(toCompositionChildren(bodyContent));
-        sync();
+        update({ children: content });
     }
 
     function setActions(content: ScreenCompositionContent | null): void {
-        actionsContent = normalizeSlotContent(content);
-        hasActions = hasCompositionContent(actionsContent);
-        actionsBar.setPrimary(actionsContent);
-        sync();
+        update({ actions: content });
     }
 
     function setFooter(content: ScreenCompositionContent | null): void {
-        footerContent = normalizeSlotContent(content);
-        hasFooter = hasCompositionContent(footerContent);
-        footerSlot.set(toCompositionChildren(footerContent));
-        sync();
+        update({ footer: content });
+    }
+
+    function update(nextOptions: ScreenUpdateOptions): void {
+        if (destroyed) return;
+        const current = ++revision;
+        applyCompositionElementOptions(element, nextOptions);
+
+        if (nextOptions.headerOptions !== undefined) {
+            applyCompositionElementOptions(header, nextOptions.headerOptions);
+        }
+
+        if (nextOptions.titleOptions !== undefined) {
+            applyCompositionElementOptions(title, nextOptions.titleOptions);
+        }
+
+        if (nextOptions.descriptionOptions !== undefined) {
+            applyCompositionElementOptions(description, nextOptions.descriptionOptions);
+        }
+
+        if (nextOptions.bodyOptions !== undefined) {
+            applyCompositionElementOptions(body, nextOptions.bodyOptions);
+        }
+
+        if (nextOptions.actionsOptions !== undefined) {
+            applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
+        }
+
+        if (nextOptions.footerOptions !== undefined) {
+            applyCompositionElementOptions(footer, nextOptions.footerOptions);
+        }
+
+        if (nextOptions.defaultFocusTarget !== undefined) {
+            defaultFocusTarget = nextOptions.defaultFocusTarget;
+        }
+
+        if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
+        if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
+        if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
+        if (nextOptions.variant !== undefined) variant = nextOptions.variant;
+        if (nextOptions.size !== undefined) size = nextOptions.size;
+
+        runCleanups([
+            () => { if (!destroyed && current === revision && "title" in nextOptions) titleSlot.set(toCompositionChildren(nextOptions.title)); },
+            () => {
+                if (destroyed || current !== revision || !("description" in nextOptions)) return;
+                descriptionContent = normalizeSlotContent(nextOptions.description);
+                descriptionSlot.set(toCompositionChildren(descriptionContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("children" in nextOptions)) return;
+                bodyContent = normalizeSlotContent(nextOptions.children);
+                hasBody = hasCompositionContent(bodyContent);
+                bodySlot.set(toCompositionChildren(bodyContent));
+            },
+            () => {
+                if (destroyed || current !== revision || !("actions" in nextOptions)) return;
+                actionsContent = normalizeSlotContent(nextOptions.actions);
+                actionsBar.setPrimary(actionsContent);
+            },
+            () => {
+                if (destroyed || current !== revision || !("footer" in nextOptions)) return;
+                footerContent = normalizeSlotContent(nextOptions.footer);
+                hasFooter = hasCompositionContent(footerContent);
+                footerSlot.set(toCompositionChildren(footerContent));
+            },
+            sync
+        ]);
+    }
+
+    function destroy(): void {
+        if (destroyed) return;
+        destroyed = true;
+        revision += 1;
+        runCleanups([titleSlot.dispose, descriptionSlot.dispose, bodySlot.dispose, footerSlot.dispose,
+            actionsBar.destroy, titleReference.destroy, descriptionReference.destroy]);
     }
 
     sync();
-
     return {
-        element,
-        header,
-        title,
-        description,
-        body,
-        actions: actionsBar.element,
-        actionsBar,
-        footer,
-
+        element, header, title, description, body, actions: actionsBar.element, actionsBar, footer,
         getTitleText: () => getElementText(title),
         getDescriptionText: () => getElementText(description),
-
-        setTitle,
-        setDescription,
-        setBody,
-        setActions,
-        setFooter,
-        getFocusTarget,
-        focus,
-
-        update(nextOptions): void {
-            applyCompositionElementOptions(element, nextOptions);
-
-            if (nextOptions.headerOptions !== undefined) {
-                applyCompositionElementOptions(header, nextOptions.headerOptions);
-            }
-
-            if (nextOptions.titleOptions !== undefined) {
-                applyCompositionElementOptions(title, nextOptions.titleOptions);
-            }
-
-            if (nextOptions.descriptionOptions !== undefined) {
-                applyCompositionElementOptions(description, nextOptions.descriptionOptions);
-            }
-
-            if (nextOptions.bodyOptions !== undefined) {
-                applyCompositionElementOptions(body, nextOptions.bodyOptions);
-            }
-
-            if (nextOptions.actionsOptions !== undefined) {
-                applyCompositionElementOptions(actionsBar.element, nextOptions.actionsOptions);
-            }
-
-            if (nextOptions.footerOptions !== undefined) {
-                applyCompositionElementOptions(footer, nextOptions.footerOptions);
-            }
-
-            if (nextOptions.defaultFocusTarget !== undefined) {
-                defaultFocusTarget = nextOptions.defaultFocusTarget;
-            }
-
-            if ("title" in nextOptions) setTitle(nextOptions.title);
-            if ("description" in nextOptions) setDescription(nextOptions.description ?? null);
-            if ("children" in nextOptions) setBody(nextOptions.children ?? null);
-            if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
-            if ("footer" in nextOptions) setFooter(nextOptions.footer ?? null);
-            if ("actionsLabel" in nextOptions) actionsLabel = nextOptions.actionsLabel ?? null;
-            if (nextOptions.descriptionMode !== undefined) descriptionMode = nextOptions.descriptionMode;
-            if (nextOptions.actionsAlign !== undefined) actionsAlign = nextOptions.actionsAlign;
-            if (nextOptions.variant !== undefined) variant = nextOptions.variant;
-            if (nextOptions.size !== undefined) size = nextOptions.size;
-
-            sync();
-        },
-
-        destroy(): void {
-            titleSlot.dispose();
-            descriptionSlot.dispose();
-            bodySlot.dispose();
-            footerSlot.dispose();
-            actionsBar.destroy();
-        }
+        setTitle, setDescription, setBody, setActions, setFooter, getFocusTarget, focus, update, destroy
     };
 }

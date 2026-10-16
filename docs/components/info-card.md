@@ -126,6 +126,11 @@ lesson.update({
 
 Use `setMedia(null)`, `setMeta(null)`, `setDescription(null)`, `setBody(null)`, or `setActions(null)` to hide optional slots.
 
+Slots follow the [shared ownership contract](foundation.md#lifecycle). Combined
+updates continue after cleanup errors unless newer work supersedes them.
+Destruction attempts every owned slot, is idempotent, and makes later setters and
+updates inert. Independently added secondary actions keep the action area visible.
+
 ## Styling
 
 Useful hooks include `[data-af-composition="info-card"]`, `[data-af-info-card-media]`, `[data-af-info-card-content]`, `[data-af-info-card-meta]`, `[data-af-info-card-title]`, `[data-af-info-card-description]`, `[data-af-info-card-body]`, `[data-af-info-card-actions]`, `[data-af-orientation]`, `[data-af-variant]`, and `[data-af-size]`.
@@ -138,7 +143,10 @@ InfoCard({
 });
 ```
 
-The default styles use CSS custom properties such as `--af-info-card-padding`, `--af-info-card-media-size`, and `--af-info-card-horizontal-media-size`.
+The default styles use `--af-info-card-padding` and `--af-info-card-media-size`.
+The root and content use shrinkable grid tracks, including horizontal cards in
+narrow desktop panels. Percentage-bounded body content can shrink with the card;
+deliberately fixed-width media/content still needs application-owned sizing.
 
 ## Manual Checks
 
@@ -147,5 +155,7 @@ The default styles use CSS custom properties such as `--af-info-card-padding`, `
 - Interactive actions are reachable by keyboard in a logical order.
 - The whole card is not made clickable when it contains other interactive controls.
 - Decorative media is hidden from assistive technologies, either by the media content itself or with `mediaHidden: true`.
+- Decorative media must not contain focusable controls; put controls in actions or body.
 - Text contrast is readable in light and dark themes.
 - Horizontal layout collapses cleanly on small screens.
+- Long unbroken titles, metadata and descriptions wrap without page overflow.

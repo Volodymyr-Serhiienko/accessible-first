@@ -72,7 +72,8 @@ When `detail` is empty and `empty` is provided, the detail area shows the empty 
 
 The list and detail areas are programmatic focus targets, not regular Tab stops. When application code moves focus to one of those areas, the area name should orient the user without forcing repeated descriptions while they continue through the controls inside the area.
 
-Prefer specific localized `listLabel` and `detailLabel` values in real applications. Generic fallback labels are temporary service text and should move behind the shared localization layer.
+Prefer specific localized `listLabel` and `detailLabel` values in real applications.
+Generic fallback names use the shared `locale` provider.
 
 ## Options
 
@@ -81,6 +82,7 @@ Prefer specific localized `listLabel` and `detailLabel` values in real applicati
 - `empty` - fallback content shown when `detail` is empty.
 - `listLabel` - accessible name for the list area. Prefer a specific localized label such as `"Projects"` or `"Lessons"`.
 - `detailLabel` - accessible name for the detail area. Prefer a specific localized label such as `"Project details"` or `"Lesson details"`.
+- `locale` - shared provider for generic list/detail fallback labels.
 - `orientation` - `"auto"`, `"horizontal"`, or `"vertical"`. Defaults to `"auto"`.
 - `variant` - `"default"` or `"plain"`.
 - `size` - currently `"md"`.
@@ -100,6 +102,20 @@ Prefer specific localized `listLabel` and `detailLabel` values in real applicati
 - `update(options)` - updates runtime-safe options.
 - `destroy()` - disposes internal slots.
 
+Slots own composed children and keep those retained by object identity. Do not
+share one controller across multiple slots. A newer update/destroy from child
+cleanup cancels the remaining steps of an older combined update; untouched,
+unprocessed slot content is not transferred into ownership. There is no transactional
+rollback. Cleanup failures still allow the other requested slots and final visibility
+synchronization to finish when no newer update intervenes, then the first error is
+rethrown.
+
+Destroy attempts all slots, the locale unsubscribe and focus-attribute restoration,
+even after a failure. Repeated destroy and late mutations are inert; `focus()` returns
+`false` after destruction. Getters still expose the retained DOM. Content replacement
+does not automatically move focus; selection and fallback destinations stay app-owned.
+Long text wraps inside both areas without widening the auto layout.
+
 ## Styling
 
 Useful hooks include:
@@ -118,6 +134,13 @@ The component uses CSS custom properties:
 - `--af-list-detail-gap`
 - `--af-list-detail-list-width`
 - `--af-list-detail-panel-padding`
+
+The list width is capped at half the available inline space, leaving room for
+details even inside a narrow panel on a wide desktop viewport. Both columns and
+the detail content grid can shrink. `orientation: "auto"` stacks below the `48rem`
+viewport breakpoint; `"horizontal"` deliberately retains two columns. Choose
+`"vertical"` for a narrow embedded workflow that should always stack. Fixed-width
+children still require their own responsive sizing or scrolling.
 
 ## Manual Checks
 

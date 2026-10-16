@@ -1,4 +1,4 @@
-import { addEventListener, type Cleanup } from "../../../core/src/events";
+import { addEventListener, runCleanups, type Cleanup } from "../../../core/src/events";
 import { focusElement } from "../../../core/src/focus";
 import { scrollIntoViewIfNeeded } from "../../../core/src/scroll";
 import {
@@ -11,6 +11,7 @@ import {
 import { ActionsBar, type ActionsBarOptions } from "../actions-bar";
 import {
     applyCompositionElementOptions,
+    collectDestroyers,
     createContentSlot,
     createElement,
     getCompositionElementOptions,
@@ -46,6 +47,7 @@ export type FormValidationState = "idle" | "valid" | "invalid";
  *
  * "auto" avoids duplicate speech when the form moves focus to the first
  * invalid field, unless a custom validation summary message is provided.
+ * If focus cannot move or already belongs to that field, errors are announced.
  */
 export type FormCompositionValidationAnnouncement = ValidationAnnouncementStrategy;
 
@@ -144,6 +146,7 @@ export interface FormCompositionContext {
     registerField(field: FormValidatableField): void;
     unregisterField(field: FormValidatableField): void;
     getFields(): FormValidatableField[];
+    /** Returns an inactive, invalid result without side effects after destroy(). */
     validate(options?: FormCompositionValidateOptions): FormCompositionValidationDetail;
 }
 
@@ -227,6 +230,7 @@ export interface ComposedForm extends ComposedNode<HTMLFormElement> {
     unregisterField(field: FormValidatableField): void;
     setFields(fields: FormValidatableField[]): void;
     getFields(): FormValidatableField[];
+    /** Returns an inactive, invalid result without side effects after destroy(). */
     validate(options?: FormCompositionValidateOptions): FormCompositionValidationDetail;
     clearValidation(): void;
     submit(): void;
@@ -325,6 +329,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     element.append(body, actionsBar.element);
 
     let composed!: ComposedForm;
+    let destroyed = false;
     let optionFields = options.fields ?? [];
     let registeredFields: FormValidatableField[] = [];
     let contentFields: FormValidatableField[] = [];
@@ -359,10 +364,11 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     const cleanups: Cleanup[] = [];
     let pendingResetFrame: number | null = null;
     let resetEventHandled = false;
-    let lastResetEvent: Event | null = null;
+    let pendingResetEvents: Event[] = [];
 
     function getAnnouncer(): ValidationAnnouncer {
         validationAnnouncer ??= createValidationAnnouncer({
+            container: element,
             summaryMessage: (errors) => validationSummaryMessage?.(errors)
         });
         return validationAnnouncer;
@@ -383,23 +389,25 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
 
     function announceInvalidValidation(
         validateOptions: FormCompositionValidateOptions,
-        invalidResults: readonly FormCompositionFieldValidationDetail[]
+        invalidResults: readonly FormCompositionFieldValidationDetail[],
+        movedFocus: boolean
     ): void {
         if (invalidResults.length === 0) {
             return;
         }
 
         const errors = invalidResults.map(toValidationAnnouncement);
-        const willFocusInvalidField = validateOptions.focus ?? focusFirstInvalid;
-        const needsFocusedSummary = announceValidation === "auto" && willFocusInvalidField;
+        const needsFocusedSummary = announceValidation === "auto" && movedFocus;
         const focusedSummaryMessage = needsFocusedSummary
             ? getValidationSummaryMessage(errors)
             : null;
 
+        if (destroyed) return;
+
         if (!shouldAnnounceValidationFeedback({
             strategy: announceValidation,
             announce: validateOptions.announce,
-            willMoveFocus: willFocusInvalidField,
+            willMoveFocus: movedFocus,
             hasSummary: focusedSummaryMessage !== null
         })) {
             validationAnnouncer?.clear();
@@ -437,10 +445,12 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     }
 
     function registerField(field: FormValidatableField): void {
+        if (destroyed) return;
         registeredFields = uniqueFields([...registeredFields, field]);
     }
 
     function unregisterField(field: FormValidatableField): void {
+        if (destroyed) return;
         optionFields = optionFields.filter((candidate) => candidate !== field);
         registeredFields = registeredFields.filter((candidate) => candidate !== field);
         contentFields = contentFields.filter((candidate) => candidate !== field);
@@ -449,7 +459,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     function createContext(nextContentFields: FormValidatableField[]): FormCompositionContext {
         return {
             field<TField extends FormValidatableField>(field: TField): TField {
-                nextContentFields.push(field);
+                if (!destroyed) nextContentFields.push(field);
                 return field;
             },
             registerField,
@@ -466,7 +476,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
             const nextContentFields: FormValidatableField[] = [];
             const content = children(createContext(nextContentFields));
 
-            contentFields = uniqueFields(nextContentFields);
+            if (!destroyed) contentFields = uniqueFields(nextContentFields);
             return toCompositionChildren(content);
         }
 
@@ -487,6 +497,7 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     }
 
     function sync(): void {
+        if (destroyed) return;
         element.setAttribute("data-af-composition", "form");
         element.setAttribute("data-af-variant", variant);
         element.setAttribute("data-af-size", size);
@@ -503,41 +514,35 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         syncNativeAttributes();
     }
 
-    function focusInvalidResult(result: FormCompositionFieldValidationDetail): void {
-        if (scrollFirstInvalid) {
-            scrollIntoViewIfNeeded(result.control);
+    function focusFirstControl(controls: readonly HTMLElement[], scroll: boolean): boolean {
+        const previous = element.ownerDocument.activeElement;
+        for (const control of controls) {
+            if (destroyed) return false;
+            if (!focusElement(control, { preventScroll: true })) continue;
+            if (destroyed) return false;
+            if (scroll) scrollIntoViewIfNeeded(control);
+            return previous !== control;
         }
-
-        focusElement(result.control);
-    }
-
-    function focusFirstField(): void {
-        const firstField = getFields()[0];
-
-        if (!firstField) return;
-
-        const control = getFieldControl(firstField);
-
-        scrollIntoViewIfNeeded(control);
-        focusElement(control);
+        return false;
     }
 
     function runResetEffects(): void {
         pendingResetFrame = null;
 
-        const event = lastResetEvent;
-
-        lastResetEvent = null;
+        // A later listener may cancel reset after our listener has run.
+        const event = [...pendingResetEvents].reverse().find((candidate) => !candidate.defaultPrevented);
+        pendingResetEvents = [];
+        if (destroyed || !event) return;
 
         if (clearValidationOnReset) {
             clearValidation();
         }
 
-        if (focusFirstOnReset) {
-            focusFirstField();
+        if (!destroyed && focusFirstOnReset) {
+            focusFirstControl(getFields().map(getFieldControl), true);
         }
 
-        if (event) {
+        if (!destroyed) {
             onReset?.({ event }, composed);
         }
     }
@@ -553,23 +558,26 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     function validate(
         validateOptions: FormCompositionValidateOptions = {}
     ): FormCompositionValidationDetail {
-        const fields = getFields();
         const event = validateOptions.event ?? null;
+        if (destroyed) return inactiveValidation(event);
+        const fields = getFields();
 
-        const results = fields.map((field): FormCompositionFieldValidationDetail => {
+        const results: FormCompositionFieldValidationDetail[] = [];
+        for (const field of fields) {
             const result = field.validate({
                 trigger: "programmatic",
                 event,
                 announce: false
             });
 
-            return {
+            if (destroyed) return inactiveValidation(event);
+            results.push({
                 field,
                 control: getFieldControl(field),
                 valid: result.valid,
                 message: result.message
-            };
-        });
+            });
+        }
 
         const invalidResults = results.filter((result) => !result.valid);
 
@@ -589,32 +597,32 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         sync();
 
         if (invalidResults.length > 0) {
-            announceInvalidValidation(validateOptions, invalidResults);
+            const movedFocus = (validateOptions.focus ?? focusFirstInvalid)
+                ? focusFirstControl(invalidResults.map((result) => result.control), scrollFirstInvalid)
+                : false;
+            if (destroyed) return inactiveValidation(event);
+            announceInvalidValidation(validateOptions, invalidResults, movedFocus);
         } else {
             announceValidValidation(validateOptions);
         }
 
-        if (
-            invalidResults.length > 0
-            && (validateOptions.focus ?? focusFirstInvalid)
-        ) {
-            const firstInvalid = invalidResults[0];
-
-            if (firstInvalid) {
-                focusInvalidResult(firstInvalid);
-            }
-        }
-
+        if (destroyed) return inactiveValidation(event);
         onValidate?.(detail, composed);
 
-        return detail;
+        return destroyed ? inactiveValidation(event) : detail;
+    }
+
+    function inactiveValidation(event: Event | null): FormCompositionValidationDetail {
+        return { valid: false, state: "idle", fields: [], results: [], invalidResults: [], event };
     }
 
     function clearValidation(): void {
+        if (destroyed) return;
         validationState = "idle";
 
         for (const field of getFields()) {
             field.clearValidation?.();
+            if (destroyed) return;
         }
 
         validationAnnouncer?.clear();
@@ -645,12 +653,14 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     }
 
     function handleSubmit(event: SubmitEvent): void {
+        if (destroyed || event.defaultPrevented || event.target !== element) return;
         if (preventDefault) {
             event.preventDefault();
         }
 
         if (!validateOnSubmit) {
             onSubmit?.(createUnvalidatedSubmitDetail(event), composed);
+            if (destroyed) event.preventDefault();
             return;
         }
 
@@ -663,7 +673,15 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
             event
         );
 
+        if (destroyed) {
+            event.preventDefault();
+            return;
+        }
         onSubmit?.(detail, composed);
+        if (destroyed) {
+            event.preventDefault();
+            return;
+        }
 
         if (detail.valid) {
             onValidSubmit?.(detail, composed);
@@ -675,20 +693,30 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
     }
 
     function handleReset(event: Event): void {
+        if (destroyed || event.target !== element) return;
         resetEventHandled = true;
-        lastResetEvent = event;
+        pendingResetEvents.push(event);
         scheduleResetEffects();
     }
 
     function setFields(fields: FormValidatableField[]): void {
+        if (destroyed) return;
         optionFields = fields;
     }
 
     function setChildren(children: FormCompositionChildren | null): void {
-        bodySlot.set(resolveChildren(children));
+        if (destroyed) return;
+        const nextChildren = resolveChildren(children);
+        if (destroyed) {
+            runCleanups(collectDestroyers([...new Set(nextChildren)]).reverse());
+            return;
+        }
+        bodySlot.set(nextChildren);
+        if (destroyed) bodySlot.dispose();
     }
 
     function setActions(actions: FormCompositionContent | null): void {
+        if (destroyed) return;
         hasActions = hasCompositionContent(actions);
         actionsBar.setPrimary(actions);
         sync();
@@ -713,14 +741,17 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         clearValidation,
 
         submit(): void {
+            if (destroyed) return;
             element.requestSubmit();
         },
 
         reset(): void {
+            if (destroyed) return;
             resetEventHandled = false;
             element.reset();
 
-            if (!resetEventHandled) {
+            if (!destroyed && !resetEventHandled) {
+                pendingResetEvents.push(new Event("reset"));
                 scheduleResetEffects();
             }
         },
@@ -729,11 +760,13 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         setActions,
 
         update(nextOptions: FormCompositionUpdateOptions): void {
+            if (destroyed) return;
             applyCompositionElementOptions(element, nextOptions);
 
             if (nextOptions.fields !== undefined) setFields(nextOptions.fields);
             if ("children" in nextOptions) setChildren(nextOptions.children ?? null);
             if ("actions" in nextOptions) setActions(nextOptions.actions ?? null);
+            if (destroyed) return;
 
             if (nextOptions.actionsOptions !== undefined) {
                 actionsBar.update(getActionsBarBaseOptions(nextOptions.actionsOptions));
@@ -778,19 +811,24 @@ export function Form(options: FormCompositionOptions = {}): ComposedForm {
         },
 
         destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
             if (pendingResetFrame !== null) {
                 ownerWindow.cancelAnimationFrame(pendingResetFrame);
                 pendingResetFrame = null;
             }
-            
-            for (const cleanup of cleanups.splice(0)) {
-                cleanup();
-            }
-
-            bodySlot.dispose();
-            actionsBar.destroy();
-            validationAnnouncer?.destroy();
+            pendingResetEvents = [];
+            optionFields = [];
+            registeredFields = [];
+            contentFields = [];
+            const announcer = validationAnnouncer;
             validationAnnouncer = null;
+            runCleanups([
+                ...cleanups.splice(0),
+                () => bodySlot.dispose(),
+                () => actionsBar.destroy(),
+                () => announcer?.destroy()
+            ]);
         }
     };
 
