@@ -156,7 +156,11 @@ buttons; `setColumns()` replaces them. Native buttons provide Enter/Space activa
 `update({ columns, rows })` applies both data sets in one body render. Changing
 `emptyState` or `emptyCellOptions` does not rebuild populated rows. Body replacement
 does not reconcile by `getRowKey` or automatically move focus to another record;
-the application owns focus after deletion, filtering or page changes.
+the application owns focus after deletion and filtering. For page changes, connect
+`Pagination({ focusTarget: () => table.bodyRows[0]?.element ?? table.table, ... })`
+and update rows before committing the new page. Pagination uses the shared focus
+route, including a programmatically focusable empty-table fallback; it does not
+make every table row a Tab stop unless `rowOptions` requests that behavior.
 
 Cell renderers create independently owned content. Do not return the same composed
 instance for multiple cells or reuse an instance destroyed by an earlier render.

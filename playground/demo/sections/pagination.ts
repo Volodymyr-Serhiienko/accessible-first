@@ -1,6 +1,5 @@
-import { Grid, H3, P, Pagination, Panel, Section, Stack, type ComposedNode } from "../af";
+import { Grid, H3, P, Pagination, Panel, Section, Stack, Table, type ComposedNode } from "../af";
 import { playgroundLocale } from "../localization";
-import { announce } from "../status";
 
 const demoPageCount = 12;
 
@@ -10,24 +9,23 @@ function getPageStatus(page: number): string {
 
 export function PaginationDemo(): ComposedNode {
     let currentPage = 6;
-    const status = P({
-        text: getPageStatus(currentPage),
-        attributes: {
-            "aria-live": "polite",
-            "aria-atomic": "true"
-        }
-    });
+    const status = P({ text: getPageStatus(currentPage) });
+    const rows = (page: number) => [1, 2].map(index => `Result ${(page - 1) * 2 + index}`);
+    const table = Table({ caption: "Demo results", rows: rows(currentPage),
+        rowOptions: { attributes: { tabindex: "0" } },
+        columns: [{ id: "result", header: "Result", cell: value => value }] });
 
     const statefulPagination = Pagination({
         page: currentPage,
         pageCount: demoPageCount,
         label: "Demo result pages",
         locale: playgroundLocale,
+        focusTarget: () => table.bodyRows[0]?.element ?? table.table,
         onPageChange(detail, pagination) {
             currentPage = detail.page;
-            pagination.setPage(currentPage);
+            table.setRows(rows(currentPage));
             status.element.textContent = getPageStatus(currentPage);
-            announce(getPageStatus(currentPage));
+            pagination.setPage(currentPage);
         }
     });
 
@@ -43,6 +41,7 @@ export function PaginationDemo(): ComposedNode {
                         H3("Stateful pagination"),
                         P("Use onPageChange when the app updates the visible list without leaving the current page."),
                         status,
+                        table,
                         statefulPagination
                     )
                 ),

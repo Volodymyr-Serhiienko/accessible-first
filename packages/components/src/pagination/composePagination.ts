@@ -1,4 +1,7 @@
 import { createId } from "../../../core/src/id";
+import { isVisible } from "../../../core/src/dom";
+import { focusProgrammatically } from "../../../core/src/focus";
+import { resolveFocusRouteTarget, type FocusRouteTarget } from "../focus-route";
 import {
     applyCompositionElementOptions,
     createContentSlot,
@@ -97,6 +100,8 @@ export interface PaginationOptions extends BaseCompositionOptions {
     getCurrentPageLabel?: PaginationPageLabelResolver | null;
     getHref?: PaginationHrefResolver | null;
     onPageChange?: PaginationOnPageChange | null;
+    /** Results target resolved after a changed page is committed while focus is in Pagination. */
+    focusTarget?: FocusRouteTarget;
     siblingCount?: number;
     boundaryCount?: number;
     disabled?: boolean;
@@ -375,6 +380,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
     let getCurrentPageLabel = options.getCurrentPageLabel ?? null;
     let getHref = options.getHref ?? null;
     let onPageChange = options.onPageChange ?? null;
+    let focusTarget = options.focusTarget;
     let siblingCount = normalizeCount(options.siblingCount, 1);
     let boundaryCount = normalizeCount(options.boundaryCount, 1);
     let disabled = options.disabled ?? false;
@@ -545,8 +551,10 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
         return definitions;
     }
 
-    function renderItems(): void {
+    function renderItems(pageChanged = false): void {
         if (destroyed) return;
+        const document = element.ownerDocument;
+        const moveFocus = pageChanged && element.contains(document.activeElement);
         const current = ++revision;
         const nodes: PaginationItemNode[] = [];
         let committed = false;
@@ -568,6 +576,13 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
             runCleanups([() => content.set(nodes.map(node => ({
                 element: node.element, destroy: () => node.cleanup?.()
             }))), sync]);
+            if (moveFocus && !destroyed && current === revision) {
+                const target = resolveFocusRouteTarget(focusTarget);
+                const active = document.activeElement;
+                if (!destroyed && current === revision && target?.isConnected && target.ownerDocument === document
+                    && (active === document.body || element.contains(active))
+                    && !target.closest("[hidden], [inert]") && isVisible(target)) focusProgrammatically(target);
+            }
         } catch (error) {
             runCleanups([() => { throw error; }, discard]);
         } finally { discard(); }
@@ -578,16 +593,17 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
         const normalized = normalizePage(nextPage, pageCount);
         if (normalized === page) return;
         page = normalized;
-        renderItems();
+        renderItems(true);
     }
 
     function setPageCount(nextPageCount: number): void {
         if (destroyed) return;
         const normalized = normalizePageCount(nextPageCount);
         if (normalized === pageCount) return;
+        const previousPage = page;
         pageCount = normalized;
         page = normalizePage(page, pageCount);
-        renderItems();
+        renderItems(page !== previousPage);
     }
 
     if (!element.id) {
@@ -646,6 +662,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
             if ("getCurrentPageLabel" in nextOptions) getCurrentPageLabel = nextOptions.getCurrentPageLabel ?? null;
             if ("getHref" in nextOptions) getHref = nextOptions.getHref ?? null;
             if ("onPageChange" in nextOptions) onPageChange = nextOptions.onPageChange ?? null;
+            if ("focusTarget" in nextOptions) focusTarget = nextOptions.focusTarget;
             if ("siblingCount" in nextOptions) siblingCount = normalizeCount(nextOptions.siblingCount, 1);
             if ("boundaryCount" in nextOptions) boundaryCount = normalizeCount(nextOptions.boundaryCount, 1);
             if ("disabled" in nextOptions) disabled = nextOptions.disabled ?? false;
@@ -670,7 +687,7 @@ export function Pagination(options: PaginationOptions): ComposedPagination {
             runCleanups([
                 () => { if ("locale" in nextOptions) localeSubscription.replace(locale); },
                 () => {
-                    if (rebuild || page !== previousPage || pageCount !== previousPageCount) renderItems();
+                    if (rebuild || page !== previousPage || pageCount !== previousPageCount) renderItems(page !== previousPage);
                     else sync();
                 }
             ]);
