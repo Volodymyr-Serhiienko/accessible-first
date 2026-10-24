@@ -32,6 +32,8 @@ export interface Tooltip {
     setAnnounceOnHover(announceOnHover: boolean): void;
     setShowOnFocus(showOnFocus: boolean): void;
     getContentElement(): HTMLElement | null;
+    /** Returns the visual overlay for instance-specific styling; null when disabled or destroyed. */
+    getVisualElement(): HTMLElement | null;
     destroy(): void;
 }
 
@@ -498,6 +500,10 @@ export function createTooltip(
 
         getContentElement(): HTMLElement | null {
             return descriptionContent;
+        },
+
+        getVisualElement(): HTMLElement | null {
+            return visualContent;
         },
 
         destroy(): void {

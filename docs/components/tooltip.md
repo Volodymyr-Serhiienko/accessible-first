@@ -89,6 +89,26 @@ Popover is for richer floating content, including paragraphs, actions, or focusa
 
 Useful hooks include `[data-af-composition="tooltip"]`, `[data-af-tooltip]`, `[data-af-tooltip-visual]`, `[data-af-tooltip-content]`, `[data-af-tooltip-dismissed]`, and `[data-af-tooltip-placement]`.
 
+`createTooltip().getVisualElement()` returns that instance's overlay for a local
+class or attribute. `getContentElement()` returns the separate screen reader
+description, not the visible layer. Both return `null` when their layer is absent
+or destroyed. The visual element survives nonempty text updates, but clearing
+and restoring the text creates a new element; reapply local styling then.
+
+```ts
+const translation = createTooltip(wordButton, { text: "house" });
+translation.getVisualElement()?.classList.add("translation-tooltip");
+```
+
+```css
+.translation-tooltip {
+    font-size: 1rem;
+}
+```
+
+This does not change other tooltips. The composition wrapper's `className` does
+not style its body-level overlay through descendant selectors.
+
 ```ts
 Tooltip({
     className: "save-tooltip",

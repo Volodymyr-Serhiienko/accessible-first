@@ -44,6 +44,34 @@ function createRect(
 }
 
 describe("createTooltip", () => {
+    it("exposes only its own visual layer for local styling throughout its lifecycle", () => {
+        const first = createTooltip(createTrigger(), { text: "Translation" });
+        const second = createTooltip(createTrigger(), { text: "Tools" });
+        try {
+            const visual = first.getVisualElement();
+            expect(visual?.hasAttribute("data-af-tooltip-visual")).toBe(true);
+            expect(visual).not.toBe(first.getContentElement());
+            expect(visual).not.toBe(second.getVisualElement());
+            visual?.classList.add("translation-tooltip");
+            first.setText("Updated translation");
+            expect(first.getVisualElement()).toBe(visual);
+            expect(first.getVisualElement()?.classList.contains("translation-tooltip")).toBe(true);
+            expect(second.getVisualElement()?.classList.contains("translation-tooltip")).toBe(false);
+            first.setText(null);
+            expect(first.getVisualElement()).toBeNull();
+            expect(visual?.isConnected).toBe(false);
+            first.setText("Restored translation");
+            expect(first.getVisualElement()?.isConnected).toBe(true);
+            expect(first.getVisualElement()).not.toBe(visual);
+            first.destroy();
+            expect(first.getVisualElement()).toBeNull();
+            expect(second.getVisualElement()?.isConnected).toBe(true);
+        } finally {
+            first.destroy();
+            second.destroy();
+        }
+    });
+
     it.each(["enhancement", "composition"] as const)("%s defaults to a focus description and a hover-only visual layer", kind => {
         const trigger = createTrigger();
         const tooltip = kind === "enhancement" ? createTooltip(trigger, { text: "Draft help" })
