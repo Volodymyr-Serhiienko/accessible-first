@@ -176,9 +176,18 @@ validation. It rejects opaque/partial/error/private/no-store responses, limits
 individual bodies and total body bytes, and evicts least-recently-used entries.
 Headers/browser bookkeeping are not included in the byte budget.
 
-Unavailable/disabled Cache Storage uses a bounded in-memory fallback. Operations
-are serialized, with cross-tab Web Locks when available; without Web Locks,
-coordination across tabs is best effort. `retain` touches only this named cache.
+Unavailable/disabled Cache Storage uses a bounded in-memory fallback. Mutations
+are serialized with cross-tab Web Locks when available; without Web Locks,
+coordination across tabs is best effort. Readable hits bypass the mutation queue
+and never rewrite response bodies. Local read-recency touches merge into the
+index on the next mutation; recency across tabs/reloads is approximate.
+
+A small reserved index response inside this named cache replaces per-write file
+scans. Header-only older caches migrate on their first mutation. Missing/corrupt
+indexes and dirty markers from interrupted commits trigger repair on the next
+mutation. The index is browser bookkeeping, outside the body-byte budget, and
+cannot be read/written through public URL methods. `retain` touches only this
+named cache, never unrelated caches or private storage.
 Applications own asset integrity, offline readiness, freshness and retry policy.
 Do not store account or otherwise private responses. A browser may evict the cache.
 
